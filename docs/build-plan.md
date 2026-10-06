@@ -172,6 +172,19 @@ Tests: job fixtures for a month for 5 known plants.
 - **6c** Render shadows at the time on a date and time slider, with a play button and "today" and "midwinter / equinox / midsummer" presets.
 - **6d** `src/sun/hours.ts`: a 250 mm grid over the boundary, sampled every 15 min from sunrise to sunset on a chosen day (the 15th of the selected month). Each sample adds (1 − blocking opacity) × 0.25 h. Run it in a Web Worker if it takes over about 300 ms, and cache it until a feature or the date changes.
 - **6e** Heat map overlay (sequential palette with a legend), plus light suitability. Light thresholds: full sun ≥ 6 h, part shade 3–6 h, shade < 3 h, measured for the month the plant is in the ground (default June). These feed the `light` rule in Stage 4.
+- As built:
+  - **Shadows:** a shape's shadow is its footprint plus the band each edge sweeps along the shadow direction. This is exact for any outline, so no convex split is needed.
+  - **Trees:** the canopy is treated as a disc from 35% of the tree's height up to its top.
+  - **Leaves:** deciduous trees and hedges are in leaf from May to October.
+  - **On top of things:** anything on top of a feature (a bed's plants, a shed roof) isn't in that feature's own shadow.
+  - **Sun hours:** these use a scanline fill on the 250 mm grid. See-through shade multiplies, so two 50% hedges let a quarter of the light through. A 10 × 14 m garden with 12 features takes about 80 ms, so no Web Worker is needed. The result is cached until something that casts shade, or the location, changes, and it's worked out just after the screen has drawn.
+  - **Screen:**
+    - A Sun button (S) on the plan.
+    - The sun bar: Shadows or Sun hours; today and the solstice and equinox presets, or any date; a time slider and play.
+    - The sun marked on the compass, and a hover readout of hours at any spot.
+    - Sun hours in June shown on beds and plantings.
+  - **The light rule** uses 15 June. A plant is flagged when it gets a quarter of an hour or more below its own `minSunHours` (or 6 h for full sun, 3 h for part shade). A shade plant is flagged above 6 h.
+  - **SunCalc** 2.1.1 (BSD 2-Clause): its licence text is in Settings → Credits.
 - Stopping point: shadows match a photo at one time, and the heat map agrees for the main patches. Polish (soft edges, terrain, Clipper2 unions) waits until after gate 3.
 
 **Done when:** one fence's shadow matches a photo, which needs a clear day, so take it whenever one comes. The heat map agrees for the main patches.

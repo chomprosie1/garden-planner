@@ -6,6 +6,7 @@ import { formatLength } from '../canvas/viewport';
 import { distance, distanceToSegment, pointInPolygon } from '../geometry/polygon';
 import { featureLabel } from '../model/features';
 import type { Garden, Plant, Planting, Point } from '../model/types';
+import { averageHours, type SunGrid } from '../sun/hours';
 import { activePlantings, plantCount, plantingShape, plantPositions, rowSpacingOf, type PlantingShape } from './place';
 
 export type FindingKind = 'spacing' | 'row' | 'outside' | 'no-bed' | 'avoid' | 'good' | 'light';
@@ -27,9 +28,10 @@ export const NEIGHBOUR_MM = 1000;
 
 type PlantOf = (id: string) => Plant;
 
-export function checkGarden(g: Garden, plantOf: PlantOf): Finding[] {
+/** Checks everything. With a sun-hours grid (normally June's), light is checked too. */
+export function checkGarden(g: Garden, plantOf: PlantOf, sun: SunGrid | null = null): Finding[] {
   const active = activePlantings(g);
-  const findings = [...checkPlacement(g, active, plantOf), ...checkSpacing(active, plantOf), ...checkNeighbours(g, active, plantOf), ...checkLight()];
+  const findings = [...checkPlacement(g, active, plantOf), ...checkSpacing(active, plantOf), ...checkNeighbours(g, active, plantOf), ...checkLight(active, plantOf, sun)];
   return findings.sort((a, b) => (a.level === b.level ? 0 : a.level === 'warn' ? -1 : 1));
 }
 
@@ -164,10 +166,33 @@ function checkNeighbours(g: Garden, active: Planting[], plantOf: PlantOf): Findi
 
 // ---------- Light ----------
 
-/** Sun-hours per bed arrive with the sun and shade layer (Stage 6); until then there's nothing to check. */
-export function checkLight(): Finding[] {
-  return [];
+/** Sun a plant wants: its own figure if it has one, otherwise full sun 6 h, part shade 3 h, shade none. */
+export function sunNeeded(p: Plant): number {
+  return p.conditions.minSunHours ?? (p.conditions.light === 'full-sun' ? 6 : p.conditions.light === 'part-shade' ? 3 : 0);
 }
+
+/** Plants in too little sun, or shade lovers in too much, measured from a day's sun-hours grid. */
+export function checkLight(active: Planting[], plantOf: PlantOf, sun: SunGrid | null): Finding[] {
+  if (!sun) return [];
+  const out: Finding[] = [];
+  const month = MONTHS[sun.month - 1];
+  for (const pl of active) {
+    const plant = plantOf(pl.plantId);
+    const hours = averageHours(sun, plantPositions(pl, plant));
+    if (hours === null) continue;
+    const got = `${describe(pl, plant)} gets about ${formatHours(hours)} of direct sun a day in ${month}`;
+    const need = sunNeeded(plant);
+    const base = { id: `light:${pl.id}`, kind: 'light' as const, level: 'warn' as const, plantingIds: [pl.id], featureIds: [pl.featureId] };
+    if (hours < need - LIGHT_SLACK_H) out.push({ ...base, message: `${got}; it wants ${formatHours(need)} or more.` });
+    else if (plant.conditions.light === 'shade' && hours > 6) out.push({ ...base, message: `${got}; it prefers shade and may scorch.` });
+  }
+  return out;
+}
+
+/** A quarter of an hour short isn't worth a warning. */
+export const LIGHT_SLACK_H = 0.25;
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+export const formatHours = (h: number) => `${Math.round(h * 2) / 2} h`;
 
 // ---------- Words ----------
 

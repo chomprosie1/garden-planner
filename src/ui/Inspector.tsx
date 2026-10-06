@@ -19,8 +19,9 @@ import { updateGarden, type Store } from '../model/store';
 import type { Feature, FeatureKind, Garden, Plant, Point } from '../model/types';
 import { todayIso } from '../model/ids';
 import { monthRanges } from '../library/library';
-import { clearBed, deletePlanting, harvestPlantings, isContainer, plantCount, restorePlanting, rowSpacingOf, setRowCount, spreadOf, updatePlanting } from '../planting/place';
-import type { Finding } from '../planting/rules';
+import { clearBed, deletePlanting, harvestPlantings, isContainer, plantCount, plantPositions, restorePlanting, rowSpacingOf, setRowCount, spreadOf, updatePlanting } from '../planting/place';
+import { formatHours, sunNeeded, type Finding } from '../planting/rules';
+import { areaHours, averageHours, type SunGrid } from '../sun/hours';
 import { FindingsList } from './Findings';
 import { formatDate, NotesSection } from './NotesSection';
 import { deleteBlob, saveBlob } from '../storage/idb';
@@ -41,6 +42,7 @@ interface Props {
   setFocusFinding: (id: string | null) => void;
   onPickFinding?: (f: Finding) => void;
   colourOf: (plantId: string) => string;
+  sunJune: SunGrid | null;
   /** Opens the Plant tool. */
   startPlanting: () => void;
 }
@@ -54,6 +56,8 @@ interface Plants {
   onPickFinding?: (f: Finding) => void;
   /** The colour a plant is drawn in on the plan. */
   colourOf: (plantId: string) => string;
+  /** Sun hours on 15 June, for showing how sunny a bed or planting is. */
+  sunJune: SunGrid | null;
 }
 
 const LAYOUT_LABEL = { single: 'Plant', row: 'Row', block: 'Block' } as const;
@@ -455,20 +459,26 @@ function PlantChecks({ garden, findings, focusFinding, setFocusFinding, onPickFi
           <FindingsList findings={findings} focus={focusFinding} setFocus={setFocusFinding} {...(onPickFinding ? { onPick: onPickFinding } : {})} />
         </>
       )}
-      <p class="assumption">Sun and shade aren't checked yet; that comes with the sun layer.</p>
+      <p class="assumption">Light is checked against the sun each planting gets on 15 June, from what you've drawn. Assumes flat ground.</p>
     </section>
   );
 }
 
 /** On a bed: what's growing, its checks, clearing it, and what grew before. */
-function BedPlanting({ store, garden, bed, setSelected, startPlanting, plantOf, findings, focusFinding, setFocusFinding, onPickFinding, colourOf }: Plants & { store: Store; garden: Garden; bed: Feature; setSelected: (t: Target | null) => void; startPlanting: () => void }) {
+function BedPlanting({ store, garden, bed, setSelected, startPlanting, plantOf, findings, focusFinding, setFocusFinding, onPickFinding, colourOf, sunJune }: Plants & { store: Store; garden: Garden; bed: Feature; setSelected: (t: Target | null) => void; startPlanting: () => void }) {
   const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
   const here = garden.plantings.filter((p) => p.featureId === bed.id);
   const growing = here.filter((p) => !p.removedOn);
   const past = here.filter((p) => p.removedOn).sort((a, b) => b.removedOn!.localeCompare(a.removedOn!));
   const mine = findings.filter((f) => f.featureIds.includes(bed.id));
+  const sun = sunJune ? areaHours(sunJune, bed.footprint) : null;
   return (
     <>
+      {sun !== null && (
+        <p class="sun-fact">
+          <span aria-hidden="true">☀</span> About <strong>{formatHours(sun)}</strong> of direct sun a day in June: {sun >= 6 ? 'full sun' : sun >= 3 ? 'part shade' : 'shade'}.
+        </p>
+      )}
       <section class="inspector-section">
         <h3>Growing here</h3>
         {growing.length === 0 ? (
@@ -527,7 +537,7 @@ function BedPlanting({ store, garden, bed, setSelected, startPlanting, plantOf, 
   );
 }
 
-function PlantingPanel({ store, garden, id, setSelected, plantOf, findings, focusFinding, setFocusFinding, onPickFinding }: Plants & { store: Store; garden: Garden; id: string; setSelected: (t: Target | null) => void }) {
+function PlantingPanel({ store, garden, id, setSelected, plantOf, findings, focusFinding, setFocusFinding, onPickFinding, sunJune }: Plants & { store: Store; garden: Garden; id: string; setSelected: (t: Target | null) => void }) {
   const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
   const pl = garden.plantings.find((x) => x.id === id)!;
   const plant = plantOf(pl.plantId);
@@ -536,6 +546,7 @@ function PlantingPanel({ store, garden, id, setSelected, plantOf, findings, focu
   const layout = pl.layout ?? 'single';
   const mine = findings.filter((f) => f.plantingIds.includes(pl.id));
   const length = pl.endPoint ? Math.hypot(pl.endPoint[0] - pl.x, pl.endPoint[1] - pl.y) : 0;
+  const sun = sunJune ? averageHours(sunJune, plantPositions(pl, plant)) : null;
   return (
     <div class="inspector-body">
       <div>
@@ -565,6 +576,14 @@ function PlantingPanel({ store, garden, id, setSelected, plantOf, findings, focu
         )}
         <dt>Spread</dt>
         <dd>{formatLength(spreadOf(plant))}</dd>
+        {sun !== null && (
+          <>
+            <dt>Sun in June</dt>
+            <dd>
+              {formatHours(sun)} a day <span class="muted">(wants {formatHours(sunNeeded(plant))})</span>
+            </dd>
+          </>
+        )}
         {plant.cropping?.harvestMonths.length ? (
           <>
             <dt>Harvest</dt>

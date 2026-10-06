@@ -21,6 +21,7 @@ import {
   unknownPlant,
 } from '../src/planting/place';
 import { checkGarden, closest } from '../src/planting/rules';
+import { sunHours } from '../src/sun/hours';
 
 const library = vegetables as Plant[];
 const byId = new Map(library.map((p) => [p.id, p]));
@@ -291,5 +292,27 @@ describe('neighbour rules', () => {
     const { g: g0, a } = garden();
     const g = addPlanting(addPlanting(g0, one('calabrese', a, [1500, 1600])), one('tomato', a, [3500, 1600]));
     expect(kinds(g)).toEqual(['avoid']);
+  });
+});
+
+describe('light rule', () => {
+  it('flags tomatoes behind a tall building, with the hours, and leaves open ground alone', () => {
+    const { g: g0, a } = garden();
+    // Bed A runs x 1000–4000, y 1000–2200. 6 m buildings to its south, west and east: a shady corner.
+    // (A south wall alone isn't enough in June: the sun rises and sets in the north, so it still gets 8 h.)
+    let shaded = g0;
+    for (const r of [{ x: 0, y: 0, w: 10000, h: 800 }, { x: 0, y: 0, w: 800, h: 6000 }, { x: 4200, y: 0, w: 800, h: 6000 }])
+      shaded = addFeature(shaded, { ...makeFeature('building', { area: rectPoints(r) }), heightMm: 6000 });
+    shaded = addPlanting(shaded, row('tomato', a, [1200, 1300], [3800, 1300]));
+    const f = checkGarden(shaded, plant, sunHours(shaded, 6, 2026)).filter((x) => x.kind === 'light');
+    expect(f.length).toBe(1);
+    expect(f[0]!.message).toMatch(/^The row of tomato gets about [\d.]+ h of direct sun a day in June; it wants 7 h or more\.$/);
+    const open = addPlanting(g0, row('tomato', a, [1200, 1300], [3800, 1300]));
+    expect(checkGarden(open, plant, sunHours(open, 6, 2026)).filter((x) => x.kind === 'light')).toEqual([]);
+  });
+
+  it('is quiet with no sun grid', () => {
+    const { g: g0, a } = garden();
+    expect(checkGarden(addPlanting(g0, row('tomato', a, [1200, 1300], [3800, 1300])), plant, null)).toEqual([]);
   });
 });

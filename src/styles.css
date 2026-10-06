@@ -2099,3 +2099,95 @@ button:disabled {
 .sowing-add .btn {
   min-height: 44px;
 }
+
+/* ---------- Sun and shade ---------- */
+.sun-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.6rem var(--gutter, 1rem);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.sun-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+.sun-preset,
+.sun-date {
+  min-height: 38px;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+}
+.sun-time {
+  flex: 1 1 14rem;
+  display: flex;
+}
+.sun-time input {
+  width: 100%;
+  accent-color: #e0a21b;
+}
+.sun-readout {
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+.sun-legend-row {
+  align-items: flex-start;
+}
+.sun-legend {
+  position: relative;
+  flex: 0 1 18rem;
+  min-width: 12rem;
+  padding-bottom: 1.1rem;
+}
+.sun-legend-bar {
+  display: block;
+  height: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.sun-legend-ticks span {
+  position: absolute;
+  top: 15px;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.sun-legend-ticks span:first-child {
+  transform: none;
+}
+.sun-legend-ticks span:last-child {
+  transform: translateX(-100%);
+}
+.sun-legend-row .sun-readout {
+  flex: 1 1 16rem;
+}
+.sun-note {
+  margin: 0;
+}
+.sun-fact {
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--radius);
+  background: var(--surface2);
+  font-size: 0.92rem;
+}
+@media (max-width: 700px) {
+  .sun-bar {
+    padding: 0.5rem var(--gutter);
+    gap: 0.35rem;
+  }
+  .sun-date {
+    flex: 1;
+  }
+  .sun-note {
+    display: none;
+  }
+}

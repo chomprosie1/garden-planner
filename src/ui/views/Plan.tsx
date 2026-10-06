@@ -4,7 +4,12 @@ import type { Store } from '../../model/store';
 import type { FeatureKind, Garden, Plant, Point } from '../../model/types';
 import type { Layout } from '../../planting/place';
 import { usePlants } from '../usePlants';
-import { checkGarden, type Finding } from '../../planting/rules';
+import { checkGarden, formatHours, type Finding } from '../../planting/rules';
+import { hoursAt } from '../../sun/hours';
+import { fromUkClock, sunAt, sunDay, ukClock } from '../../sun/position';
+import { shadowsAt } from '../../sun/shadow';
+import { clockText, SunBar, type CalendarDate, type SunView } from '../SunBar';
+import { useSunHours } from '../useSunHours';
 import { PlantPicker } from '../PlantPicker';
 import { cropColour } from '../../canvas/render';
 import { resolveMode } from '../../theme/apply';
@@ -73,6 +78,16 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
   const [focusFinding, setFocusFinding] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
+  // Sun and shade.
+  const clock = ukClock(now);
+  const today: CalendarDate = { year: clock.year, month: clock.month, day: clock.day };
+  const [sunOn, setSunOn] = useState(false);
+  const [sunView, setSunView] = useState<SunView>('shadows');
+  const [sunDate, setSunDate] = useState<CalendarDate>(today);
+  const [minutes, setMinutes] = useState(clock.hour * 60 + clock.minute);
+  const [playing, setPlaying] = useState(false);
+  const [hoverPoint, setHoverPoint] = useState<Point | null>(null);
+
   const focus = prefs.focus ?? LOOKS[prefs.look].focusByDefault;
   const showPhoto = prefs.photos === 'full' && !focus;
   const month = now.getMonth() + 1;
@@ -89,8 +104,37 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
   };
 
   const { plants, plantOf } = usePlants(userPlants);
+  const day = useMemo(() => sunDay(sunDate.year, sunDate.month, sunDate.day, garden.latitude, garden.longitude), [sunDate, garden.latitude, garden.longitude]);
+  const minutesOf = (d: Date | null, fallback: number) => {
+    if (!d) return fallback;
+    const c = ukClock(d);
+    return c.hour * 60 + c.minute;
+  };
+  const rise = minutesOf(day.sunrise, 0);
+  const set = minutesOf(day.sunset, 24 * 60 - 1);
+  // Night-time on the chosen day shows noon instead, so there's always something to see.
+  const shownMinutes = minutes < rise || minutes > set ? minutesOf(day.noon, 12 * 60) : minutes;
+  const sun = useMemo(
+    () => (sunOn ? sunAt(fromUkClock(sunDate.year, sunDate.month, sunDate.day, Math.floor(shownMinutes / 60), shownMinutes % 60), garden.latitude, garden.longitude) : null),
+    [sunOn, sunDate, shownMinutes, garden.latitude, garden.longitude],
+  );
+  const shadows = useMemo(
+    () => (sun && sunView === 'shadows' ? shadowsAt(garden, sun, sunDate.month) : null),
+    [sun, sunView, garden.features, garden.northRotationDeg, sunDate.month],
+  );
+  const viewGrid = useSunHours(garden, sunDate.month, sunDate.year, sunOn && sunView === 'hours');
+  useEffect(() => {
+    if (!playing) return;
+    const t = setInterval(() => setMinutes((m) => (m + 10 > set || m < rise ? rise : m + 10)), 120);
+    return () => clearInterval(t);
+  }, [playing, rise, set]);
+
+  // Light is checked against June's sun hours, worked out once the plan has drawn.
+  const growing = garden.plantings.some((p) => !p.removedOn);
+  const juneGrid = useSunHours(garden, 6, today.year, growing && !!plants);
   // Checks wait for the library, so plants never show as "unknown" for a moment.
-  const findings: Finding[] = useMemo(() => (plants ? checkGarden(garden, plantOf) : []), [garden, plantOf, plants]);
+  const findings: Finding[] = useMemo(() => (plants ? checkGarden(garden, plantOf, juneGrid ?? null) : []), [garden, plantOf, plants, juneGrid]);
+  const hoverHours = sunOn && sunView === 'hours' && viewGrid && hoverPoint ? hoursAt(viewGrid, hoverPoint) : null;
   const warnings = findings.filter((f) => f.level === 'warn').length;
   const placing: Placing | null = useMemo(() => (plantId && plants ? { plant: plantOf(plantId), layout } : null), [plantId, layout, plants, plantOf]);
 
@@ -110,6 +154,19 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
       setSheetOpen(false);
     }
   };
+
+  // S shows or hides sun and shade.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (e.ctrlKey || e.metaKey || e.altKey || e.key.toLowerCase() !== 's') return;
+      if (t && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName))) return;
+      setSunOn((on) => !on);
+      setPlaying(false);
+    };
+    addEventListener('keydown', onKey);
+    return () => removeEventListener('keydown', onKey);
+  }, []);
 
   // Follow light/dark changes from the device.
   useEffect(() => {
@@ -173,6 +230,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
       onPickFinding={showFinding}
       colourOf={(id) => cropColour(id, mode)}
       startPlanting={() => setTool('plant')}
+      sunJune={juneGrid ?? null}
     />
   );
 
@@ -263,6 +321,19 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
           <button
             type="button"
             class="icon-btn"
+            aria-pressed={sunOn}
+            aria-label={sunOn ? 'Hide sun and shade' : 'Show sun and shade'}
+            title="Sun and shade (S)"
+            onClick={() => {
+              setSunOn(!sunOn);
+              setPlaying(false);
+            }}
+          >
+            <Icon name="sun" />
+          </button>
+          <button
+            type="button"
+            class="icon-btn"
             aria-pressed={focus}
             aria-label={focus ? 'Focus is on: photos hidden. Show photos' : 'Focus: hide photos'}
             title="Focus (F)"
@@ -273,6 +344,23 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
         </div>
       </header>
 
+      {sunOn && (
+        <SunBar
+          view={sunView}
+          setView={setSunView}
+          today={today}
+          date={sunDate}
+          setDate={setSunDate}
+          minutes={shownMinutes}
+          setMinutes={setMinutes}
+          playing={playing}
+          setPlaying={setPlaying}
+          day={day}
+          sun={sun}
+          grid={viewGrid}
+          defaultLocation={garden.latitude === 52.5 && garden.longitude === -1.5}
+        />
+      )}
       <div class="plan-body">
         <main class="plan-stage">
           {showPhoto && <SeasonPhoto month={photoMonth} sizes="100vw" class="plan-margin-photo" credit={false} />}
@@ -303,6 +391,10 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
               focusFinding={focusFinding}
               placing={placing}
               onMessage={setMessage}
+              shadows={shadows}
+              sunGrid={sunOn && sunView === 'hours' ? (viewGrid ?? null) : null}
+              sun={sun}
+              onHoverPoint={setHoverPoint}
             />
             {empty && tool === 'select' && (
               <div class="plan-empty">
@@ -319,10 +411,10 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
             )}
             {!phone && (
               <p class={`plan-hint ${message ? 'plan-message' : ''}`} role="status">
-                {message ?? hintFor(tool)}
+                {message ?? (hoverHours !== null ? `About ${formatHours(hoverHours)} of direct sun here on 15 ${new Date(2000, sunDate.month - 1).toLocaleString('en-GB', { month: 'long' })}.` : sunOn && sunView === 'shadows' ? `Shadows at ${clockText(shownMinutes)}. Drag the slider or press play to watch them move.` : hintFor(tool))}
               </p>
             )}
-            {phone && !drawing && tool !== 'plant' && !showSheet && !empty && <p class="plan-hint">Tap something to select it; tap again and drag to move it. Pinch to zoom.</p>}
+            {phone && !drawing && tool !== 'plant' && !showSheet && !empty && !sunOn && <p class="plan-hint">Tap something to select it; tap again and drag to move it. Pinch to zoom.</p>}
           </div>
         </main>
         {!phone && (

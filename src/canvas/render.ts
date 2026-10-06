@@ -6,6 +6,9 @@ import { featureLabel, isClosed, pointsOf, type Target } from '../model/features
 import type { Feature, Garden, Plant, Planting, Point } from '../model/types';
 import { blockGrid, isActive, MAX_PLANTS, plantCount, plantingShape, plantPositions, rowCount, spreadOf, type Layout, type PlantingShape } from '../planting/place';
 import type { Finding } from '../planting/rules';
+import type { SunGrid } from '../sun/hours';
+import type { Sun } from '../sun/position';
+import type { Shade } from '../sun/shadow';
 import { LOOKS, type LookId, type Mode, type PlanPalette } from '../theme/looks';
 import type { SnapKind } from './snap';
 import { formatLength, gridStep, scaleBarLength, toScreen, type Viewport } from './viewport';
@@ -68,6 +71,12 @@ export interface Scene {
   /** The finding picked in the warnings list, drawn strongly. */
   focusFinding?: string | null;
   plantDraft?: PlantDraft | null;
+  /** Shadows at the chosen moment. */
+  shadows?: Shade[] | null;
+  /** Sun-hours heat map. */
+  sunGrid?: SunGrid | null;
+  /** Where the sun is, marked on the compass. */
+  sun?: Sun | null;
 }
 
 /** A planting being placed: the plant, how it's laid out, and the points so far. */
@@ -242,6 +251,8 @@ export function render(ctx: CanvasRenderingContext2D, s: Scene) {
   for (const f of g.features) drawFeature(ctx, s, f, pats);
   const planted = s.plantOf ? g.plantings.filter(isActive) : [];
   for (const pl of planted) drawPlanting(ctx, s, pl, s.plantOf!(pl.plantId));
+  if (s.sunGrid) drawHeatMap(ctx, s, s.sunGrid);
+  if (s.shadows) drawShadows(ctx, s, s.shadows);
   if (planted.length) drawFindings(ctx, s);
   const bedsInUse = new Set(planted.map((p) => p.featureId));
   for (const f of g.features) drawLabel(ctx, s, f, bedsInUse.has(f.id));
@@ -643,6 +654,128 @@ function drawNorth(ctx: CanvasRenderingContext2D, s: Scene) {
   ctx.textBaseline = 'middle';
   ctx.fillStyle = P.label;
   ctx.fillText('N', 0, -NORTH_RADIUS - 8);
+  ctx.restore();
+  if (s.sun && s.sun.altitude > 0) {
+    // The sun on the compass ring, in the direction it's shining from.
+    const b = ((s.sun.azimuth + s.garden.northRotationDeg) * Math.PI) / 180;
+    const x = cx + Math.sin(b) * NORTH_RADIUS;
+    const y = cy - Math.cos(b) * NORTH_RADIUS;
+    ctx.beginPath();
+    ctx.arc(x, y, 6, 0, Math.PI * 2);
+    ctx.fillStyle = SUN_COLOUR;
+    ctx.fill();
+    ctx.strokeStyle = P.label;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+}
+
+// ---------- Sun and shade ----------
+
+const SUN_COLOUR = '#f2b632';
+const SHADOW: Record<Mode, { colour: string; alpha: number }> = {
+  light: { colour: '#1d2433', alpha: 0.34 },
+  dark: { colour: '#000000', alpha: 0.62 },
+};
+
+/** Each shadow, but not over the thing casting it: a shed's roof isn't in its own shadow. */
+function drawShadows(ctx: CanvasRenderingContext2D, s: Scene, shades: Shade[]) {
+  const v = s.view;
+  const { colour, alpha } = SHADOW[s.style.mode];
+  for (const sh of shades) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, s.width, s.height);
+    sh.own.forEach((p, i) => {
+      const [x, y] = toScreen(v, p);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.clip('evenodd');
+    // One path for all the pieces, so overlaps within one shadow aren't darker.
+    ctx.beginPath();
+    for (const poly of sh.polygons) {
+      poly.forEach((p, i) => {
+        const [x, y] = toScreen(v, p);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+    }
+    ctx.globalAlpha = alpha * sh.opacity;
+    ctx.fillStyle = colour;
+    ctx.fill('nonzero');
+    ctx.restore();
+  }
+}
+
+/** Colours for sun hours, dark (shade) to bright (sun). Hours past the last stop share its colour. */
+export const HOURS_STOPS: [number, string][] = [
+  [0, '#2d1b5a'],
+  [3, '#3b5ba5'],
+  [6, '#2fa38a'],
+  [9, '#a6d05a'],
+  [12, '#fde74c'],
+];
+
+export function hoursColour(h: number): [number, number, number] {
+  const hex = (c: string): [number, number, number] => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16)) as [number, number, number];
+  const stops = HOURS_STOPS;
+  if (h <= stops[0]![0]) return hex(stops[0]![1]);
+  for (let i = 1; i < stops.length; i++) {
+    const [h1, c1] = stops[i]!;
+    const [h0, c0] = stops[i - 1]!;
+    if (h <= h1) {
+      const t = (h - h0) / (h1 - h0);
+      const a = hex(c0);
+      const b = hex(c1);
+      return [0, 1, 2].map((k) => Math.round(a[k]! + (b[k]! - a[k]!) * t)) as [number, number, number];
+    }
+  }
+  return hex(stops[stops.length - 1]![1]);
+}
+
+const heatCache = new WeakMap<SunGrid, HTMLCanvasElement>();
+
+/** The grid as a small image, one pixel per cell, smoothed as it's scaled up. */
+function heatImage(grid: SunGrid): HTMLCanvasElement {
+  const hit = heatCache.get(grid);
+  if (hit) return hit;
+  const c = document.createElement('canvas');
+  c.width = grid.cols;
+  c.height = grid.rows;
+  const ctx = c.getContext('2d')!;
+  const img = ctx.createImageData(grid.cols, grid.rows);
+  for (let r = 0; r < grid.rows; r++) {
+    for (let col = 0; col < grid.cols; col++) {
+      const i = r * grid.cols + col;
+      if (!grid.inside[i]) continue;
+      const [R, G, B] = hoursColour(grid.hours[i]!);
+      // Image rows run top down; grid rows run bottom up.
+      const o = ((grid.rows - 1 - r) * grid.cols + col) * 4;
+      img.data[o] = R;
+      img.data[o + 1] = G;
+      img.data[o + 2] = B;
+      img.data[o + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  heatCache.set(grid, c);
+  return c;
+}
+
+function drawHeatMap(ctx: CanvasRenderingContext2D, s: Scene, grid: SunGrid) {
+  const v = s.view;
+  const [x, y] = toScreen(v, [grid.x0, grid.y0 + grid.rows * grid.step]);
+  ctx.save();
+  if (s.garden.boundary.length >= 3) {
+    polyPath(ctx, s.garden.boundary.map((p) => toScreen(v, p)));
+    ctx.clip();
+  }
+  ctx.globalAlpha = 0.72;
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(heatImage(grid), x, y, grid.cols * grid.step * v.scale, grid.rows * grid.step * v.scale);
   ctx.restore();
 }
 

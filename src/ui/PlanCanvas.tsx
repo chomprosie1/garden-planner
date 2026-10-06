@@ -31,6 +31,9 @@ import { updateGarden, type Store } from '../model/store';
 import type { FeatureKind, Garden, Plant, Point } from '../model/types';
 import { addPlanting, blockGrid, containerAt, deletePlanting, makePlanting, MAX_PLANTS, movePlanting, rowCount, updatePlanting, type Layout } from '../planting/place';
 import type { Finding } from '../planting/rules';
+import type { SunGrid } from '../sun/hours';
+import type { Sun } from '../sun/position';
+import type { Shade } from '../sun/shadow';
 import type { LookId, Mode } from '../theme/looks';
 
 export type Tool = 'select' | 'boundary' | 'calibrate' | 'trace' | 'plant' | FeatureKind;
@@ -90,6 +93,11 @@ export interface PlanCanvasProps {
   findings: Finding[];
   focusFinding: string | null;
   placing: Placing | null;
+  shadows?: Shade[] | null;
+  sunGrid?: SunGrid | null;
+  sun?: Sun | null;
+  /** The garden point under a mouse pointer, or null when it leaves. */
+  onHoverPoint?: (p: Point | null) => void;
   /** A short message about the last action, e.g. why a plant couldn't go there. null clears it. */
   onMessage?: (text: string | null) => void;
 }
@@ -190,6 +198,9 @@ export function PlanCanvas(props: PlanCanvasProps) {
       findings: p.findings,
       focusFinding: p.focusFinding,
       plantDraft,
+      shadows: p.shadows ?? null,
+      sunGrid: p.sunGrid ?? null,
+      sun: p.sun ?? null,
     });
   };
   const redraw = () => {
@@ -244,7 +255,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
   }
   useEffect(redraw, [drawKey]);
 
-  useEffect(redraw, [props.garden, props.look, props.mode, props.selected, props.selectedVertex, props.traceImage, props.findings, props.focusFinding]);
+  useEffect(redraw, [props.garden, props.look, props.mode, props.selected, props.selectedVertex, props.traceImage, props.findings, props.focusFinding, props.shadows, props.sunGrid, props.sun]);
 
   // ---------- helpers ----------
 
@@ -633,6 +644,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
     }
 
     if (e.pointerType === 'mouse') {
+      p.onHoverPoint?.(world);
       const g = garden();
       const h = hitPlanting(g, p.plantOf, world, tolMm(3))?.id ?? hitFeature(g, world, tolMm(6))?.id ?? null;
       if (h !== hover.current) {
@@ -932,6 +944,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
+        onPointerLeave={() => props.onHoverPoint?.(null)}
         onDblClick={onDoubleClick}
         onWheel={onWheel}
         onDragOver={onDragOver}
