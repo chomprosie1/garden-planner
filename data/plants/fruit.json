@@ -1,0 +1,795 @@
+[
+  {
+    "id": "strawberry",
+    "commonName": "Strawberry",
+    "latinName": "Fragaria × ananassa",
+    "category": "fruit",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Fertile, free-draining",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 250,
+      "spreadMm": 400,
+      "spacingMm": 400,
+      "rowSpacingMm": 750
+    },
+    "plantOutMonths": [
+      3,
+      4,
+      7,
+      8,
+      9
+    ],
+    "cropping": {
+      "harvestMonths": [
+        6,
+        7
+      ],
+      "notes": "Summer kinds crop in June and July: pick fully red fruit with the stalk every day or two."
+    },
+    "flowerMonths": [
+      5
+    ],
+    "lookOutFor": [
+      "Tuck straw under the fruit to keep it clean. Replace plants every three years."
+    ],
+    "pests": [
+      {
+        "name": "Birds",
+        "signs": "Fruit pecked or stripped as it ripens",
+        "control": "Net plants, or grow them in a fruit cage, before the fruit colours."
+      },
+      {
+        "name": "Slugs and snails",
+        "signs": "Young plants eaten, especially on damp nights",
+        "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
+      },
+      {
+        "name": "Grey mould",
+        "signs": "Fluffy grey mould on the fruit",
+        "control": "Pick off affected fruit and give plants space for air."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Cut off the old leaves after fruiting."
+    },
+    "source": "Check against: RHS – strawberries; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "raspberry",
+    "commonName": "Raspberry",
+    "latinName": "Rubus idaeus",
+    "category": "fruit",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Slightly acid, moisture-retentive",
+      "moisture": "moist",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 1800,
+      "spreadMm": 450,
+      "spacingMm": 450,
+      "rowSpacingMm": 1800
+    },
+    "plantOutMonths": [
+      11,
+      12,
+      1,
+      2,
+      3
+    ],
+    "cropping": {
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "notes": "Summer kinds fruit June–July, autumn kinds August–October."
+    },
+    "lookOutFor": [
+      "Grow summer kinds along wires; plant canes 5 cm deep and cut them to 25 cm."
+    ],
+    "pests": [
+      {
+        "name": "Birds",
+        "signs": "Fruit pecked or stripped as it ripens",
+        "control": "Net plants, or grow them in a fruit cage, before the fruit colours."
+      },
+      {
+        "name": "Raspberry beetle",
+        "signs": "Small grubs inside ripe fruit",
+        "control": "Lightly fork the soil round the canes in winter so birds can find the pupae."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Summer kinds: cut fruited canes to the ground after picking. Autumn kinds: cut all canes down in late winter."
+    },
+    "source": "Check against: RHS – raspberries; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "blackberry",
+    "commonName": "Blackberry",
+    "latinName": "Rubus fruticosus",
+    "category": "fruit",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 5,
+      "soil": "Any reasonable soil",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 2000,
+      "spreadMm": 3000,
+      "spacingMm": 3000,
+      "rowSpacingMm": 2000
+    },
+    "plantOutMonths": [
+      11,
+      12,
+      1,
+      2,
+      3
+    ],
+    "cropping": {
+      "harvestMonths": [
+        7,
+        8,
+        9
+      ]
+    },
+    "lookOutFor": [
+      "Thornless kinds are easier to train along wires or a fence."
+    ],
+    "pests": [
+      {
+        "name": "Birds",
+        "signs": "Fruit pecked or stripped as it ripens",
+        "control": "Net plants, or grow them in a fruit cage, before the fruit colours."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Cut out the canes that fruited; tie in the new ones."
+    },
+    "source": "Check against: RHS – blackberries; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "blackcurrant",
+    "commonName": "Blackcurrant",
+    "latinName": "Ribes nigrum",
+    "category": "fruit",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Fertile, moisture-retentive",
+      "moisture": "moist",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 1500,
+      "spreadMm": 1500,
+      "spacingMm": 1500,
+      "rowSpacingMm": 1800
+    },
+    "plantOutMonths": [
+      11,
+      12,
+      1,
+      2,
+      3
+    ],
+    "cropping": {
+      "harvestMonths": [
+        7
+      ]
+    },
+    "lookOutFor": [
+      "Plant 5 cm deeper than it grew in the pot, so new shoots come from below ground."
+    ],
+    "pests": [
+      {
+        "name": "Birds",
+        "signs": "Fruit pecked or stripped as it ripens",
+        "control": "Net plants, or grow them in a fruit cage, before the fruit colours."
+      },
+      {
+        "name": "Big bud mite",
+        "signs": "Swollen, round buds in winter",
+        "control": "Pick off and remove swollen buds."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Prune in winter, removing about a third of the oldest stems."
+    },
+    "source": "Check against: RHS – blackcurrants; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "redcurrant",
+    "commonName": "Redcurrant",
+    "latinName": "Ribes rubrum",
+    "category": "fruit",
+    "conditions": {
+      "light": "part-shade",
+      "minSunHours": 4,
+      "soil": "Free-draining",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 1500,
+      "spreadMm": 1500,
+      "spacingMm": 1500,
+      "rowSpacingMm": 1500
+    },
+    "plantOutMonths": [
+      11,
+      12,
+      1,
+      2,
+      3
+    ],
+    "cropping": {
+      "harvestMonths": [
+        7,
+        8
+      ]
+    },
+    "lookOutFor": [
+      "Copes with a north-facing wall; can be trained as a cordon."
+    ],
+    "pests": [
+      {
+        "name": "Birds",
+        "signs": "Fruit pecked or stripped as it ripens",
+        "control": "Net plants, or grow them in a fruit cage, before the fruit colours."
+      },
+      {
+        "name": "Sawfly larvae",
+        "signs": "Leaves stripped by green caterpillar-like larvae",
+        "control": "Check under the lowest leaves from spring and pick the larvae off by hand."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Prune in winter to an open goblet shape."
+    },
+    "source": "Check against: RHS – redcurrants; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "gooseberry",
+    "commonName": "Gooseberry",
+    "latinName": "Ribes uva-crispa",
+    "category": "fruit",
+    "conditions": {
+      "light": "part-shade",
+      "minSunHours": 4,
+      "soil": "Free-draining",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 1200,
+      "spreadMm": 1500,
+      "spacingMm": 1500,
+      "rowSpacingMm": 1500
+    },
+    "plantOutMonths": [
+      11,
+      12,
+      1,
+      2,
+      3
+    ],
+    "cropping": {
+      "harvestMonths": [
+        6,
+        7,
+        8
+      ],
+      "notes": "Thin in late May for cooking; leave the rest to ripen."
+    },
+    "pests": [
+      {
+        "name": "Sawfly larvae",
+        "signs": "Leaves stripped by green caterpillar-like larvae",
+        "control": "Check under the lowest leaves from spring and pick the larvae off by hand."
+      },
+      {
+        "name": "American gooseberry mildew",
+        "signs": "White, then brown, coating on fruit and shoots",
+        "control": "Prune to keep the bush open and airy; choose resistant kinds."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Prune in winter to an open goblet shape."
+    },
+    "source": "Check against: RHS – gooseberries; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "blueberry",
+    "commonName": "Blueberry",
+    "latinName": "Vaccinium corymbosum",
+    "category": "fruit",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Acid (ericaceous) only, about pH 4–5.5",
+      "moisture": "moist",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 1500,
+      "spreadMm": 1500,
+      "spacingMm": 1500,
+      "rowSpacingMm": 1500
+    },
+    "plantOutMonths": [
+      10,
+      11,
+      12,
+      1,
+      2,
+      3
+    ],
+    "cropping": {
+      "harvestMonths": [
+        7,
+        8,
+        9
+      ]
+    },
+    "lookOutFor": [
+      "Water with rainwater: tap water slowly makes the soil less acid. Two kinds fruit better than one."
+    ],
+    "pests": [
+      {
+        "name": "Birds",
+        "signs": "Fruit pecked or stripped as it ripens",
+        "control": "Net plants, or grow them in a fruit cage, before the fruit colours."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy"
+    },
+    "source": "Check against: RHS – blueberries; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "rhubarb",
+    "commonName": "Rhubarb",
+    "latinName": "Rheum × hybridum",
+    "category": "fruit",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 5,
+      "soil": "Rich, moisture-retentive",
+      "moisture": "moist",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 900,
+      "spreadMm": 1200,
+      "spacingMm": 900,
+      "rowSpacingMm": 900
+    },
+    "plantOutMonths": [
+      11,
+      12,
+      1,
+      2,
+      3
+    ],
+    "cropping": {
+      "harvestMonths": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "notes": "Pull, don’t cut, the stalks. Leave new plants a year to settle, and stop picking by late July."
+    },
+    "lookOutFor": [
+      "The leaves are poisonous (check): eat only the stalks.",
+      "Plant crowns with the buds just at the surface."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Mulch with compost in winter."
+    },
+    "source": "Check against: RHS – rhubarb; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "apple",
+    "commonName": "Apple",
+    "latinName": "Malus domestica",
+    "category": "fruit",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Well-drained, fertile",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 3000,
+      "spreadMm": 3000,
+      "spacingMm": 3000,
+      "rowSpacingMm": 3000
+    },
+    "plantOutMonths": [
+      11,
+      12,
+      1,
+      2,
+      3
+    ],
+    "cropping": {
+      "harvestMonths": [
+        8,
+        9,
+        10
+      ]
+    },
+    "flowerMonths": [
+      4,
+      5
+    ],
+    "lookOutFor": [
+      "The rootstock decides the size: choose a dwarfing one for small gardens.",
+      "Most need another apple nearby to pollinate them."
+    ],
+    "pests": [
+      {
+        "name": "Codling moth",
+        "signs": "Grubs in the core of the fruit",
+        "control": "Hang pheromone traps in May; clear up fallen fruit."
+      },
+      {
+        "name": "Apple scab",
+        "signs": "Dark, scabby patches on fruit and leaves",
+        "control": "Clear up fallen leaves in autumn; choose resistant kinds."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Prune in winter."
+    },
+    "source": "Check against: RHS – apples; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "pear",
+    "commonName": "Pear",
+    "latinName": "Pyrus communis",
+    "category": "fruit",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Well-drained, fertile",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 3000,
+      "spreadMm": 3000,
+      "spacingMm": 3000,
+      "rowSpacingMm": 3000
+    },
+    "plantOutMonths": [
+      11,
+      12,
+      1,
+      2,
+      3
+    ],
+    "cropping": {
+      "harvestMonths": [
+        8,
+        9,
+        10
+      ],
+      "notes": "Pick while still firm and ripen indoors."
+    },
+    "flowerMonths": [
+      4
+    ],
+    "lookOutFor": [
+      "Flowers early, so frost can catch the blossom: avoid frost pockets."
+    ],
+    "pests": [
+      {
+        "name": "Pear rust",
+        "signs": "Bright orange spots on the leaves",
+        "control": "Remove affected leaves; it rarely harms the crop."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Prune in winter."
+    },
+    "source": "Check against: RHS – pears; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "plum",
+    "commonName": "Plum",
+    "latinName": "Prunus domestica",
+    "category": "fruit",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Moisture-retentive, well-drained",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 3000,
+      "spreadMm": 3000,
+      "spacingMm": 3000,
+      "rowSpacingMm": 3000
+    },
+    "plantOutMonths": [
+      11,
+      12,
+      1,
+      2,
+      3
+    ],
+    "cropping": {
+      "harvestMonths": [
+        8,
+        9
+      ]
+    },
+    "flowerMonths": [
+      3,
+      4
+    ],
+    "lookOutFor": [
+      "Prune only in summer, to avoid silver leaf disease."
+    ],
+    "pests": [
+      {
+        "name": "Plum moth",
+        "signs": "Pink grubs in ripe fruit",
+        "control": "Hang pheromone traps in May."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy"
+    },
+    "source": "Check against: RHS – plums; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "cherry",
+    "commonName": "Cherry",
+    "latinName": "Prunus avium",
+    "category": "fruit",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Deep, well-drained",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 3000,
+      "spreadMm": 3000,
+      "spacingMm": 3000,
+      "rowSpacingMm": 3000
+    },
+    "plantOutMonths": [
+      11,
+      12,
+      1,
+      2,
+      3
+    ],
+    "cropping": {
+      "harvestMonths": [
+        6,
+        7
+      ]
+    },
+    "flowerMonths": [
+      4
+    ],
+    "lookOutFor": [
+      "Prune in summer only. Choose a self-fertile kind if you have room for just one."
+    ],
+    "pests": [
+      {
+        "name": "Birds",
+        "signs": "Fruit pecked or stripped as it ripens",
+        "control": "Net plants, or grow them in a fruit cage, before the fruit colours."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy"
+    },
+    "source": "Check against: RHS – cherries; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "fig",
+    "commonName": "Fig",
+    "latinName": "Ficus carica",
+    "category": "fruit",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 7,
+      "soil": "Poor, free-draining",
+      "moisture": "moderate",
+      "hardiness": "Hardy against a warm wall"
+    },
+    "size": {
+      "heightMm": 3000,
+      "spreadMm": 3000,
+      "spacingMm": 3000
+    },
+    "plantOutMonths": [
+      3,
+      4,
+      5
+    ],
+    "cropping": {
+      "harvestMonths": [
+        8,
+        9
+      ]
+    },
+    "lookOutFor": [
+      "Restrict the roots in a pit or a large pot, or it grows leaves instead of fruit."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "protect",
+      "notes": "Fleece the young fruitlets on cold nights. Remove larger figs in autumn: they won’t ripen."
+    },
+    "source": "Check against: RHS – figs; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "grape-vine",
+    "commonName": "Grape vine",
+    "latinName": "Vitis vinifera",
+    "category": "fruit",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 7,
+      "soil": "Free-draining",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 2500,
+      "spreadMm": 1500,
+      "spacingMm": 1500,
+      "rowSpacingMm": 1500
+    },
+    "plantOutMonths": [
+      11,
+      12,
+      1,
+      2,
+      3
+    ],
+    "cropping": {
+      "harvestMonths": [
+        9,
+        10
+      ]
+    },
+    "lookOutFor": [
+      "Needs a sunny wall or a greenhouse in most of the UK."
+    ],
+    "pests": [
+      {
+        "name": "Powdery mildew",
+        "signs": "White powder on the leaves",
+        "control": "Water at the roots in dry spells and give plants space for air to move."
+      },
+      {
+        "name": "Birds",
+        "signs": "Fruit pecked or stripped as it ripens",
+        "control": "Net plants, or grow them in a fruit cage, before the fruit colours."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Prune hard in early winter, while dormant."
+    },
+    "source": "Check against: RHS – grapes; nursery label",
+    "verified": false,
+    "userAdded": false
+  }
+]

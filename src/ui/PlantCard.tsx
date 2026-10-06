@@ -188,13 +188,14 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
         </dl>
       </section>
 
-      {(p.sowing?.length || p.plantOutMonths?.length || p.cropping) && (
+      {(p.sowing?.length || p.plantOutMonths?.length || p.cropping || p.flowerMonths?.length) && (
         <section class="plant-section">
           <h2>Through the year</h2>
           <div class="month-rows">
             {p.sowing?.map((sw, i) => <MonthStrip key={i} label={METHOD_LABEL[sw.method]} months={sw.months} kind="sow" current={month} />)}
             {p.plantOutMonths?.length ? <MonthStrip label="Plant out" months={p.plantOutMonths} kind="plant" current={month} /> : null}
             {p.cropping && <MonthStrip label="Harvest" months={p.cropping.harvestMonths} kind="harvest" current={month} />}
+            {p.flowerMonths?.length ? <MonthStrip label="In flower" months={p.flowerMonths} kind="harvest" current={month} /> : null}
           </div>
           <ul class="plain-list notes-list">
             {p.sowing?.map((sw, i) =>

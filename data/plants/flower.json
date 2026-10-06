@@ -1,0 +1,1570 @@
+[
+  {
+    "id": "sweet-pea",
+    "commonName": "Sweet pea",
+    "latinName": "Lathyrus odoratus",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Rich, moisture-retentive",
+      "moisture": "moist",
+      "hardiness": "Hardy annual"
+    },
+    "size": {
+      "heightMm": 1800,
+      "spreadMm": 300,
+      "spacingMm": 230,
+      "rowSpacingMm": 300
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          10,
+          11,
+          2,
+          3
+        ],
+        "depthMm": 15,
+        "notes": "Sow in deep pots; pinch out the tips at three pairs of leaves."
+      }
+    ],
+    "plantOutMonths": [
+      4,
+      5
+    ],
+    "flowerMonths": [
+      6,
+      7,
+      8,
+      9
+    ],
+    "lookOutFor": [
+      "Pick the flowers every few days or they stop coming. Needs canes or netting.",
+      "The seeds are poisonous (check)."
+    ],
+    "pests": [
+      {
+        "name": "Slugs and snails",
+        "signs": "Young plants eaten, especially on damp nights",
+        "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
+      },
+      {
+        "name": "Aphids",
+        "signs": "Clusters of small green or black insects on shoot tips",
+        "control": "Squash by hand or wash off with water; ladybirds and hoverflies will follow."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – sweet peas; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "sunflower",
+    "commonName": "Sunflower",
+    "latinName": "Helianthus annuus",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Fertile, free-draining",
+      "moisture": "moderate",
+      "hardiness": "Half-hardy annual"
+    },
+    "size": {
+      "heightMm": 2000,
+      "spreadMm": 450,
+      "spacingMm": 450,
+      "rowSpacingMm": 600
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          4
+        ],
+        "depthMm": 15
+      },
+      {
+        "method": "direct",
+        "months": [
+          5
+        ],
+        "depthMm": 15
+      }
+    ],
+    "plantOutMonths": [
+      5,
+      6
+    ],
+    "flowerMonths": [
+      7,
+      8,
+      9
+    ],
+    "lookOutFor": [
+      "Tall kinds need staking in windy gardens. Leave seed heads for the birds."
+    ],
+    "pests": [
+      {
+        "name": "Slugs and snails",
+        "signs": "Young plants eaten, especially on damp nights",
+        "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – sunflowers; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "french-marigold",
+    "commonName": "French marigold",
+    "latinName": "Tagetes patula",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Free-draining",
+      "moisture": "moderate",
+      "hardiness": "Half-hardy annual"
+    },
+    "size": {
+      "heightMm": 300,
+      "spreadMm": 250,
+      "spacingMm": 250
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          3,
+          4
+        ],
+        "depthMm": 5
+      }
+    ],
+    "plantOutMonths": [
+      5,
+      6
+    ],
+    "flowerMonths": [
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "lookOutFor": [
+      "Often grown beside tomatoes, where it is said to deter whitefly."
+    ],
+    "pests": [
+      {
+        "name": "Slugs and snails",
+        "signs": "Young plants eaten, especially on damp nights",
+        "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
+      }
+    ],
+    "companions": {
+      "good": [
+        "tomato"
+      ],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – French marigolds; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "calendula",
+    "commonName": "Pot marigold",
+    "latinName": "Calendula officinalis",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Any free-draining soil",
+      "moisture": "dry",
+      "hardiness": "Hardy annual"
+    },
+    "size": {
+      "heightMm": 500,
+      "spreadMm": 300,
+      "spacingMm": 300
+    },
+    "sowing": [
+      {
+        "method": "direct",
+        "months": [
+          3,
+          4,
+          5,
+          9
+        ],
+        "depthMm": 10
+      }
+    ],
+    "flowerMonths": [
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "lookOutFor": [
+      "Petals are edible. Self-seeds freely."
+    ],
+    "companions": {
+      "good": [
+        "tomato"
+      ],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – calendula; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "nasturtium",
+    "commonName": "Nasturtium",
+    "latinName": "Tropaeolum majus",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Poor: rich soil gives leaves, not flowers",
+      "moisture": "dry",
+      "hardiness": "Half-hardy annual"
+    },
+    "size": {
+      "heightMm": 300,
+      "spreadMm": 450,
+      "spacingMm": 450
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          4
+        ],
+        "depthMm": 20
+      },
+      {
+        "method": "direct",
+        "months": [
+          5,
+          6
+        ],
+        "depthMm": 20
+      }
+    ],
+    "flowerMonths": [
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "lookOutFor": [
+      "Leaves and flowers are edible.",
+      "Draws blackfly and cabbage white butterflies away from nearby crops."
+    ],
+    "pests": [
+      {
+        "name": "Aphids",
+        "signs": "Clusters of small green or black insects on shoot tips",
+        "control": "Squash by hand or wash off with water; ladybirds and hoverflies will follow."
+      },
+      {
+        "name": "Cabbage white caterpillars",
+        "signs": "Leaves eaten to the veins",
+        "control": "Pick off the caterpillars and yellow eggs by hand."
+      }
+    ],
+    "companions": {
+      "good": [
+        "courgette",
+        "cabbage",
+        "winter-squash"
+      ],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – nasturtiums; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "cosmos",
+    "commonName": "Cosmos",
+    "latinName": "Cosmos bipinnatus",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Free-draining",
+      "moisture": "moderate",
+      "hardiness": "Half-hardy annual"
+    },
+    "size": {
+      "heightMm": 1000,
+      "spreadMm": 450,
+      "spacingMm": 450
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          3,
+          4,
+          5
+        ],
+        "depthMm": 5
+      }
+    ],
+    "plantOutMonths": [
+      5,
+      6
+    ],
+    "flowerMonths": [
+      7,
+      8,
+      9,
+      10
+    ],
+    "lookOutFor": [
+      "Cut the flowers often for more."
+    ],
+    "pests": [
+      {
+        "name": "Slugs and snails",
+        "signs": "Young plants eaten, especially on damp nights",
+        "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – cosmos; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "zinnia",
+    "commonName": "Zinnia",
+    "latinName": "Zinnia elegans",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 7,
+      "soil": "Free-draining, fertile",
+      "moisture": "moderate",
+      "hardiness": "Tender annual"
+    },
+    "size": {
+      "heightMm": 600,
+      "spreadMm": 300,
+      "spacingMm": 300
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          4,
+          5
+        ],
+        "depthMm": 5,
+        "notes": "Dislikes root disturbance: sow in modules."
+      },
+      {
+        "method": "direct",
+        "months": [
+          6
+        ],
+        "depthMm": 5
+      }
+    ],
+    "plantOutMonths": [
+      6
+    ],
+    "flowerMonths": [
+      7,
+      8,
+      9
+    ],
+    "pests": [
+      {
+        "name": "Slugs and snails",
+        "signs": "Young plants eaten, especially on damp nights",
+        "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – zinnias; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "dahlia",
+    "commonName": "Dahlia",
+    "latinName": "Dahlia",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Rich, moisture-retentive",
+      "moisture": "moist",
+      "hardiness": "Tender"
+    },
+    "size": {
+      "heightMm": 1200,
+      "spreadMm": 600,
+      "spacingMm": 600
+    },
+    "plantOutMonths": [
+      4,
+      5,
+      6
+    ],
+    "flowerMonths": [
+      7,
+      8,
+      9,
+      10
+    ],
+    "lookOutFor": [
+      "Plant tubers in spring, or growing plants once frosts are over. Stake tall kinds."
+    ],
+    "pests": [
+      {
+        "name": "Slugs and snails",
+        "signs": "Young plants eaten, especially on damp nights",
+        "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
+      },
+      {
+        "name": "Earwigs",
+        "signs": "Ragged holes in the petals",
+        "control": "Upturned pots stuffed with straw on canes trap them; empty them each morning."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "lift-and-store",
+      "notes": "Lift tubers once frost blackens the leaves; store them dry and frost-free."
+    },
+    "source": "Check against: RHS – dahlias; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "tulip",
+    "commonName": "Tulip",
+    "latinName": "Tulipa",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Free-draining",
+      "moisture": "dry",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 450,
+      "spreadMm": 120,
+      "spacingMm": 120
+    },
+    "plantOutMonths": [
+      11,
+      12
+    ],
+    "flowerMonths": [
+      4,
+      5
+    ],
+    "lookOutFor": [
+      "Plant bulbs about 15 cm deep in November.",
+      "Many fade after a year: treat them as annuals or lift them once the leaves die."
+    ],
+    "pests": [
+      {
+        "name": "Tulip fire",
+        "signs": "Distorted, spotted leaves and flowers",
+        "control": "Lift and remove affected bulbs; planting late, in November, helps avoid it."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy"
+    },
+    "source": "Check against: RHS – tulips; bulb supplier",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "daffodil",
+    "commonName": "Daffodil",
+    "latinName": "Narcissus",
+    "category": "flower",
+    "conditions": {
+      "light": "part-shade",
+      "minSunHours": 4,
+      "soil": "Any well-drained soil",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 400,
+      "spreadMm": 150,
+      "spacingMm": 150
+    },
+    "plantOutMonths": [
+      8,
+      9,
+      10
+    ],
+    "flowerMonths": [
+      2,
+      3,
+      4
+    ],
+    "lookOutFor": [
+      "Plant bulbs at twice their own depth by early autumn.",
+      "Leave the leaves for six weeks after flowering. Bulbs are poisonous (check)."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy"
+    },
+    "source": "Check against: RHS – daffodils; bulb supplier",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "snowdrop",
+    "commonName": "Snowdrop",
+    "latinName": "Galanthus nivalis",
+    "category": "flower",
+    "conditions": {
+      "light": "part-shade",
+      "minSunHours": 3,
+      "soil": "Humus-rich, moist",
+      "moisture": "moist",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 150,
+      "spreadMm": 100,
+      "spacingMm": 100
+    },
+    "plantOutMonths": [
+      3,
+      4
+    ],
+    "flowerMonths": [
+      1,
+      2,
+      3
+    ],
+    "lookOutFor": [
+      "Best moved “in the green”, just after flowering, rather than as dry bulbs.",
+      "Spreads into clumps; divide after flowering."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy"
+    },
+    "source": "Check against: RHS – snowdrops; bulb supplier",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "crocus",
+    "commonName": "Crocus",
+    "latinName": "Crocus",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 5,
+      "soil": "Free-draining",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 100,
+      "spreadMm": 80,
+      "spacingMm": 80
+    },
+    "plantOutMonths": [
+      9,
+      10
+    ],
+    "flowerMonths": [
+      2,
+      3
+    ],
+    "lookOutFor": [
+      "Plant corms about 8 cm deep."
+    ],
+    "pests": [
+      {
+        "name": "Squirrels and mice",
+        "signs": "Corms dug up and eaten",
+        "control": "Lay wire mesh over newly planted areas until they root."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy"
+    },
+    "source": "Check against: RHS – crocuses; bulb supplier",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "ornamental-allium",
+    "commonName": "Ornamental allium",
+    "latinName": "Allium hollandicum",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Free-draining",
+      "moisture": "dry",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 900,
+      "spreadMm": 200,
+      "spacingMm": 200
+    },
+    "plantOutMonths": [
+      9,
+      10
+    ],
+    "flowerMonths": [
+      5,
+      6
+    ],
+    "lookOutFor": [
+      "Its leaves wither as it flowers: plant it among other plants.",
+      "Seed heads stay handsome into autumn."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy"
+    },
+    "source": "Check against: RHS – ornamental alliums; bulb supplier",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "lavender",
+    "commonName": "Lavender",
+    "latinName": "Lavandula angustifolia",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 7,
+      "soil": "Poor, free-draining",
+      "moisture": "dry",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 600,
+      "spreadMm": 600,
+      "spacingMm": 450,
+      "rowSpacingMm": 600
+    },
+    "plantOutMonths": [
+      4,
+      5
+    ],
+    "flowerMonths": [
+      6,
+      7,
+      8
+    ],
+    "lookOutFor": [
+      "Trim after flowering, but not into bare wood.",
+      "Loved by bees."
+    ],
+    "pests": [
+      {
+        "name": "Rosemary beetle",
+        "signs": "Shiny green and purple beetles and grey grubs",
+        "control": "Pick them off by hand."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Hates wet winter soil: add grit to heavy ground."
+    },
+    "source": "Check against: RHS – lavender; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "rose",
+    "commonName": "Rose (shrub)",
+    "latinName": "Rosa",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Rich, moisture-retentive",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 1200,
+      "spreadMm": 900,
+      "spacingMm": 900
+    },
+    "plantOutMonths": [
+      11,
+      12,
+      1,
+      2,
+      3
+    ],
+    "flowerMonths": [
+      6,
+      7,
+      8,
+      9
+    ],
+    "lookOutFor": [
+      "Plant bare-root roses in winter with the graft just below the soil.",
+      "Deadhead to keep flowers coming."
+    ],
+    "pests": [
+      {
+        "name": "Aphids",
+        "signs": "Clusters of small green or black insects on shoot tips",
+        "control": "Squash by hand or wash off with water; ladybirds and hoverflies will follow."
+      },
+      {
+        "name": "Black spot",
+        "signs": "Black spots and yellowing leaves",
+        "control": "Clear up fallen leaves; choose resistant varieties."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Prune in late winter."
+    },
+    "source": "Check against: RHS – roses; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "foxglove",
+    "commonName": "Foxglove",
+    "latinName": "Digitalis purpurea",
+    "category": "flower",
+    "conditions": {
+      "light": "part-shade",
+      "minSunHours": 3,
+      "soil": "Moist, humus-rich",
+      "moisture": "moist",
+      "hardiness": "Hardy biennial"
+    },
+    "size": {
+      "heightMm": 1500,
+      "spreadMm": 450,
+      "spacingMm": 450
+    },
+    "sowing": [
+      {
+        "method": "direct",
+        "months": [
+          5,
+          6
+        ],
+        "notes": "Sow on the surface; it flowers the following year."
+      }
+    ],
+    "plantOutMonths": [
+      9,
+      10
+    ],
+    "flowerMonths": [
+      6,
+      7
+    ],
+    "lookOutFor": [
+      "All parts are poisonous (check).",
+      "Self-seeds freely."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "A biennial: leaves the first year, flowers the second."
+    },
+    "source": "Check against: RHS – foxgloves; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "hollyhock",
+    "commonName": "Hollyhock",
+    "latinName": "Alcea rosea",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Free-draining",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 2000,
+      "spreadMm": 450,
+      "spacingMm": 450
+    },
+    "sowing": [
+      {
+        "method": "direct",
+        "months": [
+          5,
+          6
+        ],
+        "depthMm": 10
+      }
+    ],
+    "plantOutMonths": [
+      9,
+      10
+    ],
+    "flowerMonths": [
+      7,
+      8
+    ],
+    "lookOutFor": [
+      "Tall: needs a sheltered spot or a stake. Short-lived."
+    ],
+    "pests": [
+      {
+        "name": "Hollyhock rust",
+        "signs": "Orange pustules under the leaves",
+        "control": "Remove affected leaves; grow it in an open, airy spot."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy"
+    },
+    "source": "Check against: RHS – hollyhocks; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "lupin",
+    "commonName": "Lupin",
+    "latinName": "Lupinus",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Light, slightly acid",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 900,
+      "spreadMm": 450,
+      "spacingMm": 450
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          3,
+          4
+        ],
+        "depthMm": 5,
+        "notes": "Soak or nick the seed first."
+      }
+    ],
+    "plantOutMonths": [
+      5,
+      6
+    ],
+    "flowerMonths": [
+      6,
+      7
+    ],
+    "lookOutFor": [
+      "Cut spent spikes for a second flush. The seeds are poisonous (check)."
+    ],
+    "pests": [
+      {
+        "name": "Slugs and snails",
+        "signs": "Young plants eaten, especially on damp nights",
+        "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
+      },
+      {
+        "name": "Lupin aphid",
+        "signs": "Large grey aphids coating the stems",
+        "control": "Squash them by hand or hose them off."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy"
+    },
+    "source": "Check against: RHS – lupins; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "delphinium",
+    "commonName": "Delphinium",
+    "latinName": "Delphinium elatum",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Rich, well-drained",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 1800,
+      "spreadMm": 600,
+      "spacingMm": 600
+    },
+    "plantOutMonths": [
+      4,
+      5
+    ],
+    "flowerMonths": [
+      6,
+      7
+    ],
+    "lookOutFor": [
+      "Stake the tall spikes early. All parts are poisonous (check)."
+    ],
+    "pests": [
+      {
+        "name": "Slugs and snails",
+        "signs": "New shoots eaten in spring",
+        "control": "Protect the new shoots as they come through."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy"
+    },
+    "source": "Check against: RHS – delphiniums; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "hardy-geranium",
+    "commonName": "Hardy geranium",
+    "latinName": "Geranium",
+    "category": "flower",
+    "conditions": {
+      "light": "part-shade",
+      "minSunHours": 4,
+      "soil": "Any reasonable soil",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 450,
+      "spreadMm": 600,
+      "spacingMm": 450
+    },
+    "plantOutMonths": [
+      3,
+      4,
+      5,
+      9,
+      10
+    ],
+    "flowerMonths": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "lookOutFor": [
+      "Cut back after the first flush for fresh leaves and more flowers."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy"
+    },
+    "source": "Check against: RHS – hardy geraniums; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "hellebore",
+    "commonName": "Hellebore",
+    "latinName": "Helleborus × hybridus",
+    "category": "flower",
+    "conditions": {
+      "light": "shade",
+      "soil": "Humus-rich",
+      "moisture": "moist",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 450,
+      "spreadMm": 450,
+      "spacingMm": 450
+    },
+    "plantOutMonths": [
+      3,
+      9,
+      10
+    ],
+    "flowerMonths": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "lookOutFor": [
+      "Poisonous (check).",
+      "Cut off old leaves in winter before the flowers open."
+    ],
+    "pests": [
+      {
+        "name": "Hellebore leaf spot",
+        "signs": "Black blotches on older leaves",
+        "control": "Remove affected leaves."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy"
+    },
+    "source": "Check against: RHS – hellebores; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "peony",
+    "commonName": "Peony",
+    "latinName": "Paeonia lactiflora",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Rich, well-drained",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 900,
+      "spreadMm": 900,
+      "spacingMm": 900
+    },
+    "plantOutMonths": [
+      9,
+      10
+    ],
+    "flowerMonths": [
+      5,
+      6
+    ],
+    "lookOutFor": [
+      "Plant with the buds no more than 5 cm deep, or it won’t flower. Dislikes being moved."
+    ],
+    "pests": [
+      {
+        "name": "Peony wilt",
+        "signs": "Shoots collapse, brown at the base",
+        "control": "Cut affected shoots out below soil level."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy"
+    },
+    "source": "Check against: RHS – peonies; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "michaelmas-daisy",
+    "commonName": "Michaelmas daisy",
+    "latinName": "Symphyotrichum novi-belgii",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Moisture-retentive",
+      "moisture": "moist",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 1000,
+      "spreadMm": 450,
+      "spacingMm": 450
+    },
+    "plantOutMonths": [
+      3,
+      4,
+      10
+    ],
+    "flowerMonths": [
+      9,
+      10
+    ],
+    "lookOutFor": [
+      "Late flowers for bees and butterflies."
+    ],
+    "pests": [
+      {
+        "name": "Powdery mildew",
+        "signs": "White powder on the leaves",
+        "control": "Water at the roots in dry spells and give plants space for air to move."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Divide every few years in spring."
+    },
+    "source": "Check against: RHS – asters; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "echinacea",
+    "commonName": "Echinacea",
+    "latinName": "Echinacea purpurea",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Well-drained",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 900,
+      "spreadMm": 450,
+      "spacingMm": 450
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          3,
+          4
+        ],
+        "depthMm": 5
+      }
+    ],
+    "plantOutMonths": [
+      5,
+      6
+    ],
+    "flowerMonths": [
+      7,
+      8,
+      9
+    ],
+    "pests": [
+      {
+        "name": "Slugs and snails",
+        "signs": "Young plants eaten, especially on damp nights",
+        "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Leave the seed heads for birds over winter."
+    },
+    "source": "Check against: RHS – echinacea; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "rudbeckia",
+    "commonName": "Rudbeckia",
+    "latinName": "Rudbeckia fulgida",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Moisture-retentive",
+      "moisture": "moist",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 600,
+      "spreadMm": 450,
+      "spacingMm": 450
+    },
+    "plantOutMonths": [
+      3,
+      4,
+      5,
+      9,
+      10
+    ],
+    "flowerMonths": [
+      8,
+      9,
+      10
+    ],
+    "pests": [
+      {
+        "name": "Slugs and snails",
+        "signs": "Young plants eaten, especially on damp nights",
+        "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Divide congested clumps in spring."
+    },
+    "source": "Check against: RHS – rudbeckias; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "verbena-bonariensis",
+    "commonName": "Verbena bonariensis",
+    "latinName": "Verbena bonariensis",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Free-draining",
+      "moisture": "dry",
+      "hardiness": "Hardy in milder areas"
+    },
+    "size": {
+      "heightMm": 1500,
+      "spreadMm": 450,
+      "spacingMm": 450
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          2,
+          3,
+          4
+        ],
+        "notes": "Sow on the surface."
+      }
+    ],
+    "plantOutMonths": [
+      5
+    ],
+    "flowerMonths": [
+      7,
+      8,
+      9,
+      10
+    ],
+    "lookOutFor": [
+      "Tall but see-through: fine at the front of a border. Self-seeds."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "protect",
+      "notes": "Leave the stems over winter and cut back in spring."
+    },
+    "source": "Check against: RHS – Verbena bonariensis; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "cornflower",
+    "commonName": "Cornflower",
+    "latinName": "Centaurea cyanus",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Any well-drained soil",
+      "moisture": "dry",
+      "hardiness": "Hardy annual"
+    },
+    "size": {
+      "heightMm": 800,
+      "spreadMm": 300,
+      "spacingMm": 250
+    },
+    "sowing": [
+      {
+        "method": "direct",
+        "months": [
+          3,
+          4,
+          5,
+          9
+        ],
+        "depthMm": 10
+      }
+    ],
+    "flowerMonths": [
+      6,
+      7,
+      8
+    ],
+    "lookOutFor": [
+      "Autumn sowings flower earlier and stronger."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – cornflowers; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "field-poppy",
+    "commonName": "Field poppy",
+    "latinName": "Papaver rhoeas",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Poor, free-draining",
+      "moisture": "dry",
+      "hardiness": "Hardy annual"
+    },
+    "size": {
+      "heightMm": 600,
+      "spreadMm": 150,
+      "spacingMm": 200
+    },
+    "sowing": [
+      {
+        "method": "direct",
+        "months": [
+          3,
+          4,
+          9,
+          10
+        ],
+        "notes": "Scatter on bare, raked soil and don’t cover."
+      }
+    ],
+    "flowerMonths": [
+      6,
+      7,
+      8
+    ],
+    "lookOutFor": [
+      "Self-seeds on disturbed ground."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – poppies; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "nigella",
+    "commonName": "Love-in-a-mist",
+    "latinName": "Nigella damascena",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Well-drained",
+      "moisture": "moderate",
+      "hardiness": "Hardy annual"
+    },
+    "size": {
+      "heightMm": 450,
+      "spreadMm": 230,
+      "spacingMm": 230
+    },
+    "sowing": [
+      {
+        "method": "direct",
+        "months": [
+          3,
+          4,
+          5,
+          9
+        ],
+        "depthMm": 10
+      }
+    ],
+    "flowerMonths": [
+      6,
+      7,
+      8
+    ],
+    "lookOutFor": [
+      "Seed pods dry well for arrangements. Self-seeds."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – love-in-a-mist; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "sweet-william",
+    "commonName": "Sweet William",
+    "latinName": "Dianthus barbatus",
+    "category": "flower",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Well-drained",
+      "moisture": "moderate",
+      "hardiness": "Hardy biennial"
+    },
+    "size": {
+      "heightMm": 450,
+      "spreadMm": 250,
+      "spacingMm": 250
+    },
+    "sowing": [
+      {
+        "method": "direct",
+        "months": [
+          5,
+          6
+        ],
+        "depthMm": 5
+      }
+    ],
+    "plantOutMonths": [
+      9,
+      10
+    ],
+    "flowerMonths": [
+      6,
+      7
+    ],
+    "lookOutFor": [
+      "Sow this summer for flowers next summer."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "A biennial: plant out in autumn to flower the next year."
+    },
+    "source": "Check against: RHS – sweet William; seed packet",
+    "verified": false,
+    "userAdded": false
+  }
+]

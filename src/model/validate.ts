@@ -119,6 +119,7 @@ export function validatePlant(p: unknown): string[] {
       'sowing entries need a method and months 1 to 12.',
     );
   if (p.plantOutMonths !== undefined) need(isMonths(p.plantOutMonths), 'plantOutMonths must be months 1 to 12.');
+  if (p.flowerMonths !== undefined) need(isMonths(p.flowerMonths), 'flowerMonths must be months 1 to 12.');
   if (p.cropping !== undefined)
     need(isObject(p.cropping) && isMonths(p.cropping.harvestMonths), 'harvestMonths must be months 1 to 12.');
   if (p.companions !== undefined)

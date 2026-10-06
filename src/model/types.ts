@@ -122,6 +122,8 @@ export interface Plant {
   sowing?: Sowing[];
   plantOutMonths?: number[];
   cropping?: { harvestMonths: number[]; notes?: string };
+  /** Months it's in flower, for flowers and anything grown for its flowers. */
+  flowerMonths?: number[];
   lookOutFor?: string[];
   pests?: { name: string; signs: string; control: string }[];
   companions?: { good: string[]; avoid: string[] }; // plant ids

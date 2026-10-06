@@ -135,6 +135,12 @@ export function CheckPlants({ store, userPlants, startAt, back }: Props) {
                     <dd>{monthRanges(plant.plantOutMonths, true)}</dd>
                   </>
                 ) : null}
+                {plant.flowerMonths?.length ? (
+                  <>
+                    <dt>In flower</dt>
+                    <dd>{monthRanges(plant.flowerMonths, true)}</dd>
+                  </>
+                ) : null}
                 {plant.cropping && (
                   <>
                     <dt>Harvest</dt>

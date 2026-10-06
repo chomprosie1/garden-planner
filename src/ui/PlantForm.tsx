@@ -68,6 +68,7 @@ export function PlantForm({ initial, onSave, onCancel }: Props) {
     if (!clean.sowing?.length) delete clean.sowing;
     if (!clean.lookOutFor?.length) delete clean.lookOutFor;
     if (!clean.plantOutMonths?.length) delete clean.plantOutMonths;
+    if (!clean.flowerMonths?.length) delete clean.flowerMonths;
     if (clean.cropping && clean.cropping.harvestMonths.length === 0 && !clean.cropping.notes) delete clean.cropping;
     const problems = validatePlant(clean).map((m) => m.replace(/^[^:]+: /, ''));
     if (!clean.commonName) problems.unshift('Give it a name.');
@@ -197,6 +198,7 @@ export function PlantForm({ initial, onSave, onCancel }: Props) {
           Add a sowing time
         </button>
         <MonthPicker label="Plant out" months={p.plantOutMonths ?? []} onChange={(m) => set({ plantOutMonths: m })} />
+        <MonthPicker label="In flower" months={p.flowerMonths ?? []} onChange={(m) => set({ flowerMonths: m })} />
         <MonthPicker
           label="Harvest"
           months={p.cropping?.harvestMonths ?? []}

@@ -88,6 +88,16 @@ Tests: viewport transform round trips; snapping; command undo and redo. Then com
   - **B3**: 30 herbs and fruit, by week 7
   - **B4**: 30 flowers, by week 9
   - **B5**: 30 shrubs, trees and gaps, after the build
+  - **Done so far (6 Oct 2026):**
+    - B1: the 30 vegetables.
+    - A combined B2–B4 batch of 70 more plants:
+      - 12 vegetables;
+      - 14 herbs (`herb.json`);
+      - 14 fruit (`fruit.json`), including the main fruit trees;
+      - 30 flowers (`flower.json`): annuals, bulbs and perennials.
+    - That's 100 plants in all.
+    - Flowers use a new optional `flowerMonths`, shown as "In flower" on the card.
+    - Every entry is unchecked, with a suggested source. Poison warnings are marked "(check)".
 - Workflow per batch: I draft the entries in my own words, each with a suggested source and `verified: false`. You check them against RHS, seed packets or books and fix anything wrong. Then you flip `verified` to true and set `lastChecked`.
 - Pest controls are cultural and organic only, with no chemical product names. Mark toxicity notes "check".
 - Plant the things you actually grow first, so gate 2 tests real beds.

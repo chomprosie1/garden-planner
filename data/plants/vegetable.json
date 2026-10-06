@@ -631,5 +631,746 @@
     "source": "Check against: RHS Grow Your Own – chilli peppers; seed packet",
     "verified": false,
     "userAdded": false
+  },
+  {
+    "id": "rocket",
+    "commonName": "Rocket",
+    "latinName": "Eruca vesicaria",
+    "category": "vegetable",
+    "conditions": {
+      "light": "part-shade",
+      "minSunHours": 4,
+      "soil": "Moisture-retentive",
+      "moisture": "moist",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 200,
+      "spreadMm": 150,
+      "spacingMm": 150,
+      "rowSpacingMm": 300
+    },
+    "sowing": [
+      {
+        "method": "direct",
+        "months": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "depthMm": 10,
+        "notes": "Sow little and often; it runs to seed fast in hot weather."
+      }
+    ],
+    "cropping": {
+      "harvestMonths": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "notes": "Pick young leaves; it regrows."
+    },
+    "pests": [
+      {
+        "name": "Flea beetle",
+        "signs": "Small round holes in the leaves",
+        "control": "Cover with fine insect mesh; keep seedlings watered so they grow away quickly."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – salad rocket; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "pak-choi",
+    "commonName": "Pak choi",
+    "latinName": "Brassica rapa subsp. chinensis",
+    "category": "vegetable",
+    "conditions": {
+      "light": "part-shade",
+      "minSunHours": 4,
+      "soil": "Moisture-retentive, fertile",
+      "moisture": "moist",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 300,
+      "spreadMm": 250,
+      "spacingMm": 250,
+      "rowSpacingMm": 300
+    },
+    "sowing": [
+      {
+        "method": "direct",
+        "months": [
+          6,
+          7,
+          8
+        ],
+        "depthMm": 10,
+        "notes": "Sow after midsummer: earlier sowings tend to bolt."
+      }
+    ],
+    "cropping": {
+      "harvestMonths": [
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    "pests": [
+      {
+        "name": "Flea beetle",
+        "signs": "Small round holes in the leaves",
+        "control": "Cover with fine insect mesh; keep seedlings watered so they grow away quickly."
+      },
+      {
+        "name": "Slugs and snails",
+        "signs": "Young plants eaten, especially on damp nights",
+        "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – pak choi; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "kohlrabi",
+    "commonName": "Kohlrabi",
+    "latinName": "Brassica oleracea Gongylodes Group",
+    "category": "vegetable",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Fertile, free-draining",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 300,
+      "spreadMm": 300,
+      "spacingMm": 230,
+      "rowSpacingMm": 300
+    },
+    "sowing": [
+      {
+        "method": "direct",
+        "months": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "depthMm": 15,
+        "notes": "Sow little and often."
+      }
+    ],
+    "cropping": {
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "notes": "Pick when the size of a tennis ball, before it turns woody."
+    },
+    "pests": [
+      {
+        "name": "Flea beetle",
+        "signs": "Small round holes in the leaves",
+        "control": "Cover with fine insect mesh; keep seedlings watered so they grow away quickly."
+      }
+    ],
+    "companions": {
+      "good": [
+        "onion"
+      ],
+      "avoid": [
+        "tomato"
+      ]
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – kohlrabi; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "swede",
+    "commonName": "Swede",
+    "latinName": "Brassica napus Napobrassica Group",
+    "category": "vegetable",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Moisture-retentive",
+      "moisture": "moist",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 400,
+      "spreadMm": 300,
+      "spacingMm": 230,
+      "rowSpacingMm": 400
+    },
+    "sowing": [
+      {
+        "method": "direct",
+        "months": [
+          5,
+          6
+        ],
+        "depthMm": 15
+      }
+    ],
+    "cropping": {
+      "harvestMonths": [
+        9,
+        10,
+        11,
+        12,
+        1,
+        2
+      ]
+    },
+    "pests": [
+      {
+        "name": "Flea beetle",
+        "signs": "Small round holes in the leaves",
+        "control": "Cover with fine insect mesh; keep seedlings watered so they grow away quickly."
+      },
+      {
+        "name": "Clubroot",
+        "signs": "Stunted plants; swollen, distorted roots",
+        "control": "Lime acid soil and rotate crops; don’t bring in soil from elsewhere."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Can stay in the ground over winter until needed."
+    },
+    "source": "Check against: RHS – swedes; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "celeriac",
+    "commonName": "Celeriac",
+    "latinName": "Apium graveolens var. rapaceum",
+    "category": "vegetable",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Rich, moisture-retentive",
+      "moisture": "moist",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 500,
+      "spreadMm": 300,
+      "spacingMm": 300,
+      "rowSpacingMm": 450
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          3,
+          4
+        ],
+        "notes": "Sow on the surface; it needs light and warmth to germinate."
+      }
+    ],
+    "plantOutMonths": [
+      5,
+      6
+    ],
+    "cropping": {
+      "harvestMonths": [
+        9,
+        10,
+        11,
+        12,
+        1,
+        2,
+        3
+      ]
+    },
+    "lookOutFor": [
+      "Keep well watered all summer or the roots stay small."
+    ],
+    "pests": [
+      {
+        "name": "Slugs and snails",
+        "signs": "Young plants eaten, especially on damp nights",
+        "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Cover with straw in hard winters."
+    },
+    "source": "Check against: RHS – celeriac; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "celery",
+    "commonName": "Celery",
+    "latinName": "Apium graveolens var. dulce",
+    "category": "vegetable",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Rich, moisture-retentive",
+      "moisture": "moist",
+      "hardiness": "Half-hardy"
+    },
+    "size": {
+      "heightMm": 450,
+      "spreadMm": 250,
+      "spacingMm": 270,
+      "rowSpacingMm": 270
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          3,
+          4
+        ],
+        "notes": "Sow on the surface; keep at 15°C or more."
+      }
+    ],
+    "plantOutMonths": [
+      5,
+      6
+    ],
+    "cropping": {
+      "harvestMonths": [
+        8,
+        9,
+        10
+      ]
+    },
+    "lookOutFor": [
+      "Self-blanching kinds grow best in a block, not a row."
+    ],
+    "pests": [
+      {
+        "name": "Slugs and snails",
+        "signs": "Young plants eaten, especially on damp nights",
+        "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
+      },
+      {
+        "name": "Celery leaf miner",
+        "signs": "Brown blotches in the leaves",
+        "control": "Pick off affected leaves; cover with fine mesh."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – celery; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "sweet-pepper",
+    "commonName": "Sweet pepper",
+    "latinName": "Capsicum annuum",
+    "category": "vegetable",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 7,
+      "soil": "Rich, free-draining",
+      "moisture": "moderate",
+      "hardiness": "Tender: no frost"
+    },
+    "size": {
+      "heightMm": 600,
+      "spreadMm": 450,
+      "spacingMm": 450,
+      "rowSpacingMm": 450
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          2,
+          3,
+          4
+        ],
+        "depthMm": 5,
+        "notes": "Needs warmth, about 20°C, to germinate."
+      }
+    ],
+    "plantOutMonths": [
+      5,
+      6
+    ],
+    "cropping": {
+      "harvestMonths": [
+        7,
+        8,
+        9,
+        10
+      ],
+      "notes": "Pick green, or leave to ripen to red or yellow."
+    },
+    "lookOutFor": [
+      "Best in a greenhouse; outside only in a warm, sheltered spot."
+    ],
+    "pests": [
+      {
+        "name": "Aphids",
+        "signs": "Clusters of small green or black insects on shoot tips",
+        "control": "Squash by hand or wash off with water; ladybirds and hoverflies will follow."
+      }
+    ],
+    "companions": {
+      "good": [
+        "tomato"
+      ],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – sweet peppers; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "aubergine",
+    "commonName": "Aubergine",
+    "latinName": "Solanum melongena",
+    "category": "vegetable",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 7,
+      "soil": "Rich, free-draining",
+      "moisture": "moderate",
+      "hardiness": "Tender: no frost"
+    },
+    "size": {
+      "heightMm": 750,
+      "spreadMm": 600,
+      "spacingMm": 600,
+      "rowSpacingMm": 600
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          2,
+          3
+        ],
+        "depthMm": 5,
+        "notes": "Needs warmth, about 20°C."
+      }
+    ],
+    "plantOutMonths": [
+      5,
+      6
+    ],
+    "cropping": {
+      "harvestMonths": [
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    "lookOutFor": [
+      "Best in a greenhouse in the UK."
+    ],
+    "pests": [
+      {
+        "name": "Red spider mite",
+        "signs": "Fine mottling on the leaves, sometimes webbing",
+        "control": "Mist plants and keep the greenhouse humid."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – aubergines; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "asparagus",
+    "commonName": "Asparagus",
+    "latinName": "Asparagus officinalis",
+    "category": "vegetable",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Well-drained, weed-free",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 1500,
+      "spreadMm": 450,
+      "spacingMm": 450,
+      "rowSpacingMm": 900
+    },
+    "plantOutMonths": [
+      3,
+      4
+    ],
+    "cropping": {
+      "harvestMonths": [
+        4,
+        5,
+        6
+      ],
+      "notes": "Wait two years after planting, then cut spears for six to eight weeks each spring."
+    },
+    "lookOutFor": [
+      "Plant crowns in a trench about 20 cm deep, roots spread out. A bed lasts twenty years."
+    ],
+    "pests": [
+      {
+        "name": "Asparagus beetle",
+        "signs": "Black-and-yellow beetles on the ferns",
+        "control": "Pick them off by hand."
+      }
+    ],
+    "companions": {
+      "good": [
+        "tomato",
+        "parsley"
+      ],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Cut the yellowed ferns down in autumn."
+    },
+    "source": "Check against: RHS – asparagus; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "globe-artichoke",
+    "commonName": "Globe artichoke",
+    "latinName": "Cynara cardunculus Scolymus Group",
+    "category": "vegetable",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Well-drained, fertile",
+      "moisture": "moderate",
+      "hardiness": "Hardy in milder areas"
+    },
+    "size": {
+      "heightMm": 1500,
+      "spreadMm": 900,
+      "spacingMm": 900,
+      "rowSpacingMm": 900
+    },
+    "plantOutMonths": [
+      4,
+      5
+    ],
+    "cropping": {
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "notes": "Cut heads while the scales are still tight."
+    },
+    "pests": [
+      {
+        "name": "Slugs and snails",
+        "signs": "Young plants eaten, especially on damp nights",
+        "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
+      },
+      {
+        "name": "Aphids",
+        "signs": "Clusters of small green or black insects on shoot tips",
+        "control": "Squash by hand or wash off with water; ladybirds and hoverflies will follow."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "protect",
+      "notes": "Mulch the crowns with straw in winter."
+    },
+    "source": "Check against: RHS – globe artichokes; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "corn-salad",
+    "commonName": "Corn salad (lamb’s lettuce)",
+    "latinName": "Valerianella locusta",
+    "category": "vegetable",
+    "conditions": {
+      "light": "part-shade",
+      "minSunHours": 4,
+      "soil": "Any reasonable soil",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 100,
+      "spreadMm": 100,
+      "spacingMm": 100,
+      "rowSpacingMm": 150
+    },
+    "sowing": [
+      {
+        "method": "direct",
+        "months": [
+          7,
+          8,
+          9
+        ],
+        "depthMm": 10
+      }
+    ],
+    "cropping": {
+      "harvestMonths": [
+        10,
+        11,
+        12,
+        1,
+        2,
+        3
+      ],
+      "notes": "Pick a few leaves at a time through the winter."
+    },
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "A winter salad: stands in the ground until spring."
+    },
+    "source": "Check against: RHS – corn salad; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "mizuna",
+    "commonName": "Mizuna",
+    "latinName": "Brassica rapa var. nipposinica",
+    "category": "vegetable",
+    "conditions": {
+      "light": "part-shade",
+      "minSunHours": 4,
+      "soil": "Moisture-retentive",
+      "moisture": "moist",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 300,
+      "spreadMm": 250,
+      "spacingMm": 200,
+      "rowSpacingMm": 300
+    },
+    "sowing": [
+      {
+        "method": "direct",
+        "months": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "depthMm": 10
+      }
+    ],
+    "cropping": {
+      "harvestMonths": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "notes": "Cut and come again: it regrows several times."
+    },
+    "pests": [
+      {
+        "name": "Flea beetle",
+        "signs": "Small round holes in the leaves",
+        "control": "Cover with fine insect mesh; keep seedlings watered so they grow away quickly."
+      },
+      {
+        "name": "Slugs and snails",
+        "signs": "Young plants eaten, especially on damp nights",
+        "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – oriental leaves; seed packet",
+    "verified": false,
+    "userAdded": false
   }
 ]

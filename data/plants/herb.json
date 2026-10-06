@@ -1,0 +1,867 @@
+[
+  {
+    "id": "basil",
+    "commonName": "Basil",
+    "latinName": "Ocimum basilicum",
+    "category": "herb",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Rich, free-draining",
+      "moisture": "moderate",
+      "hardiness": "Tender: no frost"
+    },
+    "size": {
+      "heightMm": 300,
+      "spreadMm": 300,
+      "spacingMm": 250,
+      "rowSpacingMm": 300
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          3,
+          4,
+          5
+        ],
+        "depthMm": 5,
+        "notes": "Sow on moist compost and keep warm, about 20°C."
+      }
+    ],
+    "plantOutMonths": [
+      6
+    ],
+    "cropping": {
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "notes": "Pinch out shoot tips to keep plants bushy; pick before it flowers."
+    },
+    "lookOutFor": [
+      "Water in the morning, not the evening: cold, wet nights make it rot."
+    ],
+    "pests": [
+      {
+        "name": "Slugs and snails",
+        "signs": "Young plants eaten, especially on damp nights",
+        "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
+      }
+    ],
+    "companions": {
+      "good": [
+        "tomato"
+      ],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – basil; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "parsley",
+    "commonName": "Parsley",
+    "latinName": "Petroselinum crispum",
+    "category": "herb",
+    "conditions": {
+      "light": "part-shade",
+      "minSunHours": 4,
+      "soil": "Moist, fertile",
+      "moisture": "moist",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 300,
+      "spreadMm": 300,
+      "spacingMm": 230,
+      "rowSpacingMm": 300
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          2,
+          3
+        ],
+        "depthMm": 10
+      },
+      {
+        "method": "direct",
+        "months": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "depthMm": 10,
+        "notes": "Slow to come up, sometimes six weeks; soak the seed overnight first."
+      }
+    ],
+    "plantOutMonths": [
+      4,
+      5
+    ],
+    "cropping": {
+      "harvestMonths": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "notes": "Cut the outer stalks first."
+    },
+    "pests": [
+      {
+        "name": "Carrot fly",
+        "signs": "Leaves turn reddish; roots tunnelled",
+        "control": "Cover with fine insect mesh."
+      }
+    ],
+    "companions": {
+      "good": [
+        "tomato",
+        "asparagus"
+      ],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "A biennial: it runs to seed in its second summer, so sow again each year."
+    },
+    "source": "Check against: RHS – parsley; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "coriander",
+    "commonName": "Coriander",
+    "latinName": "Coriandrum sativum",
+    "category": "herb",
+    "conditions": {
+      "light": "part-shade",
+      "minSunHours": 4,
+      "soil": "Light, free-draining",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 500,
+      "spreadMm": 200,
+      "spacingMm": 150,
+      "rowSpacingMm": 300
+    },
+    "sowing": [
+      {
+        "method": "direct",
+        "months": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "depthMm": 10,
+        "notes": "Sow every three weeks for a steady supply."
+      }
+    ],
+    "cropping": {
+      "harvestMonths": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "notes": "Pick leaves young; let a few plants flower for seed."
+    },
+    "lookOutFor": [
+      "Runs to seed quickly in hot, dry weather: a little shade and steady watering help."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": [
+        "fennel"
+      ]
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – coriander; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "chives",
+    "commonName": "Chives",
+    "latinName": "Allium schoenoprasum",
+    "category": "herb",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 5,
+      "soil": "Moist, fertile",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 300,
+      "spreadMm": 300,
+      "spacingMm": 230,
+      "rowSpacingMm": 300
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          3,
+          4
+        ],
+        "depthMm": 10
+      },
+      {
+        "method": "direct",
+        "months": [
+          4,
+          5
+        ],
+        "depthMm": 10
+      }
+    ],
+    "plantOutMonths": [
+      5,
+      6
+    ],
+    "cropping": {
+      "harvestMonths": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "notes": "Cut to 5 cm above the soil; it soon regrows."
+    },
+    "flowerMonths": [
+      5,
+      6
+    ],
+    "companions": {
+      "good": [
+        "carrot"
+      ],
+      "avoid": [
+        "pea",
+        "broad-bean"
+      ]
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Dies back in winter and returns in spring. Divide clumps every few years."
+    },
+    "source": "Check against: RHS – chives; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "mint",
+    "commonName": "Mint",
+    "latinName": "Mentha spicata",
+    "category": "herb",
+    "conditions": {
+      "light": "part-shade",
+      "minSunHours": 3,
+      "soil": "Moist",
+      "moisture": "moist",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 600,
+      "spreadMm": 900,
+      "spacingMm": 600,
+      "rowSpacingMm": 600
+    },
+    "plantOutMonths": [
+      3,
+      4,
+      5,
+      9,
+      10
+    ],
+    "cropping": {
+      "harvestMonths": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "notes": "Pick shoot tips often to keep it leafy."
+    },
+    "lookOutFor": [
+      "Spreads fast underground: grow it in a large pot sunk into the bed."
+    ],
+    "pests": [
+      {
+        "name": "Mint rust",
+        "signs": "Orange spots under the leaves, twisted shoots",
+        "control": "Cut down and remove affected stems; replant healthy pieces in fresh compost."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Dies back in winter; cut old stems down."
+    },
+    "source": "Check against: RHS – mint; herb nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "rosemary",
+    "commonName": "Rosemary",
+    "latinName": "Salvia rosmarinus",
+    "category": "herb",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Free-draining, poor",
+      "moisture": "dry",
+      "hardiness": "Hardy in a sheltered spot"
+    },
+    "size": {
+      "heightMm": 1200,
+      "spreadMm": 1200,
+      "spacingMm": 900,
+      "rowSpacingMm": 900
+    },
+    "plantOutMonths": [
+      4,
+      5,
+      9
+    ],
+    "cropping": {
+      "harvestMonths": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "notes": "Snip sprigs as you need them; don’t cut back into old, bare wood."
+    },
+    "flowerMonths": [
+      3,
+      4,
+      5
+    ],
+    "pests": [
+      {
+        "name": "Rosemary beetle",
+        "signs": "Shiny green and purple beetles and grey grubs eating the leaves",
+        "control": "Pick them off by hand, or shake plants over a sheet of paper."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Hates sitting wet in winter: add grit to heavy soil."
+    },
+    "source": "Check against: RHS – rosemary; herb nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "thyme",
+    "commonName": "Thyme",
+    "latinName": "Thymus vulgaris",
+    "category": "herb",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Free-draining",
+      "moisture": "dry",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 250,
+      "spreadMm": 300,
+      "spacingMm": 250,
+      "rowSpacingMm": 300
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          3,
+          4
+        ],
+        "notes": "Tiny seed: sow on the surface and don’t cover."
+      }
+    ],
+    "plantOutMonths": [
+      5,
+      6
+    ],
+    "cropping": {
+      "harvestMonths": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "notes": "Trim after flowering to keep it compact."
+    },
+    "flowerMonths": [
+      6,
+      7
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Goes woody with age; replace every few years."
+    },
+    "source": "Check against: RHS – thyme; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "sage",
+    "commonName": "Sage",
+    "latinName": "Salvia officinalis",
+    "category": "herb",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Free-draining",
+      "moisture": "dry",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 600,
+      "spreadMm": 600,
+      "spacingMm": 500,
+      "rowSpacingMm": 600
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          3,
+          4
+        ],
+        "depthMm": 5
+      }
+    ],
+    "plantOutMonths": [
+      5,
+      6
+    ],
+    "cropping": {
+      "harvestMonths": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    "flowerMonths": [
+      6,
+      7
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Prune lightly in spring; replace after four or five years."
+    },
+    "source": "Check against: RHS – sage; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "dill",
+    "commonName": "Dill",
+    "latinName": "Anethum graveolens",
+    "category": "herb",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Free-draining",
+      "moisture": "moderate",
+      "hardiness": "Hardy annual"
+    },
+    "size": {
+      "heightMm": 900,
+      "spreadMm": 300,
+      "spacingMm": 230,
+      "rowSpacingMm": 300
+    },
+    "sowing": [
+      {
+        "method": "direct",
+        "months": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "depthMm": 10,
+        "notes": "Sow where it is to grow: it dislikes being moved."
+      }
+    ],
+    "cropping": {
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "notes": "Pick the feathery leaves young; seeds follow in late summer."
+    },
+    "lookOutFor": [
+      "Flowers draw hoverflies, which eat aphids."
+    ],
+    "companions": {
+      "good": [
+        "cabbage"
+      ],
+      "avoid": [
+        "carrot",
+        "fennel"
+      ]
+    },
+    "wintering": {
+      "type": "annual"
+    },
+    "source": "Check against: RHS – dill; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "oregano",
+    "commonName": "Oregano",
+    "latinName": "Origanum vulgare",
+    "category": "herb",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Free-draining",
+      "moisture": "dry",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 450,
+      "spreadMm": 450,
+      "spacingMm": 400,
+      "rowSpacingMm": 450
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          3,
+          4
+        ],
+        "notes": "Sow on the surface."
+      }
+    ],
+    "plantOutMonths": [
+      5
+    ],
+    "cropping": {
+      "harvestMonths": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    "flowerMonths": [
+      7,
+      8,
+      9
+    ],
+    "lookOutFor": [
+      "Flowers are loved by bees."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Cut back old stems in early spring."
+    },
+    "source": "Check against: RHS – oregano and marjoram; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "fennel",
+    "commonName": "Fennel (herb)",
+    "latinName": "Foeniculum vulgare",
+    "category": "herb",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Free-draining",
+      "moisture": "moderate",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 1500,
+      "spreadMm": 450,
+      "spacingMm": 450,
+      "rowSpacingMm": 600
+    },
+    "sowing": [
+      {
+        "method": "direct",
+        "months": [
+          4,
+          5
+        ],
+        "depthMm": 10
+      }
+    ],
+    "cropping": {
+      "harvestMonths": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "notes": "Pick leaves as needed; collect seeds when brown."
+    },
+    "flowerMonths": [
+      7,
+      8
+    ],
+    "lookOutFor": [
+      "Tall: give it a spot at the back. Self-seeds freely."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": [
+        "dill",
+        "tomato",
+        "coriander"
+      ]
+    },
+    "wintering": {
+      "type": "hardy",
+      "notes": "Cut back to the base in autumn."
+    },
+    "source": "Check against: RHS – herb fennel; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "lemon-balm",
+    "commonName": "Lemon balm",
+    "latinName": "Melissa officinalis",
+    "category": "herb",
+    "conditions": {
+      "light": "part-shade",
+      "minSunHours": 4,
+      "soil": "Moist, fertile",
+      "moisture": "moist",
+      "hardiness": "Hardy"
+    },
+    "size": {
+      "heightMm": 700,
+      "spreadMm": 500,
+      "spacingMm": 450,
+      "rowSpacingMm": 500
+    },
+    "sowing": [
+      {
+        "method": "indoors",
+        "months": [
+          3,
+          4
+        ],
+        "notes": "Sow on the surface; it needs light to germinate."
+      }
+    ],
+    "plantOutMonths": [
+      5
+    ],
+    "cropping": {
+      "harvestMonths": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    "flowerMonths": [
+      7,
+      8
+    ],
+    "lookOutFor": [
+      "Self-seeds freely: cut it back after flowering."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "hardy"
+    },
+    "source": "Check against: RHS – lemon balm; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "bay",
+    "commonName": "Bay",
+    "latinName": "Laurus nobilis",
+    "category": "herb",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Free-draining",
+      "moisture": "moderate",
+      "hardiness": "Hardy in a sheltered spot"
+    },
+    "size": {
+      "heightMm": 3000,
+      "spreadMm": 1500,
+      "spacingMm": 1500
+    },
+    "plantOutMonths": [
+      4,
+      5,
+      9
+    ],
+    "cropping": {
+      "harvestMonths": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "notes": "Pick single leaves as you need them; dry some for winter."
+    },
+    "lookOutFor": [
+      "Often grown in a pot and clipped; it can grow into a tree."
+    ],
+    "pests": [
+      {
+        "name": "Bay sucker",
+        "signs": "Thick, curled, yellowing leaf edges",
+        "control": "Pick off and remove affected leaves."
+      }
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "protect",
+      "notes": "Fleece young plants and pots in hard frosts."
+    },
+    "source": "Check against: RHS – bay; nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "tarragon",
+    "commonName": "French tarragon",
+    "latinName": "Artemisia dracunculus",
+    "category": "herb",
+    "conditions": {
+      "light": "full-sun",
+      "minSunHours": 6,
+      "soil": "Free-draining",
+      "moisture": "moderate",
+      "hardiness": "Hardy to about –10°C"
+    },
+    "size": {
+      "heightMm": 900,
+      "spreadMm": 450,
+      "spacingMm": 450
+    },
+    "plantOutMonths": [
+      4,
+      5
+    ],
+    "cropping": {
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    "lookOutFor": [
+      "Buy plants: seed sold as tarragon is usually the coarser Russian kind."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "wintering": {
+      "type": "protect",
+      "notes": "Mulch the crown in winter on cold or wet sites."
+    },
+    "source": "Check against: RHS – tarragon; herb nursery label",
+    "verified": false,
+    "userAdded": false
+  }
+]
