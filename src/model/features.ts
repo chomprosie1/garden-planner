@@ -1,10 +1,11 @@
 // What each kind of feature is, its sensible defaults, and the edits the
 // plan's tools make. Every edit returns a new Garden, so each is one undo step.
 
+import { smoothClosed, smoothOpen } from '../geometry/curve';
 import { bounds, type Bounds } from '../geometry/polygon';
 import { thickenLine } from '../geometry/thicken';
 import { newId } from './ids';
-import type { Feature, FeatureKind, Garden, Point } from './types';
+import type { Feature, FeatureKind, Garden, Material, Point } from './types';
 
 export type Geometry = 'area' | 'line' | 'circle';
 
@@ -31,7 +32,18 @@ export const KINDS: Record<FeatureKind, KindInfo> = {
   tree: { kind: 'tree', label: 'Tree', geometry: 'circle', heightMm: 5000, radiusMm: 2000, deciduous: true, opacityInLeaf: 0.7, opacityBare: 0.2 },
   compost: { kind: 'compost', label: 'Compost', geometry: 'area', heightMm: 1000 },
   water: { kind: 'water', label: 'Water', geometry: 'area', heightMm: 0 },
+  surface: { kind: 'surface', label: 'Surface', geometry: 'area', heightMm: 0 },
   other: { kind: 'other', label: 'Other', geometry: 'area', heightMm: 1000 },
+};
+
+export const MATERIAL_LABEL: Record<Material, string> = {
+  lawn: 'Lawn',
+  gravel: 'Gravel',
+  paving: 'Paving',
+  decking: 'Decking',
+  bark: 'Bark chips',
+  meadow: 'Wildflower meadow',
+  soil: 'Bare soil',
 };
 
 /** Kinds that can swap with each other without redrawing: same geometry. */
@@ -53,29 +65,39 @@ export function circlePolygon(centre: Point, radius: number, sides = 32): Point[
   return pts;
 }
 
-/** Recomputes the footprint of a line or circle feature from its source shape. */
+/** A line feature's centre line as drawn: through its points, or a smooth curve through them. */
+export const centreLineOf = (f: Feature): Point[] => (f.line ? (f.smooth ? smoothOpen(f.line) : f.line) : []);
+
+/** Recomputes the footprint of a line, circle or curved feature from its source shape. */
 export function withFootprint(f: Feature): Feature {
   if (f.circle) return { ...f, footprint: circlePolygon(f.circle.centre, f.circle.radiusMm) };
-  if (f.line) return { ...f, footprint: thickenLine(f.line, f.widthMm ?? KINDS[f.kind].widthMm ?? 100) };
+  if (f.line) return { ...f, footprint: thickenLine(centreLineOf(f), f.widthMm ?? KINDS[f.kind].widthMm ?? 100) };
+  if (f.smooth && f.controls) return { ...f, footprint: smoothClosed(f.controls) };
   return f;
 }
 
 export type Shape = { area: Point[] } | { line: Point[] } | { circle: { centre: Point; radiusMm: number } };
 
-export function makeFeature(kind: FeatureKind, shape: Shape): Feature {
+/** A new feature of a kind. With smooth, an area or line runs as a curve through its points (hand-drawn shapes). */
+export function makeFeature(kind: FeatureKind, shape: Shape, opts: { smooth?: boolean } = {}): Feature {
   const info = KINDS[kind];
   const base: Feature = { id: newId('f'), kind, footprint: [], heightMm: info.heightMm };
   if (info.deciduous !== undefined) base.deciduous = info.deciduous;
   if (info.opacityInLeaf !== undefined) base.opacityInLeaf = info.opacityInLeaf;
   if (info.opacityBare !== undefined) base.opacityBare = info.opacityBare;
-  if ('area' in shape) return { ...base, footprint: shape.area.map(roundPoint) };
-  if ('line' in shape) return withFootprint({ ...base, line: shape.line.map(roundPoint), widthMm: info.widthMm ?? 100 });
+  if (kind === 'surface') base.material = 'lawn';
+  const smooth = opts.smooth ? { smooth: true } : {};
+  if ('area' in shape) {
+    const pts = shape.area.map(roundPoint);
+    return opts.smooth ? withFootprint({ ...base, ...smooth, controls: pts }) : { ...base, footprint: pts };
+  }
+  if ('line' in shape) return withFootprint({ ...base, ...smooth, line: shape.line.map(roundPoint), widthMm: info.widthMm ?? 100 });
   return withFootprint({ ...base, circle: { centre: roundPoint(shape.circle.centre), radiusMm: Math.round(shape.circle.radiusMm) } });
 }
 
 export const roundPoint = (p: Point): Point => [Math.round(p[0]), Math.round(p[1])];
 
-export const featureLabel = (f: Feature) => f.name?.trim() || KINDS[f.kind].label;
+export const featureLabel = (f: Feature) => f.name?.trim() || (f.kind === 'surface' ? MATERIAL_LABEL[f.material ?? 'lawn'] : KINDS[f.kind].label);
 
 // ---------- Edits ----------
 
@@ -87,9 +109,25 @@ export function updateFeature(g: Garden, id: string, patch: Partial<Feature>): G
     if (f.id !== id) return f;
     changed = true;
     const next = { ...f, ...patch };
-    return patch.line || patch.circle || patch.widthMm !== undefined ? withFootprint(next) : next;
+    return patch.line || patch.circle || patch.controls || patch.widthMm !== undefined ? withFootprint(next) : next;
   });
   return changed ? { ...g, features } : g;
+}
+
+/**
+ * Turns curved edges on or off. A curved area keeps its corners in `controls` and its outline becomes the
+ * curve through them; turning curves off makes those corners the outline again. Circles are already round.
+ */
+export function setSmooth(g: Garden, id: string, on: boolean): Garden {
+  const f = g.features.find((x) => x.id === id);
+  if (!f || f.circle || !!f.smooth === on) return g;
+  let next: Feature;
+  if (on) next = withFootprint({ ...f, smooth: true, ...(f.line ? {} : { controls: f.footprint }) });
+  else {
+    const { smooth: _s, controls, ...rest } = f;
+    next = withFootprint(f.line ? rest : { ...rest, footprint: controls ?? f.footprint });
+  }
+  return { ...g, features: g.features.map((x) => (x.id === id ? next : x)) };
 }
 
 /** Deletes features, with the plantings in them and the notes on either. Undo brings them all back. */
@@ -120,6 +158,7 @@ export function moveFeature(g: Garden, id: string, dx: number, dy: number): Gard
             ...f,
             footprint: f.footprint.map((p) => shift(p, dx, dy)),
             ...(f.line ? { line: f.line.map((p) => shift(p, dx, dy)) } : {}),
+            ...(f.controls ? { controls: f.controls.map((p) => shift(p, dx, dy)) } : {}),
             ...(f.circle ? { circle: { ...f.circle, centre: shift(f.circle.centre, dx, dy) } } : {}),
           },
     ),
@@ -155,13 +194,13 @@ export function restack(g: Garden, id: string, to: 'top' | 'bottom'): Garden {
 
 export type Target = { type: 'boundary' } | { type: 'feature'; id: string } | { type: 'planting'; id: string };
 
-/** The editable points of a target: the boundary, an area's outline, or a line's centre line. */
+/** The editable points of a target: the boundary, an area's outline (or a curve's corners), or a line's centre line. */
 export function pointsOf(g: Garden, t: Target): Point[] | null {
   if (t.type === 'boundary') return g.boundary;
   if (t.type === 'planting') return null;
   const f = g.features.find((x) => x.id === t.id);
   if (!f || f.circle) return null;
-  return f.line ?? f.footprint;
+  return f.line ?? f.controls ?? f.footprint;
 }
 
 /** True when the target is closed (a polygon) rather than an open line. */
@@ -176,7 +215,7 @@ export function setPoints(g: Garden, t: Target, points: Point[]): Garden {
   if (t.type === 'boundary') return { ...g, boundary: pts };
   const f = g.features.find((x) => x.id === t.id);
   if (!f) return g;
-  return updateFeature(g, t.id, f.line ? { line: pts } : { footprint: pts });
+  return updateFeature(g, t.id, f.line ? { line: pts } : f.controls ? { controls: pts } : { footprint: pts });
 }
 
 export function moveVertex(g: Garden, t: Target, index: number, p: Point): Garden {
@@ -233,5 +272,5 @@ export function resizeRect(points: Point[], w: number, h: number): Point[] | nul
 
 /** Everything drawn, for fitting the view. */
 export function gardenBounds(g: Garden): Bounds | null {
-  return bounds([...g.boundary, ...g.features.flatMap((f) => f.footprint)]);
+  return bounds([...g.boundary, ...g.features.flatMap((f) => f.footprint), ...(g.sketches ?? []).flatMap((k) => k.points)]);
 }

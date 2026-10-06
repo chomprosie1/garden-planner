@@ -9,20 +9,23 @@ import { lineLength, perimeter, polygonArea } from '../geometry/polygon';
 import { monthRanges } from '../library/library';
 import {
   asRect,
+  centreLineOf,
   deleteFeatures,
   duplicateFeature,
   featureLabel,
   geometryOf,
   KINDS,
   kindsWithGeometry,
+  MATERIAL_LABEL,
   resizeRect,
   restack,
+  setSmooth,
   updateFeature,
   type Target,
 } from '../model/features';
 import { todayIso } from '../model/ids';
 import { updateGarden, type Store } from '../model/store';
-import type { Feature, FeatureKind, Garden, Plant, Planting, Point } from '../model/types';
+import { MATERIALS, type Feature, type FeatureKind, type Garden, type Material, type Plant, type Planting, type Point } from '../model/types';
 import {
   clearBed,
   deletePlanting,
@@ -293,7 +296,7 @@ function FeaturePanel({ store, garden, f, variant, setSelected, setMode, sunJune
         Name
         <input
           value={f.name ?? ''}
-          placeholder={KINDS[f.kind].label}
+          placeholder={f.kind === 'surface' ? MATERIAL_LABEL[f.material ?? 'lawn'] : KINDS[f.kind].label}
           maxLength={40}
           onChange={(e) => {
             const name = (e.currentTarget as HTMLInputElement).value.trim();
@@ -308,7 +311,9 @@ function FeaturePanel({ store, garden, f, variant, setSelected, setMode, sunJune
             value={f.kind}
             onChange={(e) => {
               const kind = (e.currentTarget as HTMLSelectElement).value as FeatureKind;
-              set({ kind, heightMm: KINDS[kind].heightMm });
+              // Only surfaces and paths are made of something; a bed made of lawn would be drawn as grass.
+              const material = kind === 'surface' ? (f.material ?? 'lawn') : kind === 'path' ? f.material : undefined;
+              set({ kind, heightMm: KINDS[kind].heightMm, material });
             }}
           >
             {kindOptions.map((k) => (
@@ -317,6 +322,14 @@ function FeaturePanel({ store, garden, f, variant, setSelected, setMode, sunJune
               </option>
             ))}
           </select>
+        </label>
+      )}
+
+      {(f.kind === 'surface' || f.kind === 'path') && <MaterialPicker f={f} set={set} />}
+      {geometry !== 'circle' && (
+        <label class="check">
+          <input type="checkbox" checked={!!f.smooth} onChange={() => commit((g) => setSmooth(g, f.id, !f.smooth))} />
+          Curved edges
         </label>
       )}
 
@@ -342,7 +355,7 @@ function FeaturePanel({ store, garden, f, variant, setSelected, setMode, sunJune
           {geometry === 'line' && f.line ? (
             <>
               <dt>Length</dt>
-              <dd>{formatLength(lineLength(f.line))}</dd>
+              <dd>{formatLength(lineLength(centreLineOf(f)))}</dd>
             </>
           ) : (
             <>
@@ -353,7 +366,7 @@ function FeaturePanel({ store, garden, f, variant, setSelected, setMode, sunJune
           {geometry === 'area' && !rect && (
             <>
               <dt>Corners</dt>
-              <dd>{f.footprint.length}</dd>
+              <dd>{(f.controls ?? f.footprint).length}</dd>
             </>
           )}
         </dl>
@@ -366,7 +379,13 @@ function FeaturePanel({ store, garden, f, variant, setSelected, setMode, sunJune
       )}
 
       <p class="muted small">
-        Drag to move. {geometry === 'circle' ? 'Drag the square handle to resize.' : 'Drag a corner to reshape; double-click an edge to add a corner.'} Arrow keys nudge by 10 mm (100 mm with Shift).
+        Drag to move.{' '}
+        {geometry === 'circle'
+          ? 'Drag the square handle to resize.'
+          : f.smooth
+            ? 'The curve runs through the square handles: drag one to reshape it; double-click near the dotted line to add one.'
+            : 'Drag a corner to reshape; double-click an edge to add a corner.'}{' '}
+        Arrow keys nudge by 10 mm (100 mm with Shift).
       </p>
       <div class="button-row">
         <button
@@ -401,6 +420,27 @@ function FeaturePanel({ store, garden, f, variant, setSelected, setMode, sunJune
         </button>
       </div>
     </div>
+  );
+}
+
+/** What a surface or path is made of, as a row of swatches. */
+function MaterialPicker({ f, set }: { f: Feature; set: (patch: Partial<Feature>) => void }) {
+  const path = f.kind === 'path';
+  const current = f.material ?? (path ? null : 'lawn');
+  const options: (Material | null)[] = path ? [null, ...MATERIALS.filter((m) => m !== 'meadow')] : [...MATERIALS];
+  return (
+    <fieldset class="choice">
+      <legend>Made of</legend>
+      <div class="material-picker">
+        {options.map((m) => (
+          <label key={m ?? 'plain'} class="material-option">
+            <input type="radio" name={`material-${f.id}`} checked={current === m} onChange={() => set({ material: m ?? undefined })} />
+            <span class={`material-swatch material-${m ?? 'plain'}`} aria-hidden="true" />
+            <span>{m ? MATERIAL_LABEL[m] : 'Plain'}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
   );
 }
 
@@ -455,7 +495,7 @@ function GardenPanel({ store, garden, setSelected, setTool, setMode }: { store: 
             {[...garden.features].reverse().map((f) => (
               <li key={f.id}>
                 <button type="button" onClick={() => setSelected({ type: 'feature', id: f.id })}>
-                  <span class={`swatch swatch-${f.kind}`} aria-hidden="true" />
+                  <span class={`swatch swatch-${f.kind}${f.material ? ` material-${f.material}` : ''}`} aria-hidden="true" />
                   <span>{featureLabel(f)}</span>
                   <span class="muted small">{KINDS[f.kind].label}</span>
                 </button>

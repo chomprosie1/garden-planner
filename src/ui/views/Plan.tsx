@@ -15,8 +15,9 @@ import type { PlanMode, Prefs, PrefsStore } from '../../theme/prefs';
 import { useIsPhone } from '../hooks';
 import { Icon } from '../icons';
 import { Inspector } from '../Inspector';
-import { PhoneDrawBar, PhoneModeBar, PhonePlantBar, PhoneSheet } from '../PhonePlanControls';
-import { geometryForTool, PlanCanvas, type CanvasApi, type Placing, type Tool } from '../PlanCanvas';
+import { PhoneDrawBar, PhoneHandBar, PhoneModeBar, PhonePlantBar, PhoneSheet } from '../PhonePlanControls';
+import { canDrawByHand, geometryForTool, PlanCanvas, type CanvasApi, type Placing, type SketchPen, type Tool } from '../PlanCanvas';
+import { SketchBar } from '../SketchBar';
 import { PlantPicker } from '../PlantPicker';
 import { SeasonPhoto } from '../SeasonPhoto';
 import { clockText, SunBar, type CalendarDate, type SunView } from '../SunBar';
@@ -48,15 +49,24 @@ const LAYOUT_TOOLS: { tool: Tool; label: string; key: string }[] = [
   { tool: 'select', label: 'Select', key: 'V' },
   { tool: 'boundary', label: 'Boundary', key: 'B' },
   { tool: 'bed', label: 'Bed', key: 'R' },
+  { tool: 'surface', label: 'Surface', key: 'U' },
   { tool: 'path', label: 'Path', key: 'P' },
   { tool: 'fence', label: 'Fence', key: 'L' },
   { tool: 'tree', label: 'Tree', key: 'T' },
 ];
 const MORE: FeatureKind[] = ['wall', 'hedge', 'building', 'greenhouse', 'compost', 'water', 'other'];
 
-const modeOfTool = (t: Tool): PlanMode | null => (t === 'plant' ? 'planting' : t === 'select' ? null : 'layout');
+const modeOfTool = (t: Tool): PlanMode | null => (t === 'plant' ? 'planting' : t === 'select' || t === 'sketch' ? null : 'layout');
 
-function hintFor(tool: Tool, mode: PlanMode): string {
+function hintFor(tool: Tool, mode: PlanMode, byHand = false, pen?: SketchPen): string {
+  if (tool === 'sketch') {
+    if (pen?.kind === 'eraser') return 'Click or drag over sketches to rub them out. Sketches are for ideas: they are never measured or checked.';
+    if (pen?.kind === 'text') return 'Type the words above, then click where they go.';
+    if (pen?.kind === 'arrow') return 'Drag from the tail to the head of the arrow.';
+    return 'Draw on the plan. Sketches are for ideas: they are never measured or checked. Esc when done.';
+  }
+  if (byHand && canDrawByHand(tool))
+    return `Draw the ${KINDS[tool as FeatureKind].label.toLowerCase()} by hand: hold and drag${geometryForTool(tool) === 'area' ? ' all the way round its edge' : ' along its centre line'}. It becomes a smooth curve you can reshape by its handles.`;
   if (tool === 'select') {
     if (mode === 'planting') return 'Click a plant or bed to see it; drag a plant to move it. Double-click a bed to zoom in. Choose Plant to add plants.';
     return 'Click something to select it. Drag empty space to pan; scroll to zoom. Press 0 to fit the garden.';
@@ -93,6 +103,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const [pickerOpen, setPickerOpen] = useState(false);
   const [focusFinding, setFocusFinding] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [byHand, setByHand] = useState(false);
+  const [sketchPen, setSketchPen] = useState<SketchPen>({ kind: 'pen', colour: 'red', text: '' });
 
   // Which part of the plan: the layout until there's a boundary, then planting, unless you've chosen.
   const mode: PlanMode = prefs.planMode ?? (garden.boundary.length < 3 ? 'layout' : 'planting');
@@ -268,6 +280,27 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   }, [hasTrace]);
 
   const empty = garden.boundary.length === 0 && garden.features.length === 0;
+  const sketchBar = (
+    <SketchBar
+      pen={sketchPen}
+      setPen={(pen) => {
+        setSketchPen(pen);
+        setMessage(null);
+      }}
+      store={store}
+      garden={garden}
+      prefs={prefs}
+      prefsStore={prefsStore}
+      look={prefs.look}
+      mode={colourMode}
+      {...(phone ? { done: () => setTool('select') } : {})}
+    />
+  );
+  const sketchButton = (
+    <button type="button" class="tool" aria-pressed={tool === 'sketch'} title="Sketch (K)" onClick={() => setTool(tool === 'sketch' ? 'select' : 'sketch')}>
+      Sketch
+    </button>
+  );
   const moreValue = MORE.includes(tool as FeatureKind) ? tool : '';
   const drawing = geometryForTool(tool) !== null;
   const select = (t: Target | null) => {
@@ -386,6 +419,20 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
             </option>
           ))}
         </select>
+        <span class="tool-sep" aria-hidden="true" />
+        <button
+          type="button"
+          class="tool"
+          aria-pressed={byHand}
+          title="Draw areas and lines by hand, as smooth curves"
+          onClick={() => {
+            setByHand(!byHand);
+            setMessage(null);
+          }}
+        >
+          By hand
+        </button>
+        {sketchButton}
       </div>
     ) : mode === 'planting' ? (
       <div class="mode-bar" role="toolbar" aria-label="Planting tools">
@@ -395,6 +442,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
         <button type="button" class="tool" aria-pressed={tool === 'plant'} title="Plant (G)" onClick={() => setTool('plant')}>
           Plant
         </button>
+        {sketchButton}
         {warnings > 0 && (
           <button
             type="button"
@@ -461,6 +509,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       ) : (
         !phone && desktopBar
       )}
+      {!phone && !sunOn && tool === 'sketch' && sketchBar}
       <div class="plan-body">
         <main class="plan-stage">
           {showPhoto && <SeasonPhoto month={photoMonth} sizes="100vw" class="plan-margin-photo" credit={false} />}
@@ -479,6 +528,10 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               readOnly={false}
               edit={mode === 'sun' ? 'view' : mode}
               crosshair={phone}
+              phone={phone}
+              byHand={byHand}
+              sketchPen={sketchPen}
+              showSketches={prefs.sketches || tool === 'sketch'}
               apiRef={canvasApi}
               onDraftChange={setCorners}
               fitSignal={fitSignal}
@@ -520,7 +573,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
                       ? `Shadows at ${clockText(shownMinutes)}. Drag the slider or press play to watch them move.`
                       : sunOn
                         ? 'Point at the plan to see how many hours of sun each spot gets.'
-                        : hintFor(tool, mode))}
+                        : hintFor(tool, mode, byHand, sketchPen))}
               </p>
             )}
           </div>
@@ -560,8 +613,12 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               done={() => setTool('select')}
             />
           )
+        ) : tool === 'sketch' ? (
+          sketchBar
+        ) : drawing && byHand && canDrawByHand(tool) ? (
+          <PhoneHandBar tool={tool} message={message} useCorners={() => setByHand(false)} cancel={() => setTool('select')} />
         ) : drawing ? (
-          <PhoneDrawBar key={tool} tool={tool} corners={corners} api={canvasApi} />
+          <PhoneDrawBar key={tool} tool={tool} corners={corners} api={canvasApi} byHand={() => setByHand(true)} />
         ) : showSheet ? (
           <PhoneSheet
             title={sheetTitle}
@@ -580,7 +637,11 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
         ) : (
           <PhoneModeBar
             mode={mode}
-            setTool={setTool}
+            setTool={(t) => {
+              // Picking a shape from the phone's bar draws with corners, unless you then choose to draw by hand.
+              if (t !== 'sketch') setByHand(false);
+              setTool(t);
+            }}
             warnings={warnings}
             openDetails={() => setGardenSheet(true)}
             empty={empty}

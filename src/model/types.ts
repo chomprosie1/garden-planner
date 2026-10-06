@@ -20,6 +20,24 @@ export interface Garden {
   spacing?: SpacingStyle;
   /** A photo or screenshot to trace over. The image itself stays in this browser (IndexedDB). */
   trace?: Trace;
+  /** Pen marks, arrows and words drawn over the plan: ideas, not measurements. */
+  sketches?: Sketch[];
+}
+
+export const SKETCH_KINDS = ['pen', 'highlighter', 'arrow', 'text'] as const;
+export type SketchKind = (typeof SKETCH_KINDS)[number];
+export const SKETCH_COLOURS = ['ink', 'red', 'blue', 'green', 'yellow'] as const;
+export type SketchColour = (typeof SKETCH_COLOURS)[number];
+
+export interface Sketch {
+  id: string;
+  kind: SketchKind;
+  /** A pen or highlighter stroke; an arrow's tail and head; where words start. In mm. */
+  points: Point[];
+  /** A named colour, so it suits every look in light and dark. */
+  colour: SketchColour;
+  widthMm: number;
+  text?: string;
 }
 
 export type SpacingStyle = 'close' | 'rows';
@@ -45,16 +63,30 @@ export const FEATURE_KINDS = [
   'hedge',
   'compost',
   'water',
+  'surface',
   'other',
 ] as const;
 export type FeatureKind = (typeof FEATURE_KINDS)[number];
+
+/** What a surface or path is made of. */
+export const MATERIALS = ['lawn', 'gravel', 'paving', 'decking', 'bark', 'meadow', 'soil'] as const;
+export type Material = (typeof MATERIALS)[number];
 
 export interface Feature {
   id: string;
   kind: FeatureKind;
   name?: string;
-  /** The outline on the ground. For lines and circles it is derived from `line` or `circle`. */
+  /**
+   * The outline on the ground. For lines and circles it is derived from `line` or `circle`, and for a
+   * curved area from `controls`: a dense polygon along the curve.
+   */
   footprint: Point[];
+  /** What a surface or path is made of. */
+  material?: Material;
+  /** Curved edges: an area's outline, or a line's centre line, runs as a smooth curve through its corners. */
+  smooth?: boolean;
+  /** The corners a curved area's outline passes through. Present only when `smooth` is set on an area. */
+  controls?: Point[];
   heightMm?: number; // used by the sun layer; absent for flat features
   /** Centre line of a fence, wall, hedge or path, with its width. */
   line?: Point[];

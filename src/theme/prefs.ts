@@ -26,6 +26,8 @@ export interface Prefs {
   northChecked: boolean;
   /** The getting-started list on Home has been put away. */
   setupHidden: boolean;
+  /** Show the sketch layer on the plan. */
+  sketches: boolean;
 }
 
 export const PLAN_MODES = ['layout', 'planting', 'sun'] as const;
@@ -51,6 +53,7 @@ export function defaultPrefs(): Prefs {
     lastBackup: null,
     northChecked: false,
     setupHidden: false,
+    sketches: true,
   };
 }
 
@@ -81,6 +84,7 @@ export function sanitisePrefs(raw: unknown): Prefs {
     lastBackup: typeof r.lastBackup === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.lastBackup) ? r.lastBackup : null,
     northChecked: r.northChecked === true,
     setupHidden: r.setupHidden === true,
+    sketches: r.sketches !== false,
   };
 }
 

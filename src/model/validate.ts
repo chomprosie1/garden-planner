@@ -4,7 +4,10 @@
 import {
   FEATURE_KINDS,
   LIGHT_LEVELS,
+  MATERIALS,
   PLANT_CATEGORIES,
+  SKETCH_COLOURS,
+  SKETCH_KINDS,
   SOWING_METHODS,
   STAGES,
   WINTERING_TYPES,
@@ -60,6 +63,9 @@ export function validateGarden(g: unknown): string[] {
         f.circle === undefined || (isObject(f.circle) && isPoint(f.circle.centre) && isNum(f.circle.radiusMm) && f.circle.radiusMm > 0),
         `${at}.circle needs a centre and a radius above 0.`,
       );
+      need(f.material === undefined || oneOf(MATERIALS, f.material), `${at}.material is not a known material.`);
+      need(f.smooth === undefined || typeof f.smooth === 'boolean', `${at}.smooth must be true or false.`);
+      need(f.controls === undefined || (Array.isArray(f.controls) && f.controls.length >= 3 && f.controls.every(isPoint)), `${at}.controls needs three or more points.`);
     });
 
   need(g.spacing === undefined || g.spacing === 'close' || g.spacing === 'rows', 'spacing must be close or rows.');
@@ -91,6 +97,19 @@ export function validateGarden(g: unknown): string[] {
         `${at}.stageDates must give a date for each stage.`,
       );
     });
+
+  if (g.sketches !== undefined) {
+    if (!Array.isArray(g.sketches)) errors.push('sketches must be a list.');
+    else
+      g.sketches.forEach((k, i) => {
+        const at = `sketches[${i}]`;
+        if (!isObject(k)) return errors.push(`${at} is not an object.`);
+        need(isStr(k.id) && oneOf(SKETCH_KINDS, k.kind) && oneOf(SKETCH_COLOURS, k.colour), `${at} needs an id, a kind and a colour.`);
+        need(Array.isArray(k.points) && k.points.length >= 1 && k.points.every(isPoint), `${at}.points must be a list of points.`);
+        need(isNum(k.widthMm) && k.widthMm > 0, `${at}.widthMm must be above 0.`);
+        need(k.text === undefined || isStr(k.text), `${at}.text must be text.`);
+      });
+  }
 
   if (!Array.isArray(g.notes)) errors.push('notes must be a list.');
   else

@@ -3,13 +3,15 @@
 
 import { bounds, centroid, distance } from '../geometry/polygon';
 import { featureLabel, isClosed, pointsOf, type Target } from '../model/features';
-import type { Feature, Garden, Plant, Planting, Point } from '../model/types';
+import { SKETCH_WIDTH, sketchesOf } from '../model/sketches';
+import type { Feature, Garden, Material, Plant, Planting, Point, Sketch, SketchColour, SketchKind } from '../model/types';
 import { blockGrid, isActive, MAX_PLANTS, plantCount, plantingShape, plantPositions, rowCount, spreadOf, type Layout, type PlantingShape } from '../planting/place';
 import type { Finding } from '../planting/rules';
 import type { SunGrid } from '../sun/hours';
 import type { Sun } from '../sun/position';
 import type { Shade } from '../sun/shadow';
 import { LOOKS, type LookId, type Mode, type PlanPalette } from '../theme/looks';
+import { drawMaterialTile, materialColour, MATERIAL_TILE_MM, mix } from './materials';
 import type { SnapKind } from './snap';
 import { formatLength, gridStep, scaleBarLength, toScreen, type Viewport } from './viewport';
 
@@ -79,6 +81,21 @@ export interface Scene {
   sun?: Sun | null;
   /** A small picture of the plan: no grid, scale bar or compass. */
   minimal?: boolean;
+  /** Show the sketch layer (pen marks, arrows, words). Shown unless false. */
+  sketches?: boolean;
+  /** A stroke being drawn by hand: a freehand shape, or a sketch. */
+  stroke?: Stroke | null;
+}
+
+/** A hand-drawn stroke in progress. */
+export interface Stroke {
+  points: Point[];
+  /** A freehand area closes back to its start. */
+  closed?: boolean;
+  /** A freehand line feature's width, mm. */
+  widthMm?: number;
+  /** A sketch mark: its kind and colour. */
+  sketch?: { kind: SketchKind; colour: SketchColour };
 }
 
 /** A planting being placed: the plant, how it's laid out, and the points so far. */
@@ -176,6 +193,22 @@ function patterns(ctx: CanvasRenderingContext2D, s: PlanStyle): Patterns {
   return result;
 }
 
+const materialCache = new Map<string, CanvasPattern | string>();
+
+/**
+ * A material's texture in this look. Every look gets one, even the flat ones: in Minimal, a white lawn or
+ * soil would otherwise vanish, and its faint marks read like the hatching on a technical drawing.
+ */
+function materialFill(ctx: CanvasRenderingContext2D, s: PlanStyle, m: Material): CanvasPattern | string {
+  const key = `${s.look}-${s.mode}-${m}`;
+  let fill = materialCache.get(key);
+  if (!fill) {
+    fill = ctx.createPattern(tile(64, (c) => drawMaterialTile(c, m, s.plan, s.mode)), 'repeat') ?? materialColour(m, s.plan, s.mode);
+    materialCache.set(key, fill);
+  }
+  return fill;
+}
+
 /** Ties a pattern to the garden, so it pans and zooms with the plan. */
 function placePattern(fill: CanvasPattern | string, v: Viewport, tileMm: number): CanvasPattern | string {
   if (typeof fill === 'string') return fill;
@@ -250,7 +283,9 @@ export function render(ctx: CanvasRenderingContext2D, s: Scene) {
     ctx.stroke();
   }
 
-  for (const f of g.features) drawFeature(ctx, s, f, pats);
+  // Surfaces (lawns, gravel) lie under everything else.
+  for (const f of g.features) if (f.kind === 'surface') drawFeature(ctx, s, f, pats);
+  for (const f of g.features) if (f.kind !== 'surface') drawFeature(ctx, s, f, pats);
   const planted = s.plantOf ? g.plantings.filter(isActive) : [];
   for (const pl of planted) drawPlanting(ctx, s, pl, s.plantOf!(pl.plantId));
   if (s.sunGrid) drawHeatMap(ctx, s, s.sunGrid);
@@ -259,8 +294,10 @@ export function render(ctx: CanvasRenderingContext2D, s: Scene) {
   const bedsInUse = new Set(planted.map((p) => p.featureId));
   for (const f of g.features) drawLabel(ctx, s, f, bedsInUse.has(f.id));
   for (const pl of planted) drawPlantLabel(ctx, s, pl, s.plantOf!(pl.plantId));
+  if (s.sketches !== false) for (const k of sketchesOf(g)) drawSketch(ctx, s, k);
 
   if (s.selected) drawSelection(ctx, s, s.selected);
+  if (s.stroke) drawStroke(ctx, s, s.stroke);
   if (s.draft) drawDraft(ctx, s, s.draft);
   if (s.plantDraft) drawPlantDraft(ctx, s, s.plantDraft);
   if (s.crosshair) drawCrosshair(ctx, s);
@@ -325,13 +362,19 @@ function drawFeature(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, pats: 
   const v = s.view;
   const c = featureColours(f, s.style.plan);
   const pts = f.footprint.map((p) => toScreen(v, p));
-  const radius = f.kind === 'bed' ? s.style.bedRadiusMm * v.scale : 0;
+  // Curved beds are already round, so only straight-sided ones get the look's rounded corners.
+  const radius = f.kind === 'bed' && !f.smooth ? s.style.bedRadiusMm * v.scale : 0;
+  const material = f.material ?? (f.kind === 'surface' ? 'lawn' : undefined);
   polyPath(ctx, pts, true, radius);
-  ctx.fillStyle = f.kind === 'bed' ? placePattern(pats.bed, v, pats.tileMm.bed) : c.fill;
+  if (material) {
+    // Lawns use the garden's own lawn pattern, so a drawn lawn matches the garden around it.
+    ctx.fillStyle = material === 'lawn' && typeof pats.lawn !== 'string' ? placePattern(pats.lawn, v, pats.tileMm.lawn) : placePattern(materialFill(ctx, s.style, material), v, MATERIAL_TILE_MM[material]);
+  } else ctx.fillStyle = f.kind === 'bed' ? placePattern(pats.bed, v, pats.tileMm.bed) : c.fill;
   ctx.fill();
   ctx.setLineDash(c.dash ?? []);
-  ctx.strokeStyle = c.stroke;
-  ctx.lineWidth = s.hoverId === f.id ? 3 : f.kind === 'tree' ? 1.5 : 2;
+  // A surface's edge is just a little darker than the surface itself.
+  ctx.strokeStyle = f.kind === 'surface' && material ? mix(materialColour(material, s.style.plan, s.style.mode), '#000000', s.style.mode === 'dark' ? 0.35 : 0.22) : c.stroke;
+  ctx.lineWidth = s.hoverId === f.id ? 3 : f.kind === 'tree' || f.kind === 'surface' ? 1.5 : 2;
   ctx.stroke();
   ctx.setLineDash([]);
 
@@ -373,9 +416,8 @@ function labelPoint(f: Feature): Point {
 function drawLabel(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, planted = false) {
   const v = s.view;
   const st = s.style;
-  if (f.kind === 'fence' || f.kind === 'wall') {
-    if (!f.name) return; // fences and walls only carry a label when named
-  }
+  // Fences, walls and surfaces only carry a label when named.
+  if ((f.kind === 'fence' || f.kind === 'wall' || f.kind === 'surface') && !f.name) return;
   const text = st.labels === 'sign' || st.labels === 'caps' ? featureLabel(f).toUpperCase() : featureLabel(f);
   // A bed with plants in it has its name just above it, out of the plants' way.
   const b = planted ? bounds(f.footprint) : null;
@@ -411,6 +453,7 @@ function drawLabel(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, planted 
   } else {
     // A soft halo keeps text readable over any fill.
     ctx.lineWidth = 4;
+    ctx.lineJoin = 'round'; // mitred joins spike out of sharp letters
     ctx.strokeStyle = st.plan.paper;
     ctx.globalAlpha = 0.85;
     ctx.strokeText(text, x, y);
@@ -481,7 +524,16 @@ function drawSelection(ctx: CanvasRenderingContext2D, s: Scene, t: Target) {
 
   const pts = pointsOf(g, t) ?? [];
   const closed = isClosed(g, t);
-  for (let i = 0; i < pts.length - (closed ? 0 : 1); i++) lengthTag(ctx, s, pts[i]!, pts[(i + 1) % pts.length]!);
+  if (f?.smooth) {
+    // A curve: a faint line joins the corners it passes through. Its sides aren't straight, so no lengths.
+    polyPath(ctx, pts.map((p) => toScreen(v, p)), closed);
+    ctx.globalAlpha = 0.45;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+  } else for (let i = 0; i < pts.length - (closed ? 0 : 1); i++) lengthTag(ctx, s, pts[i]!, pts[(i + 1) % pts.length]!);
   pts.forEach((p, i) => handle(ctx, toScreen(v, p), sel, s.style.plan.paper, i === s.selectedVertex));
 }
 
@@ -921,6 +973,7 @@ function drawPlantLabel(ctx: CanvasRenderingContext2D, s: Scene, pl: Planting, p
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.lineWidth = 3.5;
+  ctx.lineJoin = 'round';
   ctx.strokeStyle = s.style.plan.paper;
   ctx.globalAlpha = 0.9;
   ctx.strokeText(text, x, y);
@@ -974,6 +1027,117 @@ function drawPlantDraft(ctx: CanvasRenderingContext2D, s: Scene, d: PlantDraft) 
   ctx.fillText(text, x + 22, y - 22.5);
 }
 
+
+// ---------- Sketches ----------
+
+const SKETCH_INK: Record<'light' | 'dark', Record<Exclude<SketchColour, 'ink'>, string>> = {
+  light: { red: '#c0392b', blue: '#2d6cb5', green: '#2f7d32', yellow: '#f2c230' },
+  dark: { red: '#ff8a7a', blue: '#8cc2ff', green: '#7bd88f', yellow: '#f5d76e' },
+};
+export const sketchColour = (c: SketchColour, s: PlanStyle) => (c === 'ink' ? s.plan.label : SKETCH_INK[s.mode][c]);
+
+/** A line through the middle of each pair of points, so strokes look hand-drawn rather than jagged. */
+function smoothPath(ctx: CanvasRenderingContext2D, pts: Point[]) {
+  ctx.beginPath();
+  if (!pts.length) return;
+  ctx.moveTo(pts[0]![0], pts[0]![1]);
+  if (pts.length === 1) {
+    ctx.lineTo(pts[0]![0] + 0.01, pts[0]![1]);
+    return;
+  }
+  for (let i = 1; i < pts.length - 1; i++) {
+    const [x, y] = pts[i]!;
+    const [nx, ny] = pts[i + 1]!;
+    ctx.quadraticCurveTo(x, y, (x + nx) / 2, (y + ny) / 2);
+  }
+  ctx.lineTo(pts[pts.length - 1]![0], pts[pts.length - 1]![1]);
+}
+
+/** The size words are drawn at, px: to scale, but never too small to read or so big they swamp the plan. */
+export const sketchTextPx = (k: Sketch, scale: number) => Math.max(12, Math.min(44, k.widthMm * scale));
+
+function drawSketch(ctx: CanvasRenderingContext2D, s: Scene, k: Sketch) {
+  const v = s.view;
+  const colour = sketchColour(k.colour, s.style);
+  const pts = k.points.map((p) => toScreen(v, p));
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = colour;
+  ctx.fillStyle = colour;
+  if (k.kind === 'text') {
+    const px = sketchTextPx(k, v.scale);
+    ctx.font = `600 ${px}px ${s.style.fontPlan}`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.lineWidth = Math.max(3, px / 5);
+    ctx.strokeStyle = s.style.plan.paper;
+    ctx.globalAlpha = 0.85;
+    ctx.strokeText(k.text ?? '', pts[0]![0], pts[0]![1]);
+    ctx.globalAlpha = 1;
+    ctx.fillText(k.text ?? '', pts[0]![0], pts[0]![1]);
+  } else if (k.kind === 'arrow' && pts.length >= 2) {
+    const a = pts[0]!;
+    const b = pts[pts.length - 1]!;
+    const w = Math.max(2, k.widthMm * v.scale);
+    const head = Math.max(10, w * 4);
+    const ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+    ctx.lineWidth = w;
+    ctx.beginPath();
+    ctx.moveTo(a[0], a[1]);
+    ctx.lineTo(b[0] - Math.cos(ang) * head * 0.6, b[1] - Math.sin(ang) * head * 0.6);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(b[0], b[1]);
+    ctx.lineTo(b[0] - Math.cos(ang - 0.45) * head, b[1] - Math.sin(ang - 0.45) * head);
+    ctx.lineTo(b[0] - Math.cos(ang + 0.45) * head, b[1] - Math.sin(ang + 0.45) * head);
+    ctx.closePath();
+    ctx.fill();
+  } else {
+    const highlighter = k.kind === 'highlighter';
+    ctx.lineWidth = Math.max(highlighter ? 6 : 1.5, k.widthMm * v.scale);
+    if (highlighter) {
+      ctx.globalAlpha = 0.38;
+      ctx.lineCap = 'butt';
+    }
+    smoothPath(ctx, pts);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/** A stroke being drawn by hand: a sketch mark as it will look, or a freehand shape's outline. */
+function drawStroke(ctx: CanvasRenderingContext2D, s: Scene, st: Stroke) {
+  if (st.sketch) {
+    if (st.points.length) drawSketch(ctx, s, { id: 'draft', kind: st.sketch.kind, colour: st.sketch.colour, points: st.points, widthMm: SKETCH_WIDTH[st.sketch.kind] });
+    return;
+  }
+  const v = s.view;
+  const pts = st.points.map((p) => toScreen(v, p));
+  const sel = s.style.plan.selection;
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  if (st.widthMm) {
+    ctx.strokeStyle = sel;
+    ctx.globalAlpha = 0.25;
+    ctx.lineWidth = Math.max(2, st.widthMm * v.scale);
+    smoothPath(ctx, pts);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  smoothPath(ctx, st.closed && pts.length > 2 ? [...pts, pts[0]!] : pts);
+  if (st.closed) {
+    ctx.fillStyle = sel;
+    ctx.globalAlpha = 0.12;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  ctx.strokeStyle = sel;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.restore();
+}
 
 /** Which edges of a square the contour crosses, for each pattern of corners above the threshold (bottom-left, bottom-right, top-right, top-left). */
 const MARCH: [number, number][][] = [

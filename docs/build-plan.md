@@ -257,7 +257,7 @@ Brought forward from "parked": the plant life cycle, frost and Growing Degree Da
 | Stage | What | Status |
 | --- | --- | --- |
 | 8 | Life stages, without weather | Built |
-| 9 | Drawing upgrade: surfaces, curved edges, freehand shapes, sketch layer | |
+| 9 | Drawing upgrade: surfaces, curved edges, freehand shapes, sketch layer | Built |
 | 10 | Illustrated plants, drawn by code, changing with the stage | |
 | 11 | Depth and texture: material textures, raised-bed edging, soft shadows, cached static layer | |
 | 12 | The Potting Shed, with shelves: trays, places, frost dates, plant out from a tray | |
@@ -284,6 +284,18 @@ Brought forward from "parked": the plant life cycle, frost and Growing Degree Da
 - **Still to come:** a sharper guess from growing degree days (Stage 15), and seedlings off the plan in the Potting Shed (Stage 12).
 
 Tests: `tests/stages.test.ts` covers paths, moving on and back, failed sowings, guesses, advice, jobs and the v3 → v4 migration (fixture `garden-v3.json`).
+
+### Stage 9 — Drawing upgrade (as built)
+- **Surfaces:** a new **Surface** tool (U) for lawn, gravel, paving, decking, bark chips, wildflower meadow or bare soil, picked from swatches under "Made of". Paths can be made of the same materials, or stay plain. Surfaces are drawn under everything else and picked last, cast no shade, and plants don't go in them. A surface is named after its material until you name it.
+- **Textures:** drawn by code (`src/canvas/materials.ts`) on tiles tied to real sizes (600 mm slabs, 150 mm boards), so they stay to scale as you zoom. Colours come from each look's plan palette, nudged towards its paper, so they suit all five looks in light and dark. Minimal gets them too, as faint marks like the hatching on a technical drawing.
+- **Curved edges:** a "Curved edges" tick on any area or line. The curve runs through the corners (centripetal Catmull-Rom, `src/geometry/curve.ts`), so dragging a corner reshapes it. A curved area keeps its corners in `controls`, and its `footprint` is the curve itself, so area, plant checks, shadows and sun hours all follow the curve. Turning curves off gives the corners back exactly.
+- **By hand:** a "By hand" toggle on the drawing bar. Hold and drag round an area or along a line; the stroke is thinned to the corners that keep its shape (`src/geometry/simplify.ts`) and saved as a curve you can reshape. The boundary stays exact and is never drawn by hand. On a phone, "By hand" on the drawing bar switches to one finger drawing and two fingers moving the plan.
+- **Sketch layer:** a **Sketch** tool (K) in Layout and Planting, with pen, highlighter, arrow, words and eraser, in ink, red, blue, green or yellow. Sketches are saved in the garden (`garden.sketches`), drawn above the plants, and never measured or checked. "Hide sketches" (per device) and "Clear all" (with undo). The eraser rubs out with one drag, as one undo step.
+- **Model:** schema 5 adds the `surface` kind, `material`, `smooth`, `controls` and `sketches`, all optional.
+- **Fixed on the way:** label halos had spiky mitred joins on sharp letters in some looks.
+- **Not done:** the mock-up for you to choose from before building was skipped, as you asked for Stages 8 and 9 to be built straight away. Textures and colours are easy to tune if any look wrong on your phone.
+
+Tests: `tests/drawing.test.ts` covers curves, simplifying strokes, curved features, surfaces, sketches and the schema 5 round trip.
 
 ---
 

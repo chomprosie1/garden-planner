@@ -4,11 +4,13 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { useApp } from './appContext';
 import { hitEdge, hitFeature, hitPlanting, hitVertex } from '../canvas/hit';
-import { northCentre, NORTH_RADIUS, plantingHandles, planStyle, render, type Draft, type PlantDraft } from '../canvas/render';
+import { northCentre, NORTH_RADIUS, plantingHandles, planStyle, render, sketchTextPx, type Draft, type PlantDraft, type Stroke } from '../canvas/render';
 import { parseLength, snapPoint, snapStepFor, type SnapKind } from '../canvas/snap';
 import { fit, pan, toScreen, toWorld, zoomAt, type Viewport } from '../canvas/viewport';
 import { bounds, distance } from '../geometry/polygon';
 import { pointAtLength } from '../geometry/snap';
+import { simplify, simplifyClosed } from '../geometry/simplify';
+import { addSketch, deleteSketches, makeSketch, sketchesAt } from '../model/sketches';
 import {
   addFeature,
   deleteFeatures,
@@ -29,7 +31,7 @@ import {
   type Target,
 } from '../model/features';
 import { updateGarden, type Store } from '../model/store';
-import type { Feature, FeatureKind, Garden, Plant, Point } from '../model/types';
+import type { Feature, FeatureKind, Garden, Plant, Point, SketchColour, SketchKind } from '../model/types';
 import { addPlanting, blockGrid, containerAt, deletePlanting, makePlanting, MAX_PLANTS, movePlanting, rowCount, updatePlanting, type Layout } from '../planting/place';
 import type { Finding } from '../planting/rules';
 import type { SunGrid } from '../sun/hours';
@@ -37,7 +39,17 @@ import type { Sun } from '../sun/position';
 import type { Shade } from '../sun/shadow';
 import type { LookId, Mode } from '../theme/looks';
 
-export type Tool = 'select' | 'boundary' | 'calibrate' | 'trace' | 'plant' | FeatureKind;
+export type Tool = 'select' | 'boundary' | 'calibrate' | 'trace' | 'plant' | 'sketch' | FeatureKind;
+
+/** The sketch tool's settings: what it draws, in what colour, and the words to place. */
+export interface SketchPen {
+  kind: SketchKind | 'eraser';
+  colour: SketchColour;
+  text: string;
+}
+
+/** Tools that can draw by hand: areas and lines, but not the boundary, which stays exact. */
+export const canDrawByHand = (t: Tool) => t !== 'boundary' && (geometryForTool(t) === 'area' || geometryForTool(t) === 'line');
 
 /** The plant being placed with the Plant tool, and how. */
 export interface Placing {
@@ -50,8 +62,8 @@ export interface Placing {
 /** Drag-and-drop type for a plant dragged from a list onto the plan. */
 export const PLANT_DRAG_TYPE = 'application/x-garden-plant';
 
-/** Tools that draw at the crosshair on a phone. */
-export const usesCrosshair = (t: Tool) => geometryForTool(t) !== null || t === 'plant';
+/** Tools that draw at the crosshair on a phone. Drawing by hand uses a finger instead. */
+export const usesCrosshair = (t: Tool, byHand = false) => (geometryForTool(t) !== null && !(byHand && canDrawByHand(t))) || t === 'plant';
 
 /** Commands the phone's drawing bar sends to the canvas. */
 export interface CanvasApi {
@@ -97,6 +109,8 @@ export interface PlanCanvasProps {
   onCalibrate: (a: Point, b: Point) => void;
   /** Phones: draw with a fixed crosshair at the centre, moving the plan under it. */
   crosshair?: boolean;
+  /** A phone-sized screen: after drawing, say what was added rather than opening its details over the tools. */
+  phone?: boolean;
   apiRef?: { current: CanvasApi | null };
   /** How many corners the current drawing has, so the drawing bar can enable its buttons. */
   onDraftChange?: (corners: number) => void;
@@ -112,6 +126,12 @@ export interface PlanCanvasProps {
   onHoverPoint?: (p: Point | null) => void;
   /** A short message about the last action, e.g. why a plant couldn't go there. null clears it. */
   onMessage?: (text: string | null) => void;
+  /** Areas and lines are drawn with a finger or the mouse, as smooth curves. */
+  byHand?: boolean;
+  /** The sketch tool's settings. */
+  sketchPen?: SketchPen;
+  /** Show the sketch layer. */
+  showSketches?: boolean;
 }
 
 type Drag =
@@ -122,7 +142,8 @@ type Drag =
   | { kind: 'plantEnd'; id: string; end: 0 | 1; base: Garden }
   | { kind: 'vertex'; target: Target; index: number; base: Garden }
   | { kind: 'radius'; id: string; base: Garden }
-  | { kind: 'trace'; base: Garden; start: Point };
+  | { kind: 'trace'; base: Garden; start: Point }
+  | { kind: 'erase'; base: Garden; ids: Set<string> };
 
 interface Drawing {
   points: Point[];
@@ -150,7 +171,7 @@ const isTyping = (t: EventTarget | null) =>
 
 export function geometryForTool(tool: Tool): 'area' | 'line' | 'circle' | null {
   if (tool === 'boundary') return 'area';
-  if (tool === 'select' || tool === 'calibrate' || tool === 'trace' || tool === 'plant') return null;
+  if (tool === 'select' || tool === 'calibrate' || tool === 'trace' || tool === 'plant' || tool === 'sketch') return null;
   return KINDS[tool].geometry;
 }
 
@@ -173,6 +194,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
   const space = useRef(false);
   const raf = useRef(0);
   const lastTap = useRef<{ t: number; s: Point } | null>(null);
+  /** A stroke being drawn by hand, in garden mm, and the screen point it last grew from. */
+  const stroke = useRef<{ points: Point[]; last: Point } | null>(null);
 
   const garden = () => preview.current ?? P.current.garden;
 
@@ -187,7 +210,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const p = P.current;
     const d = drawing.current;
     const geometry = geometryForTool(p.tool);
-    const useCrosshair = !!p.crosshair && usesCrosshair(p.tool);
+    const useCrosshair = !!p.crosshair && usesCrosshair(p.tool, p.byHand);
     if (useCrosshair) {
       const sn = crosshairSnap();
       d.cursor = sn.point;
@@ -207,7 +230,15 @@ export function PlanCanvas(props: PlanCanvasProps) {
         typed: d.typed,
         ...(geometry === 'line' && p.tool !== 'boundary' ? { widthMm: KINDS[p.tool as FeatureKind].widthMm } : {}),
       };
+    const st = stroke.current;
+    const strokeScene: Stroke | null = !st
+      ? null
+      : p.tool === 'sketch' && p.sketchPen && p.sketchPen.kind !== 'eraser'
+        ? { points: st.points, sketch: { kind: p.sketchPen.kind, colour: p.sketchPen.colour } }
+        : { points: st.points, closed: geometry === 'area', ...(geometry === 'line' ? { widthMm: KINDS[p.tool as FeatureKind].widthMm } : {}) };
     render(ctx, {
+      stroke: strokeScene,
+      sketches: p.showSketches !== false,
       garden: garden(),
       view: v,
       width: w,
@@ -280,7 +311,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
   }
   useEffect(redraw, [drawKey]);
 
-  useEffect(redraw, [props.garden, props.look, props.mode, props.selected, props.selectedVertex, props.traceImage, props.findings, props.focusFinding, props.shadows, props.sunGrid, props.sun]);
+  useEffect(redraw, [props.garden, props.look, props.mode, props.selected, props.selectedVertex, props.traceImage, props.findings, props.focusFinding, props.shadows, props.sunGrid, props.sun, props.showSketches, props.byHand]);
 
   // ---------- helpers ----------
 
@@ -375,7 +406,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
    */
   const drawn = (t: Target, text: string) => {
     const p = P.current;
-    if (!p.crosshair) return p.setSelected(t);
+    if (!p.crosshair && !p.phone) return p.setSelected(t);
     p.setSelected(null);
     A.current.notify(`${text} Tap it to name it or change its size.`, { undo: true });
   };
@@ -390,6 +421,49 @@ export function PlanCanvas(props: PlanCanvasProps) {
       return redraw();
     }
     finishShape(rectPoints({ x, y, w, h }));
+  };
+
+  // ---------- drawing by hand ----------
+
+  /** A freehand stroke becomes a curved area or line, thinned to the corners that keep its shape. */
+  const finishByHand = (pts: Point[]) => {
+    const p = P.current;
+    const geometry = geometryForTool(p.tool);
+    const tol = tolMm(4);
+    if (geometry === 'area') {
+      const corners = simplifyClosed(pts, tol);
+      const b = bounds(pts);
+      if (corners.length < 3 || !b || Math.min(b.maxX - b.minX, b.maxY - b.minY) < 100) return say('Draw all the way round the shape, back to where you started.');
+      const f = makeFeature(p.tool as FeatureKind, { area: corners }, { smooth: true });
+      commit((g) => addFeature(g, f));
+      drawn({ type: 'feature', id: f.id }, `${KINDS[f.kind].label} added.`);
+    } else if (geometry === 'line') {
+      const line = simplify(pts, tol);
+      if (line.length < 2 || distance(line[0]!, line[line.length - 1]!) < 100) return say('Draw along the whole line.');
+      const f = makeFeature(p.tool as FeatureKind, { line }, { smooth: true });
+      commit((g) => addFeature(g, f));
+      drawn({ type: 'feature', id: f.id }, `${KINDS[f.kind].label} added.`);
+    }
+    p.setTool('select');
+  };
+
+  /** A finished sketch mark: a pen or highlighter stroke, or an arrow. */
+  const finishSketch = (pts: Point[]) => {
+    const pen = P.current.sketchPen;
+    if (!pen || pen.kind === 'eraser' || pen.kind === 'text') return;
+    const k = makeSketch(pen.kind, pen.colour, pts, { toleranceMm: tolMm(1.2) });
+    commit((g) => addSketch(g, k));
+  };
+
+  /** Sketches under a screen point, for the eraser. Words are as wide as they're drawn. */
+  const sketchesUnder = (g: Garden, world: Point, touch: boolean) => {
+    const ctx = canvas.current?.getContext('2d');
+    const scale = view.current?.scale ?? 0.05;
+    return sketchesAt(g, world, tolMm(touch ? 12 : 6), (k) => {
+      if (!ctx) return (k.text?.length ?? 0) * k.widthMm * 0.55;
+      ctx.font = `600 ${sketchTextPx(k, scale)}px sans-serif`;
+      return ctx.measureText(k.text ?? '').width / scale;
+    });
   };
 
   // ---------- planting ----------
@@ -447,14 +521,41 @@ export function PlanCanvas(props: PlanCanvasProps) {
       pinch.current = { dist: distance(a, b), mid: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] };
       drag.current = null;
       preview.current = null;
+      // A second finger means moving the plan, not drawing.
+      stroke.current = null;
       return;
     }
     if (!view.current) return;
     const p = P.current;
     const world = toWorld(view.current, s);
 
+    // Sketching: pen, highlighter and arrows follow the pointer; words go where you click; the eraser rubs out.
+    if (p.tool === 'sketch' && !p.readOnly && p.sketchPen && e.button === 0 && !space.current) {
+      const pen = p.sketchPen;
+      if (pen.kind === 'eraser') {
+        const g = garden();
+        const ids = new Set(sketchesUnder(g, world, e.pointerType !== 'mouse').map((k) => k.id));
+        drag.current = { kind: 'erase', base: g, ids };
+        preview.current = deleteSketches(g, [...ids]);
+        return redraw();
+      }
+      if (pen.kind === 'text') {
+        if (!pen.text.trim()) return say('Type the words first, then click where they go.');
+        const k = makeSketch('text', pen.colour, [world], { text: pen.text });
+        commit((g) => addSketch(g, k));
+        return;
+      }
+      stroke.current = { points: [world], last: s };
+      return redraw();
+    }
+    // Drawing a shape by hand.
+    if (p.byHand && canDrawByHand(p.tool) && !p.readOnly && e.button === 0 && !space.current) {
+      stroke.current = { points: [world], last: s };
+      return redraw();
+    }
+
     // With the crosshair, one finger always moves the plan; corners and plants come from the drawing bar.
-    if (p.crosshair && usesCrosshair(p.tool)) {
+    if (p.crosshair && usesCrosshair(p.tool, p.byHand)) {
       drag.current = { kind: 'pan', last: s, moved: false };
       return;
     }
@@ -583,6 +684,15 @@ export function PlanCanvas(props: PlanCanvasProps) {
 
     const p = P.current;
     const world = toWorld(v, s);
+    const st = stroke.current;
+    if (st) {
+      // Grow the stroke every few pixels; an arrow just follows its head.
+      if (p.tool === 'sketch' && p.sketchPen?.kind === 'arrow') st.points = [st.points[0]!, world];
+      else if (distance(s, st.last) >= 2.5) st.points.push(world);
+      else return;
+      st.last = s;
+      return redraw();
+    }
     const d = drag.current;
     if (d) {
       switch (d.kind) {
@@ -641,6 +751,11 @@ export function PlanCanvas(props: PlanCanvasProps) {
           const step = e.altKey ? 1 : snapStepFor(v.scale);
           const r = Math.max(step, Math.round(distance(f.circle!.centre, world) / step) * step);
           preview.current = updateFeature(d.base, d.id, { circle: { ...f.circle!, radiusMm: r } });
+          break;
+        }
+        case 'erase': {
+          for (const k of sketchesUnder(d.base, world, e.pointerType !== 'mouse')) d.ids.add(k.id);
+          preview.current = deleteSketches(d.base, [...d.ids]);
           break;
         }
         case 'trace': {
@@ -702,6 +817,13 @@ export function PlanCanvas(props: PlanCanvasProps) {
       return;
     }
     const p = P.current;
+    const st = stroke.current;
+    if (st) {
+      stroke.current = null;
+      if (p.tool === 'sketch') finishSketch(st.points);
+      else finishByHand(st.points);
+      return redraw();
+    }
     const d = drag.current;
     // Touch has no double-click: two quick taps in the same place add a corner to an edge.
     if (d && (d.kind === 'pan' || d.kind === 'move' || d.kind === 'movePlanting') && !d.moved && p.tool === 'select' && view.current) {
@@ -840,7 +962,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
         }
       }
       if (key === 'Escape') {
-        if (dr.typed) dr.typed = '';
+        if (stroke.current) stroke.current = null;
+        else if (dr.typed) dr.typed = '';
         else if (dr.points.length > 0) drawing.current = emptyDrawing();
         else if (p.tool !== 'select') p.setTool('select');
         else {
@@ -898,7 +1021,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
         commit((g) => (t.type === 'planting' ? movePlanting(g, t.id, dx, dy) : moveFeature(g, t.id, dx, dy)));
         return;
       }
-      const tools: Record<string, Tool> = { v: 'select', b: 'boundary', r: 'bed', p: 'path', l: 'fence', t: 'tree', g: 'plant' };
+      const tools: Record<string, Tool> = { v: 'select', b: 'boundary', r: 'bed', p: 'path', l: 'fence', t: 'tree', u: 'surface', g: 'plant', k: 'sketch' };
       const t = tools[key.toLowerCase()];
       if (t && !e.altKey) return p.setTool(t);
       if (key === '0') return fitView();
@@ -1002,7 +1125,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
     P.current = { ...P.current, placing };
   };
 
-  const cursor = props.readOnly ? 'grab' : props.tool === 'select' ? 'default' : props.tool === 'trace' ? 'move' : 'crosshair';
+  const cursor = props.readOnly ? 'grab' : props.tool === 'select' ? 'default' : props.tool === 'trace' ? 'move' : props.tool === 'sketch' && props.sketchPen?.kind === 'text' ? 'text' : 'crosshair';
 
   return (
     <div ref={wrap} class="plan-canvas-wrap">

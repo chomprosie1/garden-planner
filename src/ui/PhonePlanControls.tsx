@@ -8,7 +8,7 @@ import type { FeatureKind } from '../model/types';
 import type { ComponentChildren } from 'preact';
 import type { Layout } from '../planting/place';
 import type { PlanMode } from '../theme/prefs';
-import { geometryForTool, type CanvasApi, type Placing, type Tool } from './PlanCanvas';
+import { canDrawByHand, geometryForTool, type CanvasApi, type Placing, type Tool } from './PlanCanvas';
 
 /** Sizes offered when placing a rectangle by size. */
 const DEFAULT_SIZE: Partial<Record<Tool, [number, number]>> = {
@@ -17,6 +17,7 @@ const DEFAULT_SIZE: Partial<Record<Tool, [number, number]>> = {
   building: [2400, 1800],
   greenhouse: [2400, 1800],
   compost: [1000, 1000],
+  surface: [3000, 2000],
   water: [1500, 1000],
   other: [1000, 1000],
 };
@@ -26,7 +27,7 @@ const LAYOUT_TRAY: { tool: Tool; label: string }[] = [
   { tool: 'bed', label: 'Bed' },
   { tool: 'tree', label: 'Tree' },
 ];
-const MORE: FeatureKind[] = ['path', 'fence', 'wall', 'hedge', 'building', 'greenhouse', 'compost', 'water', 'other'];
+const MORE: FeatureKind[] = ['surface', 'path', 'fence', 'wall', 'hedge', 'building', 'greenhouse', 'compost', 'water', 'other'];
 
 interface ModeBarProps {
   mode: PlanMode;
@@ -51,6 +52,9 @@ export function PhoneModeBar({ mode, setTool, warnings, openDetails, empty }: Mo
             <span class="visually-hidden"> {warnings === 1 ? 'thing' : 'things'} to check</span>
           </button>
         )}
+        <button type="button" class="tool" onClick={() => setTool('sketch')}>
+          Sketch
+        </button>
         <button type="button" class="tool tool-primary" onClick={() => setTool('plant')}>
           Plant
         </button>
@@ -81,7 +85,7 @@ export function PhoneModeBar({ mode, setTool, warnings, openDetails, empty }: Mo
         aria-label="More things to draw"
         value=""
         onChange={(e) => {
-          const v = (e.currentTarget as HTMLSelectElement).value as FeatureKind;
+          const v = (e.currentTarget as HTMLSelectElement).value as Tool;
           if (v) setTool(v);
         }}
       >
@@ -91,7 +95,29 @@ export function PhoneModeBar({ mode, setTool, warnings, openDetails, empty }: Mo
             {KINDS[k].label}
           </option>
         ))}
+        <option value="sketch">Sketch on the plan</option>
       </select>
+    </div>
+  );
+}
+
+/** Drawing a shape with a finger: one finger draws, two move the plan. */
+export function PhoneHandBar({ tool, message, useCorners, cancel }: { tool: Tool; message: string | null; useCorners: () => void; cancel: () => void }) {
+  const name = KINDS[tool as FeatureKind]?.label.toLowerCase() ?? '';
+  const area = geometryForTool(tool) === 'area';
+  return (
+    <div class="draw-bar">
+      <p class="draw-hint" role="status">
+        {message ?? `Draw the ${name} with one finger${area ? ', all the way round its edge' : ', along its middle'}. Two fingers move and zoom the plan.`}
+      </p>
+      <div class="draw-buttons">
+        <button type="button" class="btn" onClick={cancel}>
+          Cancel
+        </button>
+        <button type="button" class="btn" onClick={useCorners}>
+          Use corners instead
+        </button>
+      </div>
     </div>
   );
 }
@@ -100,12 +126,14 @@ interface DrawBarProps {
   tool: Tool;
   corners: number;
   api: { current: CanvasApi | null };
+  /** Switches to drawing this shape by hand. */
+  byHand?: () => void;
 }
 
 type Panel = 'main' | 'length' | 'size';
 
 /** Buttons for drawing with the crosshair. */
-export function PhoneDrawBar({ tool, corners, api }: DrawBarProps) {
+export function PhoneDrawBar({ tool, corners, api, byHand }: DrawBarProps) {
   const geometry = geometryForTool(tool);
   const [panel, setPanel] = useState<Panel>('main');
   const [length, setLength] = useState('');
@@ -226,6 +254,11 @@ export function PhoneDrawBar({ tool, corners, api }: DrawBarProps) {
         {geometry === 'area' && corners === 0 && (
           <button type="button" class="btn" onClick={() => { setError(''); setPanel('size'); }}>
             By size
+          </button>
+        )}
+        {byHand && canDrawByHand(tool) && corners === 0 && (
+          <button type="button" class="btn" onClick={byHand}>
+            By hand
           </button>
         )}
         <button type="button" class="btn" disabled={corners === 0} onClick={() => { setError(''); setPanel('length'); }}>

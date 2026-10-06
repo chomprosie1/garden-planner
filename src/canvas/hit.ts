@@ -1,25 +1,32 @@
 // What is under the pointer. All distances are in mm.
 
 import { distance, distanceToSegment, pointInPolygon } from '../geometry/polygon';
+import { centreLineOf } from '../model/features';
 import type { Feature, Garden, Plant, Planting, Point } from '../model/types';
 import { isActive, plantingShape, spreadOf } from '../planting/place';
 import { closest } from '../planting/rules';
 
-/** The topmost feature under p (features later in the list are drawn on top). */
-export function hitFeature(g: Garden, p: Point, toleranceMm: number): Feature | null {
-  for (let i = g.features.length - 1; i >= 0; i--) {
-    const f = g.features[i]!;
-    if (f.circle) {
-      if (distance(p, f.circle.centre) <= f.circle.radiusMm + toleranceMm) return f;
-      continue;
-    }
-    if (f.line) {
-      const half = (f.widthMm ?? 100) / 2 + toleranceMm;
-      for (let k = 1; k < f.line.length; k++) if (distanceToSegment(p, f.line[k - 1]!, f.line[k]!).distance <= half) return f;
-      continue;
-    }
-    if (f.footprint.length >= 3 && pointInPolygon(p, f.footprint)) return f;
+function hits(f: Feature, p: Point, toleranceMm: number): boolean {
+  if (f.circle) return distance(p, f.circle.centre) <= f.circle.radiusMm + toleranceMm;
+  if (f.line) {
+    const half = (f.widthMm ?? 100) / 2 + toleranceMm;
+    const line = centreLineOf(f);
+    for (let k = 1; k < line.length; k++) if (distanceToSegment(p, line[k - 1]!, line[k]!).distance <= half) return true;
+    return false;
   }
+  return f.footprint.length >= 3 && pointInPolygon(p, f.footprint);
+}
+
+/**
+ * The topmost feature under p. Features later in the list are drawn on top, except surfaces (lawns, gravel),
+ * which are always drawn underneath everything else, so they're picked last.
+ */
+export function hitFeature(g: Garden, p: Point, toleranceMm: number): Feature | null {
+  for (const surfaces of [false, true])
+    for (let i = g.features.length - 1; i >= 0; i--) {
+      const f = g.features[i]!;
+      if ((f.kind === 'surface') === surfaces && hits(f, p, toleranceMm)) return f;
+    }
   return null;
 }
 
