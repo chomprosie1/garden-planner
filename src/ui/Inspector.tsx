@@ -34,13 +34,11 @@ import {
   restorePlanting,
   rowSpacingOf,
   setRowCount,
-  setStatus,
   spreadOf,
-  STATUS_LABEL,
   updatePlanting,
-  type Status,
 } from '../planting/place';
 import { formatHours, sunNeeded, type Finding } from '../planting/rules';
+import { currentStage, STAGE_LABEL, stageDate } from '../lifecycle/stages';
 import { deleteBlob, saveBlob } from '../storage/idb';
 import { areaHours, averageHours, lightBand, type SunGrid } from '../sun/hours';
 import type { PlanMode } from '../theme/prefs';
@@ -49,6 +47,7 @@ import { FindingsList } from './Findings';
 import { UseLocationButton } from './GardenSettings';
 import { formatDate, NotesSection } from './NotesSection';
 import { deletedMessage, type Tool } from './PlanCanvas';
+import { StageStrip } from './StageStrip';
 
 interface Props {
   store: Store;
@@ -625,7 +624,7 @@ function PlantingOverview(props: Props) {
                           <button type="button" onClick={() => setSelected({ type: 'planting', id: p.id })}>
                             <span class="swatch swatch-plant" style={{ background: colourOf(p.plantId) }} aria-hidden="true" />
                             <span>{plantOf(p.plantId).commonName}</span>
-                            <span class="muted small">{STATUS_LABEL[plantingStatus(p)]}</span>
+                            <span class="muted small">{STAGE_LABEL[currentStage(p)]}</span>
                           </button>
                         </li>
                       ))}
@@ -678,7 +677,7 @@ function BedPanel(props: Shared & { bed: Feature }) {
                     <span class="swatch swatch-plant" style={{ background: colourOf(p.plantId) }} aria-hidden="true" />
                     <span>{plant.commonName}</span>
                     <span class="muted small">
-                      {n > 1 ? `${LAYOUT_LABEL[p.layout ?? 'single']} of ${n}` : '1 plant'} · {STATUS_LABEL[plantingStatus(p)]}
+                      {n > 1 ? `${LAYOUT_LABEL[p.layout ?? 'single']} of ${n}` : '1 plant'} · {STAGE_LABEL[currentStage(p)]}
                     </span>
                   </button>
                 </li>
@@ -756,6 +755,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
   const length = pl.endPoint ? Math.hypot(pl.endPoint[0] - pl.x, pl.endPoint[1] - pl.y) : 0;
   const sun = sunJune ? averageHours(sunJune, plantPositions(pl, plant)) : null;
   const status = plantingStatus(pl);
+  const stage = currentStage(pl);
   const step = nextStep(pl, plant);
   const canEdit = mode === 'planting';
 
@@ -764,24 +764,12 @@ function PlantingPanel(props: Props & { pl: Planting }) {
       <Heading eyebrow={`${LAYOUT_LABEL[layout]}${bed ? ` in ${featureLabel(bed)}` : ''}`} title={plant.commonName} swatch={colourOf(plant.id)} />
       <p class="status-line">
         <span class={`status-chip status-${status}`}>
-          {STATUS_LABEL[status]}
-          {status === 'sown' && pl.sownOn ? ` ${formatDate(pl.sownOn)}` : status === 'cleared' && pl.removedOn ? ` ${formatDate(pl.removedOn)}` : ''}
+          {STAGE_LABEL[stage]}
+          {stageDate(pl, stage) ? ` ${formatDate(stageDate(pl, stage)!)}` : ''}
         </span>
         {step && <span class="muted small">{step}</span>}
       </p>
-      {status !== 'cleared' && canEdit && (
-        <fieldset class="choice">
-          <legend>Where is it up to?</legend>
-          <div class="choice-row choice-small">
-            {(['planned', 'sown', 'growing'] as Exclude<Status, 'cleared'>[]).map((s) => (
-              <label key={s} class="choice-option">
-                <input type="radio" name={`status-${pl.id}`} checked={status === s} onChange={() => commit((g) => setStatus(g, [pl.id], s, todayIso()))} />
-                <span>{STATUS_LABEL[s]}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-      )}
+      <StageStrip store={store} pl={pl} plant={plant} canEdit={canEdit} />
       <button type="button" class="link-btn about-plant" onClick={() => app.openPlant(plant.id)}>
         About {plant.commonName.toLowerCase()}: when to sow, pests, neighbours
       </button>

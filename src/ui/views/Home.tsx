@@ -135,7 +135,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
               <div style={{ width: `${(doneCount / total) * 100}%` }} />
             </div>
           )}
-          {mine.length > 0 ? <PlantJobs jobs={mine} garden={garden} store={store} limit={4} /> : <JobList store={store} garden={garden} month={month} year={year} limit={3} />}
+          {mine.length > 0 ? <PlantJobs jobs={mine} garden={garden} store={store} limit={4} plantOf={plantOf} /> : <JobList store={store} garden={garden} month={month} year={year} limit={3} />}
           <p class="card-foot">
             <a
               href="#/month"

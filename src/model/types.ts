@@ -76,10 +76,18 @@ export interface Planting {
   endPoint?: Point; // far end of a row, or opposite corner of a block
   count?: number;
   sownOn?: string; // ISO date
-  /** "growing": already in the ground, e.g. bought as plants. Otherwise the status follows the dates. */
-  status?: 'growing';
+  /** How it was sown, which decides its life path. Absent: worked out from the plant's sowing methods. */
+  sowing?: 'indoors' | 'direct';
+  /** The furthest stage you've confirmed. Absent: "sown" if there's a sowing date, otherwise planned. */
+  stage?: Stage;
+  /** When each stage after sowing was reached. The sowing date itself stays in sownOn. */
+  stageDates?: Partial<Record<Stage, string>>;
   removedOn?: string; // ISO date; kept for history
 }
+
+/** Where a plant is in its life, in order. Not every plant goes through every stage: see src/lifecycle/stages.ts. */
+export const STAGES = ['sown', 'germinated', 'hardening', 'transplanted', 'vegetative', 'flowering', 'harvesting'] as const;
+export type Stage = (typeof STAGES)[number];
 
 export interface Note {
   id: string;
@@ -136,6 +144,13 @@ export interface Plant {
   pests?: { name: string; signs: string; control: string }[];
   companions?: { good: string[]; avoid: string[] }; // plant ids
   wintering?: { type: (typeof WINTERING_TYPES)[number]; notes?: string };
+  /**
+   * How its life runs, where the defaults are wrong. flowering: it has a flowering stage worth marking (fruiting
+   * crops, flowers); defaults to true for flowers and fruit. perennial: it comes back each year rather than being cleared.
+   */
+  lifePath?: { flowering?: boolean; perennial?: boolean };
+  /** Advice for each stage, shown when a planting reaches it. Falls back to general advice. */
+  stageTips?: Partial<Record<Stage, string[]>>;
   image?: { url: string; credit: string; licence: string; sourceUrl: string }; // PD, CC0, CC BY or CC BY-SA only
   source?: string;
   lastChecked?: string; // ISO date

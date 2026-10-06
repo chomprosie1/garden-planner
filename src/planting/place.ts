@@ -3,6 +3,7 @@
 // so the saved planting stays small however many plants it holds.
 
 import { distance, pointInPolygon } from '../geometry/polygon';
+import { currentStage, isGrowingStage, setStage } from '../lifecycle/stages';
 import { newId } from '../model/ids';
 import type { Feature, FeatureKind, Garden, Plant, Planting, Point, SpacingStyle } from '../model/types';
 
@@ -115,7 +116,7 @@ export const activePlantings = (g: Garden) => g.plantings.filter(isActive);
 
 export function makePlanting(plant: Plant, featureId: string, layout: Layout, start: Point, end?: Point, growing = false): Planting {
   const pl: Planting = { id: newId('p'), plantId: plant.id, featureId, x: Math.round(start[0]), y: Math.round(start[1]), layout };
-  if (growing) pl.status = 'growing';
+  if (growing) pl.stage = 'transplanted';
   if (layout !== 'single' && end) pl.endPoint = [Math.round(end[0]), Math.round(end[1])];
   if (layout === 'row') pl.count = rowCount(start, end ?? start, plant.size.spacingMm);
   return pl;
@@ -184,32 +185,22 @@ export function setRowCount(g: Garden, id: string, count: number): Garden {
 }
 
 // ---------- Status: planned, sown, growing, cleared ----------
+// A coarse summary of the planting's stage (src/lifecycle/stages.ts), for chips and jobs.
 
 export type Status = 'planned' | 'sown' | 'growing' | 'cleared';
 
 export const STATUS_LABEL: Record<Status, string> = { planned: 'Planned', sown: 'Sown', growing: 'Growing', cleared: 'Cleared' };
 
-/** Where a planting is in its life. A sowing date makes it sown; "growing" is set for plants already in the ground. */
+/** Where a planting is in its life: planned, sown (up to hardening off), growing (planted out or later), or cleared. */
 export function plantingStatus(pl: Planting): Status {
-  if (pl.removedOn) return 'cleared';
-  if (pl.status === 'growing') return 'growing';
-  if (pl.sownOn) return 'sown';
-  return 'planned';
+  const s = currentStage(pl);
+  if (s === 'planned' || s === 'cleared') return s;
+  return isGrowingStage(s) ? 'growing' : 'sown';
 }
 
-/** Sets plantings to planned, sown (on a date) or growing. Clearing has its own edit, harvestPlantings. */
+/** Sets plantings to planned, sown (on a date) or growing (planted out). Clearing has its own edit, harvestPlantings. */
 export function setStatus(g: Garden, ids: string[], status: 'planned' | 'sown' | 'growing', date: string): Garden {
-  const set = new Set(ids);
-  return {
-    ...g,
-    plantings: g.plantings.map((p) => {
-      if (!set.has(p.id)) return p;
-      const { status: _s, sownOn: _d, ...rest } = p;
-      if (status === 'planned') return rest;
-      if (status === 'sown') return { ...rest, sownOn: p.sownOn ?? date };
-      return { ...rest, status: 'growing', ...(p.sownOn ? { sownOn: p.sownOn } : {}) };
-    }),
-  };
+  return setStage(g, ids, status === 'growing' ? 'transplanted' : status, date);
 }
 
 // ---------- Close or row spacing ----------

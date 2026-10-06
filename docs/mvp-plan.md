@@ -50,7 +50,7 @@ The MVP is a small whole-garden planner: lay out the garden, fill it with plants
 **Out, parked for later**
 
 - User accounts, cloud sync and payments
-- Weather feeds, frost alerts and Growing Degree Days
+- Weather feeds, frost alerts and Growing Degree Days (brought forward 6 Oct 2026: see build-plan Stages 14–16; the weather feed is opt-in and for personal, non-commercial use)
 - Other environment layers: wind, frost pockets, soil and drainage
 - Crop rotation and planning across years
 - Native iOS or Android apps
@@ -287,4 +287,6 @@ If gate 3 passes, add the master plan's features one at a time, cheapest first. 
 | 7 | Satellite tracing to set up a garden faster | Mapbox | Free tier, then usage-based; check caching terms |
 | 8 | Paid tier and app stores | RevenueCat, EAS, store accounts | See stages 4 and 5 above |
 
-**Parked indefinitely until the product works:** the 7-stage state machine, haptics, nightly weather cron, global expansion and the investor figures. Revisit the financials only once you have real usage numbers to put in them.
+**Parked indefinitely until the product works:** haptics, nightly weather cron, global expansion and the investor figures. Revisit the financials only once you have real usage numbers to put in them.
+
+**Brought forward (6 Oct 2026):** the plant life cycle (build-plan Stage 8), the Potting Shed, microclimates, Growing Degree Days, a visual overhaul and a 3D view are now Stages 8–17 of the build plan.

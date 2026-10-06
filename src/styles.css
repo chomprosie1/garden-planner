@@ -2628,3 +2628,115 @@ kbd {
 .mode-bar .warn-count {
   min-height: 36px;
 }
+
+/* ---------- Life stages (Stage 8) ---------- */
+.stage-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+/* A rail of dots that always fits on one line, with the names and dates as a line of text underneath. */
+.stage-strip {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 0.15rem;
+  row-gap: 0.1rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--muted);
+}
+.stage {
+  display: contents;
+}
+.stage-dot {
+  order: 0;
+  position: relative;
+  flex: 1 1 0;
+  height: 0.9rem;
+  margin-bottom: 0.35rem;
+}
+/* The line through the dots, and the dot itself. */
+.stage-dot::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(50% - 1px);
+  border-top: 2px solid var(--border);
+}
+.stage-dot::after {
+  content: '';
+  position: absolute;
+  left: calc(50% - 0.45rem);
+  top: 0;
+  width: 0.9rem;
+  height: 0.9rem;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface);
+}
+.stage-done .stage-dot::before {
+  border-top-color: var(--accent);
+}
+.stage-done .stage-dot::after {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.stage-now .stage-dot::after {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--selected-bg);
+}
+.stage-name {
+  order: 2;
+}
+.stage:not(:nth-last-child(2)) .stage-name::after {
+  content: ' ·';
+  color: var(--border);
+}
+.stage-now .stage-name {
+  color: var(--text);
+  font-weight: 700;
+}
+.stage-todo .stage-name {
+  opacity: 0.85;
+}
+.stage-date {
+  font-weight: 400;
+  color: var(--muted);
+}
+.stage-names-break {
+  order: 1;
+  flex-basis: 100%;
+  height: 0;
+}
+.stage-tips {
+  margin: 0;
+  padding: 0.55rem 0.75rem 0.55rem 1.6rem;
+  border-radius: var(--radius);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  font-size: 0.875rem;
+}
+.stage-tips li + li {
+  margin-top: 0.3rem;
+}
+.stage-guess {
+  margin: 0;
+  font-size: 0.875rem;
+}
+.stage-actions {
+  align-items: center;
+}
+.stage-correct select {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}

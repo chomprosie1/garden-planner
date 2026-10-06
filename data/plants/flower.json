@@ -63,6 +63,14 @@
     "wintering": {
       "type": "annual"
     },
+    "stageTips": {
+      "vegetative": [
+        "Tie in the stems as they climb."
+      ],
+      "flowering": [
+        "Pick flowers every few days; if they set seed, flowering stops."
+      ]
+    },
     "source": "Check against: RHS – sweet peas; seed packet",
     "verified": false,
     "userAdded": false
@@ -487,6 +495,9 @@
       "type": "lift-and-store",
       "notes": "Lift tubers once frost blackens the leaves; store them dry and frost-free."
     },
+    "lifePath": {
+      "perennial": true
+    },
     "source": "Check against: RHS – dahlias; nursery label",
     "verified": false,
     "userAdded": false
@@ -534,6 +545,9 @@
     "wintering": {
       "type": "hardy"
     },
+    "lifePath": {
+      "perennial": true
+    },
     "source": "Check against: RHS – tulips; bulb supplier",
     "verified": false,
     "userAdded": false
@@ -576,6 +590,9 @@
     "wintering": {
       "type": "hardy"
     },
+    "lifePath": {
+      "perennial": true
+    },
     "source": "Check against: RHS – daffodils; bulb supplier",
     "verified": false,
     "userAdded": false
@@ -616,6 +633,9 @@
     },
     "wintering": {
       "type": "hardy"
+    },
+    "lifePath": {
+      "perennial": true
     },
     "source": "Check against: RHS – snowdrops; bulb supplier",
     "verified": false,
@@ -663,6 +683,9 @@
     "wintering": {
       "type": "hardy"
     },
+    "lifePath": {
+      "perennial": true
+    },
     "source": "Check against: RHS – crocuses; bulb supplier",
     "verified": false,
     "userAdded": false
@@ -702,6 +725,9 @@
     },
     "wintering": {
       "type": "hardy"
+    },
+    "lifePath": {
+      "perennial": true
     },
     "source": "Check against: RHS – ornamental alliums; bulb supplier",
     "verified": false,
@@ -752,6 +778,9 @@
     "wintering": {
       "type": "hardy",
       "notes": "Hates wet winter soil: add grit to heavy ground."
+    },
+    "lifePath": {
+      "perennial": true
     },
     "source": "Check against: RHS – lavender; nursery label",
     "verified": false,
@@ -810,6 +839,9 @@
     "wintering": {
       "type": "hardy",
       "notes": "Prune in late winter."
+    },
+    "lifePath": {
+      "perennial": true
     },
     "source": "Check against: RHS – roses; nursery label",
     "verified": false,
@@ -980,6 +1012,9 @@
     "wintering": {
       "type": "hardy"
     },
+    "lifePath": {
+      "perennial": true
+    },
     "source": "Check against: RHS – lupins; seed packet",
     "verified": false,
     "userAdded": false
@@ -1026,6 +1061,9 @@
     "wintering": {
       "type": "hardy"
     },
+    "lifePath": {
+      "perennial": true
+    },
     "source": "Check against: RHS – delphiniums; nursery label",
     "verified": false,
     "userAdded": false
@@ -1070,6 +1108,9 @@
     },
     "wintering": {
       "type": "hardy"
+    },
+    "lifePath": {
+      "perennial": true
     },
     "source": "Check against: RHS – hardy geraniums; nursery label",
     "verified": false,
@@ -1120,6 +1161,9 @@
     "wintering": {
       "type": "hardy"
     },
+    "lifePath": {
+      "perennial": true
+    },
     "source": "Check against: RHS – hellebores; nursery label",
     "verified": false,
     "userAdded": false
@@ -1165,6 +1209,9 @@
     },
     "wintering": {
       "type": "hardy"
+    },
+    "lifePath": {
+      "perennial": true
     },
     "source": "Check against: RHS – peonies; nursery label",
     "verified": false,
@@ -1213,6 +1260,9 @@
     "wintering": {
       "type": "hardy",
       "notes": "Divide every few years in spring."
+    },
+    "lifePath": {
+      "perennial": true
     },
     "source": "Check against: RHS – asters; nursery label",
     "verified": false,
@@ -1269,6 +1319,9 @@
       "type": "hardy",
       "notes": "Leave the seed heads for birds over winter."
     },
+    "lifePath": {
+      "perennial": true
+    },
     "source": "Check against: RHS – echinacea; seed packet",
     "verified": false,
     "userAdded": false
@@ -1316,6 +1369,9 @@
     "wintering": {
       "type": "hardy",
       "notes": "Divide congested clumps in spring."
+    },
+    "lifePath": {
+      "perennial": true
     },
     "source": "Check against: RHS – rudbeckias; nursery label",
     "verified": false,
@@ -1368,6 +1424,9 @@
     "wintering": {
       "type": "protect",
       "notes": "Leave the stems over winter and cut back in spring."
+    },
+    "lifePath": {
+      "perennial": true
     },
     "source": "Check against: RHS – Verbena bonariensis; seed packet",
     "verified": false,

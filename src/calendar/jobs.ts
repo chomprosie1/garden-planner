@@ -3,18 +3,21 @@
 //
 // What's on the plan but not yet sown gets sowing and planting-out jobs.
 // Once a planting has a sowing date, it gets harvest, winter and tidy jobs.
+// When a planting has probably reached flowering, a "check progress" job asks you to confirm it.
 
+import { currentStage, pathFor, setStage, STAGE_LABEL, stageTips, suggestedStage } from '../lifecycle/stages';
 import { featureLabel } from '../model/features';
-import type { Garden, Plant, Planting } from '../model/types';
-import { isActive } from '../planting/place';
+import { STAGES, type Garden, type Plant, type Planting, type Stage } from '../model/types';
+import { isActive, plantingStatus } from '../planting/place';
 
-export const JOB_KINDS = ['sow-indoors', 'sow-direct', 'plant-out', 'harvest', 'protect', 'lift', 'tidy'] as const;
+export const JOB_KINDS = ['sow-indoors', 'sow-direct', 'plant-out', 'check', 'harvest', 'protect', 'lift', 'tidy'] as const;
 export type JobKind = (typeof JOB_KINDS)[number];
 
 export const JOB_LABEL: Record<JobKind, string> = {
   'sow-indoors': 'Sow indoors or under cover',
   'sow-direct': 'Sow outside',
   'plant-out': 'Plant out',
+  check: 'Check progress',
   harvest: 'Harvest',
   protect: 'Protect for winter',
   lift: 'Lift and store',
@@ -35,6 +38,8 @@ export interface Job {
   featureId?: string;
   /** The plantings this job is for. Ticking a sowing or planting-out job dates them. */
   plantingIds: string[];
+  /** For a "check progress" job: the stage the plants have probably reached. Ticking it marks them at that stage. */
+  stage?: Stage;
 }
 
 const MONTH_FIRST_FROST = 10;
@@ -111,7 +116,8 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
 
     // Not sown yet, or sown this month (so a ticked job stays in this month's list).
     // Plants already growing skip sowing and planting out.
-    const notGrowing = group.filter((p) => p.status !== 'growing');
+    const isGrowing = (p: Planting) => plantingStatus(p) === 'growing';
+    const notGrowing = group.filter((p) => !isGrowing(p));
     const toSow = notGrowing.filter((p) => !p.sownOn || sownThisMonth(p, year, month));
     if (toSow.length)
       for (const s of sowingKinds(plant, month)) add(s.kind, plant, s.kind === 'sow-indoors' ? `for ${where.slice(3)}` : where, featureId, ids(toSow), s.detail, featureId);
@@ -122,10 +128,24 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
       if (toPlant.length && !doneBefore(g, `plant-out:${plant.id}:${featureId}:`, year, month)) add('plant-out', plant, where, featureId, ids(toPlant), undefined, featureId);
     }
 
-    const growing = group.filter((p) => p.status === 'growing' || afterSowing(p, year, month));
+    const growing = group.filter((p) => isGrowing(p) || afterSowing(p, year, month));
     if (!growing.length) continue;
     const harvest = plant.cropping?.harvestMonths ?? [];
-    if (harvest.includes(month)) add('harvest', plant, where, featureId, ids(growing), plant.cropping?.notes, featureId);
+    const harvesting = harvest.includes(month);
+    if (harvesting) add('harvest', plant, where, featureId, ids(growing), plant.cropping?.notes, featureId);
+
+    // Probably flowering by now? Ask, unless it's harvest time anyway. The key holds the stage, so a tick is per stage.
+    if (!harvesting) {
+      const ticked = g.jobsDone.find((j) => j.key.startsWith(`check:${plant.id}:${featureId}:`) && j.key.endsWith(`:${ym(year, month)}`));
+      const due = ticked ? growing.filter((p) => currentStage(p) === ticked.key.split(':')[3]) : growing.filter((p) => suggestedStage(plant, p, month) === 'flowering');
+      const stage = (ticked?.key.split(':')[3] as Stage | undefined) ?? (due.length ? 'flowering' : undefined);
+      if (stage && due.length) {
+        const job: Job = { key: `check:${plant.id}:${featureId}:${stage}:${ym(year, month)}`, kind: 'check', plantId: plant.id, plant: plant.commonName, where, plantingIds: ids(due), featureId, stage };
+        const tip = stageTips(plant, stage, due[0])[0];
+        job.detail = `Probably ${STAGE_LABEL[stage].toLowerCase()} by now. Tick when you see it.${tip ? ` ${tip}` : ''}`;
+        jobs.push(job);
+      }
+    }
     const winter = plant.wintering;
     if (winter?.type === 'protect' && month === MONTH_FIRST_FROST) add('protect', plant, where, featureId, ids(growing), winter.notes ?? 'Bring pots under cover or fleece the plants before the first frosts.', featureId);
     if (winter?.type === 'lift-and-store' && runEnds(harvest).includes(month)) add('lift', plant, where, featureId, ids(growing), winter.notes, featureId);
@@ -153,25 +173,36 @@ export function groupJobs(jobs: Job[]): [JobKind, Job[]][] {
 
 // ---------- Ticking jobs off ----------
 
-/** Ticks or unticks a job. Ticking a sowing job dates its plantings (if they have no date); ticking planting out marks them growing. */
-export function toggleJob(g: Garden, job: Job, date: string): Garden {
+/**
+ * Ticks or unticks a job. Ticking a sowing job dates its plantings (if they have no date) and records how they were
+ * sown; planting out marks them planted out; a progress check or the first harvest moves them on to that stage.
+ */
+export function toggleJob(g: Garden, job: Job, date: string, plantOf?: (id: string) => Plant): Garden {
   const done = g.jobsDone.some((j) => j.key === job.key);
   if (done) return { ...g, jobsDone: g.jobsDone.filter((j) => j.key !== job.key) };
-  const sowing = job.kind === 'sow-indoors' || job.kind === 'sow-direct';
-  const planting = job.kind === 'plant-out';
+  const ticked = { ...g, jobsDone: [...g.jobsDone, { key: job.key, date }] };
   const ids = new Set(job.plantingIds);
-  return {
-    ...g,
-    jobsDone: [...g.jobsDone, { key: job.key, date }],
-    plantings:
-      (sowing || planting) && ids.size
-        ? g.plantings.map((p) => {
-            if (!ids.has(p.id)) return p;
-            if (planting) return { ...p, status: 'growing' as const };
-            return p.sownOn ? p : { ...p, sownOn: date };
-          })
-        : g.plantings,
-  };
+  if (!ids.size) return ticked;
+  const mine = g.plantings.filter((p) => ids.has(p.id));
+  // Only move plantings forward: never back past a stage they've already reached.
+  const before = (target: Stage) =>
+    mine
+      .filter((p) => {
+        const now = currentStage(p);
+        return now === 'planned' || (now !== 'cleared' && STAGES.indexOf(now) < STAGES.indexOf(target));
+      })
+      .map((p) => p.id);
+  if (job.kind === 'sow-indoors' || job.kind === 'sow-direct') {
+    const sowing = job.kind === 'sow-direct' ? 'direct' : 'indoors';
+    return { ...ticked, plantings: ticked.plantings.map((p) => (!ids.has(p.id) || p.sownOn ? p : { ...p, sownOn: date, sowing })) };
+  }
+  if (job.kind === 'plant-out') return setStage(ticked, before('transplanted'), 'transplanted', date);
+  if (job.kind === 'check' && job.stage) return setStage(ticked, before(job.stage), job.stage, date);
+  if (job.kind === 'harvest' && plantOf) {
+    const harvestable = new Set(mine.filter((p) => pathFor(plantOf(p.plantId), p).includes('harvesting')).map((p) => p.id));
+    return setStage(ticked, before('harvesting').filter((id) => harvestable.has(id)), 'harvesting', date);
+  }
+  return ticked;
 }
 
 // ---------- Sowing list ----------

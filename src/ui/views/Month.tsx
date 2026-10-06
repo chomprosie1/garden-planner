@@ -53,7 +53,7 @@ export function Month({ store, garden, userPlants, prefs, go, now = new Date() }
         {!plants ? (
           <p class="muted">Loading your plants…</p>
         ) : jobs.length > 0 ? (
-          <PlantJobs jobs={jobs} garden={garden} store={store} />
+          <PlantJobs jobs={jobs} garden={garden} store={store} plantOf={plantOf} />
         ) : hasPlants ? (
           <p class="muted">Nothing to do for your plants this month.</p>
         ) : (

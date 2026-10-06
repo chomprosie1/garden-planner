@@ -1,7 +1,7 @@
 // Brings saved gardens and plants from older versions up to the current shape.
 // Bump SCHEMA_VERSION whenever the saved shape changes, and add a step here.
 
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 type Raw = Record<string, unknown>;
 
@@ -26,6 +26,10 @@ export function migrateGarden(raw: unknown): unknown {
     // v3 added an optional status to plantings ("growing" for plants already in the ground). Nothing to convert.
     g = { ...g, schemaVersion: 3 };
     version = 3;
+  }
+  if (version === 3) {
+    g = gardenV3toV4(g);
+    version = 4;
   }
   return g;
 }
@@ -70,6 +74,20 @@ function gardenV1toV2(g: Raw): Raw {
       if (!isObject(f) || !('canopy' in f)) return f;
       const { canopy, ...rest } = f;
       return canopy === undefined ? rest : { ...rest, circle: canopy };
+    }),
+  };
+}
+
+// v4: life stages. "status: growing" (plants already in the ground) became the planted-out stage.
+function gardenV3toV4(g: Raw): Raw {
+  const plantings = Array.isArray(g.plantings) ? g.plantings : [];
+  return {
+    ...g,
+    schemaVersion: 4,
+    plantings: plantings.map((p) => {
+      if (!isObject(p) || !('status' in p)) return p;
+      const { status, ...rest } = p;
+      return status === 'growing' ? { ...rest, stage: 'transplanted' } : rest;
     }),
   };
 }

@@ -274,6 +274,9 @@
       "type": "hardy",
       "notes": "Dies back in winter and returns in spring. Divide clumps every few years."
     },
+    "lifePath": {
+      "perennial": true
+    },
     "source": "Check against: RHS – chives; seed packet",
     "verified": false,
     "userAdded": false
@@ -332,6 +335,9 @@
     "wintering": {
       "type": "hardy",
       "notes": "Dies back in winter; cut old stems down."
+    },
+    "lifePath": {
+      "perennial": true
     },
     "source": "Check against: RHS – mint; herb nursery label",
     "verified": false,
@@ -397,6 +403,9 @@
       "type": "hardy",
       "notes": "Hates sitting wet in winter: add grit to heavy soil."
     },
+    "lifePath": {
+      "perennial": true
+    },
     "source": "Check against: RHS – rosemary; herb nursery label",
     "verified": false,
     "userAdded": false
@@ -457,6 +466,9 @@
       "type": "hardy",
       "notes": "Goes woody with age; replace every few years."
     },
+    "lifePath": {
+      "perennial": true
+    },
     "source": "Check against: RHS – thyme; seed packet",
     "verified": false,
     "userAdded": false
@@ -515,6 +527,9 @@
     "wintering": {
       "type": "hardy",
       "notes": "Prune lightly in spring; replace after four or five years."
+    },
+    "lifePath": {
+      "perennial": true
     },
     "source": "Check against: RHS – sage; seed packet",
     "verified": false,
@@ -635,6 +650,9 @@
       "type": "hardy",
       "notes": "Cut back old stems in early spring."
     },
+    "lifePath": {
+      "perennial": true
+    },
     "source": "Check against: RHS – oregano and marjoram; seed packet",
     "verified": false,
     "userAdded": false
@@ -697,6 +715,9 @@
       "type": "hardy",
       "notes": "Cut back to the base in autumn."
     },
+    "lifePath": {
+      "perennial": true
+    },
     "source": "Check against: RHS – herb fennel; seed packet",
     "verified": false,
     "userAdded": false
@@ -754,6 +775,9 @@
     },
     "wintering": {
       "type": "hardy"
+    },
+    "lifePath": {
+      "perennial": true
     },
     "source": "Check against: RHS – lemon balm; seed packet",
     "verified": false,
@@ -816,6 +840,9 @@
       "type": "protect",
       "notes": "Fleece young plants and pots in hard frosts."
     },
+    "lifePath": {
+      "perennial": true
+    },
     "source": "Check against: RHS – bay; nursery label",
     "verified": false,
     "userAdded": false
@@ -859,6 +886,9 @@
     "wintering": {
       "type": "protect",
       "notes": "Mulch the crown in winter on cold or wet sites."
+    },
+    "lifePath": {
+      "perennial": true
     },
     "source": "Check against: RHS – tarragon; herb nursery label",
     "verified": false,

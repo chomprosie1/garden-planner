@@ -30,8 +30,9 @@ describe('planting status (U3)', () => {
     const pl = makePlanting(plantOf('tomato'), bed, 'single', [100, 100]);
     expect(plantingStatus(pl)).toBe('planned');
     expect(plantingStatus({ ...pl, sownOn: '2027-03-01' })).toBe('sown');
-    expect(plantingStatus({ ...pl, status: 'growing' })).toBe('growing');
-    expect(plantingStatus({ ...pl, status: 'growing', removedOn: '2027-10-01' })).toBe('cleared');
+    expect(plantingStatus({ ...pl, stage: 'transplanted' })).toBe('growing');
+    expect(plantingStatus({ ...pl, sownOn: '2027-03-01', stage: 'hardening' })).toBe('sown');
+    expect(plantingStatus({ ...pl, stage: 'transplanted', removedOn: '2027-10-01' })).toBe('cleared');
     expect(plantingStatus(makePlanting(plantOf('tomato'), bed, 'single', [0, 0], undefined, true))).toBe('growing');
   });
 
@@ -42,10 +43,10 @@ describe('planting status (U3)', () => {
     g = setStatus(g, [pl.id], 'sown', '2027-04-02');
     expect(g.plantings[0]!.sownOn).toBe('2027-04-02');
     g = setStatus(g, [pl.id], 'growing', '2027-05-01');
-    expect(g.plantings[0]).toMatchObject({ status: 'growing', sownOn: '2027-04-02' });
+    expect(g.plantings[0]).toMatchObject({ stage: 'transplanted', sownOn: '2027-04-02' });
     g = setStatus(g, [pl.id], 'planned', '2027-05-01');
     expect(g.plantings[0]!.sownOn).toBeUndefined();
-    expect(g.plantings[0]!.status).toBeUndefined();
+    expect(g.plantings[0]!.stage).toBeUndefined();
   });
 
   it('plants already growing skip sowing and go straight to harvest', () => {
@@ -61,19 +62,19 @@ describe('planting status (U3)', () => {
     let g = addPlanting(g0, { ...makePlanting(plantOf('tomato'), bed, 'single', [500, 500]), sownOn: '2027-03-10' });
     const job = jobsFor(g, plantOf, 5, 2027).find((j) => j.kind === 'plant-out')!;
     g = toggleJob(g, job, '2027-05-20');
-    expect(g.plantings[0]!.status).toBe('growing');
+    expect(g.plantings[0]!.stage).toBe('transplanted');
     expect(jobsFor(g, plantOf, 5, 2027).find((j) => j.kind === 'plant-out')?.key).toBe(job.key);
     expect(jobsFor(g, plantOf, 6, 2027).filter((j) => j.kind === 'plant-out')).toEqual([]);
   });
 
-  it('saves as schema 3, and older gardens load unchanged', () => {
-    expect(SCHEMA_VERSION).toBe(3);
+  it('saves as the current schema, and older gardens load', () => {
+    expect(SCHEMA_VERSION).toBe(4);
     const { g: g0, bed } = withBed();
     const g = addPlanting(g0, makePlanting(plantOf('tomato'), bed, 'single', [0, 0], undefined, true));
     expect(validateGarden(JSON.parse(JSON.stringify(g)))).toEqual([]);
-    expect(validateGarden({ ...g, plantings: [{ ...g.plantings[0]!, status: 'wilting' }] }).length).toBe(1);
+    expect(validateGarden({ ...g, plantings: [{ ...g.plantings[0]!, stage: 'wilting' as never }] }).length).toBe(1);
     const v2 = { ...g0, schemaVersion: 2 };
-    expect((migrateGarden(v2) as Garden).schemaVersion).toBe(3);
+    expect((migrateGarden(v2) as Garden).schemaVersion).toBe(SCHEMA_VERSION);
   });
 });
 

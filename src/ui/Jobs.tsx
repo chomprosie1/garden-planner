@@ -1,7 +1,7 @@
 import { seasonFor } from '../content/seasons';
 import { todayIso } from '../model/ids';
 import { updateGarden, type Store } from '../model/store';
-import type { Garden } from '../model/types';
+import type { Garden, Plant } from '../model/types';
 import { useApp } from './appContext';
 import { groupJobs, JOB_LABEL, toggleJob, type Job } from '../calendar/jobs';
 
@@ -95,7 +95,7 @@ function PlantJob({ job, done, onToggle }: { job: Job; done?: boolean; onToggle?
 }
 
 /** Your jobs, grouped by what kind of job they are. Without a store they're a preview, with no ticks. */
-export function PlantJobs({ jobs, garden, store, limit }: { jobs: Job[]; garden: Garden; store?: Store; limit?: number }) {
+export function PlantJobs({ jobs, garden, store, limit, plantOf }: { jobs: Job[]; garden: Garden; store?: Store; limit?: number; plantOf?: (id: string) => Plant }) {
   const done = new Set(garden.jobsDone.map((j) => j.key));
   const shown = limit ? jobs.slice(0, limit) : jobs;
   return (
@@ -106,7 +106,7 @@ export function PlantJobs({ jobs, garden, store, limit }: { jobs: Job[]; garden:
           <ul class="jobs">
             {list.map((job) => (
               <li key={job.key}>
-                <PlantJob job={job} done={done.has(job.key)} {...(store ? { onToggle: () => store.apply(updateGarden((g) => toggleJob(g, job, todayIso()))) } : {})} />
+                <PlantJob job={job} done={done.has(job.key)} {...(store ? { onToggle: () => store.apply(updateGarden((g) => toggleJob(g, job, todayIso(), plantOf))) } : {})} />
               </li>
             ))}
           </ul>

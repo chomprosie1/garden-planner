@@ -56,6 +56,13 @@ export function filterPlants(plants: Plant[], f: PlantFilter): Plant[] {
 const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const MONTH_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
+/** Months where a run starts: [6,7,8] → [6]; [9,10,11,12,1,2,3] → [9]. */
+export function runStarts(months: number[]): number[] {
+  const set = new Set(months);
+  if (set.size === 12) return [];
+  return [...set].filter((m) => !set.has(m === 1 ? 12 : m - 1)).sort((a, b) => a - b);
+}
+
 /** [2,3,4,10,11] → "Feb–Apr, Oct–Nov"; [11,12,1,2] → "Nov–Feb". */
 export function monthRanges(months: number[], long = false): string {
   const names = long ? MONTH_LONG : MONTH_SHORT;

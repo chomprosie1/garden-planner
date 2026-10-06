@@ -6,6 +6,7 @@ import {
   LIGHT_LEVELS,
   PLANT_CATEGORIES,
   SOWING_METHODS,
+  STAGES,
   WINTERING_TYPES,
   type Garden,
   type Plant,
@@ -83,7 +84,12 @@ export function validateGarden(g: unknown): string[] {
       need(p.count === undefined || (Number.isInteger(p.count) && (p.count as number) >= 1), `${at}.count must be a whole number, 1 or more.`);
       need(p.sownOn === undefined || isStr(p.sownOn), `${at}.sownOn must be a date.`);
       need(p.removedOn === undefined || isStr(p.removedOn), `${at}.removedOn must be a date.`);
-      need(p.status === undefined || p.status === 'growing', `${at}.status can only be "growing".`);
+      need(p.sowing === undefined || p.sowing === 'indoors' || p.sowing === 'direct', `${at}.sowing must be indoors or direct.`);
+      need(p.stage === undefined || oneOf(STAGES, p.stage), `${at}.stage is not a stage.`);
+      need(
+        p.stageDates === undefined || (isObject(p.stageDates) && Object.entries(p.stageDates).every(([k, v]) => oneOf(STAGES, k) && isStr(v))),
+        `${at}.stageDates must give a date for each stage.`,
+      );
     });
 
   if (!Array.isArray(g.notes)) errors.push('notes must be a list.');
@@ -135,6 +141,16 @@ export function validatePlant(p: unknown): string[] {
     );
   if (p.wintering !== undefined)
     need(isObject(p.wintering) && oneOf(WINTERING_TYPES, p.wintering.type), 'has an unknown wintering type.');
+  if (p.lifePath !== undefined)
+    need(
+      isObject(p.lifePath) && Object.entries(p.lifePath).every(([k, v]) => (k === 'flowering' || k === 'perennial') && typeof v === 'boolean'),
+      'lifePath can only hold flowering and perennial, true or false.',
+    );
+  if (p.stageTips !== undefined)
+    need(
+      isObject(p.stageTips) && Object.entries(p.stageTips).every(([k, v]) => oneOf(STAGES, k) && Array.isArray(v) && v.every(isStr)),
+      'stageTips must be lists of advice for each stage.',
+    );
   if (p.image !== undefined)
     need(
       isObject(p.image) && isStr(p.image.url) && isStr(p.image.credit) && isStr(p.image.licence) && isStr(p.image.sourceUrl),

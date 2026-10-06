@@ -251,6 +251,40 @@ The full review, against Nielsen's heuristics and aimed at members of the public
 
 **Gate 3 (31 Mar 2027):** did it change at least one real placement, planting or timing decision? If yes, continue with the "After the MVP" list, starting with the progressive web app. If no, stop or narrow the idea before spending anything.
 
+## Stages 8–17 — Life stages, Potting Shed, a visual overhaul, microclimates and GDD (added 6 Oct 2026)
+Brought forward from "parked": the plant life cycle, frost and Growing Degree Days, plus a graphical overhaul. Stage 7 (real use) runs alongside them. The visual stages come first, so the shed, cards and dates built later use the new art. The shed should be ready before February sowing.
+
+| Stage | What | Status |
+| --- | --- | --- |
+| 8 | Life stages, without weather | Built |
+| 9 | Drawing upgrade: surfaces, curved edges, freehand shapes, sketch layer | |
+| 10 | Illustrated plants, drawn by code, changing with the stage | |
+| 11 | Depth and texture: material textures, raised-bed edging, soft shadows, cached static layer | |
+| 12 | The Potting Shed, with shelves: trays, places, frost dates, plant out from a tray | |
+| 13 | Screens and cards polish | |
+| 14 | Greenhouses and cold frames as microclimates | |
+| 15 | Growing Degree Days from UK climate averages (capped at 2 weeks) | |
+| 16 | Live weather (opt-in Open-Meteo) and succession sowing | |
+| 17 | 3D garden view (three.js, loaded only when opened) | |
+
+### Stage 8 — Life stages (as built)
+- **Stages:** Sown · Up · Hardening off · Planted out · Growing · Flowering · Harvesting, then Cleared. "Planned" comes before sowing.
+- **Each plant has its own path** (`src/lifecycle/stages.ts`, `pathFor`):
+  - Sown indoors: every stage. Sown outside: no hardening off or planting out. Bought plants, bulbs and fruit start at planting.
+  - A flowering stage only for plants where it matters: flowers, fruit, and fruiting vegetables (`lifePath.flowering` in the data). Lettuce flowering means it has bolted, so it has none.
+  - Perennials (`lifePath.perennial`, and all fruit) start a new season after their last stage instead of ending.
+  - Plants with both indoor and outdoor sowings ask which you did ("Sown indoors" / "Sown outside"), saved as `planting.sowing`.
+- **Model:** schema 4. `Planting.stage` and `stageDates` replace `status: 'growing'`, which migrates to "planted out". The sowing date stays in `sownOn` and clearing in `removedOn`. Planned · Sown · Growing · Cleared is now worked out from the stage.
+- **Moving on:** the planting panel shows a rail of stages with their dates, advice for the current stage, and one button to move on. "Change stage…" corrects a mistake (keeping the date each stage was first reached), and "Sowing failed" sets it back to planned with a note in the journal.
+- **Advice:** `stageTips` in the plant data for 18 common crops (side shoots on tomatoes, earthing up potatoes, high-potash feed when fruiting crops flower), with general advice for the rest. No brand names.
+- **Jobs:**
+  - Ticking a sowing job records indoors or outside.
+  - Ticking plant out marks plants planted out, and ticking the first harvest marks them harvesting. Jobs only ever move plants forward.
+  - A new **Check progress** job asks you to confirm flowering in the month it's likely (its flower months, or the month before a fruiting crop's harvest starts).
+- **Still to come:** a sharper guess from growing degree days (Stage 15), and seedlings off the plan in the Potting Shed (Stage 12).
+
+Tests: `tests/stages.test.ts` covers paths, moving on and back, failed sowings, guesses, advice, jobs and the v3 → v4 migration (fixture `garden-v3.json`).
+
 ---
 
 ## Repo layout

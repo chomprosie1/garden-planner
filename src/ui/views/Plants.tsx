@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { blankPlant, copyAsUserPlant, deleteUserPlant, emptyFilter, filterPlants, saveUserPlant, type PlantFilter } from '../../library/library';
 import { featureLabel } from '../../model/features';
+import { currentStage, STAGE_LABEL } from '../../lifecycle/stages';
 import { useApp } from '../appContext';
 import { usePlants } from '../usePlants';
 import type { Store } from '../../model/store';
@@ -68,7 +69,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
       .filter((pl) => pl.plantId === id && !pl.removedOn)
       .map((pl) => {
         const bed = garden.features.find((f) => f.id === pl.featureId);
-        return { id: pl.id, label: bed ? featureLabel(bed) : 'a bed' };
+        return { id: pl.id, label: `${bed ? featureLabel(bed) : 'a bed'} (${STAGE_LABEL[currentStage(pl)].toLowerCase()})` };
       });
 
   const list = (

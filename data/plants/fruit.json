@@ -62,6 +62,14 @@
       "type": "hardy",
       "notes": "Cut off the old leaves after fruiting."
     },
+    "stageTips": {
+      "flowering": [
+        "Tuck straw under the plants to keep fruit clean, and net against birds."
+      ],
+      "harvesting": [
+        "Pick fruit when fully red, ideally in the warmth of the day."
+      ]
+    },
     "source": "Check against: RHS – strawberries; nursery label",
     "verified": false,
     "userAdded": false
@@ -453,6 +461,10 @@
     "wintering": {
       "type": "hardy",
       "notes": "Mulch with compost in winter."
+    },
+    "lifePath": {
+      "perennial": true,
+      "flowering": false
     },
     "source": "Check against: RHS – rhubarb; nursery label",
     "verified": false,

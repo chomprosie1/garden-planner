@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 3,
+  "name": "Allotment",
+  "latitude": 53.8,
+  "longitude": -1.55,
+  "northRotationDeg": 0,
+  "boundary": [[0, 0], [10000, 0], [10000, 14000], [0, 14000]],
+  "features": [{ "id": "f1", "kind": "bed", "footprint": [[0, 0], [3000, 0], [3000, 1200], [0, 1200]], "heightMm": 300 }],
+  "plantings": [
+    { "id": "p1", "plantId": "tomato", "featureId": "f1", "x": 500, "y": 500, "layout": "single", "status": "growing" },
+    { "id": "p2", "plantId": "carrot", "featureId": "f1", "x": 100, "y": 100, "layout": "row", "endPoint": [2900, 100], "count": 12, "sownOn": "2026-04-12" },
+    { "id": "p3", "plantId": "lettuce", "featureId": "f1", "x": 900, "y": 900, "layout": "single", "status": "growing", "removedOn": "2026-08-01" }
+  ],
+  "wishlist": [],
+  "jobsDone": [],
+  "notes": []
+}

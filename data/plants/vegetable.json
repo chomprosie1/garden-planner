@@ -18,6 +18,14 @@
     ],
     "companions": { "good": ["potato", "sweetcorn"], "avoid": ["onion", "garlic", "leek", "shallot"] },
     "wintering": { "type": "hardy", "notes": "Autumn-sown plants overwinter; cover with fleece in hard frost." },
+    "lifePath": {
+      "flowering": true
+    },
+    "stageTips": {
+      "flowering": [
+        "Pinch out the growing tips once the lowest pods form, to deter blackfly."
+      ]
+    },
     "source": "Check against: RHS Grow Your Own – broad beans; seed packet",
     "verified": false,
     "userAdded": false
@@ -42,6 +50,20 @@
     ],
     "companions": { "good": ["sweetcorn", "winter-squash"], "avoid": ["onion", "garlic"] },
     "wintering": { "type": "annual", "notes": "Clear plants after the first frost; leave the roots to add nitrogen to the soil." },
+    "lifePath": {
+      "flowering": true
+    },
+    "stageTips": {
+      "transplanted": [
+        "Plant one at the foot of each cane and guide the shoots round it; protect from slugs."
+      ],
+      "flowering": [
+        "Water well in dry spells while in flower, so the flowers set pods."
+      ],
+      "harvesting": [
+        "Pick pods young and often, before the beans bulge; leaving them stops new pods forming."
+      ]
+    },
     "source": "Check against: RHS Grow Your Own – runner beans; seed packet",
     "verified": false,
     "userAdded": false
@@ -66,6 +88,14 @@
     ],
     "companions": { "good": ["sweetcorn", "potato"], "avoid": ["onion", "garlic"] },
     "wintering": { "type": "annual" },
+    "lifePath": {
+      "flowering": true
+    },
+    "stageTips": {
+      "harvesting": [
+        "Pick pods young and often, before the beans bulge."
+      ]
+    },
     "source": "Check against: RHS Grow Your Own – French beans; seed packet",
     "verified": false,
     "userAdded": false
@@ -87,6 +117,17 @@
     ],
     "companions": { "good": ["carrot", "radish"], "avoid": ["onion", "garlic", "shallot"] },
     "wintering": { "type": "annual" },
+    "lifePath": {
+      "flowering": true
+    },
+    "stageTips": {
+      "vegetative": [
+        "Give the plants twiggy sticks or netting to climb."
+      ],
+      "harvesting": [
+        "Pick pods as they fill, from the bottom up; regular picking keeps more coming."
+      ]
+    },
     "source": "Check against: RHS Grow Your Own – peas; seed packet",
     "verified": false,
     "userAdded": false
@@ -108,6 +149,14 @@
     ],
     "companions": { "good": ["broad-bean", "french-bean"], "avoid": ["tomato"] },
     "wintering": { "type": "lift-and-store", "notes": "Dry for a few hours, then store in paper sacks in a cool, dark, frost-free place." },
+    "stageTips": {
+      "vegetative": [
+        "Earth up as the shoots grow, drawing soil over them, to keep the tubers dark and protect from late frost."
+      ],
+      "harvesting": [
+        "Earlies are ready when the flowers open; maincrop when the foliage dies back."
+      ]
+    },
     "source": "Check against: RHS Grow Your Own – potatoes; seed potato supplier",
     "verified": false,
     "userAdded": false
@@ -133,6 +182,11 @@
     ],
     "companions": { "good": ["carrot", "beetroot"], "avoid": ["broad-bean", "runner-bean", "french-bean", "pea"] },
     "wintering": { "type": "lift-and-store", "notes": "Dry thoroughly in the sun, then store in nets somewhere cool and airy." },
+    "stageTips": {
+      "harvesting": [
+        "Lift when the tops have flopped and yellowed; dry thoroughly before storing."
+      ]
+    },
     "source": "Check against: RHS Grow Your Own – onions; seed packet",
     "verified": false,
     "userAdded": false
@@ -170,6 +224,11 @@
     ],
     "companions": { "good": ["carrot", "beetroot"], "avoid": ["broad-bean", "runner-bean", "french-bean", "pea"] },
     "wintering": { "type": "hardy", "notes": "Autumn-planted cloves overwinter in the ground. After harvest, dry and store somewhere cool." },
+    "stageTips": {
+      "harvesting": [
+        "Lift when the lower leaves turn yellow, and dry in the sun before storing."
+      ]
+    },
     "source": "Check against: RHS Grow Your Own – garlic",
     "verified": false,
     "userAdded": false
@@ -324,6 +383,14 @@
     ],
     "companions": { "good": ["radish", "carrot", "beetroot"], "avoid": [] },
     "wintering": { "type": "annual", "notes": "Hardy varieties can overwinter under cloches." },
+    "stageTips": {
+      "vegetative": [
+        "Water in dry spells to stop the plants bolting."
+      ],
+      "harvesting": [
+        "Pick outer leaves as you need them, or cut whole heads."
+      ]
+    },
     "source": "Check against: RHS Grow Your Own – lettuce; seed packet",
     "verified": false,
     "userAdded": false
@@ -516,6 +583,17 @@
     ],
     "companions": { "good": ["sweetcorn", "runner-bean"], "avoid": [] },
     "wintering": { "type": "annual" },
+    "lifePath": {
+      "flowering": true
+    },
+    "stageTips": {
+      "flowering": [
+        "Water at the base, not over the leaves, and feed with high-potash feed once fruit starts to set."
+      ],
+      "harvesting": [
+        "Pick at about 10 to 15 cm, every few days; left on, they turn into marrows and the plant stops cropping."
+      ]
+    },
     "source": "Check against: RHS Grow Your Own – courgettes; seed packet",
     "verified": false,
     "userAdded": false
@@ -537,6 +615,14 @@
     ],
     "companions": { "good": ["sweetcorn", "runner-bean"], "avoid": [] },
     "wintering": { "type": "lift-and-store", "notes": "Cure the fruits in the sun for a week or two, then store somewhere cool and dry." },
+    "lifePath": {
+      "flowering": true
+    },
+    "stageTips": {
+      "harvesting": [
+        "Leave the fruit on the plant to ripen; cure in the sun for a week or two before storing."
+      ]
+    },
     "source": "Check against: RHS Grow Your Own – pumpkins and winter squash; seed packet",
     "verified": false,
     "userAdded": false
@@ -558,6 +644,17 @@
     ],
     "companions": { "good": ["sweetcorn", "lettuce"], "avoid": [] },
     "wintering": { "type": "annual" },
+    "lifePath": {
+      "flowering": true
+    },
+    "stageTips": {
+      "vegetative": [
+        "Train up a support and pinch out the tip when it reaches the top."
+      ],
+      "harvesting": [
+        "Pick regularly while young and firm."
+      ]
+    },
     "source": "Check against: RHS Grow Your Own – cucumbers; seed packet",
     "verified": false,
     "userAdded": false
@@ -583,6 +680,20 @@
     ],
     "companions": { "good": ["french-bean", "lettuce"], "avoid": ["potato", "kale", "cabbage"] },
     "wintering": { "type": "annual" },
+    "lifePath": {
+      "flowering": true
+    },
+    "stageTips": {
+      "vegetative": [
+        "Pinch out side shoots on tall (cordon) varieties every week, and tie the stem to its cane as it grows."
+      ],
+      "flowering": [
+        "First flowers are forming: switch to a high-potash feed every week or so, and water regularly so the fruit doesn’t split."
+      ],
+      "harvesting": [
+        "Pick fruit as it colours. Once there are four to six trusses outside (more under glass), pinch out the top of the plant."
+      ]
+    },
     "source": "Check against: RHS Grow Your Own – tomatoes; seed packet",
     "verified": false,
     "userAdded": false
@@ -607,6 +718,17 @@
     ],
     "companions": { "good": ["runner-bean", "courgette", "winter-squash"], "avoid": [] },
     "wintering": { "type": "annual" },
+    "lifePath": {
+      "flowering": true
+    },
+    "stageTips": {
+      "flowering": [
+        "Plant in a block, not a row, so the tassels pollinate the silks."
+      ],
+      "harvesting": [
+        "Ready when the silks turn brown and a squeezed kernel gives a milky juice."
+      ]
+    },
     "source": "Check against: RHS Grow Your Own – sweetcorn; seed packet",
     "verified": false,
     "userAdded": false
@@ -628,6 +750,14 @@
     ],
     "companions": { "good": ["tomato"], "avoid": [] },
     "wintering": { "type": "protect", "notes": "Plants can be kept indoors over winter and cropped again." },
+    "lifePath": {
+      "flowering": true
+    },
+    "stageTips": {
+      "flowering": [
+        "Feed with high-potash feed once flowers form; gently shake the plants indoors to help pollination."
+      ]
+    },
     "source": "Check against: RHS Grow Your Own – chilli peppers; seed packet",
     "verified": false,
     "userAdded": false
@@ -1078,6 +1208,14 @@
     "wintering": {
       "type": "annual"
     },
+    "lifePath": {
+      "flowering": true
+    },
+    "stageTips": {
+      "flowering": [
+        "Feed with high-potash feed once flowers form."
+      ]
+    },
     "source": "Check against: RHS – sweet peppers; seed packet",
     "verified": false,
     "userAdded": false
@@ -1140,6 +1278,14 @@
     "wintering": {
       "type": "annual"
     },
+    "lifePath": {
+      "flowering": true
+    },
+    "stageTips": {
+      "flowering": [
+        "Feed with high-potash feed once flowers form; mist the flowers to help them set."
+      ]
+    },
     "source": "Check against: RHS – aubergines; seed packet",
     "verified": false,
     "userAdded": false
@@ -1195,6 +1341,9 @@
       "type": "hardy",
       "notes": "Cut the yellowed ferns down in autumn."
     },
+    "lifePath": {
+      "perennial": true
+    },
     "source": "Check against: RHS – asparagus; nursery label",
     "verified": false,
     "userAdded": false
@@ -1249,6 +1398,9 @@
     "wintering": {
       "type": "protect",
       "notes": "Mulch the crowns with straw in winter."
+    },
+    "lifePath": {
+      "perennial": true
     },
     "source": "Check against: RHS – globe artichokes; nursery label",
     "verified": false,
