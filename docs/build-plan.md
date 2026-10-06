@@ -149,6 +149,20 @@ Tests: rule fixtures (e.g. carrots too close; onions next to peas → avoid).
   - Each job has a stable key such as `sow-direct:carrot:2026-11`, so ticking it off writes to `jobsDone`.
 - "This month" view plus a "next month" preview, grouped by job kind, readable on a phone. Show "Dates are UK averages; adjust for your area" on screen.
 
+As built:
+- **Plants on the plan** are grouped by plant and bed, so three carrot rows make one job.
+  - **Not yet sown:** they get sow jobs (indoors, or outside) and plant-out jobs.
+  - **Ticking a sow or plant-out job** dates the plantings.
+  - **Once dated:** they get harvest; "protect for winter" in October for plants that need it; "lift and store" when the harvest ends; and "clear and tidy" the month after the harvest ends, for annuals.
+- **Repeats:** a sowing or plant-out job you've ticked doesn't come back for the next 11 months.
+- **Sowing list** (`garden.wishlist`): sow and plant-out jobs for plants not yet on the plan. Add plants on the Month screen or with the plant card's "Add to sowing list".
+- **Month screen:**
+  - Your jobs grouped by kind, with ticks.
+  - The general UK jobs under "Around the garden".
+  - "Coming up next month", for both.
+  - The sowing list.
+- **Home** shows your own jobs when you have any, and the general UK jobs otherwise.
+
 Tests: job fixtures for a month for 5 known plants.
 **Gate 2 (end of week 6):** spacing and clash warnings are right for a real bed, and the month list matches what you'd actually do. If it fails, fix the plant data and rules before adding layers.
 

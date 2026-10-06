@@ -1,5 +1,5 @@
 // A line and a handful of general jobs for each month in an English garden.
-// These are UK averages; Stage 5 replaces the jobs with ones for your own plants.
+// These are UK averages, shown alongside the jobs for your own plants (src/calendar/jobs.ts).
 
 export interface Season {
   month: number; // 1 to 12

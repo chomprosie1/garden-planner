@@ -1,22 +1,25 @@
 import { photoForMonth } from '../../content/photos';
 import { seasonFor } from '../../content/seasons';
 import type { Store } from '../../model/store';
-import type { Garden } from '../../model/types';
+import type { Garden, Plant } from '../../model/types';
+import { jobsFor } from '../../calendar/jobs';
+import { usePlants } from '../usePlants';
 import { LOOKS } from '../../theme/looks';
 import type { Prefs, View } from '../../theme/prefs';
 import { Icon } from '../icons';
-import { JobList, jobsDoneCount } from '../Jobs';
+import { doneOf, JobList, jobsDoneCount, PlantJobs } from '../Jobs';
 import { PhotoCredit, SeasonPhoto } from '../SeasonPhoto';
 
 interface Props {
   store: Store;
   garden: Garden;
+  userPlants: Plant[];
   prefs: Prefs;
   go: (v: View) => void;
   now?: Date;
 }
 
-export function Home({ store, garden, prefs, go, now = new Date() }: Props) {
+export function Home({ store, garden, userPlants, prefs, go, now = new Date() }: Props) {
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
   const season = seasonFor(month);
@@ -24,8 +27,11 @@ export function Home({ store, garden, prefs, go, now = new Date() }: Props) {
   const photo = photoForMonth(photoMonth);
   // Subtle or no photos: every look uses the quiet band layout.
   const layout = prefs.photos === 'full' ? LOOKS[prefs.look].home : 'band';
-  const total = seasonFor(month).jobs.length;
-  const doneCount = jobsDoneCount(garden, month, year);
+  // Jobs for your own plants when you have any; otherwise the general UK jobs.
+  const { plants, plantOf } = usePlants(userPlants);
+  const mine = plants ? jobsFor(garden, plantOf, month, year) : [];
+  const total = mine.length || seasonFor(month).jobs.length;
+  const doneCount = mine.length ? doneOf(garden, mine) : jobsDoneCount(garden, month, year);
   const latestNote = [...garden.notes].sort((a, b) => b.date.localeCompare(a.date))[0];
 
   const settingsButton = (
@@ -126,7 +132,7 @@ export function Home({ store, garden, prefs, go, now = new Date() }: Props) {
               <div style={{ width: `${(doneCount / total) * 100}%` }} />
             </div>
           )}
-          <JobList store={store} garden={garden} month={month} year={year} limit={3} />
+          {mine.length > 0 ? <PlantJobs jobs={mine} garden={garden} store={store} limit={4} /> : <JobList store={store} garden={garden} month={month} year={year} limit={3} />}
           <p class="card-foot">
             <a
               href="#/month"
@@ -137,7 +143,7 @@ export function Home({ store, garden, prefs, go, now = new Date() }: Props) {
             >
               All {season.name} jobs
             </a>
-            <span class="muted small"> · general UK jobs until you add plants</span>
+            {mine.length === 0 && <span class="muted small"> · general UK jobs until you add plants</span>}
           </p>
         </section>
 

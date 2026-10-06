@@ -1,13 +1,12 @@
-import { useEffect, useMemo, useState } from 'preact/hooks';
-import { allPlants, loadLibrary } from '../../library/library';
+import { useState } from 'preact/hooks';
 import { featureLabel } from '../../model/features';
 import { addNote, deleteNote, makeNote } from '../../model/notes';
 import { updateGarden, type Store } from '../../model/store';
 import type { Garden, Note, Plant } from '../../model/types';
-import { unknownPlant } from '../../planting/place';
 import type { View } from '../../theme/prefs';
 import { Icon } from '../icons';
 import { NoteForm, NoteList } from '../NotesSection';
+import { usePlants } from '../usePlants';
 
 interface Props {
   store: Store;
@@ -18,16 +17,10 @@ interface Props {
 
 /** Every dated note, newest first, with what each is about. */
 export function Notes({ store, garden, userPlants, go }: Props) {
-  const [library, setLibrary] = useState<Plant[]>([]);
   const [about, setAbout] = useState('');
   const [show, setShow] = useState('all');
-  useEffect(() => {
-    loadLibrary().then(setLibrary, () => undefined);
-  }, []);
-  const plantName = useMemo(() => {
-    const byId = new Map(allPlants(library, userPlants).map((p) => [p.id, p]));
-    return (id: string) => (byId.get(id) ?? unknownPlant(id)).commonName;
-  }, [library, userPlants]);
+  const { plantOf } = usePlants(userPlants);
+  const plantName = (id: string) => plantOf(id).commonName;
 
   const bedName = (id: string) => {
     const f = garden.features.find((x) => x.id === id);

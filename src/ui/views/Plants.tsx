@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { allPlants, blankPlant, copyAsUserPlant, deleteUserPlant, emptyFilter, filterPlants, loadLibrary, saveUserPlant, type PlantFilter } from '../../library/library';
 import type { Store } from '../../model/store';
-import { LIGHT_LEVELS, PLANT_CATEGORIES, type Plant } from '../../model/types';
+import { LIGHT_LEVELS, PLANT_CATEGORIES, type Garden, type Plant } from '../../model/types';
+import { onWishlist, toggleWishlist } from '../../calendar/jobs';
+import { updateGarden } from '../../model/store';
 import type { View } from '../../theme/prefs';
 import { formatLength } from '../../canvas/viewport';
 import { useIsPhone } from '../hooks';
@@ -11,6 +13,7 @@ import { PlantForm } from '../PlantForm';
 
 interface Props {
   store: Store;
+  garden: Garden;
   userPlants: Plant[];
   go: (v: View) => void;
   /** Opens the plan with this plant ready to place. */
@@ -20,7 +23,7 @@ interface Props {
 
 type Panel = { kind: 'card'; id: string } | { kind: 'form'; plant: Plant } | null;
 
-export function Plants({ store, userPlants, go, plantIt, now = new Date() }: Props) {
+export function Plants({ store, garden, userPlants, go, plantIt, now = new Date() }: Props) {
   const phone = useIsPhone();
   const month = now.getMonth() + 1;
   const [library, setLibrary] = useState<Plant[] | null>(null);
@@ -130,6 +133,7 @@ export function Plants({ store, userPlants, go, plantIt, now = new Date() }: Pro
         month={month}
         open={(id) => setPanel({ kind: 'card', id })}
         {...(plantIt ? { onPlant: () => plantIt(current.id) } : {})}
+        sowing={{ listed: onWishlist(garden, current.id), toggle: () => store.apply(updateGarden((g) => toggleWishlist(g, current.id))) }}
         {...(current.userAdded
           ? { onEdit: () => setPanel({ kind: 'form', plant: current }), onDelete: () => remove(current) }
           : { onCopy: () => setPanel({ kind: 'form', plant: copyAsUserPlant(current) }) })}

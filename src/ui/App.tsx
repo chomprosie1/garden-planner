@@ -75,15 +75,16 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   const screen = (() => {
     switch (view) {
       case 'home':
-        return <Home store={store} garden={garden} prefs={prefs} go={navigate} />;
+        return <Home store={store} garden={garden} userPlants={userPlants} prefs={prefs} go={navigate} />;
       case 'plan':
         return <Plan store={store} garden={garden} userPlants={userPlants} prefs={prefs} prefsStore={prefsStore} pendingPlant={pendingPlant} clearPending={() => setPendingPlant(null)} />;
       case 'month':
-        return <Month store={store} garden={garden} prefs={prefs} go={navigate} />;
+        return <Month store={store} garden={garden} userPlants={userPlants} prefs={prefs} go={navigate} />;
       case 'plants':
         return (
           <Plants
             store={store}
+            garden={garden}
             userPlants={userPlants}
             go={navigate}
             plantIt={(id) => {

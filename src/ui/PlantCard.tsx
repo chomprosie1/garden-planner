@@ -52,10 +52,12 @@ interface Props {
   onDelete?: () => void;
   /** Opens the plan to put this plant in a bed. */
   onPlant?: () => void;
+  /** Whether it's on your sowing list, and a way to change that. */
+  sowing?: { listed: boolean; toggle: () => void };
   month: number;
 }
 
-export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPlant, month }: Props) {
+export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPlant, sowing, month }: Props) {
   const c = p.conditions;
   const s = p.size;
   const neighbours = (ids: string[]) =>
@@ -242,6 +244,11 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
         {onPlant && (
           <button type="button" class="btn btn-primary" onClick={onPlant}>
             Plant in a bed
+          </button>
+        )}
+        {sowing && (
+          <button type="button" class="btn" aria-pressed={sowing.listed} onClick={sowing.toggle}>
+            {sowing.listed ? 'On your sowing list ✓' : 'Add to sowing list'}
           </button>
         )}
         {onCopy && (

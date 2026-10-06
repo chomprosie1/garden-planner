@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { featureLabel, KINDS, type Target } from '../../model/features';
 import type { Store } from '../../model/store';
 import type { FeatureKind, Garden, Plant, Point } from '../../model/types';
-import { allPlants, loadLibrary } from '../../library/library';
-import { unknownPlant, type Layout } from '../../planting/place';
+import type { Layout } from '../../planting/place';
+import { usePlants } from '../usePlants';
 import { checkGarden, type Finding } from '../../planting/rules';
 import { PlantPicker } from '../PlantPicker';
 import { cropColour } from '../../canvas/render';
@@ -67,7 +67,6 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
   const [corners, setCorners] = useState(0);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [gardenSheet, setGardenSheet] = useState(false);
-  const [library, setLibrary] = useState<Plant[] | null>(null);
   const [plantId, setPlantId] = useState<string | null>(null);
   const [layout, setLayout] = useState<Layout>('single');
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -89,14 +88,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
     }
   };
 
-  useEffect(() => {
-    loadLibrary().then(setLibrary, () => setLibrary([]));
-  }, []);
-  const plants = useMemo(() => (library ? allPlants(library, userPlants) : null), [library, userPlants]);
-  const plantOf = useMemo(() => {
-    const byId = new Map((plants ?? []).map((p) => [p.id, p]));
-    return (id: string) => byId.get(id) ?? unknownPlant(id);
-  }, [plants]);
+  const { plants, plantOf } = usePlants(userPlants);
   // Checks wait for the library, so plants never show as "unknown" for a moment.
   const findings: Finding[] = useMemo(() => (plants ? checkGarden(garden, plantOf) : []), [garden, plantOf, plants]);
   const warnings = findings.filter((f) => f.level === 'warn').length;
