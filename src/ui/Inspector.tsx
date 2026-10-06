@@ -325,6 +325,17 @@ function FeaturePanel({ store, garden, f, variant, setSelected, setMode, sunJune
       )}
 
       {(f.kind === 'surface' || f.kind === 'path') && <MaterialPicker f={f} set={set} />}
+      {f.kind === 'bed' && (
+        <label class="field">
+          Edging
+          <select value={f.edging ?? ''} onChange={(e) => set({ edging: ((e.currentTarget as HTMLSelectElement).value || undefined) as Feature['edging'] })}>
+            <option value="">None</option>
+            <option value="timber">Timber boards</option>
+            <option value="brick">Brick</option>
+            <option value="stone">Stone</option>
+          </select>
+        </label>
+      )}
       {geometry !== 'circle' && (
         <label class="check">
           <input type="checkbox" checked={!!f.smooth} onChange={() => commit((g) => setSmooth(g, f.id, !f.smooth))} />

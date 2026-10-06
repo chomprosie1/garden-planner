@@ -3,7 +3,7 @@
 
 import { bounds, centroid, distance } from '../geometry/polygon';
 import { featureLabel, isClosed, pointsOf, type Target } from '../model/features';
-import { artFor, drawPlant, hashString, shadeHex, stageLook, type Look } from '../art/plants';
+import { artFor, drawPlant, hashString, OVERHANG, shadeHex, stageLook, type Look } from '../art/plants';
 import { bucketFor, paintFor, plantSprite, VARIANTS } from '../art/sprites';
 import { currentStage } from '../lifecycle/stages';
 import { SKETCH_WIDTH, sketchesOf } from '../model/sketches';
@@ -12,9 +12,9 @@ import { blockGrid, isActive, MAX_PLANTS, plantCount, plantingShape, plantPositi
 import type { Finding } from '../planting/rules';
 import type { SunGrid } from '../sun/hours';
 import type { Sun } from '../sun/position';
-import type { Shade } from '../sun/shadow';
+import { LEAF_MONTHS, type Shade } from '../sun/shadow';
 import { LOOKS, type LookId, type Mode, type PlanPalette } from '../theme/looks';
-import { drawMaterialTile, materialColour, MATERIAL_TILE_MM, mix } from './materials';
+import { drawEdgingTile, drawHedgeTile, drawMaterialTile, EDGING_TILE_MM, EDGING_WIDTH_MM, materialColour, MATERIAL_TILE_MM, mix, type Edging } from './materials';
 import type { SnapKind } from './snap';
 import { formatLength, gridStep, scaleBarLength, toScreen, type Viewport } from './viewport';
 
@@ -88,6 +88,12 @@ export interface Scene {
   sketches?: boolean;
   /** A stroke being drawn by hand: a freehand shape, or a sketch. */
   stroke?: Stroke | null;
+  /** Soft shadows under things with height, for depth. On unless false. */
+  depth?: boolean;
+  /** Something is being drawn, so shadows are fainter and lines easier to see. */
+  drawing?: boolean;
+  /** The month, 1 to 12, for trees in or out of leaf. Defaults to this month. */
+  month?: number;
 }
 
 /** A hand-drawn stroke in progress. */
@@ -179,9 +185,35 @@ function patterns(ctx: CanvasRenderingContext2D, s: PlanStyle): Patterns {
       'repeat',
     )!;
   }
+  if (s.pattern !== 'hatch') {
+    bed = materialFill(ctx, s, 'soil');
+    tileMm.bed = MATERIAL_TILE_MM.soil;
+  }
   const result = { lawn, bed, tileMm };
   patternCache.set(key, result);
   return result;
+}
+
+/** A bed's edging texture in this look. */
+function edgingFill(ctx: CanvasRenderingContext2D, s: PlanStyle, e: Edging): CanvasPattern | string {
+  const key = `edge-${s.look}-${s.mode}-${e}`;
+  let fill = materialCache.get(key);
+  if (!fill) {
+    fill = ctx.createPattern(tile(64, (c) => drawEdgingTile(c, e, s.plan, s.mode)), 'repeat') ?? s.plan.bedStroke;
+    materialCache.set(key, fill);
+  }
+  return fill;
+}
+
+/** A clipped hedge's leafy texture in this look. */
+function hedgeFill(ctx: CanvasRenderingContext2D, s: PlanStyle): CanvasPattern | string {
+  const key = `hedge-${s.look}-${s.mode}`;
+  let fill = materialCache.get(key);
+  if (!fill) {
+    fill = ctx.createPattern(tile(64, (c) => drawHedgeTile(c, s.mode === 'dark' ? '#4f6e42' : '#5e8a4a', s.mode)), 'repeat') ?? s.plan.canopyStroke;
+    materialCache.set(key, fill);
+  }
+  return fill;
 }
 
 const materialCache = new Map<string, CanvasPattern | string>();
@@ -240,7 +272,17 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 
 // ---------- Main ----------
 
+/** The whole plan: what's on the ground, then what's being drawn or picked. */
 export function render(ctx: CanvasRenderingContext2D, s: Scene) {
+  renderStatic(ctx, s);
+  renderLive(ctx, s);
+}
+
+/**
+ * Everything that only changes when the garden, the look or the zoom does: ground, features, plants and labels.
+ * The plan keeps this as an image with a margin round it, so panning just moves the image.
+ */
+export function renderStatic(ctx: CanvasRenderingContext2D, s: Scene) {
   const { garden: g, view: v, style: st } = s;
   const P = st.plan;
   const pats = patterns(ctx, st);
@@ -274,10 +316,13 @@ export function render(ctx: CanvasRenderingContext2D, s: Scene) {
     ctx.stroke();
   }
 
-  // Surfaces (lawns, gravel) lie under everything else.
+  // Surfaces (lawns, gravel) lie under everything else; then soft shadows; then everything with height.
   for (const f of g.features) if (f.kind === 'surface') drawFeature(ctx, s, f, pats);
+  const depth = s.depth !== false && !s.minimal && !s.shadows;
+  if (depth) for (const f of g.features) drawFeatureShadow(ctx, s, f);
   for (const f of g.features) if (f.kind !== 'surface') drawFeature(ctx, s, f, pats);
   const planted = s.plantOf ? g.plantings.filter(isActive) : [];
+  if (depth) for (const pl of planted) drawPlantingShadow(ctx, s, pl, s.plantOf!(pl.plantId));
   for (const pl of planted) drawPlanting(ctx, s, pl, s.plantOf!(pl.plantId));
   if (s.sunGrid) drawHeatMap(ctx, s, s.sunGrid);
   if (s.shadows) drawShadows(ctx, s, s.shadows);
@@ -286,7 +331,10 @@ export function render(ctx: CanvasRenderingContext2D, s: Scene) {
   for (const f of g.features) drawLabel(ctx, s, f, bedsInUse.has(f.id));
   for (const pl of planted) drawPlantLabel(ctx, s, pl, s.plantOf!(pl.plantId));
   if (s.sketches !== false) for (const k of sketchesOf(g)) drawSketch(ctx, s, k);
+}
 
+/** What changes as you work: the selection, shapes and plants being drawn, the crosshair, scale bar and compass. */
+export function renderLive(ctx: CanvasRenderingContext2D, s: Scene) {
   if (s.selected) drawSelection(ctx, s, s.selected);
   if (s.stroke) drawStroke(ctx, s, s.stroke);
   if (s.draft) drawDraft(ctx, s, s.draft);
@@ -296,6 +344,65 @@ export function render(ctx: CanvasRenderingContext2D, s: Scene) {
   if (s.minimal) return;
   drawScaleBar(ctx, s);
   drawNorth(ctx, s);
+}
+
+// ---------- Depth: soft shadows, lit from the top left ----------
+
+/** How far a shadow falls, px, for something this tall: a little, and never more than half a metre. */
+const shadowReach = (heightMm: number, scale: number) => Math.min(heightMm * 0.12, 500) * scale;
+const shadowAlpha = (s: Scene) => (s.style.mode === 'dark' ? 0.4 : 0.2) * (s.drawing ? 0.5 : 1);
+const canBlur = typeof CanvasRenderingContext2D !== 'undefined' && 'filter' in CanvasRenderingContext2D.prototype;
+
+function drawFeatureShadow(ctx: CanvasRenderingContext2D, s: Scene, f: Feature) {
+  const h = f.heightMm ?? 0;
+  if (h <= 0 || f.kind === 'surface' || f.footprint.length < 3) return;
+  const v = s.view;
+  const d = shadowReach(f.kind === 'tree' ? Math.min(h, 3000) : h, v.scale);
+  if (d < 1) return;
+  ctx.save();
+  if (canBlur) ctx.filter = `blur(${Math.max(1, d * 0.5).toFixed(1)}px)`;
+  ctx.globalAlpha = shadowAlpha(s) * (f.kind === 'greenhouse' ? 0.5 : 1);
+  ctx.fillStyle = '#1a140c';
+  ctx.translate(d * 0.7, d * 0.9);
+  polyPath(ctx, f.footprint.map((p) => toScreen(v, p)));
+  ctx.fill();
+  ctx.restore();
+}
+
+/** A soft round shadow, drawn once and reused for every plant. */
+let plantShadow: HTMLCanvasElement | null = null;
+function plantShadowImage(): HTMLCanvasElement {
+  if (plantShadow) return plantShadow;
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const g = c.getContext('2d')!;
+  const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, 'rgba(26,20,12,0.9)');
+  grad.addColorStop(0.55, 'rgba(26,20,12,0.6)');
+  grad.addColorStop(1, 'rgba(26,20,12,0)');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 64, 64);
+  return (plantShadow = c);
+}
+
+/** Shadows under plants that stand up from the bed: not seeds, seedlings or anything still only planned. */
+function drawPlantingShadow(ctx: CanvasRenderingContext2D, s: Scene, pl: Planting, plant: Plant) {
+  const look = stageLook(currentStage(pl), plant, pl);
+  const tall = (plant.size.heightMm ?? 300) * look.grow;
+  if (look.ghost || look.seeds || look.seedling || tall < 250) return;
+  const v = s.view;
+  const r = (spreadOf(plant) / 2) * v.scale * look.grow;
+  if (r < 4) return;
+  const d = Math.min(shadowReach(tall, v.scale), r * 0.45);
+  const img = plantShadowImage();
+  ctx.globalAlpha = shadowAlpha(s);
+  const size = r * 2.1;
+  for (const p of plantPositions(pl, plant)) {
+    const [x, y] = toScreen(v, p);
+    if (x < -size || y < -size || x > s.width + size || y > s.height + size) continue;
+    ctx.drawImage(img, x + d * 0.7 - size / 2, y + d * 0.9 - size / 2, size, size);
+  }
+  ctx.globalAlpha = 1;
 }
 
 function drawGrid(ctx: CanvasRenderingContext2D, s: Scene) {
@@ -360,8 +467,23 @@ function drawFeature(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, pats: 
   if (material) {
     // Lawns use the garden's own lawn pattern, so a drawn lawn matches the garden around it.
     ctx.fillStyle = material === 'lawn' && typeof pats.lawn !== 'string' ? placePattern(pats.lawn, v, pats.tileMm.lawn) : placePattern(materialFill(ctx, s.style, material), v, MATERIAL_TILE_MM[material]);
-  } else ctx.fillStyle = f.kind === 'bed' ? placePattern(pats.bed, v, pats.tileMm.bed) : c.fill;
+  } else if (f.kind === 'bed') ctx.fillStyle = placePattern(pats.bed, v, pats.tileMm.bed);
+  else if (f.kind === 'hedge') ctx.fillStyle = placePattern(hedgeFill(ctx, s.style), v, 800);
+  else ctx.fillStyle = c.fill;
+  if (f.kind === 'tree' && f.circle) return drawTree(ctx, s, f, c.stroke);
   ctx.fill();
+  if (f.kind === 'greenhouse') {
+    // A sheen across the glass.
+    const bx = bounds(pts)!;
+    const grad = ctx.createLinearGradient(bx.minX, bx.minY, bx.maxX, bx.maxY);
+    grad.addColorStop(0, 'rgba(255,255,255,0.35)');
+    grad.addColorStop(0.45, 'rgba(255,255,255,0)');
+    grad.addColorStop(0.55, 'rgba(255,255,255,0.18)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
+    ctx.fill();
+  }
+  if (f.edging && f.kind === 'bed') drawEdging(ctx, s, f.edging, radius);
   ctx.setLineDash(c.dash ?? []);
   // A surface's edge is just a little darker than the surface itself.
   ctx.strokeStyle = f.kind === 'surface' && material ? mix(materialColour(material, s.style.plan, s.style.mode), '#000000', s.style.mode === 'dark' ? 0.35 : 0.22) : c.stroke;
@@ -391,6 +513,97 @@ function drawFeature(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, pats: 
     ctx.arc(cx, cy, Math.max(2.5, 150 * v.scale), 0, Math.PI * 2);
     ctx.fill();
   }
+}
+
+/** A bed's rim of timber, brick or stone, drawn just inside its edge. */
+function drawEdging(ctx: CanvasRenderingContext2D, s: Scene, e: Edging, radiusPx: number) {
+  // The bed's outline is still the current path.
+  const w = Math.max(2, EDGING_WIDTH_MM[e] * s.view.scale);
+  ctx.save();
+  ctx.clip();
+  ctx.lineWidth = w * 2;
+  ctx.lineJoin = e === 'stone' || radiusPx > 0 ? 'round' : 'miter';
+  ctx.strokeStyle = placePattern(edgingFill(ctx, s.style, e), s.view, EDGING_TILE_MM[e]);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** A tree from above: its canopy in leaf, or bare branches over a faint canopy in winter. */
+function drawTree(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, stroke: string) {
+  const v = s.view;
+  const c = f.circle!;
+  const [cx, cy] = toScreen(v, c.centre);
+  const r = c.radiusMm * v.scale;
+  const month = s.month ?? new Date().getMonth() + 1;
+  const bare = !!f.deciduous && !LEAF_MONTHS.includes(month);
+  const art = { form: 'tree' as const, leaf: 'broad' as const, foliage: s.style.mode === 'dark' ? '#4f6e42' : '#5e8a4a' };
+  ctx.save();
+  if (r < 6) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, Math.max(2, r), 0, Math.PI * 2);
+    ctx.fillStyle = art.foliage;
+    ctx.globalAlpha = bare ? 0.35 : 0.85;
+    ctx.fill();
+  } else {
+    ctx.translate(cx, cy);
+    if (bare) {
+      // The canopy's reach, faintly, and branches from the trunk.
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.fillStyle = art.foliage;
+      ctx.globalAlpha = 0.18;
+      ctx.fill();
+      ctx.globalAlpha = 0.85;
+      ctx.strokeStyle = s.style.mode === 'dark' ? '#a08a6a' : '#6a5038';
+      ctx.lineCap = 'round';
+      const rnd = mulberry(hashString(f.id));
+      for (let i = 0; i < 9; i++) {
+        const a = (i / 9) * Math.PI * 2 + rnd() * 0.4;
+        const len = r * (0.65 + rnd() * 0.3);
+        ctx.lineWidth = Math.max(1, r * 0.04);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        const mx = Math.cos(a) * len * 0.5;
+        const my = Math.sin(a) * len * 0.5;
+        ctx.lineTo(mx, my);
+        ctx.lineTo(Math.cos(a) * len, Math.sin(a) * len);
+        ctx.stroke();
+        ctx.lineWidth = Math.max(0.6, r * 0.02);
+        ctx.beginPath();
+        ctx.moveTo(mx, my);
+        ctx.lineTo(mx + Math.cos(a + 0.6) * len * 0.35, my + Math.sin(a + 0.6) * len * 0.35);
+        ctx.moveTo(mx, my);
+        ctx.lineTo(mx + Math.cos(a - 0.6) * len * 0.35, my + Math.sin(a - 0.6) * len * 0.35);
+        ctx.stroke();
+      }
+    } else drawPlant(ctx, { art, look: stageLook('vegetative', { id: f.id, commonName: '', category: 'tree', conditions: { light: 'full-sun' }, size: { spacingMm: 1000 }, verified: true, userAdded: false }), r: r / OVERHANG, paint: paintFor(s.style.look, s.style.mode), seed: hashString(f.id) });
+  }
+  ctx.restore();
+  // Its spread, faintly, so it can still be measured, and the trunk.
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.setLineDash([6, 5]);
+  ctx.strokeStyle = stroke;
+  ctx.globalAlpha = 0.6;
+  ctx.lineWidth = s.hoverId === f.id ? 2.5 : 1.2;
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = s.style.mode === 'dark' ? '#a08a6a' : '#5a4330';
+  ctx.beginPath();
+  ctx.arc(cx, cy, Math.max(2.5, 150 * v.scale), 0, Math.PI * 2);
+  ctx.fill();
+}
+
+/** A repeatable random sequence. */
+function mulberry(seed: number) {
+  let t = seed >>> 0;
+  return () => {
+    t = (t + 0x6d2b79f5) >>> 0;
+    let x = Math.imul(t ^ (t >>> 15), 1 | t);
+    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
 function labelPoint(f: Feature): Point {

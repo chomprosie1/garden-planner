@@ -4,7 +4,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { useApp } from './appContext';
 import { hitEdge, hitFeature, hitPlanting, hitVertex } from '../canvas/hit';
-import { northCentre, NORTH_RADIUS, plantingHandles, planStyle, render, sketchTextPx, type Draft, type PlantDraft, type Stroke } from '../canvas/render';
+import { northCentre, NORTH_RADIUS, plantingHandles, planStyle, renderLive, renderStatic, sketchTextPx, type Draft, type PlantDraft, type Scene, type Stroke } from '../canvas/render';
 import { parseLength, snapPoint, snapStepFor, type SnapKind } from '../canvas/snap';
 import { fit, pan, toScreen, toWorld, zoomAt, type Viewport } from '../canvas/viewport';
 import { bounds, distance } from '../geometry/polygon';
@@ -132,6 +132,8 @@ export interface PlanCanvasProps {
   sketchPen?: SketchPen;
   /** Show the sketch layer. */
   showSketches?: boolean;
+  /** Soft shadows under things with height. */
+  depth?: boolean;
 }
 
 type Drag =
@@ -196,6 +198,16 @@ export function PlanCanvas(props: PlanCanvasProps) {
   const lastTap = useRef<{ t: number; s: Point } | null>(null);
   /** A stroke being drawn by hand, in garden mm, and the screen point it last grew from. */
   const stroke = useRef<{ points: Point[]; last: Point } | null>(null);
+  /**
+   * What's on the ground, drawn once into an image with a margin round the screen. Panning moves the image;
+   * wheel and pinch zooming stretch it until you stop, then it's redrawn sharp at the new zoom.
+   */
+  const layer = useRef<{ canvas: HTMLCanvasElement; key: unknown[]; view: Viewport; margin: number } | null>(null);
+  const zoomingUntil = useRef(0);
+  const settle = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const zooming = () => {
+    zoomingUntil.current = performance.now() + 150;
+  };
 
   const garden = () => preview.current ?? P.current.garden;
 
@@ -236,9 +248,11 @@ export function PlanCanvas(props: PlanCanvasProps) {
       : p.tool === 'sketch' && p.sketchPen && p.sketchPen.kind !== 'eraser'
         ? { points: st.points, sketch: { kind: p.sketchPen.kind, colour: p.sketchPen.colour } }
         : { points: st.points, closed: geometry === 'area', ...(geometry === 'line' ? { widthMm: KINDS[p.tool as FeatureKind].widthMm } : {}) };
-    render(ctx, {
+    const scene: Scene = {
       stroke: strokeScene,
       sketches: p.showSketches !== false,
+      depth: p.depth !== false,
+      drawing: !!geometry || p.tool === 'plant' || p.tool === 'sketch',
       garden: garden(),
       view: v,
       width: w,
@@ -257,7 +271,42 @@ export function PlanCanvas(props: PlanCanvasProps) {
       shadows: p.shadows ?? null,
       sunGrid: p.sunGrid ?? null,
       sun: p.sun ?? null,
-    });
+    };
+
+    // The ground: redrawn only when something on it changes, the zoom settles, or a pan runs past the margin.
+    const key = [scene.garden, p.look, p.mode, hover.current, p.findings, p.focusFinding, p.traceImage, p.plantOf, p.shadows, p.sunGrid, scene.sketches, scene.depth, scene.drawing, w, h, dpr];
+    let L = layer.current;
+    const stale = !L || key.some((k, i) => k !== L!.key[i]);
+    const rescaled = !!L && L.view.scale !== v.scale;
+    const outside = !!L && (Math.abs(v.ox - L.view.ox) > L.margin || Math.abs(v.oy - L.view.oy) > L.margin);
+    if (stale || outside || (rescaled && performance.now() >= zoomingUntil.current)) {
+      const margin = Math.round(Math.max(w, h) * 0.3);
+      const lc = L?.canvas ?? document.createElement('canvas');
+      const cw = Math.round((w + 2 * margin) * dpr);
+      const ch = Math.round((h + 2 * margin) * dpr);
+      if (lc.width !== cw || lc.height !== ch) {
+        lc.width = cw;
+        lc.height = ch;
+      }
+      const lctx = lc.getContext('2d')!;
+      lctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      renderStatic(lctx, { ...scene, view: { ...v, ox: v.ox + margin, oy: v.oy + margin }, width: w + 2 * margin, height: h + 2 * margin });
+      L = layer.current = { canvas: lc, key, view: { ...v }, margin };
+    }
+    const k = v.scale / L!.view.scale;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (k !== 1) {
+      // Mid-zoom: the old image, stretched, until the zoom settles.
+      ctx.fillStyle = scene.style.plan.paper;
+      ctx.fillRect(0, 0, c.width, c.height);
+      clearTimeout(settle.current);
+      settle.current = setTimeout(redraw, 160);
+    }
+    const x = (v.ox - (L!.view.ox + L!.margin) * k) * dpr;
+    const y = (v.oy - (L!.view.oy + L!.margin) * k) * dpr;
+    ctx.drawImage(L!.canvas, k === 1 ? Math.round(x) : x, k === 1 ? Math.round(y) : y, L!.canvas.width * k, L!.canvas.height * k);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    renderLive(ctx, scene);
   };
   const redraw = () => {
     if (!raf.current) raf.current = requestAnimationFrame(draw);
@@ -294,6 +343,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
       ro.disconnect();
       document.fonts?.removeEventListener?.('loadingdone', onFonts);
       cancelAnimationFrame(raf.current);
+      clearTimeout(settle.current);
     };
   }, []);
 
@@ -311,7 +361,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
   }
   useEffect(redraw, [drawKey]);
 
-  useEffect(redraw, [props.garden, props.look, props.mode, props.selected, props.selectedVertex, props.traceImage, props.findings, props.focusFinding, props.shadows, props.sunGrid, props.sun, props.showSketches, props.byHand]);
+  useEffect(redraw, [props.garden, props.look, props.mode, props.selected, props.selectedVertex, props.traceImage, props.findings, props.focusFinding, props.shadows, props.sunGrid, props.sun, props.showSketches, props.byHand, props.depth]);
 
   // ---------- helpers ----------
 
@@ -675,6 +725,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
       const [a, b] = [...pointers.current.values()] as [Point, Point];
       const dist = distance(a, b);
       const mid: Point = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      zooming();
       let next = zoomAt(v, dist / (pinch.current.dist || dist), mid);
       next = pan(next, mid[0] - pinch.current.mid[0], mid[1] - pinch.current.mid[1]);
       view.current = next;
@@ -913,6 +964,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
   const onWheel = (e: WheelEvent) => {
     e.preventDefault();
     if (!view.current) return;
+    zooming();
     const k = e.ctrlKey ? 0.01 : 0.0015; // trackpad pinch arrives as ctrl+wheel
     view.current = zoomAt(view.current, Math.exp(-e.deltaY * k), screenOf(e));
     redraw();

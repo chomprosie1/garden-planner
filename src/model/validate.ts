@@ -5,6 +5,7 @@ import {
   FEATURE_KINDS,
   BLOOMS,
   CROP_KINDS,
+  EDGINGS,
   LEAF_SHAPES,
   LIGHT_LEVELS,
   MATERIALS,
@@ -68,6 +69,7 @@ export function validateGarden(g: unknown): string[] {
         `${at}.circle needs a centre and a radius above 0.`,
       );
       need(f.material === undefined || oneOf(MATERIALS, f.material), `${at}.material is not a known material.`);
+      need(f.edging === undefined || oneOf(EDGINGS, f.edging), `${at}.edging must be timber, brick or stone.`);
       need(f.smooth === undefined || typeof f.smooth === 'boolean', `${at}.smooth must be true or false.`);
       need(f.controls === undefined || (Array.isArray(f.controls) && f.controls.length >= 3 && f.controls.every(isPoint)), `${at}.controls needs three or more points.`);
     });

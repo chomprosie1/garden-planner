@@ -85,6 +85,16 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
           ]}
           onChange={(textSize) => prefsStore.set({ textSize })}
         />
+        <Choice
+          legend="Soft shadows on the plan"
+          name="depth"
+          value={(prefs.depth ?? prefs.look !== 'minimal') ? 'on' : 'off'}
+          options={[
+            { value: 'on', label: 'On' },
+            { value: 'off', label: 'Off' },
+          ]}
+          onChange={(v) => prefsStore.set({ depth: v === 'on' })}
+        />
       </section>
 
       <GardenSettings store={store} garden={garden} prefsStore={prefsStore} />

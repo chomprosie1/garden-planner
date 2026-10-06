@@ -530,6 +530,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               byHand={byHand}
               sketchPen={sketchPen}
               showSketches={prefs.sketches || tool === 'sketch'}
+              depth={prefs.depth ?? prefs.look !== 'minimal'}
               apiRef={canvasApi}
               onDraftChange={setCorners}
               fitSignal={fitSignal}

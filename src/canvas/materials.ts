@@ -4,7 +4,7 @@
 // and dark. Textures are drawn by code (no images to license) on 64 px tiles
 // tied to real-world sizes, so slabs and boards stay to scale as you zoom.
 
-import type { Material } from '../model/types';
+import type { Feature, Material } from '../model/types';
 import type { Mode, PlanPalette } from '../theme/looks';
 
 type Rgb = [number, number, number];
@@ -41,6 +41,99 @@ export function materialColour(m: Material, P: PlanPalette, mode: Mode): string 
   if (m === 'lawn') return toHex(P.lawn);
   if (m === 'soil') return toHex(P.bedFill);
   return toHex(mix(BASE[mode][m], P.paper, 0.18));
+}
+
+// ---------- Bed edging and hedges ----------
+
+export type Edging = NonNullable<Feature['edging']>;
+/** How wide each edging is on the ground, mm. */
+export const EDGING_WIDTH_MM: Record<Edging, number> = { timber: 50, brick: 110, stone: 160 };
+/** The real-world size of one edging tile, mm. */
+export const EDGING_TILE_MM: Record<Edging, number> = { timber: 600, brick: 450, stone: 500 };
+const EDGING_BASE: Record<Mode, Record<Edging, string>> = {
+  light: { timber: '#8f6c45', brick: '#a8573d', stone: '#a29d92' },
+  dark: { timber: '#7a5c3b', brick: '#8a4632', stone: '#7d7970' },
+};
+
+/** One tile of a bed's edging: boards with grain, brick courses, or rough stones. */
+export function drawEdgingTile(c: CanvasRenderingContext2D, e: Edging, P: PlanPalette, mode: Mode): void {
+  const base = toHex(mix(EDGING_BASE[mode][e], P.paper, 0.1));
+  const light = shade(base, 0.2);
+  const dark = shade(base, -0.3);
+  const rnd = seeded(e.length * 31 + 7);
+  c.fillStyle = base;
+  c.fillRect(0, 0, T, T);
+  if (e === 'timber') {
+    // Grain running both ways, so it reads as wood along any side of a bed.
+    c.strokeStyle = dark;
+    c.globalAlpha = 0.45;
+    c.lineWidth = 1;
+    c.beginPath();
+    for (let i = 0; i < 9; i++) {
+      const y = rnd() * T;
+      c.moveTo(0, y);
+      c.bezierCurveTo(T / 3, y + (rnd() - 0.5) * 4, (2 * T) / 3, y + (rnd() - 0.5) * 4, T, y);
+      const x = rnd() * T;
+      c.moveTo(x, 0);
+      c.bezierCurveTo(x + (rnd() - 0.5) * 4, T / 3, x + (rnd() - 0.5) * 4, (2 * T) / 3, x, T);
+    }
+    c.stroke();
+    c.globalAlpha = 1;
+    return;
+  }
+  if (e === 'brick') {
+    const h = T / 6;
+    for (let row = 0; row < 6; row++) {
+      for (let col = -1; col < 3; col++) {
+        const x = col * (T / 2) + (row % 2 ? T / 4 : 0);
+        c.fillStyle = shade(base, (rnd() - 0.5) * 0.16);
+        c.fillRect(x + 1, row * h + 1, T / 2 - 2, h - 2);
+      }
+    }
+    c.strokeStyle = light;
+    c.globalAlpha = 0.5;
+    c.lineWidth = 1;
+    c.beginPath();
+    for (let row = 0; row <= 6; row++) {
+      c.moveTo(0, row * h);
+      c.lineTo(T, row * h);
+    }
+    c.stroke();
+    c.globalAlpha = 1;
+    return;
+  }
+  // Stone: rounded, uneven blocks.
+  c.fillStyle = dark;
+  c.fillRect(0, 0, T, T);
+  for (let i = 0; i < 9; i++) {
+    const x = (i % 3) * (T / 3) + T / 6 + (rnd() - 0.5) * 4;
+    const y = Math.floor(i / 3) * (T / 3) + T / 6 + (rnd() - 0.5) * 4;
+    c.fillStyle = shade(base, (rnd() - 0.5) * 0.2);
+    c.beginPath();
+    c.ellipse(x, y, T / 6 - 1.5, T / 6 - 2, rnd() * Math.PI, 0, Math.PI * 2);
+    c.fill();
+  }
+}
+
+/** One tile of a clipped hedge: overlapping leafy clumps, lit from the top left. */
+export function drawHedgeTile(c: CanvasRenderingContext2D, colour: string, mode: Mode): void {
+  const base = toHex(colour.startsWith('#') ? colour : '#5d7a4d');
+  const rnd = seeded(4242);
+  c.fillStyle = shade(base, -0.15);
+  c.fillRect(0, 0, T, T);
+  for (let i = 0; i < 26; i++) {
+    const x = rnd() * T;
+    const y = rnd() * T;
+    const r = 4 + rnd() * 5;
+    // The same clump on each side of the tile's edges, so the tiles meet without a seam.
+    const fill = shade(base, (rnd() - 0.4) * (mode === 'dark' ? 0.2 : 0.25));
+    for (const [dx, dy] of [[0, 0], [T, 0], [-T, 0], [0, T], [0, -T]] as const) {
+      c.fillStyle = fill;
+      c.beginPath();
+      c.arc(x + dx, y + dy, r, 0, Math.PI * 2);
+      c.fill();
+    }
+  }
 }
 
 /** The real-world size of one 64 px tile, mm. */

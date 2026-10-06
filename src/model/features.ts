@@ -86,6 +86,8 @@ export function makeFeature(kind: FeatureKind, shape: Shape, opts: { smooth?: bo
   if (info.opacityInLeaf !== undefined) base.opacityInLeaf = info.opacityInLeaf;
   if (info.opacityBare !== undefined) base.opacityBare = info.opacityBare;
   if (kind === 'surface') base.material = 'lawn';
+  // Beds start as raised beds with timber sides, as most home beds are; the edging can be changed or removed.
+  if (kind === 'bed') base.edging = 'timber';
   const smooth = opts.smooth ? { smooth: true } : {};
   if ('area' in shape) {
     const pts = shape.area.map(roundPoint);

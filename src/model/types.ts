@@ -72,6 +72,8 @@ export type FeatureKind = (typeof FEATURE_KINDS)[number];
 export const MATERIALS = ['lawn', 'gravel', 'paving', 'decking', 'bark', 'meadow', 'soil'] as const;
 export type Material = (typeof MATERIALS)[number];
 
+export const EDGINGS = ['timber', 'brick', 'stone'] as const;
+
 export interface Feature {
   id: string;
   kind: FeatureKind;
@@ -87,6 +89,8 @@ export interface Feature {
   smooth?: boolean;
   /** The corners a curved area's outline passes through. Present only when `smooth` is set on an area. */
   controls?: Point[];
+  /** A bed's rim: timber boards, brick or stone. */
+  edging?: (typeof EDGINGS)[number];
   heightMm?: number; // used by the sun layer; absent for flat features
   /** Centre line of a fence, wall, hedge or path, with its width. */
   line?: Point[];

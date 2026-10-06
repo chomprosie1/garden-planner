@@ -259,7 +259,7 @@ Brought forward from "parked": the plant life cycle, frost and Growing Degree Da
 | 8 | Life stages, without weather | Built |
 | 9 | Drawing upgrade: surfaces, curved edges, freehand shapes, sketch layer | Built |
 | 10 | Illustrated plants, drawn by code, changing with the stage | Built |
-| 11 | Depth and texture: material textures, raised-bed edging, soft shadows, cached static layer | |
+| 11 | Depth and texture: material textures, raised-bed edging, soft shadows, cached static layer | Built |
 | 12 | The Potting Shed, with shelves: trays, places, frost dates, plant out from a tray | |
 | 13 | Screens and cards polish | |
 | 14 | Greenhouses and cold frames as microclimates | |
@@ -308,6 +308,15 @@ Tests: `tests/drawing.test.ts` covers curves, simplifying strokes, curved featur
 - **Everywhere else too:** the same drawings on plant cards (a large one in a patch of soil), in the plant list, the plant picker, the planting panel and the list of beds and plants. They replace the old coloured dots, and `cropColour` is gone.
 
 Tests: `tests/art.test.ts` checks every plant has a valid drawing, how each stage is drawn, that drawings repeat exactly for the same plant, and that every plant draws without error at every stage in every style.
+
+### Stage 11 — Depth and texture (as built)
+- **Soil in beds:** beds are filled with a soil texture in every look but Heritage, which keeps its survey hatching.
+- **Bed edging:** timber boards, brick or stone (`feature.edging`), drawn as a rim just inside the bed's edge at its real width (50, 110 and 160 mm). New beds start with timber; existing beds are left as they were. "Edging" on the bed's panel changes it.
+- **Hedges** have a leafy, clipped texture. **Trees** are drawn from above like the plants, with their spread still shown faintly so it can be measured; deciduous trees show bare branches from November to April. **Greenhouses** have a sheen across the glass.
+- **Soft shadows:** everything with height casts a soft shadow, lit from the top left like a drawn plan: a little way, never more than half a metre, and fainter while you're drawing. Plants that stand up from the bed have a soft shadow under them too; seeds, seedlings and planned plants don't. They're off in Minimal and in the Sun view (which shows the real shadows), and "Soft shadows on the plan" in Settings turns them on or off.
+- **Speed:** the plan is now drawn in two layers. What's on the ground (`renderStatic`) is drawn once into an image with a margin round the screen; panning moves the image, and wheel or pinch zooming stretches it until you stop, then it's redrawn sharp. Only the selection, drafts, crosshair, scale bar and compass (`renderLive`) are drawn every frame. In a garden of about 2,000 plants, zooming went from about 37 ms a frame to the screen's own 16.7 ms.
+
+Tests: `tests/depth.test.ts` covers edging and the shadows setting.
 
 ---
 

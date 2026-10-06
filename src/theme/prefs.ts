@@ -28,6 +28,8 @@ export interface Prefs {
   setupHidden: boolean;
   /** Show the sketch layer on the plan. */
   sketches: boolean;
+  /** Soft shadows on the plan, for depth. null = the look's default (off in Minimal). */
+  depth: boolean | null;
 }
 
 export const PLAN_MODES = ['layout', 'planting', 'sun'] as const;
@@ -54,6 +56,7 @@ export function defaultPrefs(): Prefs {
     northChecked: false,
     setupHidden: false,
     sketches: true,
+    depth: null,
   };
 }
 
@@ -85,6 +88,7 @@ export function sanitisePrefs(raw: unknown): Prefs {
     northChecked: r.northChecked === true,
     setupHidden: r.setupHidden === true,
     sketches: r.sketches !== false,
+    depth: typeof r.depth === 'boolean' ? r.depth : null,
   };
 }
 
