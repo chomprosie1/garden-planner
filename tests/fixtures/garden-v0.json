@@ -1,0 +1,18 @@
+{
+  "name": "Back garden (v0)",
+  "latitude": 53.38,
+  "longitude": -1.47,
+  "northRotationDeg": 12,
+  "boundary": [[0, 0], [8000, 0], [8000, 15000], [0, 15000]],
+  "features": [
+    { "id": "f1", "kind": "bed", "footprint": [[500, 500], [3000, 500], [3000, 1700], [500, 1700]] },
+    { "id": "f2", "kind": "fence", "footprint": [[0, 0], [8000, 0], [8000, 50], [0, 50]], "heightMm": 1800 },
+    { "id": "f3", "kind": "tree", "footprint": [[6000, 12000], [7000, 12000], [7000, 13000], [6000, 13000]], "heightMm": 6000, "opacity": 0.6 }
+  ],
+  "plantings": [
+    { "id": "p1", "plantId": "carrot", "featureId": "f1", "x": 1000, "y": 1000, "sownOn": "2026-04-12" }
+  ],
+  "notes": [
+    { "id": "n1", "date": "2026-05-01", "text": "Carrot fly netting on.", "featureId": "f1" }
+  ]
+}
