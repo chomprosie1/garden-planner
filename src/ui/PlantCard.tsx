@@ -172,7 +172,19 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
           <div>
             <dt>Spacing</dt>
             <dd>
-              {formatLength(s.spacingMm)} apart{s.rowSpacingMm ? `, rows ${formatLength(s.rowSpacingMm)}` : ''}
+              {s.closeSpacingMm ? (
+                <>
+                  In a bed: {formatLength(s.closeSpacingMm)} each way
+                  <br />
+                  <span class="muted">
+                    In rows: {formatLength(s.spacingMm)} apart{s.rowSpacingMm ? `, rows ${formatLength(s.rowSpacingMm)} apart` : ''}
+                  </span>
+                </>
+              ) : (
+                <>
+                  {formatLength(s.spacingMm)} apart{s.rowSpacingMm ? `, rows ${formatLength(s.rowSpacingMm)}` : ''}
+                </>
+              )}
             </dd>
           </div>
           {(s.heightMm || s.spreadMm) && (

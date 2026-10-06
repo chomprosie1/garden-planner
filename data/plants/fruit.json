@@ -14,7 +14,7 @@
     "size": {
       "heightMm": 250,
       "spreadMm": 400,
-      "spacingMm": 400,
+      "spacingMm": 400, "closeSpacingMm": 300,
       "rowSpacingMm": 750
     },
     "plantOutMonths": [

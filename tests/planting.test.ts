@@ -19,6 +19,8 @@ import {
   rowCount,
   setRowCount,
   unknownPlant,
+  asGrown,
+  spacingStyle,
 } from '../src/planting/place';
 import { checkGarden, closest } from '../src/planting/rules';
 import { sunHours } from '../src/sun/hours';
@@ -314,5 +316,45 @@ describe('light rule', () => {
   it('is quiet with no sun grid', () => {
     const { g: g0, a } = garden();
     expect(checkGarden(addPlanting(g0, row('tomato', a, [1200, 1300], [3800, 1300])), plant, null)).toEqual([]);
+  });
+});
+
+describe('close spacing in beds', () => {
+  const close = (id: string) => asGrown(plant(id), 'close');
+
+  it('sets plants the close distance apart each way, and draws them no wider', () => {
+    const carrot = close('carrot');
+    expect(carrot.size).toMatchObject({ spacingMm: 60, rowSpacingMm: 60, spreadMm: 60 });
+    expect(asGrown(plant('carrot'), 'rows').size).toMatchObject({ spacingMm: 60, rowSpacingMm: 150 });
+    // Plants without a close spacing, like fruit trees, keep theirs.
+    expect(asGrown(plant('tomato'), 'close').size.rowSpacingMm).toBe(450);
+  });
+
+  it('lets carrot rows sit 10 cm apart in a bed, but not in traditional rows', () => {
+    const { g: g0, a } = garden();
+    const g = addPlanting(addPlanting(g0, row('carrot', a, [1200, 1200], [3800, 1200])), row('carrot', a, [1200, 1300], [3800, 1300]));
+    expect(checkGarden(g, close)).toEqual([]);
+    expect(checkGarden(g, (id) => asGrown(plant(id), 'rows')).map((f) => f.kind)).toEqual(['spacing']);
+  });
+
+  it('fits more lettuce in a block', () => {
+    const block = makePlanting(close('lettuce'), 'x', 'block', [0, 0], [1200, 1200]);
+    expect(plantCount(block, close('lettuce'))).toBe(36); // 200 mm each way
+    expect(plantCount(block, plant('lettuce'))).toBe(16); // 250 mm
+  });
+
+  it('defaults a garden to close spacing, and validates the choice', () => {
+    const { g } = garden();
+    expect(spacingStyle(g)).toBe('close');
+    expect(spacingStyle({ ...g, spacing: 'rows' })).toBe('rows');
+    expect(validateGarden({ ...g, spacing: 'rows' })).toEqual([]);
+    expect(validateGarden({ ...g, spacing: 'wide' }).length).toBe(1);
+  });
+
+  it('never makes close spacing wider than the gap between rows', () => {
+    for (const p of library) {
+      const c = p.size.closeSpacingMm;
+      if (c) expect(c, p.id).toBeLessThanOrEqual(p.size.rowSpacingMm ?? p.size.spacingMm);
+    }
   });
 });

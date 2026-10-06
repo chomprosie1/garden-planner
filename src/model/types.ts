@@ -16,9 +16,13 @@ export interface Garden {
   wishlist: string[]; // plant ids you mean to sow, for the calendar
   jobsDone: JobDone[];
   notes: Note[];
+  /** How plants are spaced: close, each way in beds (the default), or in traditional rows. */
+  spacing?: SpacingStyle;
   /** A photo or screenshot to trace over. The image itself stays in this browser (IndexedDB). */
   trace?: Trace;
 }
+
+export type SpacingStyle = 'close' | 'rows';
 
 export interface Trace {
   /** Bottom-left corner of the image, mm. */
@@ -118,7 +122,11 @@ export interface Plant {
     moisture?: 'dry' | 'moderate' | 'moist';
     hardiness?: string;
   };
-  size: { heightMm?: number; spreadMm?: number; spacingMm: number; rowSpacingMm?: number };
+  /**
+   * spacingMm and rowSpacingMm are the traditional row spacings, as on seed packets. closeSpacingMm is the
+   * spacing each way for close planting in a bed, as most home gardeners grow.
+   */
+  size: { heightMm?: number; spreadMm?: number; spacingMm: number; rowSpacingMm?: number; closeSpacingMm?: number };
   sowing?: Sowing[];
   plantOutMonths?: number[];
   cropping?: { harvestMonths: number[]; notes?: string };

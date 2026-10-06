@@ -132,6 +132,10 @@ export function PlantForm({ initial, onSave, onCancel }: Props) {
             <input type="number" min={0} value={p.size.rowSpacingMm ?? ''} onInput={(e) => setSize({ rowSpacingMm: num((e.currentTarget as HTMLInputElement).value) })} />
           </label>
           <label class="field">
+            Spacing each way in a bed (mm)
+            <input type="number" min={0} value={p.size.closeSpacingMm ?? ''} onInput={(e) => setSize({ closeSpacingMm: num((e.currentTarget as HTMLInputElement).value) })} />
+          </label>
+          <label class="field">
             Hours of sun it needs
             <input type="number" min={0} max={16} value={p.conditions.minSunHours ?? ''} onInput={(e) => setCond({ minSunHours: num((e.currentTarget as HTMLInputElement).value) })} />
           </label>

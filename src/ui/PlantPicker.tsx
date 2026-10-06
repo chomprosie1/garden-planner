@@ -23,10 +23,12 @@ interface Props {
   month: number;
   /** Phones: no drag and drop, shorter hints. */
   phone?: boolean;
+  /** The garden uses close spacing in beds, rather than rows. */
+  close?: boolean;
 }
 
 /** Choose what to plant and how it's laid out. */
-export function PlantPicker({ plants, plantId, setPlantId, layout, setLayout, growing, setGrowing, month, phone = false }: Props) {
+export function PlantPicker({ plants, plantId, setPlantId, layout, setLayout, growing, setGrowing, month, phone = false, close = true }: Props) {
   const [query, setQuery] = useState('');
   const [thisMonth, setThisMonth] = useState(false);
   const results = useMemo(
@@ -63,10 +65,19 @@ export function PlantPicker({ plants, plantId, setPlantId, layout, setLayout, gr
 
       {chosen && (
         <dl class="facts">
-          <dt>Spacing</dt>
-          <dd>{formatLength(chosen.size.spacingMm)}</dd>
-          <dt>Between rows</dt>
-          <dd>{formatLength(rowSpacingOf(chosen))}</dd>
+          {close && chosen.size.closeSpacingMm ? (
+            <>
+              <dt>Spacing</dt>
+              <dd>{formatLength(chosen.size.spacingMm)} each way</dd>
+            </>
+          ) : (
+            <>
+              <dt>Spacing</dt>
+              <dd>{formatLength(chosen.size.spacingMm)}</dd>
+              <dt>Between rows</dt>
+              <dd>{formatLength(rowSpacingOf(chosen))}</dd>
+            </>
+          )}
           <dt>Spread</dt>
           <dd>{formatLength(spreadOf(chosen))}</dd>
         </dl>
@@ -82,6 +93,7 @@ export function PlantPicker({ plants, plantId, setPlantId, layout, setLayout, gr
       </label>
       {!plants && <p class="muted">Loading plants…</p>}
       {!phone && plants && <p class="muted small">Pick a plant, then click in a bed. You can also drag a plant onto a bed.</p>}
+      <p class="muted small">{close ? 'Spacing is for close planting in beds, as most home gardeners grow.' : 'Spacing is for traditional rows, as on seed packets.'} You can change this in Settings.</p>
       <ul class="pick-list" aria-label="Plants">
         {results.map((p) => (
           <li key={p.id}>

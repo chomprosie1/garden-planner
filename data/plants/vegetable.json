@@ -5,7 +5,7 @@
     "latinName": "Vicia faba",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Well-drained, fertile", "moisture": "moderate", "hardiness": "Hardy" },
-    "size": { "heightMm": 1000, "spreadMm": 300, "spacingMm": 200, "rowSpacingMm": 600 },
+    "size": { "heightMm": 1000, "spreadMm": 300, "spacingMm": 200, "closeSpacingMm": 150, "rowSpacingMm": 600 },
     "sowing": [
       { "method": "direct", "months": [2, 3, 4], "depthMm": 50, "notes": "Spring sowings in double rows 20 cm apart." },
       { "method": "direct", "months": [10, 11], "depthMm": 50, "notes": "Autumn sowings of hardy varieties such as 'Aquadulce' crop earliest." }
@@ -28,7 +28,7 @@
     "latinName": "Phaseolus coccineus",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Deep, rich, moisture-retentive", "moisture": "moist", "hardiness": "Tender: no frost" },
-    "size": { "heightMm": 2500, "spreadMm": 400, "spacingMm": 150, "rowSpacingMm": 600 },
+    "size": { "heightMm": 2500, "spreadMm": 400, "spacingMm": 150, "closeSpacingMm": 150, "rowSpacingMm": 600 },
     "sowing": [
       { "method": "indoors", "months": [4, 5], "depthMm": 50 },
       { "method": "direct", "months": [5, 6], "depthMm": 50, "notes": "Sow outside once the soil has warmed and frosts are over." }
@@ -52,7 +52,7 @@
     "latinName": "Phaseolus vulgaris",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Fertile, well-drained", "moisture": "moderate", "hardiness": "Tender: no frost" },
-    "size": { "heightMm": 450, "spreadMm": 300, "spacingMm": 150, "rowSpacingMm": 450 },
+    "size": { "heightMm": 450, "spreadMm": 300, "spacingMm": 150, "closeSpacingMm": 120, "rowSpacingMm": 450 },
     "sowing": [
       { "method": "indoors", "months": [4, 5], "depthMm": 50 },
       { "method": "direct", "months": [5, 6, 7], "depthMm": 50 }
@@ -76,7 +76,7 @@
     "latinName": "Pisum sativum",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Well-drained, moisture-retentive", "moisture": "moderate", "hardiness": "Hardy" },
-    "size": { "heightMm": 1500, "spreadMm": 200, "spacingMm": 50, "rowSpacingMm": 600 },
+    "size": { "heightMm": 1500, "spreadMm": 200, "spacingMm": 50, "closeSpacingMm": 75, "rowSpacingMm": 600 },
     "sowing": [{ "method": "direct", "months": [3, 4, 5, 6], "depthMm": 40, "notes": "Sow in a wide, flat drill, about 5 cm apart each way." }],
     "cropping": { "harvestMonths": [6, 7, 8, 9], "notes": "Pick regularly from the bottom of the plant up." },
     "lookOutFor": ["Needs pea sticks or netting to climb."],
@@ -97,7 +97,7 @@
     "latinName": "Solanum tuberosum",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Fertile, slightly acidic, well-drained", "moisture": "moderate", "hardiness": "Half-hardy: shoots are damaged by frost" },
-    "size": { "heightMm": 600, "spreadMm": 500, "spacingMm": 350, "rowSpacingMm": 650 },
+    "size": { "heightMm": 600, "spreadMm": 500, "spacingMm": 350, "closeSpacingMm": 300, "rowSpacingMm": 650 },
     "sowing": [{ "method": "direct", "months": [3, 4, 5], "depthMm": 120, "notes": "Plant chitted seed potatoes: first earlies in late March, maincrop by early May." }],
     "cropping": { "harvestMonths": [6, 7, 8, 9, 10], "notes": "Earlies when the flowers open; maincrop when the foliage dies back." },
     "lookOutFor": ["Earth up shoots as they appear to protect them from frost and stop tubers turning green."],
@@ -118,7 +118,7 @@
     "latinName": "Allium cepa",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Firm, free-draining, not freshly manured", "moisture": "moderate", "hardiness": "Hardy" },
-    "size": { "heightMm": 500, "spreadMm": 150, "spacingMm": 100, "rowSpacingMm": 300 },
+    "size": { "heightMm": 500, "spreadMm": 150, "spacingMm": 100, "closeSpacingMm": 100, "rowSpacingMm": 300 },
     "sowing": [
       { "method": "direct", "months": [3, 4], "depthMm": 10, "notes": "Plant sets with the tip just showing." },
       { "method": "direct", "months": [9, 10], "depthMm": 10, "notes": "Autumn sets of overwintering varieties." },
@@ -143,7 +143,7 @@
     "latinName": "Allium cepa (Aggregatum Group)",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Firm, free-draining", "moisture": "moderate", "hardiness": "Hardy" },
-    "size": { "heightMm": 400, "spreadMm": 200, "spacingMm": 200, "rowSpacingMm": 300 },
+    "size": { "heightMm": 400, "spreadMm": 200, "spacingMm": 200, "closeSpacingMm": 150, "rowSpacingMm": 300 },
     "sowing": [{ "method": "direct", "months": [12, 1, 2, 3], "depthMm": 10, "notes": "Plant sets with the tip just showing." }],
     "cropping": { "harvestMonths": [6, 7], "notes": "Lift the clumps when the leaves turn yellow." },
     "lookOutFor": ["Birds pull up newly planted sets; cover with fleece until rooted."],
@@ -160,7 +160,7 @@
     "latinName": "Allium sativum",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Free-draining; add grit to heavy soil", "moisture": "moderate", "hardiness": "Hardy" },
-    "size": { "heightMm": 600, "spreadMm": 150, "spacingMm": 150, "rowSpacingMm": 300 },
+    "size": { "heightMm": 600, "spreadMm": 150, "spacingMm": 150, "closeSpacingMm": 120, "rowSpacingMm": 300 },
     "sowing": [{ "method": "direct", "months": [10, 11, 12, 2, 3], "depthMm": 25, "notes": "Plant single cloves, pointed end up. Autumn planting gives the biggest bulbs." }],
     "cropping": { "harvestMonths": [6, 7, 8], "notes": "Lift when the lower leaves turn yellow." },
     "lookOutFor": ["Needs a cold spell to form good bulbs."],
@@ -180,7 +180,7 @@
     "latinName": "Allium porrum",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Fertile, moisture-retentive", "moisture": "moist", "hardiness": "Hardy" },
-    "size": { "heightMm": 600, "spreadMm": 150, "spacingMm": 150, "rowSpacingMm": 300 },
+    "size": { "heightMm": 600, "spreadMm": 150, "spacingMm": 150, "closeSpacingMm": 150, "rowSpacingMm": 300 },
     "sowing": [{ "method": "cold-frame", "months": [3, 4], "depthMm": 10, "notes": "Sow in a seedbed or modules." }],
     "plantOutMonths": [6, 7],
     "cropping": { "harvestMonths": [9, 10, 11, 12, 1, 2, 3], "notes": "Lift as needed through autumn and winter." },
@@ -202,7 +202,7 @@
     "latinName": "Allium cepa",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Well-drained", "moisture": "moderate", "hardiness": "Hardy" },
-    "size": { "heightMm": 300, "spreadMm": 50, "spacingMm": 20, "rowSpacingMm": 150 },
+    "size": { "heightMm": 300, "spreadMm": 50, "spacingMm": 20, "closeSpacingMm": 50, "rowSpacingMm": 150 },
     "sowing": [{ "method": "direct", "months": [3, 4, 5, 6, 7, 8], "depthMm": 10, "notes": "Sow thinly every few weeks for a steady supply." }],
     "cropping": { "harvestMonths": [5, 6, 7, 8, 9, 10], "notes": "Pull when about pencil-thick." },
     "lookOutFor": ["Easy to grow in a pot or between slower crops."],
@@ -219,7 +219,7 @@
     "latinName": "Daucus carota",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Light, deep, stone-free", "moisture": "moderate", "hardiness": "Hardy" },
-    "size": { "heightMm": 300, "spreadMm": 100, "spacingMm": 60, "rowSpacingMm": 150 },
+    "size": { "heightMm": 300, "spreadMm": 100, "spacingMm": 60, "closeSpacingMm": 60, "rowSpacingMm": 150 },
     "sowing": [{ "method": "direct", "months": [3, 4, 5, 6, 7], "depthMm": 10, "notes": "Sow very thinly every three weeks; thin to about 6 cm." }],
     "cropping": { "harvestMonths": [6, 7, 8, 9, 10, 11], "notes": "Pull young for sweetness, or leave maincrops to size up." },
     "lookOutFor": ["Stony or freshly manured soil gives forked roots."],
@@ -236,7 +236,7 @@
     "latinName": "Pastinaca sativa",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Deep, stone-free", "moisture": "moderate", "hardiness": "Hardy" },
-    "size": { "heightMm": 400, "spreadMm": 200, "spacingMm": 150, "rowSpacingMm": 300 },
+    "size": { "heightMm": 400, "spreadMm": 200, "spacingMm": 150, "closeSpacingMm": 150, "rowSpacingMm": 300 },
     "sowing": [{ "method": "direct", "months": [3, 4, 5], "depthMm": 15, "notes": "Use fresh seed each year; germination is slow." }],
     "cropping": { "harvestMonths": [10, 11, 12, 1, 2, 3], "notes": "Flavour sweetens after a frost." },
     "lookOutFor": ["Slow to come up; mark the row with quick radishes."],
@@ -256,7 +256,7 @@
     "latinName": "Beta vulgaris",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Well-drained, fertile", "moisture": "moderate", "hardiness": "Hardy" },
-    "size": { "heightMm": 300, "spreadMm": 150, "spacingMm": 100, "rowSpacingMm": 300 },
+    "size": { "heightMm": 300, "spreadMm": 150, "spacingMm": 100, "closeSpacingMm": 100, "rowSpacingMm": 300 },
     "sowing": [{ "method": "direct", "months": [4, 5, 6, 7], "depthMm": 25, "notes": "Each 'seed' is a cluster; thin to the strongest seedling." }],
     "cropping": { "harvestMonths": [6, 7, 8, 9, 10], "notes": "Pull when golf-ball to tennis-ball size." },
     "lookOutFor": ["Early sowings may bolt in cold spells; choose bolt-resistant varieties."],
@@ -273,7 +273,7 @@
     "latinName": "Raphanus sativus",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 5, "soil": "Moisture-retentive", "moisture": "moist", "hardiness": "Hardy" },
-    "size": { "heightMm": 150, "spreadMm": 50, "spacingMm": 25, "rowSpacingMm": 150 },
+    "size": { "heightMm": 150, "spreadMm": 50, "spacingMm": 25, "closeSpacingMm": 50, "rowSpacingMm": 150 },
     "sowing": [{ "method": "direct", "months": [3, 4, 5, 6, 7, 8, 9], "depthMm": 10, "notes": "Sow little and often; ready in about four weeks." }],
     "cropping": { "harvestMonths": [4, 5, 6, 7, 8, 9, 10], "notes": "Pick young; old roots turn woody and hot." },
     "lookOutFor": ["Dry soil makes them split or run to seed."],
@@ -290,7 +290,7 @@
     "latinName": "Brassica rapa (Rapifera Group)",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 5, "soil": "Moisture-retentive, firm", "moisture": "moist", "hardiness": "Hardy" },
-    "size": { "heightMm": 300, "spreadMm": 200, "spacingMm": 150, "rowSpacingMm": 250 },
+    "size": { "heightMm": 300, "spreadMm": 200, "spacingMm": 150, "closeSpacingMm": 150, "rowSpacingMm": 250 },
     "sowing": [{ "method": "direct", "months": [3, 4, 5, 6, 7, 8], "depthMm": 15 }],
     "cropping": { "harvestMonths": [5, 6, 7, 8, 9, 10, 11], "notes": "Pull early varieties at golf-ball size." },
     "lookOutFor": ["A brassica: grow it with the cabbage family in your rotation."],
@@ -310,7 +310,7 @@
     "latinName": "Lactuca sativa",
     "category": "vegetable",
     "conditions": { "light": "part-shade", "minSunHours": 4, "soil": "Moisture-retentive", "moisture": "moist", "hardiness": "Hardy to half-hardy, by variety" },
-    "size": { "heightMm": 250, "spreadMm": 250, "spacingMm": 250, "rowSpacingMm": 300 },
+    "size": { "heightMm": 250, "spreadMm": 250, "spacingMm": 250, "closeSpacingMm": 200, "rowSpacingMm": 300 },
     "sowing": [
       { "method": "indoors", "months": [2, 3], "depthMm": 10 },
       { "method": "direct", "months": [3, 4, 5, 6, 7, 8], "depthMm": 10, "notes": "Sow a short row every two weeks." }
@@ -334,7 +334,7 @@
     "latinName": "Spinacia oleracea",
     "category": "vegetable",
     "conditions": { "light": "part-shade", "minSunHours": 4, "soil": "Fertile, moisture-retentive", "moisture": "moist", "hardiness": "Hardy" },
-    "size": { "heightMm": 250, "spreadMm": 200, "spacingMm": 150, "rowSpacingMm": 300 },
+    "size": { "heightMm": 250, "spreadMm": 200, "spacingMm": 150, "closeSpacingMm": 120, "rowSpacingMm": 300 },
     "sowing": [
       { "method": "direct", "months": [3, 4, 5], "depthMm": 20 },
       { "method": "direct", "months": [8, 9], "depthMm": 20, "notes": "Late sowings crop through autumn and again in spring." }
@@ -357,7 +357,7 @@
     "latinName": "Beta vulgaris subsp. cicla",
     "category": "vegetable",
     "conditions": { "light": "part-shade", "minSunHours": 4, "soil": "Fertile, moisture-retentive", "moisture": "moderate", "hardiness": "Hardy" },
-    "size": { "heightMm": 450, "spreadMm": 300, "spacingMm": 300, "rowSpacingMm": 400 },
+    "size": { "heightMm": 450, "spreadMm": 300, "spacingMm": 300, "closeSpacingMm": 250, "rowSpacingMm": 400 },
     "sowing": [{ "method": "direct", "months": [4, 5, 6, 7], "depthMm": 25 }],
     "cropping": { "harvestMonths": [7, 8, 9, 10, 11, 3, 4, 5], "notes": "Pick outer leaves and stems; plants keep producing." },
     "lookOutFor": ["One of the easiest leafy crops, and colourful in a border."],
@@ -374,7 +374,7 @@
     "latinName": "Brassica oleracea (Acephala Group)",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 5, "soil": "Firm, fertile", "moisture": "moderate", "hardiness": "Very hardy" },
-    "size": { "heightMm": 900, "spreadMm": 600, "spacingMm": 450, "rowSpacingMm": 600 },
+    "size": { "heightMm": 900, "spreadMm": 600, "spacingMm": 450, "closeSpacingMm": 400, "rowSpacingMm": 600 },
     "sowing": [{ "method": "cold-frame", "months": [4, 5, 6], "depthMm": 15, "notes": "Sow in a seedbed or modules." }],
     "plantOutMonths": [6, 7],
     "cropping": { "harvestMonths": [9, 10, 11, 12, 1, 2, 3], "notes": "Pick young leaves from the top down." },
@@ -396,7 +396,7 @@
     "latinName": "Brassica oleracea (Capitata Group)",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Firm, fertile, not acidic", "moisture": "moderate", "hardiness": "Hardy" },
-    "size": { "heightMm": 400, "spreadMm": 450, "spacingMm": 450, "rowSpacingMm": 450 },
+    "size": { "heightMm": 400, "spreadMm": 450, "spacingMm": 450, "closeSpacingMm": 400, "rowSpacingMm": 450 },
     "sowing": [{ "method": "cold-frame", "months": [3, 4, 5, 6, 7], "depthMm": 15, "notes": "Spring, summer, autumn and winter types; sow at the time each needs." }],
     "plantOutMonths": [5, 6, 7, 8],
     "cropping": { "harvestMonths": [6, 7, 8, 9, 10, 11, 12, 1, 2, 3], "notes": "Cut when the heads feel firm." },
@@ -418,7 +418,7 @@
     "latinName": "Brassica oleracea (Italica Group)",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Firm, fertile", "moisture": "moderate", "hardiness": "Hardy" },
-    "size": { "heightMm": 900, "spreadMm": 600, "spacingMm": 600, "rowSpacingMm": 600 },
+    "size": { "heightMm": 900, "spreadMm": 600, "spacingMm": 600, "closeSpacingMm": 500, "rowSpacingMm": 600 },
     "sowing": [{ "method": "cold-frame", "months": [4, 5], "depthMm": 15 }],
     "plantOutMonths": [6, 7],
     "cropping": { "harvestMonths": [2, 3, 4, 5], "notes": "Cut spears when the buds are tight; more follow." },
@@ -439,7 +439,7 @@
     "latinName": "Brassica oleracea (Italica Group)",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Fertile, moisture-retentive", "moisture": "moderate", "hardiness": "Hardy, but not for winter" },
-    "size": { "heightMm": 600, "spreadMm": 450, "spacingMm": 300, "rowSpacingMm": 450 },
+    "size": { "heightMm": 600, "spreadMm": 450, "spacingMm": 300, "closeSpacingMm": 300, "rowSpacingMm": 450 },
     "sowing": [
       { "method": "indoors", "months": [4, 5], "depthMm": 15, "notes": "In modules; it dislikes root disturbance." },
       { "method": "direct", "months": [5, 6, 7], "depthMm": 15 }
@@ -460,7 +460,7 @@
     "latinName": "Brassica oleracea (Botrytis Group)",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Deep, firm, fertile", "moisture": "moist", "hardiness": "Hardy to half-hardy, by type" },
-    "size": { "heightMm": 600, "spreadMm": 600, "spacingMm": 600, "rowSpacingMm": 600 },
+    "size": { "heightMm": 600, "spreadMm": 600, "spacingMm": 600, "closeSpacingMm": 450, "rowSpacingMm": 600 },
     "sowing": [{ "method": "cold-frame", "months": [3, 4, 5], "depthMm": 15 }],
     "plantOutMonths": [5, 6],
     "cropping": { "harvestMonths": [7, 8, 9, 10, 11], "notes": "Cut while the curd is firm and white." },
@@ -481,7 +481,7 @@
     "latinName": "Brassica oleracea (Gemmifera Group)",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Firm, fertile", "moisture": "moderate", "hardiness": "Very hardy" },
-    "size": { "heightMm": 900, "spreadMm": 600, "spacingMm": 600, "rowSpacingMm": 750 },
+    "size": { "heightMm": 900, "spreadMm": 600, "spacingMm": 600, "closeSpacingMm": 500, "rowSpacingMm": 750 },
     "sowing": [{ "method": "cold-frame", "months": [3, 4], "depthMm": 15 }],
     "plantOutMonths": [5, 6],
     "cropping": { "harvestMonths": [10, 11, 12, 1, 2], "notes": "Pick sprouts from the bottom of the stem up." },
@@ -502,7 +502,7 @@
     "latinName": "Cucurbita pepo",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Rich, moisture-retentive", "moisture": "moist", "hardiness": "Tender: no frost" },
-    "size": { "heightMm": 600, "spreadMm": 900, "spacingMm": 900, "rowSpacingMm": 900 },
+    "size": { "heightMm": 600, "spreadMm": 900, "spacingMm": 900, "closeSpacingMm": 750, "rowSpacingMm": 900 },
     "sowing": [
       { "method": "indoors", "months": [4, 5], "depthMm": 25, "notes": "Sow seed on its edge in small pots." },
       { "method": "direct", "months": [5, 6], "depthMm": 25, "notes": "Under a cloche once frosts are over." }
@@ -526,7 +526,7 @@
     "latinName": "Cucurbita maxima, C. moschata",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Rich, moisture-retentive", "moisture": "moist", "hardiness": "Tender: no frost" },
-    "size": { "heightMm": 500, "spreadMm": 2000, "spacingMm": 1500, "rowSpacingMm": 1500 },
+    "size": { "heightMm": 500, "spreadMm": 2000, "spacingMm": 1500, "closeSpacingMm": 1000, "rowSpacingMm": 1500 },
     "sowing": [{ "method": "indoors", "months": [4, 5], "depthMm": 25, "notes": "Sow seed on its edge in small pots." }],
     "plantOutMonths": [6],
     "cropping": { "harvestMonths": [9, 10], "notes": "Cut with a length of stalk before the first frost." },
@@ -547,7 +547,7 @@
     "latinName": "Cucumis sativus",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Rich, moisture-retentive", "moisture": "moist", "hardiness": "Tender: no frost" },
-    "size": { "heightMm": 1800, "spreadMm": 450, "spacingMm": 600, "rowSpacingMm": 900 },
+    "size": { "heightMm": 1800, "spreadMm": 450, "spacingMm": 600, "closeSpacingMm": 450, "rowSpacingMm": 900 },
     "sowing": [{ "method": "indoors", "months": [3, 4, 5], "depthMm": 15, "notes": "Needs warmth to germinate." }],
     "plantOutMonths": [5, 6],
     "cropping": { "harvestMonths": [7, 8, 9], "notes": "Pick regularly before the fruits yellow." },
@@ -568,7 +568,7 @@
     "latinName": "Solanum lycopersicum",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 7, "soil": "Rich, well-drained", "moisture": "moderate", "hardiness": "Tender: no frost" },
-    "size": { "heightMm": 1800, "spreadMm": 450, "spacingMm": 450, "rowSpacingMm": 600 },
+    "size": { "heightMm": 1800, "spreadMm": 450, "spacingMm": 450, "closeSpacingMm": 450, "rowSpacingMm": 600 },
     "sowing": [{ "method": "indoors", "months": [2, 3, 4], "depthMm": 5, "notes": "Needs warmth to germinate; earliest for a greenhouse." }],
     "plantOutMonths": [5, 6],
     "cropping": { "harvestMonths": [7, 8, 9, 10], "notes": "Pick as the fruits colour; ripen the last green ones indoors." },
@@ -593,7 +593,7 @@
     "latinName": "Zea mays",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 7, "soil": "Fertile, well-drained", "moisture": "moderate", "hardiness": "Tender: no frost" },
-    "size": { "heightMm": 1800, "spreadMm": 450, "spacingMm": 350, "rowSpacingMm": 450 },
+    "size": { "heightMm": 1800, "spreadMm": 450, "spacingMm": 350, "closeSpacingMm": 350, "rowSpacingMm": 450 },
     "sowing": [
       { "method": "indoors", "months": [4, 5], "depthMm": 25, "notes": "In deep modules or root trainers." },
       { "method": "direct", "months": [5, 6], "depthMm": 25 }
@@ -617,7 +617,7 @@
     "latinName": "Capsicum annuum",
     "category": "vegetable",
     "conditions": { "light": "full-sun", "minSunHours": 7, "soil": "Well-drained, fertile; or a large pot", "moisture": "moderate", "hardiness": "Tender: keep above 10°C" },
-    "size": { "heightMm": 600, "spreadMm": 400, "spacingMm": 450, "rowSpacingMm": 450 },
+    "size": { "heightMm": 600, "spreadMm": 400, "spacingMm": 450, "closeSpacingMm": 400, "rowSpacingMm": 450 },
     "sowing": [{ "method": "indoors", "months": [1, 2, 3], "depthMm": 5, "notes": "Needs about 20°C to germinate; a heated propagator helps." }],
     "plantOutMonths": [5, 6],
     "cropping": { "harvestMonths": [7, 8, 9, 10], "notes": "Pick green or leave to ripen to full colour and heat." },
@@ -647,7 +647,7 @@
     "size": {
       "heightMm": 200,
       "spreadMm": 150,
-      "spacingMm": 150,
+      "spacingMm": 150, "closeSpacingMm": 100,
       "rowSpacingMm": 300
     },
     "sowing": [
@@ -712,7 +712,7 @@
     "size": {
       "heightMm": 300,
       "spreadMm": 250,
-      "spacingMm": 250,
+      "spacingMm": 250, "closeSpacingMm": 200,
       "rowSpacingMm": 300
     },
     "sowing": [
@@ -773,7 +773,7 @@
     "size": {
       "heightMm": 300,
       "spreadMm": 300,
-      "spacingMm": 230,
+      "spacingMm": 230, "closeSpacingMm": 150,
       "rowSpacingMm": 300
     },
     "sowing": [
@@ -839,7 +839,7 @@
     "size": {
       "heightMm": 400,
       "spreadMm": 300,
-      "spacingMm": 230,
+      "spacingMm": 230, "closeSpacingMm": 230,
       "rowSpacingMm": 400
     },
     "sowing": [
@@ -901,7 +901,7 @@
     "size": {
       "heightMm": 500,
       "spreadMm": 300,
-      "spacingMm": 300,
+      "spacingMm": 300, "closeSpacingMm": 300,
       "rowSpacingMm": 450
     },
     "sowing": [
@@ -966,7 +966,7 @@
     "size": {
       "heightMm": 450,
       "spreadMm": 250,
-      "spacingMm": 270,
+      "spacingMm": 270, "closeSpacingMm": 250,
       "rowSpacingMm": 270
     },
     "sowing": [
@@ -1031,7 +1031,7 @@
     "size": {
       "heightMm": 600,
       "spreadMm": 450,
-      "spacingMm": 450,
+      "spacingMm": 450, "closeSpacingMm": 400,
       "rowSpacingMm": 450
     },
     "sowing": [
@@ -1097,7 +1097,7 @@
     "size": {
       "heightMm": 750,
       "spreadMm": 600,
-      "spacingMm": 600,
+      "spacingMm": 600, "closeSpacingMm": 500,
       "rowSpacingMm": 600
     },
     "sowing": [
@@ -1159,7 +1159,7 @@
     "size": {
       "heightMm": 1500,
       "spreadMm": 450,
-      "spacingMm": 450,
+      "spacingMm": 450, "closeSpacingMm": 450,
       "rowSpacingMm": 900
     },
     "plantOutMonths": [
@@ -1269,7 +1269,7 @@
     "size": {
       "heightMm": 100,
       "spreadMm": 100,
-      "spacingMm": 100,
+      "spacingMm": 100, "closeSpacingMm": 100,
       "rowSpacingMm": 150
     },
     "sowing": [
@@ -1321,7 +1321,7 @@
     "size": {
       "heightMm": 300,
       "spreadMm": 250,
-      "spacingMm": 200,
+      "spacingMm": 200, "closeSpacingMm": 150,
       "rowSpacingMm": 300
     },
     "sowing": [

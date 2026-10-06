@@ -21,6 +21,7 @@ import { PlantPicker } from '../PlantPicker';
 import { SeasonPhoto } from '../SeasonPhoto';
 import { clockText, SunBar, type CalendarDate, type SunView } from '../SunBar';
 import { usePlants } from '../usePlants';
+import { spacingStyle } from '../../planting/place';
 import { useSunHours } from '../useSunHours';
 
 /** Something another screen asked the plan to do. */
@@ -143,7 +144,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
     }
   };
 
-  const { plants, plantOf } = usePlants(userPlants);
+  const { plants, plantOf } = usePlants(userPlants, spacingStyle(garden));
   const day = useMemo(() => sunDay(sunDate.year, sunDate.month, sunDate.day, garden.latitude, garden.longitude), [sunDate, garden.latitude, garden.longitude]);
   const minutesOf = (d: Date | null, fallback: number) => {
     if (!d) return fallback;
@@ -318,6 +319,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       setGrowing={setGrowingNow}
       month={month}
       phone={phone}
+      close={spacingStyle(garden) === 'close'}
     />
   );
 

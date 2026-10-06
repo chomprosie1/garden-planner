@@ -61,6 +61,8 @@ export function validateGarden(g: unknown): string[] {
       );
     });
 
+  need(g.spacing === undefined || g.spacing === 'close' || g.spacing === 'rows', 'spacing must be close or rows.');
+
   if (g.trace !== undefined) {
     const t = g.trace;
     need(
@@ -109,6 +111,7 @@ export function validatePlant(p: unknown): string[] {
   need(oneOf(PLANT_CATEGORIES, p.category), 'has an unknown category.');
   need(isObject(p.conditions) && oneOf(LIGHT_LEVELS, p.conditions.light), 'needs a light level.');
   need(isObject(p.size) && isNum(p.size.spacingMm) && p.size.spacingMm > 0, 'needs a spacing above 0 mm.');
+  if (isObject(p.size) && p.size.closeSpacingMm !== undefined) need(isNum(p.size.closeSpacingMm) && p.size.closeSpacingMm > 0, 'close spacing must be above 0 mm.');
   need(typeof p.verified === 'boolean', 'needs verified true or false.');
   need(typeof p.userAdded === 'boolean', 'needs userAdded true or false.');
 

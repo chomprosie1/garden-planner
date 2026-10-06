@@ -68,6 +68,31 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
           <input type="number" step="1" min={-360} max={360} value={garden.northRotationDeg} onChange={setNumber('northRotationDeg', -360, 360)} />
         </label>
         <p class="muted small">Find true north from a map, not a compass: a compass points to magnetic north.</p>
+        <fieldset class="choice">
+          <legend>How you space plants</legend>
+          <div class="choice-row">
+            {(
+              [
+                ['close', 'Close, in beds'],
+                ['rows', 'Traditional rows'],
+              ] as const
+            ).map(([value, label]) => (
+              <label key={value} class="choice-option">
+                <input
+                  type="radio"
+                  name="spacing"
+                  checked={(garden.spacing ?? 'close') === value}
+                  onChange={() => store.apply(updateGarden((g) => ({ ...g, spacing: value })))}
+                />
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
+          <p class="muted small">
+            Close: plants an even distance apart each way, as most home gardeners grow in beds. Traditional rows: the wider spacing on seed packets, with paths
+            between rows. Spacing checks and the number of plants in a row or block follow your choice.
+          </p>
+        </fieldset>
       </section>
 
       <section class="card" aria-labelledby="backup">

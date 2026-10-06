@@ -98,6 +98,12 @@ Tests: viewport transform round trips; snapping; command undo and redo. Then com
     - That's 100 plants in all.
     - Flowers use a new optional `flowerMonths`, shown as "In flower" on the card.
     - Every entry is unchecked, with a suggested source. Poison warnings are marked "(check)".
+  - **Close spacing (6 Oct 2026):**
+    - 58 vegetables, herbs, strawberries and annual flowers have a `closeSpacingMm`: the even spacing each way that home gardeners use in beds, from square-foot and deep-bed guidance.
+    - Gardens default to close spacing; Settings → "How you space plants" switches to traditional rows (`garden.spacing`).
+    - With close spacing, rows and blocks use the close figure each way, warnings use it, and plants are drawn no wider than it.
+    - Fruit trees, canes and shrubs keep their usual spacing.
+    - Plant cards show both: "In a bed" and "In rows".
 - Workflow per batch: I draft the entries in my own words, each with a suggested source and `verified: false`. You check them against RHS, seed packets or books and fix anything wrong. Then you flip `verified` to true and set `lastChecked`.
 - Pest controls are cultural and organic only, with no chemical product names. Mark toxicity notes "check".
 - Plant the things you actually grow first, so gate 2 tests real beds.

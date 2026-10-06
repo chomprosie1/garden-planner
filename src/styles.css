@@ -2623,3 +2623,8 @@ kbd {
     transition: none;
   }
 }
+
+/* The warnings button sits in the tool bar without changing its height. */
+.mode-bar .warn-count {
+  min-height: 36px;
+}

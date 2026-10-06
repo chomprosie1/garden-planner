@@ -103,7 +103,13 @@ export function CheckPlants({ store, userPlants, startAt, back }: Props) {
                 {checkedHere && <p class="badge badge-ok">Checked {checks[plant.id]}</p>}
               </header>
               <dl class="check-facts">
-                <dt>Spacing</dt>
+                {plant.size.closeSpacingMm ? (
+                  <>
+                    <dt>In a bed</dt>
+                    <dd>{formatLength(plant.size.closeSpacingMm)} each way</dd>
+                  </>
+                ) : null}
+                <dt>In rows</dt>
                 <dd>
                   {formatLength(plant.size.spacingMm)} apart{plant.size.rowSpacingMm ? `, rows ${formatLength(plant.size.rowSpacingMm)} apart` : ''}
                 </dd>

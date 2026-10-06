@@ -4,7 +4,7 @@
 
 import { distance, pointInPolygon } from '../geometry/polygon';
 import { newId } from '../model/ids';
-import type { Feature, FeatureKind, Garden, Plant, Planting, Point } from '../model/types';
+import type { Feature, FeatureKind, Garden, Plant, Planting, Point, SpacingStyle } from '../model/types';
 
 export type Layout = NonNullable<Planting['layout']>;
 
@@ -210,4 +210,20 @@ export function setStatus(g: Garden, ids: string[], status: 'planned' | 'sown' |
       return { ...rest, status: 'growing', ...(p.sownOn ? { sownOn: p.sownOn } : {}) };
     }),
   };
+}
+
+// ---------- Close or row spacing ----------
+
+/** The garden's spacing style; close planting in beds unless you've chosen rows. */
+export const spacingStyle = (g: Garden): SpacingStyle => g.spacing ?? 'close';
+
+/**
+ * A plant as this garden grows it. With close spacing, plants are set the close distance apart each way,
+ * in rows and blocks alike, and drawn no wider than that, as they touch when grown close.
+ * Plants without a close spacing (fruit trees, shrubs) keep their usual spacing.
+ */
+export function asGrown(plant: Plant, style: SpacingStyle): Plant {
+  const close = plant.size.closeSpacingMm;
+  if (style !== 'close' || !close) return plant;
+  return { ...plant, size: { ...plant.size, spacingMm: close, rowSpacingMm: close, spreadMm: Math.min(plant.size.spreadMm ?? close, close) } };
 }

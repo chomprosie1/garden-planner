@@ -4,6 +4,7 @@ import type { Store } from '../../model/store';
 import type { Garden, Plant } from '../../model/types';
 import { jobsFor } from '../../calendar/jobs';
 import { usePlants } from '../usePlants';
+import { spacingStyle } from '../../planting/place';
 import { LOOKS } from '../../theme/looks';
 import type { Prefs, PrefsStore, View } from '../../theme/prefs';
 import { BackupCard, GardenCard, JournalCard, SaveIndicator, SetupCard } from '../HomeCards';
@@ -30,7 +31,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
   // Subtle or no photos: every look uses the quiet band layout.
   const layout = prefs.photos === 'full' ? LOOKS[prefs.look].home : 'band';
   // Jobs for your own plants when you have any; otherwise the general UK jobs.
-  const { plants, plantOf } = usePlants(userPlants);
+  const { plants, plantOf } = usePlants(userPlants, spacingStyle(garden));
   const mine = plants ? jobsFor(garden, plantOf, month, year) : [];
   const total = mine.length || seasonFor(month).jobs.length;
   const doneCount = mine.length ? doneOf(garden, mine) : jobsDoneCount(garden, month, year);

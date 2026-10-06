@@ -14,7 +14,7 @@
     "size": {
       "heightMm": 300,
       "spreadMm": 300,
-      "spacingMm": 250,
+      "spacingMm": 250, "closeSpacingMm": 200,
       "rowSpacingMm": 300
     },
     "sowing": [
@@ -79,7 +79,7 @@
     "size": {
       "heightMm": 300,
       "spreadMm": 300,
-      "spacingMm": 230,
+      "spacingMm": 230, "closeSpacingMm": 200,
       "rowSpacingMm": 300
     },
     "sowing": [
@@ -158,7 +158,7 @@
     "size": {
       "heightMm": 500,
       "spreadMm": 200,
-      "spacingMm": 150,
+      "spacingMm": 150, "closeSpacingMm": 100,
       "rowSpacingMm": 300
     },
     "sowing": [
@@ -219,7 +219,7 @@
     "size": {
       "heightMm": 300,
       "spreadMm": 300,
-      "spacingMm": 230,
+      "spacingMm": 230, "closeSpacingMm": 150,
       "rowSpacingMm": 300
     },
     "sowing": [
@@ -416,7 +416,7 @@
     "size": {
       "heightMm": 250,
       "spreadMm": 300,
-      "spacingMm": 250,
+      "spacingMm": 250, "closeSpacingMm": 250,
       "rowSpacingMm": 300
     },
     "sowing": [
@@ -476,7 +476,7 @@
     "size": {
       "heightMm": 600,
       "spreadMm": 600,
-      "spacingMm": 500,
+      "spacingMm": 500, "closeSpacingMm": 450,
       "rowSpacingMm": 600
     },
     "sowing": [
@@ -535,7 +535,7 @@
     "size": {
       "heightMm": 900,
       "spreadMm": 300,
-      "spacingMm": 230,
+      "spacingMm": 230, "closeSpacingMm": 200,
       "rowSpacingMm": 300
     },
     "sowing": [
@@ -594,7 +594,7 @@
     "size": {
       "heightMm": 450,
       "spreadMm": 450,
-      "spacingMm": 400,
+      "spacingMm": 400, "closeSpacingMm": 300,
       "rowSpacingMm": 450
     },
     "sowing": [
