@@ -1,7 +1,9 @@
 // What is under the pointer. All distances are in mm.
 
 import { distance, distanceToSegment, pointInPolygon } from '../geometry/polygon';
-import type { Feature, Garden, Point } from '../model/types';
+import type { Feature, Garden, Plant, Planting, Point } from '../model/types';
+import { isActive, plantingShape, spreadOf } from '../planting/place';
+import { closest } from '../planting/rules';
 
 /** The topmost feature under p (features later in the list are drawn on top). */
 export function hitFeature(g: Garden, p: Point, toleranceMm: number): Feature | null {
@@ -47,4 +49,15 @@ export function hitEdge(points: Point[], closed: boolean, p: Point, toleranceMm:
     }
   }
   return best;
+}
+
+/** The topmost growing planting under p: within half a plant's spread of any of its plants. */
+export function hitPlanting(g: Garden, plantOf: (id: string) => Plant, p: Point, toleranceMm: number): Planting | null {
+  for (let i = g.plantings.length - 1; i >= 0; i--) {
+    const pl = g.plantings[i]!;
+    if (!isActive(pl)) continue;
+    const plant = plantOf(pl.plantId);
+    if (closest(plantingShape(pl, plant), { kind: 'point', p }).d <= spreadOf(plant) / 2 + toleranceMm) return pl;
+  }
+  return null;
 }

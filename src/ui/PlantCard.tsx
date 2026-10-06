@@ -50,10 +50,12 @@ interface Props {
   onCopy?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  /** Opens the plan to put this plant in a bed. */
+  onPlant?: () => void;
   month: number;
 }
 
-export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, month }: Props) {
+export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPlant, month }: Props) {
   const c = p.conditions;
   const s = p.size;
   const neighbours = (ids: string[]) =>
@@ -237,6 +239,11 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, mont
       </section>
 
       <div class="button-row">
+        {onPlant && (
+          <button type="button" class="btn btn-primary" onClick={onPlant}>
+            Plant in a bed
+          </button>
+        )}
         {onCopy && (
           <button type="button" class="btn" onClick={onCopy}>
             Make my own version

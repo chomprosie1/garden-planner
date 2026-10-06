@@ -1,9 +1,11 @@
 // Draws the plan. Everything is drawn from the garden model and the current
 // look; nothing here changes state.
 
-import { centroid, distance } from '../geometry/polygon';
+import { bounds, centroid, distance } from '../geometry/polygon';
 import { featureLabel, isClosed, pointsOf, type Target } from '../model/features';
-import type { Feature, Garden, Point } from '../model/types';
+import type { Feature, Garden, Plant, Planting, Point } from '../model/types';
+import { blockGrid, isActive, MAX_PLANTS, plantCount, plantingShape, plantPositions, rowCount, spreadOf, type Layout, type PlantingShape } from '../planting/place';
+import type { Finding } from '../planting/rules';
 import { LOOKS, type LookId, type Mode, type PlanPalette } from '../theme/looks';
 import type { SnapKind } from './snap';
 import { formatLength, gridStep, scaleBarLength, toScreen, type Viewport } from './viewport';
@@ -60,6 +62,36 @@ export interface Scene {
   trace: HTMLImageElement | null;
   /** Phones: a fixed crosshair at the centre marks where the next corner goes. */
   crosshair?: boolean;
+  /** Looks up a plant by id; needed to draw plantings. */
+  plantOf?: (id: string) => Plant;
+  findings?: Finding[];
+  /** The finding picked in the warnings list, drawn strongly. */
+  focusFinding?: string | null;
+  plantDraft?: PlantDraft | null;
+}
+
+/** A planting being placed: the plant, how it's laid out, and the points so far. */
+export interface PlantDraft {
+  plant: Plant;
+  layout: Layout;
+  points: Point[];
+  cursor: Point | null;
+  typed?: string;
+}
+
+/** Colours for crops, picked by plant so the same plant always looks the same. */
+const CROPS: Record<Mode, string[]> = {
+  light: ['#5f8f3e', '#2f7a64', '#b07a1f', '#a8473c', '#7a5aa6', '#3f7aa6', '#8a8f2a', '#b5576f'],
+  dark: ['#9ccc6e', '#6fcfae', '#e8b75a', '#f08c7c', '#bfa2ee', '#86bdea', '#cfd36a', '#f29ab0'],
+};
+export const WARN_COLOUR: Record<Mode, string> = { light: '#c2410c', dark: '#ffa45c' };
+const GOOD: Record<Mode, string> = { light: '#2f7d32', dark: '#7bd88f' };
+
+export function cropColour(plantId: string, mode: Mode): string {
+  let h = 0;
+  for (const ch of plantId) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const list = CROPS[mode];
+  return list[h % list.length]!;
 }
 
 // ---------- Patterns, cached per look and mode ----------
@@ -208,10 +240,16 @@ export function render(ctx: CanvasRenderingContext2D, s: Scene) {
   }
 
   for (const f of g.features) drawFeature(ctx, s, f, pats);
-  for (const f of g.features) drawLabel(ctx, s, f);
+  const planted = s.plantOf ? g.plantings.filter(isActive) : [];
+  for (const pl of planted) drawPlanting(ctx, s, pl, s.plantOf!(pl.plantId));
+  if (planted.length) drawFindings(ctx, s);
+  const bedsInUse = new Set(planted.map((p) => p.featureId));
+  for (const f of g.features) drawLabel(ctx, s, f, bedsInUse.has(f.id));
+  for (const pl of planted) drawPlantLabel(ctx, s, pl, s.plantOf!(pl.plantId));
 
   if (s.selected) drawSelection(ctx, s, s.selected);
   if (s.draft) drawDraft(ctx, s, s.draft);
+  if (s.plantDraft) drawPlantDraft(ctx, s, s.plantDraft);
   if (s.crosshair) drawCrosshair(ctx, s);
 
   drawScaleBar(ctx, s);
@@ -318,14 +356,18 @@ function labelPoint(f: Feature): Point {
   return centroid(f.footprint);
 }
 
-function drawLabel(ctx: CanvasRenderingContext2D, s: Scene, f: Feature) {
+function drawLabel(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, planted = false) {
   const v = s.view;
   const st = s.style;
   if (f.kind === 'fence' || f.kind === 'wall') {
     if (!f.name) return; // fences and walls only carry a label when named
   }
   const text = st.labels === 'sign' || st.labels === 'caps' ? featureLabel(f).toUpperCase() : featureLabel(f);
-  const [x, y] = toScreen(v, labelPoint(f));
+  // A bed with plants in it has its name just above it, out of the plants' way.
+  const b = planted ? bounds(f.footprint) : null;
+  const at = b ? toScreen(v, [(b.minX + b.maxX) / 2, b.maxY]) : toScreen(v, labelPoint(f));
+  const x = at[0];
+  const y = at[1] - (b ? 14 : 0);
   const size = st.labels === 'hand' ? 17 : st.labels === 'caps' ? 11 : 13;
   const weight = st.labels === 'hand' || st.labels === 'sign' ? 700 : st.labels === 'pill' ? 700 : 500;
   const italic = st.labels === 'serif' ? 'italic ' : '';
@@ -390,6 +432,20 @@ function drawSelection(ctx: CanvasRenderingContext2D, s: Scene, t: Target) {
   const g = s.garden;
   const v = s.view;
   const sel = s.style.plan.selection;
+  if (t.type === 'planting') {
+    const pl = g.plantings.find((x) => x.id === t.id);
+    if (!pl || !s.plantOf) return;
+    const plant = s.plantOf(pl.plantId);
+    shapePath(ctx, s, plantingShape(pl, plant), (spreadOf(plant) / 2) * v.scale + 5);
+    ctx.strokeStyle = sel;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([7, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    if (pl.layout === 'row' && pl.endPoint) lengthTag(ctx, s, [pl.x, pl.y], pl.endPoint);
+    for (const p of plantingHandles(pl)) handle(ctx, toScreen(v, p), sel, s.style.plan.paper, false);
+    return;
+  }
   const f = t.type === 'feature' ? g.features.find((x) => x.id === t.id) : undefined;
   if (t.type === 'feature' && !f) return;
 
@@ -588,4 +644,180 @@ function drawNorth(ctx: CanvasRenderingContext2D, s: Scene) {
   ctx.fillStyle = P.label;
   ctx.fillText('N', 0, -NORTH_RADIUS - 8);
   ctx.restore();
+}
+
+// ---------- Plantings ----------
+
+/** The ends of a row or the corners of a block, which can be dragged. */
+export function plantingHandles(pl: Planting): Point[] {
+  if (pl.layout === 'single' || !pl.endPoint || !pl.layout) return [];
+  return [[pl.x, pl.y], pl.endPoint];
+}
+
+/** A path around a planting's plants, padded by this many pixels. */
+function shapePath(ctx: CanvasRenderingContext2D, s: Scene, shape: PlantingShape, padPx: number) {
+  const v = s.view;
+  ctx.beginPath();
+  if (shape.kind === 'point') {
+    const [x, y] = toScreen(v, shape.p);
+    ctx.arc(x, y, padPx, 0, Math.PI * 2);
+  } else if (shape.kind === 'segment') {
+    const a = toScreen(v, shape.a);
+    const b = toScreen(v, shape.b);
+    const ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+    ctx.arc(b[0], b[1], padPx, ang - Math.PI / 2, ang + Math.PI / 2);
+    ctx.arc(a[0], a[1], padPx, ang + Math.PI / 2, ang + (Math.PI * 3) / 2);
+    ctx.closePath();
+  } else {
+    const [x0, y0] = toScreen(v, [shape.min[0], shape.max[1]]);
+    const [x1, y1] = toScreen(v, [shape.max[0], shape.min[1]]);
+    ctx.roundRect(x0 - padPx, y0 - padPx, x1 - x0 + padPx * 2, y1 - y0 + padPx * 2, padPx);
+  }
+}
+
+/** Draws plants as circles of their spread; when they're too small to see apart, as one band. */
+function drawPlants(ctx: CanvasRenderingContext2D, s: Scene, pts: Point[], shape: PlantingShape, spreadMm: number, colour: string, alpha: number) {
+  const v = s.view;
+  const r = (spreadMm / 2) * v.scale;
+  ctx.fillStyle = colour;
+  ctx.strokeStyle = colour;
+  if (r < 2 && pts.length > 1) {
+    ctx.globalAlpha = alpha * 0.8;
+    shapePath(ctx, s, shape, Math.max(1.5, r));
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    return;
+  }
+  ctx.globalAlpha = alpha * 0.55;
+  ctx.beginPath();
+  for (const p of pts) {
+    const [x, y] = toScreen(v, p);
+    ctx.moveTo(x + r, y);
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+  }
+  ctx.fill();
+  ctx.globalAlpha = alpha;
+  ctx.lineWidth = r > 6 ? 1.5 : 1;
+  ctx.stroke();
+  if (r > 7) {
+    ctx.beginPath();
+    for (const p of pts) {
+      const [x, y] = toScreen(v, p);
+      ctx.moveTo(x + 2, y);
+      ctx.arc(x, y, 2, 0, Math.PI * 2);
+    }
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawPlanting(ctx: CanvasRenderingContext2D, s: Scene, pl: Planting, plant: Plant) {
+  const pts = plantPositions(pl, plant);
+  drawPlants(ctx, s, pts, plantingShape(pl, plant), spreadOf(plant), cropColour(plant.id, s.style.mode), s.hoverId === pl.id ? 1 : 0.9);
+}
+
+/** Outlines plantings with a problem; the one picked in the list is drawn strongly. */
+function drawFindings(ctx: CanvasRenderingContext2D, s: Scene) {
+  const g = s.garden;
+  const mode = s.style.mode;
+  const byId = new Map(g.plantings.map((p) => [p.id, p]));
+  const outline = (id: string, colour: string, width: number, dash: number[]) => {
+    const pl = byId.get(id);
+    if (!pl || !isActive(pl)) return;
+    const plant = s.plantOf!(pl.plantId);
+    shapePath(ctx, s, plantingShape(pl, plant), (spreadOf(plant) / 2) * s.view.scale + 3 + width);
+    ctx.strokeStyle = colour;
+    ctx.lineWidth = width;
+    ctx.setLineDash(dash);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  };
+  const warned = new Set((s.findings ?? []).filter((f) => f.level === 'warn').flatMap((f) => f.plantingIds));
+  for (const id of warned) outline(id, WARN_COLOUR[mode], 1.5, [4, 3]);
+  const focus = s.findings?.find((f) => f.id === s.focusFinding);
+  if (focus) for (const id of focus.plantingIds) outline(id, focus.level === 'warn' ? WARN_COLOUR[mode] : GOOD[mode], 3.5, []);
+}
+
+/** The plant's name beside a planting, when there's room. */
+function drawPlantLabel(ctx: CanvasRenderingContext2D, s: Scene, pl: Planting, plant: Plant) {
+  const v = s.view;
+  const shape = plantingShape(pl, plant);
+  const n = plantCount(pl, plant);
+  const text = n > 1 ? `${plant.commonName} ×${n}` : plant.commonName;
+  ctx.font = `600 11px ${s.style.fontBody}`;
+  const w = ctx.measureText(text).width;
+  const r = (spreadOf(plant) / 2) * v.scale;
+  let x: number;
+  let y: number;
+  if (shape.kind === 'point') {
+    if (r * 2 < 26) return;
+    [x, y] = toScreen(v, shape.p);
+    y += r + 9;
+  } else if (shape.kind === 'segment') {
+    const a = toScreen(v, shape.a);
+    const b = toScreen(v, shape.b);
+    if (Math.hypot(b[0] - a[0], b[1] - a[1]) + r * 2 < w * 0.8) return;
+    x = (a[0] + b[0]) / 2;
+    y = (a[1] + b[1]) / 2 - Math.max(r, 3) - 8;
+  } else {
+    const a = toScreen(v, [shape.min[0], shape.max[1]]);
+    const b = toScreen(v, [shape.max[0], shape.min[1]]);
+    if (b[0] - a[0] + r * 2 < w * 0.8) return;
+    x = (a[0] + b[0]) / 2;
+    y = (a[1] + b[1]) / 2;
+  }
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineWidth = 3.5;
+  ctx.strokeStyle = s.style.plan.paper;
+  ctx.globalAlpha = 0.9;
+  ctx.strokeText(text, x, y);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = s.style.plan.label;
+  ctx.fillText(text, x, y);
+}
+
+/** Where the plants will go while you place them, with how many fit. */
+function drawPlantDraft(ctx: CanvasRenderingContext2D, s: Scene, d: PlantDraft) {
+  const v = s.view;
+  const sel = s.style.plan.selection;
+  const start = d.points[0];
+  const end = d.cursor;
+  if (!end) return;
+  const sp = d.plant.size.spacingMm;
+  const pl: Planting =
+    d.layout === 'single' || !start
+      ? { id: 'draft', plantId: d.plant.id, featureId: '', x: end[0], y: end[1], layout: 'single' }
+      : { id: 'draft', plantId: d.plant.id, featureId: '', x: start[0], y: start[1], layout: d.layout, endPoint: end };
+  let n = 1;
+  if (start && d.layout === 'row') n = rowCount(start, end, sp);
+  if (start && d.layout === 'block') {
+    const { cols, rows } = blockGrid(start, end, sp);
+    n = cols * rows;
+  }
+  if (d.layout === 'block' && start) {
+    const a = toScreen(v, start);
+    const b = toScreen(v, end);
+    ctx.beginPath();
+    ctx.rect(Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]));
+    ctx.strokeStyle = sel;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  if (n <= MAX_PLANTS) drawPlants(ctx, s, plantPositions(pl, d.plant), plantingShape(pl, d.plant), spreadOf(d.plant), cropColour(d.plant.id, s.style.mode), 0.6);
+  if (d.layout === 'row' && start) lengthTag(ctx, s, start, end);
+  // How many, beside the cursor.
+  const [x, y] = toScreen(v, end);
+  const text = d.typed ? `${d.typed} ↵` : n > MAX_PLANTS ? 'Too many plants' : `${n} × ${d.plant.commonName}`;
+  ctx.font = `700 12px ${s.style.fontBody}`;
+  const w = ctx.measureText(text).width + 16;
+  roundRect(ctx, x + 14, y - 34, w, 22, 6);
+  ctx.fillStyle = sel;
+  ctx.fill();
+  ctx.fillStyle = s.style.plan.paper;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, x + 22, y - 22.5);
 }

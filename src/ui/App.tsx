@@ -9,7 +9,7 @@ import { Onboarding } from './Onboarding';
 import { useAppState } from './useStore';
 import { Home } from './views/Home';
 import { Month } from './views/Month';
-import { Placeholder } from './views/Placeholder';
+import { Notes } from './views/Notes';
 import { Plan } from './views/Plan';
 import { Plants } from './views/Plants';
 import { Settings } from './views/Settings';
@@ -31,6 +31,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   const [view, go] = useView(prefsStore);
   const [previous, setPrevious] = useState<View>('home');
   const [toast, setToast] = useState<string | null>(null);
+  const [pendingPlant, setPendingPlant] = useState<string | null>(null);
 
   const navigate = (v: View) => {
     if (v === 'settings' && view !== 'settings') setPrevious(view);
@@ -76,19 +77,23 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
       case 'home':
         return <Home store={store} garden={garden} prefs={prefs} go={navigate} />;
       case 'plan':
-        return <Plan store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} />;
+        return <Plan store={store} garden={garden} userPlants={userPlants} prefs={prefs} prefsStore={prefsStore} pendingPlant={pendingPlant} clearPending={() => setPendingPlant(null)} />;
       case 'month':
         return <Month store={store} garden={garden} prefs={prefs} go={navigate} />;
       case 'plants':
-        return <Plants store={store} userPlants={userPlants} go={navigate} />;
-      case 'notes':
         return (
-          <Placeholder
-            title="Notes"
+          <Plants
+            store={store}
+            userPlants={userPlants}
             go={navigate}
-            lines={['Dated notes on any bed or plant arrive in Stage 4, so you remember what worked.']}
+            plantIt={(id) => {
+              setPendingPlant(id);
+              navigate('plan');
+            }}
           />
         );
+      case 'notes':
+        return <Notes store={store} garden={garden} userPlants={userPlants} go={navigate} />;
       case 'settings':
         return (
           <Settings

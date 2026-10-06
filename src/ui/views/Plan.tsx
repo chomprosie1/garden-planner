@@ -1,7 +1,12 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { featureLabel, KINDS, type Target } from '../../model/features';
 import type { Store } from '../../model/store';
-import type { FeatureKind, Garden, Point } from '../../model/types';
+import type { FeatureKind, Garden, Plant, Point } from '../../model/types';
+import { allPlants, loadLibrary } from '../../library/library';
+import { unknownPlant, type Layout } from '../../planting/place';
+import { checkGarden, type Finding } from '../../planting/rules';
+import { PlantPicker } from '../PlantPicker';
+import { cropColour } from '../../canvas/render';
 import { resolveMode } from '../../theme/apply';
 import { LOOKS } from '../../theme/looks';
 import type { Prefs, PrefsStore } from '../../theme/prefs';
@@ -9,15 +14,19 @@ import { loadBlob } from '../../storage/idb';
 import { useIsPhone } from '../hooks';
 import { Icon } from '../icons';
 import { Inspector } from '../Inspector';
-import { geometryForTool, PlanCanvas, type CanvasApi, type Tool } from '../PlanCanvas';
-import { PhoneDrawBar, PhoneSheet, PhoneToolTray } from '../PhonePlanControls';
+import { geometryForTool, PlanCanvas, type CanvasApi, type Placing, type Tool } from '../PlanCanvas';
+import { PhoneDrawBar, PhonePlantBar, PhoneSheet, PhoneToolTray } from '../PhonePlanControls';
 import { SeasonPhoto } from '../SeasonPhoto';
 
 interface Props {
   store: Store;
   garden: Garden;
+  userPlants: Plant[];
   prefs: Prefs;
   prefsStore: PrefsStore;
+  /** A plant chosen elsewhere (the Plants tab) to place on the plan. */
+  pendingPlant?: string | null;
+  clearPending?: () => void;
   now?: Date;
 }
 
@@ -28,6 +37,7 @@ const MAIN_TOOLS: { tool: Tool; label: string; key: string }[] = [
   { tool: 'path', label: 'Path', key: 'P' },
   { tool: 'fence', label: 'Fence', key: 'L' },
   { tool: 'tree', label: 'Tree', key: 'T' },
+  { tool: 'plant', label: 'Plant', key: 'G' },
 ];
 const MORE: FeatureKind[] = ['wall', 'hedge', 'building', 'greenhouse', 'compost', 'water', 'other'];
 
@@ -35,6 +45,7 @@ function hintFor(tool: Tool): string {
   if (tool === 'select') return 'Click something to select it. Drag empty space to pan; scroll to zoom. Press 0 to fit the garden.';
   if (tool === 'calibrate') return 'Click two points on the photo that you know the real distance between, such as the ends of a fence.';
   if (tool === 'trace') return 'Drag to move the photo under the plan. Press Esc when done.';
+  if (tool === 'plant') return 'Choose a plant on the right, then click in a bed. For a row, click both ends or type its length; for a block, click two corners. Esc when done.';
   const g = geometryForTool(tool);
   const exact = 'Type a length and press Enter for an exact edge (3450, or 3.45m).';
   if (tool === 'boundary') return `Click each corner of your garden. ${exact} Click the first corner or press Enter to finish.`;
@@ -43,7 +54,7 @@ function hintFor(tool: Tool): string {
   return 'Drag out from the centre, or click the centre and type the radius.';
 }
 
-export function Plan({ store, garden, prefs, prefsStore, now = new Date() }: Props) {
+export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlant = null, clearPending, now = new Date() }: Props) {
   const phone = useIsPhone();
   const [tool, setToolState] = useState<Tool>('select');
   const [selected, setSelected] = useState<Target | null>(null);
@@ -56,14 +67,56 @@ export function Plan({ store, garden, prefs, prefsStore, now = new Date() }: Pro
   const [corners, setCorners] = useState(0);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [gardenSheet, setGardenSheet] = useState(false);
+  const [library, setLibrary] = useState<Plant[] | null>(null);
+  const [plantId, setPlantId] = useState<string | null>(null);
+  const [layout, setLayout] = useState<Layout>('single');
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [focusFinding, setFocusFinding] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
 
   const focus = prefs.focus ?? LOOKS[prefs.look].focusByDefault;
   const showPhoto = prefs.photos === 'full' && !focus;
-  const photoMonth = prefs.photoMonth === 'auto' ? now.getMonth() + 1 : prefs.photoMonth;
+  const month = now.getMonth() + 1;
+  const photoMonth = prefs.photoMonth === 'auto' ? month : prefs.photoMonth;
 
   const setTool = (t: Tool) => {
     setToolState(t);
+    setMessage(null);
     if (t !== 'select') setSelectedVertex(null);
+    if (t === 'plant') {
+      setSelected(null);
+      setGardenSheet(false);
+    }
+  };
+
+  useEffect(() => {
+    loadLibrary().then(setLibrary, () => setLibrary([]));
+  }, []);
+  const plants = useMemo(() => (library ? allPlants(library, userPlants) : null), [library, userPlants]);
+  const plantOf = useMemo(() => {
+    const byId = new Map((plants ?? []).map((p) => [p.id, p]));
+    return (id: string) => byId.get(id) ?? unknownPlant(id);
+  }, [plants]);
+  // Checks wait for the library, so plants never show as "unknown" for a moment.
+  const findings: Finding[] = useMemo(() => (plants ? checkGarden(garden, plantOf) : []), [garden, plantOf, plants]);
+  const warnings = findings.filter((f) => f.level === 'warn').length;
+  const placing: Placing | null = useMemo(() => (plantId && plants ? { plant: plantOf(plantId), layout } : null), [plantId, layout, plants, plantOf]);
+
+  // A plant picked on the Plants tab opens the Plant tool with it.
+  useEffect(() => {
+    if (!pendingPlant || !plants) return;
+    setPlantId(pendingPlant);
+    setTool('plant');
+    clearPending?.();
+  }, [pendingPlant, plants]);
+
+  const showFinding = (f: Finding) => {
+    const pts = garden.plantings.filter((p) => f.plantingIds.includes(p.id)).flatMap((p): Point[] => [[p.x, p.y], ...(p.endPoint ? [p.endPoint] : [])]);
+    canvasApi.current?.show(pts);
+    if (phone) {
+      setGardenSheet(false);
+      setSheetOpen(false);
+    }
   };
 
   // Follow light/dark changes from the device.
@@ -78,6 +131,7 @@ export function Plan({ store, garden, prefs, prefsStore, now = new Date() }: Pro
   // Drop a selection whose feature has gone (deleted, or undone).
   useEffect(() => {
     if (selected?.type === 'feature' && !garden.features.some((f) => f.id === selected.id)) setSelected(null);
+    if (selected?.type === 'planting' && !garden.plantings.some((p) => p.id === selected.id)) setSelected(null);
   }, [garden, selected]);
 
   // The trace photo lives in IndexedDB, not in the garden file.
@@ -120,11 +174,43 @@ export function Plan({ store, garden, prefs, prefsStore, now = new Date() }: Pro
       }}
       calibration={calibration}
       clearCalibration={() => setCalibration(null)}
+      plantOf={plantOf}
+      findings={findings}
+      focusFinding={focusFinding}
+      setFocusFinding={setFocusFinding}
+      onPickFinding={showFinding}
+      colourOf={(id) => cropColour(id, mode)}
+      startPlanting={() => setTool('plant')}
+    />
+  );
+
+  const picker = (
+    <PlantPicker
+      plants={plants}
+      plantId={plantId}
+      setPlantId={(id) => {
+        setPlantId(id);
+        setPickerOpen(false);
+        setMessage(null);
+      }}
+      layout={layout}
+      setLayout={setLayout}
+      month={month}
+      phone={phone}
     />
   );
 
   const selectedFeature = selected?.type === 'feature' ? garden.features.find((f) => f.id === selected.id) : undefined;
-  const sheetTitle = calibration ? 'Set the scale' : selectedFeature ? featureLabel(selectedFeature) : selected?.type === 'boundary' ? 'Boundary' : garden.name;
+  const selectedPlanting = selected?.type === 'planting' ? garden.plantings.find((p) => p.id === selected.id) : undefined;
+  const sheetTitle = calibration
+    ? 'Set the scale'
+    : selectedFeature
+      ? featureLabel(selectedFeature)
+      : selectedPlanting
+        ? plantOf(selectedPlanting.plantId).commonName
+        : selected?.type === 'boundary'
+          ? 'Boundary'
+          : garden.name;
   const showSheet = phone && !drawing && (selected !== null || gardenSheet || calibration !== null);
 
   return (
@@ -157,6 +243,22 @@ export function Plan({ store, garden, prefs, prefsStore, now = new Date() }: Pro
           </div>
         )}
         <div class="toolbar-actions">
+          {warnings > 0 && (
+            <button
+              type="button"
+              class="warn-count"
+              aria-label={`${warnings} planting ${warnings === 1 ? 'warning' : 'warnings'}: show them`}
+              title="Planting warnings"
+              onClick={() => {
+                setTool('select');
+                setSelected(null);
+                setCalibration(null);
+                if (phone) setGardenSheet(true);
+              }}
+            >
+              <span aria-hidden="true">!</span> {warnings}
+            </button>
+          )}
           <button type="button" class="icon-btn" aria-label="Fit the garden to the screen" title="Fit (0)" onClick={() => setFitSignal((n) => n + 1)}>
             <Icon name="fit" />
           </button>
@@ -204,6 +306,11 @@ export function Plan({ store, garden, prefs, prefsStore, now = new Date() }: Pro
                 setCalibration([a, b]);
                 setTool('select');
               }}
+              plantOf={plantOf}
+              findings={findings}
+              focusFinding={focusFinding}
+              placing={placing}
+              onMessage={setMessage}
             />
             {empty && tool === 'select' && (
               <div class="plan-empty">
@@ -218,11 +325,19 @@ export function Plan({ store, garden, prefs, prefsStore, now = new Date() }: Pro
                 </button>
               </div>
             )}
-            {!phone && <p class="plan-hint">{hintFor(tool)}</p>}
-            {phone && !drawing && !showSheet && !empty && <p class="plan-hint">Tap something to select it; tap again and drag to move it. Pinch to zoom.</p>}
+            {!phone && (
+              <p class={`plan-hint ${message ? 'plan-message' : ''}`} role="status">
+                {message ?? hintFor(tool)}
+              </p>
+            )}
+            {phone && !drawing && tool !== 'plant' && !showSheet && !empty && <p class="plan-hint">Tap something to select it; tap again and drag to move it. Pinch to zoom.</p>}
           </div>
         </main>
-        {!phone && <aside class="inspector" aria-label="Details">{inspector}</aside>}
+        {!phone && (
+          <aside class="inspector" aria-label={tool === 'plant' ? 'Choose a plant' : 'Details'}>
+            {tool === 'plant' ? picker : inspector}
+          </aside>
+        )}
       </div>
 
       {phone &&
@@ -237,6 +352,22 @@ export function Plan({ store, garden, prefs, prefsStore, now = new Date() }: Pro
               </button>
             </div>
           </div>
+        ) : tool === 'plant' ? (
+          !placing || pickerOpen ? (
+            <PhoneSheet title="Choose a plant" open fixed setOpen={() => undefined} onClose={() => (placing ? setPickerOpen(false) : setTool('select'))}>
+              {picker}
+            </PhoneSheet>
+          ) : (
+            <PhonePlantBar
+              placing={placing}
+              setLayout={setLayout}
+              points={corners}
+              api={canvasApi}
+              message={message}
+              changePlant={() => setPickerOpen(true)}
+              done={() => setTool('select')}
+            />
+          )
         ) : drawing ? (
           <PhoneDrawBar key={tool} tool={tool} corners={corners} api={canvasApi} />
         ) : showSheet ? (

@@ -13,12 +13,14 @@ interface Props {
   store: Store;
   userPlants: Plant[];
   go: (v: View) => void;
+  /** Opens the plan with this plant ready to place. */
+  plantIt?: (id: string) => void;
   now?: Date;
 }
 
 type Panel = { kind: 'card'; id: string } | { kind: 'form'; plant: Plant } | null;
 
-export function Plants({ store, userPlants, go, now = new Date() }: Props) {
+export function Plants({ store, userPlants, go, plantIt, now = new Date() }: Props) {
   const phone = useIsPhone();
   const month = now.getMonth() + 1;
   const [library, setLibrary] = useState<Plant[] | null>(null);
@@ -127,6 +129,7 @@ export function Plants({ store, userPlants, go, now = new Date() }: Props) {
         byId={byId}
         month={month}
         open={(id) => setPanel({ kind: 'card', id })}
+        {...(plantIt ? { onPlant: () => plantIt(current.id) } : {})}
         {...(current.userAdded
           ? { onEdit: () => setPanel({ kind: 'form', plant: current }), onDelete: () => remove(current) }
           : { onCopy: () => setPanel({ kind: 'form', plant: copyAsUserPlant(current) }) })}

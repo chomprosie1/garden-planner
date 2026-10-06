@@ -123,6 +123,22 @@ Tests: viewport transform round trips; snapping; command undo and redo. Then com
 - Notes: dated notes on any bed or planting, with a notes tab listing them newest first.
 - "Clear bed / harvested": sets `removedOn`, and history stays in the model.
 
+As built:
+- **Placing.** The Plant tool (G) works three ways: click in a bed; drag a plant from the list onto a bed; or, on a phone, use the crosshair with "Plant here", "Start row here" and "End row here". A row's length can be typed. The Plants tab has "Plant in a bed". A planting belongs to the bed under its middle, and moving it into another bed hands it over.
+- **Positions.** These are worked out from spacing, never stored one by one:
+  - A row has a plant at each end, and its count can be changed.
+  - A block is a grid, half a spacing in from its edges.
+  - One planting holds at most 5,000 plants.
+- **Rules** (`src/planting/rules.ts`, with all the numbers in each message):
+  - **Spacing:** half of each plant's need. Across a row, that is its row spacing; along a row, for single plants and for blocks, its plant spacing. A squeeze of up to 10% is allowed.
+  - **Outside the bed:** a plant on the bed's edge still counts as in it.
+  - **Bed deleted:** a planting whose bed has gone is flagged.
+  - **Neighbours:** an "avoid" or "good" listed by either plant counts. Each pair of plants is reported once per bed, however many rows there are.
+  - **Light:** still an empty placeholder.
+- **Beds.** Moving or duplicating a bed takes its plants with it. Deleting a bed removes its plants and notes, and undo brings them back. The bed panel shows "Growing here", "Cleared / harvested", "Grown here before" (with "Put back") and the bed's notes.
+- **Warnings.** A "! n" button in the toolbar, a "Plant checks" list on the garden panel, and checks on each bed and planting. Picking a warning outlines the plants involved on the plan and zooms to them.
+- **Notes tab.** All notes, newest first, filterable by bed, with general garden notes as well.
+
 Tests: rule fixtures (e.g. carrots too close; onions next to peas → avoid).
 **Done when:** a real bed is filled, and the app flags real spacing and clash problems with no false alarms you can't explain.
 

@@ -6,9 +6,11 @@ import { parseLength } from '../canvas/snap';
 import { KINDS } from '../model/features';
 import type { FeatureKind } from '../model/types';
 import type { ComponentChildren } from 'preact';
-import { geometryForTool, type CanvasApi, type Tool } from './PlanCanvas';
+import type { Layout } from '../planting/place';
+import { geometryForTool, type CanvasApi, type Placing, type Tool } from './PlanCanvas';
 
 const TRAY: { tool: Tool; label: string }[] = [
+  { tool: 'plant', label: 'Plant' },
   { tool: 'boundary', label: 'Boundary' },
   { tool: 'bed', label: 'Bed' },
   { tool: 'path', label: 'Path' },
@@ -206,14 +208,14 @@ export function PhoneDrawBar({ tool, corners, api }: DrawBarProps) {
 }
 
 /** A sheet along the bottom of the plan; tap its header to expand or collapse. */
-export function PhoneSheet({ title, open, setOpen, onClose, children }: { title: string; open: boolean; setOpen: (o: boolean) => void; onClose: () => void; children: ComponentChildren }) {
+export function PhoneSheet({ title, open, setOpen, onClose, children, fixed = false }: { title: string; open: boolean; setOpen: (o: boolean) => void; onClose: () => void; children: ComponentChildren; /** Always open: no expand or collapse. */ fixed?: boolean }) {
   return (
     <section class={`phone-sheet ${open ? 'open' : ''}`} aria-label={title}>
       <header class="phone-sheet-head">
-        <button type="button" class="phone-sheet-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <button type="button" class="phone-sheet-toggle" aria-expanded={fixed ? undefined : open} disabled={fixed} onClick={() => setOpen(!open)}>
           <span class="phone-sheet-grip" aria-hidden="true" />
           <span class="phone-sheet-title">{title}</span>
-          <span class="muted small">{open ? 'Hide details' : 'Details'}</span>
+          {!fixed && <span class="muted small">{open ? 'Hide details' : 'Details'}</span>}
         </button>
         <button type="button" class="icon-btn" aria-label="Close" onClick={onClose}>
           ✕
@@ -221,5 +223,74 @@ export function PhoneSheet({ title, open, setOpen, onClose, children }: { title:
       </header>
       {open && <div class="phone-sheet-body">{children}</div>}
     </section>
+  );
+}
+
+interface PlantBarProps {
+  placing: Placing;
+  setLayout: (l: Layout) => void;
+  /** Points placed so far: the start of a row or block. */
+  points: number;
+  api: { current: CanvasApi | null };
+  message: string | null;
+  changePlant: () => void;
+  done: () => void;
+}
+
+const LAYOUT_NAMES: [Layout, string][] = [
+  ['single', 'One'],
+  ['row', 'Row'],
+  ['block', 'Block'],
+];
+
+/** Placing plants with the crosshair. */
+export function PhonePlantBar({ placing, setLayout, points, api, message, changePlant, done }: PlantBarProps) {
+  const { plant, layout } = placing;
+  const name = plant.commonName.toLowerCase();
+  const started = points > 0 && layout !== 'single';
+  const action = layout === 'single' ? 'Plant here' : layout === 'row' ? (started ? 'End row here' : 'Start row here') : started ? 'Opposite corner' : 'First corner';
+  const hint =
+    layout === 'single'
+      ? `Drag the plan to put the crosshair where the ${name} goes.`
+      : layout === 'row'
+        ? started
+          ? 'Move the crosshair to the other end of the row.'
+          : `Put the crosshair where the row of ${name} starts.`
+        : started
+          ? 'Move the crosshair to the opposite corner of the block.'
+          : `Put the crosshair on one corner of the block of ${name}.`;
+  return (
+    <div class="draw-bar">
+      <div class="plant-bar-head">
+        <strong>{plant.commonName}</strong>
+        <div class="choice-row choice-small" role="radiogroup" aria-label="Lay out as">
+          {LAYOUT_NAMES.map(([value, label]) => (
+            <label key={value} class="choice-option">
+              <input type="radio" name="phone-layout" value={value} checked={layout === value} onChange={() => setLayout(value)} />
+              <span>{label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+      <p class="draw-hint" role="status">
+        {message ?? hint}
+      </p>
+      <div class="draw-buttons">
+        <button type="button" class="btn" onClick={done}>
+          Done
+        </button>
+        <button type="button" class="btn" onClick={changePlant}>
+          Change plant
+        </button>
+        {started && (
+          <button type="button" class="btn" onClick={() => api.current?.undoCorner()}>
+            Undo
+          </button>
+        )}
+        <button type="button" class="btn btn-primary" onClick={() => api.current?.placePlant()}>
+          {action}
+        </button>
+      </div>
+    </div>
   );
 }

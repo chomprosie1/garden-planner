@@ -92,14 +92,23 @@ export function updateFeature(g: Garden, id: string, patch: Partial<Feature>): G
   return changed ? { ...g, features } : g;
 }
 
+/** Deletes features, with the plantings in them and the notes on either. Undo brings them all back. */
 export function deleteFeatures(g: Garden, ids: string[]): Garden {
   const set = new Set(ids);
   const features = g.features.filter((f) => !set.has(f.id));
-  return features.length === g.features.length ? g : { ...g, features };
+  if (features.length === g.features.length) return g;
+  const gone = new Set(g.plantings.filter((p) => set.has(p.featureId)).map((p) => p.id));
+  return {
+    ...g,
+    features,
+    plantings: g.plantings.filter((p) => !gone.has(p.id)),
+    notes: g.notes.filter((n) => !(n.featureId && set.has(n.featureId)) && !(n.plantingId && gone.has(n.plantingId))),
+  };
 }
 
 const shift = (p: Point, dx: number, dy: number): Point => [Math.round(p[0] + dx), Math.round(p[1] + dy)];
 
+/** Moves a feature; anything planted in it moves too. */
 export function moveFeature(g: Garden, id: string, dx: number, dy: number): Garden {
   if (dx === 0 && dy === 0) return g;
   return {
@@ -114,15 +123,23 @@ export function moveFeature(g: Garden, id: string, dx: number, dy: number): Gard
             ...(f.circle ? { circle: { ...f.circle, centre: shift(f.circle.centre, dx, dy) } } : {}),
           },
     ),
+    plantings: g.plantings.some((p) => p.featureId === id)
+      ? g.plantings.map((p) =>
+          p.featureId !== id
+            ? p
+            : { ...p, x: Math.round(p.x + dx), y: Math.round(p.y + dy), ...(p.endPoint ? { endPoint: shift(p.endPoint, dx, dy) } : {}) },
+        )
+      : g.plantings,
   };
 }
 
-/** Copies a feature, offset so it doesn't sit exactly on top. Returns the garden and the copy's id. */
+/** Copies a feature, and what's growing in it, offset so it doesn't sit exactly on top. Returns the garden and the copy's id. */
 export function duplicateFeature(g: Garden, id: string, offsetMm = 500): [Garden, string | null] {
   const f = g.features.find((x) => x.id === id);
   if (!f) return [g, null];
   const copy = { ...f, id: newId('f') };
-  const withCopy = { ...g, features: [...g.features, copy] };
+  const planted = g.plantings.filter((p) => p.featureId === id && !p.removedOn).map((p) => ({ ...p, id: newId('p'), featureId: copy.id }));
+  const withCopy = { ...g, features: [...g.features, copy], plantings: [...g.plantings, ...planted] };
   return [moveFeature(withCopy, copy.id, offsetMm, -offsetMm), copy.id];
 }
 
@@ -136,11 +153,12 @@ export function restack(g: Garden, id: string, to: 'top' | 'bottom'): Garden {
 
 // ---------- Points: the boundary, area outlines and line centre lines ----------
 
-export type Target = { type: 'boundary' } | { type: 'feature'; id: string };
+export type Target = { type: 'boundary' } | { type: 'feature'; id: string } | { type: 'planting'; id: string };
 
 /** The editable points of a target: the boundary, an area's outline, or a line's centre line. */
 export function pointsOf(g: Garden, t: Target): Point[] | null {
   if (t.type === 'boundary') return g.boundary;
+  if (t.type === 'planting') return null;
   const f = g.features.find((x) => x.id === t.id);
   if (!f || f.circle) return null;
   return f.line ?? f.footprint;

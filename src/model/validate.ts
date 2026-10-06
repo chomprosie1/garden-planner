@@ -76,6 +76,11 @@ export function validateGarden(g: unknown): string[] {
       if (!isObject(p)) return errors.push(`${at} is not an object.`);
       need(isStr(p.id) && isStr(p.plantId) && isStr(p.featureId), `${at} needs id, plantId and featureId.`);
       need(isNum(p.x) && isNum(p.y), `${at} needs x and y.`);
+      need(p.layout === undefined || oneOf(['single', 'row', 'block'], p.layout), `${at}.layout must be single, row or block.`);
+      need(p.endPoint === undefined || isPoint(p.endPoint), `${at}.endPoint must be an [x, y] point.`);
+      need(p.count === undefined || (Number.isInteger(p.count) && (p.count as number) >= 1), `${at}.count must be a whole number, 1 or more.`);
+      need(p.sownOn === undefined || isStr(p.sownOn), `${at}.sownOn must be a date.`);
+      need(p.removedOn === undefined || isStr(p.removedOn), `${at}.removedOn must be a date.`);
     });
 
   if (!Array.isArray(g.notes)) errors.push('notes must be a list.');
@@ -83,6 +88,8 @@ export function validateGarden(g: unknown): string[] {
     g.notes.forEach((n, i) => {
       if (!isObject(n) || !isStr(n.id) || !isStr(n.date) || !isStr(n.text))
         errors.push(`notes[${i}] needs an id, a date and text.`);
+      else if ((n.featureId !== undefined && !isStr(n.featureId)) || (n.plantingId !== undefined && !isStr(n.plantingId)))
+        errors.push(`notes[${i}] can only be attached by id.`);
     });
 
   return errors;

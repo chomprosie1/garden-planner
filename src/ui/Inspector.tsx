@@ -1,3 +1,4 @@
+import type { ComponentChildren } from 'preact';
 import { useState } from 'preact/hooks';
 import { formatArea, formatLength } from '../canvas/viewport';
 import { lineLength, perimeter, polygonArea } from '../geometry/polygon';
@@ -15,7 +16,13 @@ import {
   type Target,
 } from '../model/features';
 import { updateGarden, type Store } from '../model/store';
-import type { Feature, FeatureKind, Garden, Point } from '../model/types';
+import type { Feature, FeatureKind, Garden, Plant, Point } from '../model/types';
+import { todayIso } from '../model/ids';
+import { monthRanges } from '../library/library';
+import { clearBed, deletePlanting, harvestPlantings, isContainer, plantCount, restorePlanting, rowSpacingOf, setRowCount, spreadOf, updatePlanting } from '../planting/place';
+import type { Finding } from '../planting/rules';
+import { FindingsList } from './Findings';
+import { formatDate, NotesSection } from './NotesSection';
 import { deleteBlob, saveBlob } from '../storage/idb';
 import { parseLength } from '../canvas/snap';
 import type { Tool } from './PlanCanvas';
@@ -28,7 +35,28 @@ interface Props {
   setTool: (t: Tool) => void;
   calibration: [Point, Point] | null;
   clearCalibration: () => void;
+  plantOf: (id: string) => Plant;
+  findings: Finding[];
+  focusFinding: string | null;
+  setFocusFinding: (id: string | null) => void;
+  onPickFinding?: (f: Finding) => void;
+  colourOf: (plantId: string) => string;
+  /** Opens the Plant tool. */
+  startPlanting: () => void;
 }
+
+/** What the planting panels need to show checks and plants. */
+interface Plants {
+  plantOf: (id: string) => Plant;
+  findings: Finding[];
+  focusFinding: string | null;
+  setFocusFinding: (id: string | null) => void;
+  onPickFinding?: (f: Finding) => void;
+  /** The colour a plant is drawn in on the plan. */
+  colourOf: (plantId: string) => string;
+}
+
+const LAYOUT_LABEL = { single: 'Plant', row: 'Row', block: 'Block' } as const;
 
 /** A number field that saves on Enter or when you leave it, so each edit is one undo step. */
 function NumberField({ label, value, unit, min = 0, max, onCommit }: { label: string; value: number; unit: string; min?: number; max?: number; onCommit: (n: number) => void }) {
@@ -53,12 +81,21 @@ function NumberField({ label, value, unit, min = 0, max, onCommit }: { label: st
   );
 }
 
-export function Inspector({ store, garden, selected, setSelected, setTool, calibration, clearCalibration }: Props) {
+export function Inspector({ store, garden, selected, setSelected, setTool, calibration, clearCalibration, startPlanting, ...plants }: Props) {
   const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
   if (calibration) return <Calibrate store={store} garden={garden} points={calibration} done={clearCalibration} />;
 
+  if (selected?.type === 'planting') {
+    const pl = garden.plantings.find((x) => x.id === selected.id);
+    if (pl) return <PlantingPanel store={store} garden={garden} id={pl.id} setSelected={setSelected} {...plants} />;
+  }
   const f = selected?.type === 'feature' ? garden.features.find((x) => x.id === selected.id) : undefined;
-  if (f) return <FeaturePanel f={f} commit={commit} setSelected={setSelected} />;
+  if (f)
+    return (
+      <FeaturePanel f={f} commit={commit} setSelected={setSelected} footer={isContainer(f) && <NotesSection store={store} garden={garden} on={{ featureId: f.id }} />}>
+        {isContainer(f) && <BedPlanting store={store} garden={garden} bed={f} setSelected={setSelected} startPlanting={startPlanting} {...plants} />}
+      </FeaturePanel>
+    );
 
   if (selected?.type === 'boundary') {
     const b = garden.boundary;
@@ -84,10 +121,14 @@ export function Inspector({ store, garden, selected, setSelected, setTool, calib
     );
   }
 
-  return <GardenPanel store={store} garden={garden} setSelected={setSelected} setTool={setTool} />;
+  return (
+    <GardenPanel store={store} garden={garden} setSelected={setSelected} setTool={setTool}>
+      <PlantChecks garden={garden} startPlanting={startPlanting} {...plants} />
+    </GardenPanel>
+  );
 }
 
-function FeaturePanel({ f, commit, setSelected }: { f: Feature; commit: (fn: (g: Garden) => Garden) => void; setSelected: (t: Target | null) => void }) {
+function FeaturePanel({ f, commit, setSelected, children, footer }: { f: Feature; commit: (fn: (g: Garden) => Garden) => void; setSelected: (t: Target | null) => void; children?: ComponentChildren; footer?: ComponentChildren }) {
   const geometry = geometryOf(f);
   const rect = geometry === 'area' ? asRect(f.footprint) : null;
   const set = (patch: Partial<Feature>) => commit((g) => updateFeature(g, f.id, patch));
@@ -131,6 +172,7 @@ function FeaturePanel({ f, commit, setSelected }: { f: Feature; commit: (fn: (g:
         </label>
       )}
 
+      {children}
       {rect && (
         <div class="field-row">
           <NumberField label="Width" unit="mm" value={rect.w} min={50} onCommit={(w) => set({ footprint: resizeRect(f.footprint, w, rect.h)! })} />
@@ -229,11 +271,12 @@ function FeaturePanel({ f, commit, setSelected }: { f: Feature; commit: (fn: (g:
           Delete
         </button>
       </div>
+      {footer}
     </div>
   );
 }
 
-function GardenPanel({ store, garden, setSelected, setTool }: { store: Store; garden: Garden; setSelected: (t: Target | null) => void; setTool: (t: Tool) => void }) {
+function GardenPanel({ store, garden, setSelected, setTool, children }: { store: Store; garden: Garden; setSelected: (t: Target | null) => void; setTool: (t: Tool) => void; children?: ComponentChildren }) {
   const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
   const b = garden.boundary;
   const pickTrace = async (e: Event) => {
@@ -265,6 +308,7 @@ function GardenPanel({ store, garden, setSelected, setTool }: { store: Store; ga
       ) : (
         <p class="muted small">No boundary yet. Choose Boundary in the toolbar and click each corner of your garden.</p>
       )}
+      {children}
 
       <section class="inspector-section">
         <h3>On the plan</h3>
@@ -386,5 +430,205 @@ function Calibrate({ store, garden, points, done }: { store: Store; garden: Gard
         </button>
       </div>
     </form>
+  );
+}
+
+// ---------- Planting ----------
+
+/** Warnings and good neighbours for the whole garden. */
+function PlantChecks({ garden, findings, focusFinding, setFocusFinding, onPickFinding, startPlanting }: Plants & { garden: Garden; startPlanting: () => void }) {
+  const growing = garden.plantings.some((p) => !p.removedOn);
+  const warnings = findings.filter((f) => f.level === 'warn').length;
+  return (
+    <section class="inspector-section" aria-label="Plant checks">
+      <h3>Plant checks</h3>
+      {!growing ? (
+        <>
+          <p class="muted small">Nothing planted yet. Choose Plant to put plants in your beds; spacing and neighbours are checked as you go.</p>
+          <button type="button" class="btn" onClick={startPlanting}>
+            Plant something
+          </button>
+        </>
+      ) : (
+        <>
+          <p class="small">{warnings === 0 ? 'No problems found with spacing or neighbours.' : `${warnings} ${warnings === 1 ? 'thing' : 'things'} to look at. Pick one to see it on the plan.`}</p>
+          <FindingsList findings={findings} focus={focusFinding} setFocus={setFocusFinding} {...(onPickFinding ? { onPick: onPickFinding } : {})} />
+        </>
+      )}
+      <p class="assumption">Sun and shade aren't checked yet; that comes with the sun layer.</p>
+    </section>
+  );
+}
+
+/** On a bed: what's growing, its checks, clearing it, and what grew before. */
+function BedPlanting({ store, garden, bed, setSelected, startPlanting, plantOf, findings, focusFinding, setFocusFinding, onPickFinding, colourOf }: Plants & { store: Store; garden: Garden; bed: Feature; setSelected: (t: Target | null) => void; startPlanting: () => void }) {
+  const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
+  const here = garden.plantings.filter((p) => p.featureId === bed.id);
+  const growing = here.filter((p) => !p.removedOn);
+  const past = here.filter((p) => p.removedOn).sort((a, b) => b.removedOn!.localeCompare(a.removedOn!));
+  const mine = findings.filter((f) => f.featureIds.includes(bed.id));
+  return (
+    <>
+      <section class="inspector-section">
+        <h3>Growing here</h3>
+        {growing.length === 0 ? (
+          <p class="muted small">Nothing growing.</p>
+        ) : (
+          <ul class="layer-list">
+            {growing.map((p) => {
+              const plant = plantOf(p.plantId);
+              const n = plantCount(p, plant);
+              return (
+                <li key={p.id}>
+                  <button type="button" onClick={() => setSelected({ type: 'planting', id: p.id })}>
+                    <span class="swatch swatch-plant" style={{ background: colourOf(p.plantId) }} aria-hidden="true" />
+                    <span>{plant.commonName}</span>
+                    <span class="muted small">{n > 1 ? `${LAYOUT_LABEL[p.layout ?? 'single']} of ${n}` : '1 plant'}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <FindingsList findings={mine} focus={focusFinding} setFocus={setFocusFinding} {...(onPickFinding ? { onPick: onPickFinding } : {})} />
+        <div class="button-row">
+          <button type="button" class="btn btn-primary" onClick={startPlanting}>
+            Add plants
+          </button>
+          {growing.length > 0 && (
+            <button type="button" class="btn" onClick={() => commit((g) => clearBed(g, bed.id, todayIso()))}>
+              Cleared / harvested
+            </button>
+          )}
+        </div>
+        {growing.length > 0 && <p class="muted small">Clearing keeps a record of what grew here, for rotating crops.</p>}
+      </section>
+      {past.length > 0 && (
+        <details class="inspector-section history">
+          <summary>
+            <h3>Grown here before ({past.length})</h3>
+          </summary>
+          <ul class="history-list">
+            {past.map((p) => (
+              <li key={p.id}>
+                <span>
+                  {plantOf(p.plantId).commonName}
+                  <span class="muted small"> · cleared {formatDate(p.removedOn!)}</span>
+                </span>
+                <button type="button" class="link-btn small" onClick={() => commit((g) => restorePlanting(g, p.id))}>
+                  Put back
+                </button>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </>
+  );
+}
+
+function PlantingPanel({ store, garden, id, setSelected, plantOf, findings, focusFinding, setFocusFinding, onPickFinding }: Plants & { store: Store; garden: Garden; id: string; setSelected: (t: Target | null) => void }) {
+  const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
+  const pl = garden.plantings.find((x) => x.id === id)!;
+  const plant = plantOf(pl.plantId);
+  const bed = garden.features.find((f) => f.id === pl.featureId);
+  const n = plantCount(pl, plant);
+  const layout = pl.layout ?? 'single';
+  const mine = findings.filter((f) => f.plantingIds.includes(pl.id));
+  const length = pl.endPoint ? Math.hypot(pl.endPoint[0] - pl.x, pl.endPoint[1] - pl.y) : 0;
+  return (
+    <div class="inspector-body">
+      <div>
+        <p class="eyebrow muted">
+          {LAYOUT_LABEL[layout]}
+          {bed ? ` in ${featureLabel(bed)}` : ''}
+        </p>
+        <h2>{plant.commonName}</h2>
+        {pl.removedOn && <p class="badge">Cleared {formatDate(pl.removedOn)}</p>}
+      </div>
+      <dl class="facts">
+        <dt>Plants</dt>
+        <dd>{n}</dd>
+        {layout === 'row' && (
+          <>
+            <dt>Row length</dt>
+            <dd>{formatLength(Math.round(length))}</dd>
+          </>
+        )}
+        <dt>Spacing</dt>
+        <dd>{formatLength(plant.size.spacingMm)}</dd>
+        {layout === 'row' && (
+          <>
+            <dt>Between rows</dt>
+            <dd>{formatLength(rowSpacingOf(plant))}</dd>
+          </>
+        )}
+        <dt>Spread</dt>
+        <dd>{formatLength(spreadOf(plant))}</dd>
+        {plant.cropping?.harvestMonths.length ? (
+          <>
+            <dt>Harvest</dt>
+            <dd>{monthRanges(plant.cropping.harvestMonths)}</dd>
+          </>
+        ) : null}
+      </dl>
+      {layout === 'row' && (
+        <NumberField label="Plants in this row" unit="plants" value={n} min={1} max={5000} onCommit={(c) => commit((g) => setRowCount(g, pl.id, c))} />
+      )}
+      <label class="field">
+        Sown or planted on
+        <input
+          type="date"
+          value={pl.sownOn ?? ''}
+          onChange={(e) => {
+            const v = (e.currentTarget as HTMLInputElement).value;
+            commit((g) => updatePlanting(g, pl.id, { sownOn: v || undefined }));
+          }}
+        />
+      </label>
+      {mine.length > 0 && (
+        <section class="inspector-section">
+          <h3>Checks</h3>
+          <FindingsList findings={mine} focus={focusFinding} setFocus={setFocusFinding} {...(onPickFinding ? { onPick: onPickFinding } : {})} />
+        </section>
+      )}
+      <p class="muted small">
+        Drag to move{layout !== 'single' ? '; drag the square handles to change its size' : ''}. Arrow keys nudge by 10 mm.
+      </p>
+      <div class="button-row">
+        {bed && (
+          <button type="button" class="btn" onClick={() => setSelected({ type: 'feature', id: bed.id })}>
+            Select {featureLabel(bed)}
+          </button>
+        )}
+        {!pl.removedOn ? (
+          <button
+            type="button"
+            class="btn"
+            onClick={() => {
+              commit((g) => harvestPlantings(g, [pl.id], todayIso()));
+              setSelected(bed ? { type: 'feature', id: bed.id } : null);
+            }}
+          >
+            Harvested / cleared
+          </button>
+        ) : (
+          <button type="button" class="btn" onClick={() => commit((g) => restorePlanting(g, pl.id))}>
+            Put back
+          </button>
+        )}
+        <button
+          type="button"
+          class="btn btn-danger"
+          onClick={() => {
+            commit((g) => deletePlanting(g, pl.id));
+            setSelected(null);
+          }}
+        >
+          Delete
+        </button>
+      </div>
+      <NotesSection store={store} garden={garden} on={{ plantingId: pl.id }} />
+    </div>
   );
 }
