@@ -1363,3 +1363,350 @@ button:disabled {
   color: var(--muted);
   font-weight: 600;
 }
+
+/* ---------- Plants ---------- */
+.plants-split {
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+}
+@media (min-width: 701px) {
+  .app[data-view='plants'] .screen {
+    overflow: hidden;
+  }
+}
+.plants-list-pane {
+  overflow-y: auto;
+  padding: var(--gutter);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: var(--surface);
+}
+.plants-detail-pane {
+  overflow-y: auto;
+  padding: 1.25rem 1.5rem 3rem;
+}
+.plants-detail-pane > * {
+  max-width: 760px;
+}
+.plants-page {
+  max-width: 760px;
+}
+.search input {
+  font-size: 1rem;
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  align-items: center;
+}
+.filters select {
+  min-height: 40px;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+}
+.filters .check {
+  font-size: 0.9rem;
+}
+.plant-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.plant-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 52px;
+  padding: 0.45rem 0.6rem;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: none;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+.plant-row:hover {
+  background: var(--surface2);
+}
+.plant-row[aria-current='true'] {
+  background: var(--selected-bg);
+  color: var(--selected-text);
+}
+.plant-row[aria-current='true'] .muted,
+.plant-row[aria-current='true'] .latin {
+  color: inherit;
+}
+.plant-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.plant-row-name {
+  font-weight: 600;
+}
+.latin {
+  font-style: italic;
+  color: var(--muted);
+}
+.dot-warn {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--warn-border);
+  border: 1px solid var(--warn-text);
+}
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  white-space: nowrap;
+}
+.badge-warn {
+  background: var(--warn-bg);
+  border-color: var(--warn-border);
+  color: var(--warn-text);
+}
+.badge-ok,
+.badge-own {
+  background: var(--selected-bg);
+  border-color: transparent;
+  color: var(--selected-text);
+}
+.back-link {
+  align-self: flex-start;
+  padding-left: 0;
+  text-decoration: none;
+}
+.plant-card,
+.plant-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+.plant-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+.plant-name {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  line-height: 1.1;
+}
+.plant-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
+}
+.glance {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.6rem 1.25rem;
+}
+.glance dt,
+.pests dt {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.glance dd {
+  margin: 0.1rem 0 0;
+}
+.month-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.month-row {
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+}
+.month-row-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.month-row-text {
+  grid-column: 2;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.month-strip {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 2px;
+  max-width: 420px;
+}
+.month-cell {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 3px;
+  background: var(--surface2);
+  color: var(--muted);
+}
+.month-cell.on-sow {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--link);
+  color: var(--link);
+}
+.month-cell.on-plant {
+  background: var(--surface);
+  border: 2px dashed var(--text);
+  color: var(--text);
+}
+.month-cell.on-harvest {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+.month-cell.now {
+  outline: 2px solid var(--text);
+  outline-offset: 1px;
+}
+@media (max-width: 520px) {
+  .month-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .month-row-text {
+    grid-column: 1;
+  }
+}
+.notes-list {
+  font-size: 0.92rem;
+}
+.pests {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.pests dt {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 1rem;
+  color: var(--text);
+}
+.pests dd {
+  margin: 0.15rem 0 0;
+}
+.link-btn {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--link);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  cursor: pointer;
+}
+.form-more {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 0.6rem 0.9rem;
+  background: var(--surface);
+}
+.form-more[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-bottom: 0.9rem;
+}
+.form-more summary {
+  cursor: pointer;
+  font-weight: 700;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+.field textarea {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-weight: 400;
+  resize: vertical;
+}
+.month-picker {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.month-picker legend {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 0.3rem;
+  padding: 0;
+}
+.month-picker-row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
+  max-width: 420px;
+}
+.month-picker-row button {
+  min-height: 38px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.month-picker-row button[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 700;
+}
+.sowing-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px dashed var(--border);
+}
+.sowing-row .btn-quiet {
+  align-self: flex-start;
+  padding-left: 0;
+}

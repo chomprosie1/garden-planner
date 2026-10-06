@@ -11,6 +11,7 @@ import { Home } from './views/Home';
 import { Month } from './views/Month';
 import { Placeholder } from './views/Placeholder';
 import { Plan } from './views/Plan';
+import { Plants } from './views/Plants';
 import { Settings } from './views/Settings';
 
 const NAV: { view: View; label: string; icon: IconName }[] = [
@@ -25,7 +26,7 @@ const isTyping = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
 
 export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStore }) {
-  const { garden } = useAppState(store);
+  const { garden, userPlants } = useAppState(store);
   const prefs = usePrefs(prefsStore);
   const [view, go] = useView(prefsStore);
   const [previous, setPrevious] = useState<View>('home');
@@ -79,15 +80,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
       case 'month':
         return <Month store={store} garden={garden} prefs={prefs} go={navigate} />;
       case 'plants':
-        return (
-          <Placeholder
-            title="Plants"
-            go={navigate}
-            lines={[
-              'The plant library arrives in Stage 3: search about 150 common UK plants, read what each needs, and add your own.',
-            ]}
-          />
-        );
+        return <Plants store={store} userPlants={userPlants} go={navigate} />;
       case 'notes':
         return (
           <Placeholder
