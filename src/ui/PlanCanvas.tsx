@@ -32,6 +32,20 @@ import type { LookId, Mode } from '../theme/looks';
 
 export type Tool = 'select' | 'boundary' | 'calibrate' | 'trace' | FeatureKind;
 
+/** Commands the phone's drawing bar sends to the canvas. */
+export interface CanvasApi {
+  addCorner(): void;
+  undoCorner(): void;
+  /** Places the next corner this far along the crosshair's direction. Returns a problem to show, or null. */
+  typeLength(mm: number): string | null;
+  finish(): void;
+  cancel(): void;
+  /** A rectangle of this size centred on the crosshair. */
+  placeRect(w: number, h: number): void;
+  /** A circle of this radius centred on the crosshair. */
+  placeCircle(radius: number): void;
+}
+
 export interface PlanCanvasProps {
   store: Store;
   garden: Garden;
@@ -47,6 +61,11 @@ export interface PlanCanvasProps {
   fitSignal: number;
   traceImage: HTMLImageElement | null;
   onCalibrate: (a: Point, b: Point) => void;
+  /** Phones: draw with a fixed crosshair at the centre, moving the plan under it. */
+  crosshair?: boolean;
+  apiRef?: { current: CanvasApi | null };
+  /** How many corners the current drawing has, so the drawing bar can enable its buttons. */
+  onDraftChange?: (corners: number) => void;
 }
 
 type Drag =
@@ -92,6 +111,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
   const hover = useRef<string | null>(null);
   const space = useRef(false);
   const raf = useRef(0);
+  const lastTap = useRef<{ t: number; s: Point } | null>(null);
 
   const garden = () => preview.current ?? P.current.garden;
 
@@ -106,6 +126,13 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const p = P.current;
     const d = drawing.current;
     const geometry = geometryForTool(p.tool);
+    const useCrosshair = !!p.crosshair && !!geometry;
+    if (useCrosshair) {
+      const sn = crosshairSnap();
+      d.cursor = sn.point;
+      d.snap = sn.kind;
+    }
+    p.onDraftChange?.(d.points.length);
     let draft: Draft | null = null;
     if (p.tool === 'calibrate') draft = { geometry: 'line', points: d.points, cursor: d.cursor, snap: d.snap };
     else if (geometry && (d.points.length > 0 || d.cursor))
@@ -128,6 +155,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
       hoverId: hover.current,
       draft,
       trace: p.traceImage,
+      crosshair: useCrosshair,
     });
   };
   const redraw = () => {
@@ -146,6 +174,9 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const ro = new ResizeObserver(() => {
       const r = el.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const prev = size.current;
+      // Keep the same spot in the middle when the canvas changes size, so the crosshair never drifts.
+      if (view.current && prev.w && prev.h) view.current = pan(view.current, (r.width - prev.w) / 2, (r.height - prev.h) / 2);
       size.current = { w: r.width, h: r.height, dpr };
       const c = canvas.current!;
       c.width = Math.round(r.width * dpr);
@@ -211,6 +242,21 @@ export function PlanCanvas(props: PlanCanvasProps) {
 
   const commit = (fn: (g: Garden) => Garden) => P.current.store.apply(updateGarden(fn));
 
+  /** The snapped garden point under the crosshair at the centre of the canvas. */
+  function crosshairSnap() {
+    const v = view.current!;
+    const centre: Point = [size.current.w / 2, size.current.h / 2];
+    const dr = drawing.current;
+    return snapAt(toWorld(v, centre), { altKey: false, shiftKey: false }, dr.points[dr.points.length - 1], dr.points.slice(0, 1));
+  }
+
+  /** Pans so a garden point sits under the crosshair. */
+  const centreOn = (pt: Point) => {
+    const v = view.current;
+    if (!v) return;
+    view.current = { ...v, ox: size.current.w / 2 - pt[0] * v.scale, oy: size.current.h / 2 + pt[1] * v.scale };
+  };
+
   const finishShape = (pts: Point[]) => {
     const p = P.current;
     const geometry = geometryForTool(p.tool);
@@ -264,7 +310,11 @@ export function PlanCanvas(props: PlanCanvasProps) {
 
   const onPointerDown = (e: PointerEvent) => {
     const c = canvas.current!;
-    c.setPointerCapture(e.pointerId);
+    try {
+      c.setPointerCapture(e.pointerId);
+    } catch {
+      // Some synthetic or already-ended pointers can't be captured; dragging still works without it.
+    }
     const s = screenOf(e);
     pointers.current.set(e.pointerId, s);
     if (pointers.current.size === 2) {
@@ -277,6 +327,12 @@ export function PlanCanvas(props: PlanCanvasProps) {
     if (!view.current) return;
     const p = P.current;
     const world = toWorld(view.current, s);
+
+    // With the crosshair, one finger always moves the plan; corners come from the drawing bar.
+    if (p.crosshair && geometryForTool(p.tool)) {
+      drag.current = { kind: 'pan', last: s, moved: false };
+      return;
+    }
 
     if (e.button === 1 || space.current || (p.readOnly && e.pointerType !== 'mouse')) {
       drag.current = { kind: 'pan', last: s, moved: false };
@@ -313,12 +369,13 @@ export function PlanCanvas(props: PlanCanvasProps) {
       drag.current = { kind: 'north', base: g };
       return;
     }
-    const tol = tolMm(9);
+    const touch = e.pointerType !== 'mouse';
+    const tol = tolMm(touch ? 18 : 9);
     if (p.selected && !p.readOnly) {
       const f = p.selected.type === 'feature' ? g.features.find((x) => x.id === (p.selected as { id: string }).id) : null;
       if (f?.circle) {
         const handle = toScreen(view.current, [f.circle.centre[0] + f.circle.radiusMm, f.circle.centre[1]]);
-        if (distance(handle, s) <= 9) {
+        if (distance(handle, s) <= (touch ? 20 : 9)) {
           drag.current = { kind: 'radius', id: f.id, base: g };
           return;
         }
@@ -331,13 +388,16 @@ export function PlanCanvas(props: PlanCanvasProps) {
         return;
       }
     }
-    const f = hitFeature(g, world, tol);
+    const f = hitFeature(g, world, tolMm(touch ? 6 : 9));
     if (f) {
+      const wasSelected = p.selected?.type === 'feature' && p.selected.id === f.id;
       p.setSelected({ type: 'feature', id: f.id });
       p.setSelectedVertex(null);
-      drag.current = p.readOnly
-        ? { kind: 'pan', last: s, moved: false }
-        : { kind: 'move', id: f.id, base: g, start: world, startScreen: s, moved: false };
+      // On touch screens a first tap only selects, so panning never moves things by accident.
+      drag.current =
+        p.readOnly || (touch && !wasSelected)
+          ? { kind: 'pan', last: s, moved: false }
+          : { kind: 'move', id: f.id, base: g, start: world, startScreen: s, moved: false };
       return;
     }
     if (g.boundary.length >= 2) {
@@ -460,6 +520,16 @@ export function PlanCanvas(props: PlanCanvasProps) {
     }
     const p = P.current;
     const d = drag.current;
+    // Touch has no double-click: two quick taps in the same place add a corner to an edge.
+    if (e.pointerType !== 'mouse' && d && (d.kind === 'pan' || d.kind === 'move') && !d.moved && p.tool === 'select') {
+      const s = screenOf(e);
+      const now = performance.now();
+      const last = lastTap.current;
+      if (last && now - last.t < 350 && distance(s, last.s) < 24) {
+        lastTap.current = null;
+        insertCornerAt(s, 16);
+      } else lastTap.current = { t: now, s };
+    }
     if (d) {
       drag.current = null;
       const next = preview.current;
@@ -490,16 +560,21 @@ export function PlanCanvas(props: PlanCanvasProps) {
     if (p.readOnly) return;
     const geometry = geometryForTool(p.tool);
     if (geometry === 'area' || geometry === 'line') return finishShape(drawing.current.points);
-    if (p.tool === 'select' && p.selected) {
-      const g = p.garden;
-      const pts = pointsOf(g, p.selected);
-      if (!pts) return;
-      const edge = hitEdge(pts, isClosed(g, p.selected), toWorld(view.current!, screenOf(e)), tolMm(8));
-      if (edge) {
-        const target = p.selected;
-        commit((x) => insertVertex(x, target, edge.index, edge.point));
-        p.setSelectedVertex(edge.index + 1);
-      }
+    if (p.tool === 'select') insertCornerAt(screenOf(e), 8);
+  };
+
+  /** Adds a corner to the selected outline where the pointer is on one of its edges. */
+  const insertCornerAt = (s: Point, tolPx: number) => {
+    const p = P.current;
+    if (!p.selected || !view.current) return;
+    const g = p.garden;
+    const pts = pointsOf(g, p.selected);
+    if (!pts) return;
+    const edge = hitEdge(pts, isClosed(g, p.selected), toWorld(view.current, s), tolMm(tolPx));
+    if (edge) {
+      const target = p.selected;
+      commit((x) => insertVertex(x, target, edge.index, edge.point));
+      p.setSelectedVertex(edge.index + 1);
     }
   };
 
@@ -617,6 +692,56 @@ export function PlanCanvas(props: PlanCanvasProps) {
       removeEventListener('keyup', onKey);
     };
   }, []);
+
+  // Commands for the phone's drawing bar. They act on the point under the crosshair.
+  if (props.apiRef)
+    props.apiRef.current = {
+      addCorner() {
+        const geometry = geometryForTool(P.current.tool);
+        if (!geometry || !view.current) return;
+        const dr = drawing.current;
+        const pt = crosshairSnap().point;
+        if (geometry === 'circle') return finishCircle(pt, KINDS[P.current.tool as FeatureKind].radiusMm ?? 1000);
+        const first = dr.points[0];
+        if (geometry === 'area' && dr.points.length >= 3 && first && pt[0] === first[0] && pt[1] === first[1]) return finishShape(dr.points);
+        const last = dr.points[dr.points.length - 1];
+        if (last && last[0] === pt[0] && last[1] === pt[1]) return;
+        dr.points = [...dr.points, pt];
+        redraw();
+      },
+      undoCorner() {
+        drawing.current.points = drawing.current.points.slice(0, -1);
+        drawing.current.mode = 'idle';
+        redraw();
+      },
+      typeLength(mm) {
+        const dr = drawing.current;
+        const from = dr.points[dr.points.length - 1];
+        if (!from) return 'Add the first corner, then type the length of the next side.';
+        const toward = crosshairSnap().point;
+        if (distance(from, toward) < 1) return 'Drag the plan so the crosshair shows which way this side goes.';
+        const pt = pointAtLength(from, toward, mm);
+        dr.points = [...dr.points, pt];
+        centreOn(pt);
+        redraw();
+        return null;
+      },
+      finish() {
+        finishShape(drawing.current.points);
+      },
+      cancel() {
+        drawing.current = emptyDrawing();
+        P.current.setTool('select');
+        redraw();
+      },
+      placeRect(w, h) {
+        const [cx, cy] = crosshairSnap().point;
+        finishShape(rectPoints({ x: Math.round(cx - w / 2), y: Math.round(cy - h / 2), w: Math.round(w), h: Math.round(h) }));
+      },
+      placeCircle(radius) {
+        finishCircle(crosshairSnap().point, Math.round(radius));
+      },
+    };
 
   const cursor = props.readOnly ? 'grab' : props.tool === 'select' ? 'default' : props.tool === 'trace' ? 'move' : 'crosshair';
 

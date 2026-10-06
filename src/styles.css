@@ -1710,3 +1710,111 @@ button:disabled {
   align-self: flex-start;
   padding-left: 0;
 }
+
+/* ---------- Plan on a phone ---------- */
+.phone-tray {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.5rem var(--gutter);
+  overflow-x: auto;
+  background: var(--chrome);
+  border-top: 1px solid var(--border);
+  scrollbar-width: none;
+}
+.phone-tray .tool {
+  flex: none;
+  min-height: 40px;
+}
+.draw-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.6rem var(--gutter) 0.75rem;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+.draw-hint {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.draw-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.draw-buttons .btn {
+  flex: 1 1 auto;
+  min-height: 46px;
+  padding: 0.4rem 0.7rem;
+}
+.phone-sheet {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-radius: 14px 14px 0 0;
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.12);
+  max-height: 62vh;
+}
+.phone-sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.6rem 0.35rem var(--gutter);
+}
+.phone-sheet-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 48px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.phone-sheet-grip {
+  width: 28px;
+  height: 4px;
+  flex: none;
+  border-radius: 2px;
+  background: var(--border);
+}
+.phone-sheet-title {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.phone-sheet-body {
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+}
+.phone-sheet-body .inspector-body {
+  min-height: 0;
+}
+@media (max-width: 700px) {
+  .plan .toolbar .icon-btn {
+    width: 38px;
+    height: 38px;
+  }
+  .plan .toolbar-actions {
+    gap: 0.25rem;
+  }
+  .plan-hint {
+    bottom: 50px;
+    right: 8px;
+    left: 8px;
+    max-width: none;
+  }
+  .plan-empty {
+    top: 45%;
+  }
+}

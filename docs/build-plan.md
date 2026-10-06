@@ -100,6 +100,18 @@ Tests: viewport transform round trips; snapping; command undo and redo. Then com
 
 **Gate 1 (end of week 4):** your real garden is drawn within 5%, and you can find, read and add plants without help. If it fails, fix the drawing and library screens before anything else.
 
+## Stage 3.5 — Drawing on a phone (added 6 Oct 2026)
+**Goal:** everything you can draw on a computer, you can draw on a phone, accurately. Gardens get measured standing in them, phone in hand.
+
+- **Crosshair drawing:** a fixed crosshair at the centre of the plan. One finger drags the plan under it and two fingers zoom; **Add corner** places a corner exactly under the crosshair. It snaps to corners, 45° and the grid as on desktop, and shows the length from the last corner live.
+- **Type length:** the number pad places the next corner that far along the crosshair's direction, then the plan re-centres on the new corner.
+- **By size:** beds, buildings and other areas can be placed from a width and depth, centred on the crosshair. Trees are placed from their spread.
+- **Selecting and editing by touch:** tap to select. Once something is selected, drag it to move it, so panning never moves things by accident. Corners get bigger touch handles; double-tap an edge to add a corner.
+- **Bottom sheet:** the same details panel as desktop, which expands or collapses; the tool tray stays below it while collapsed. A **Garden** button opens the feature list, north and the trace photo.
+- **Canvas resizes** keep the same spot in the middle, so the crosshair never drifts when the drawing bar changes height.
+
+**Done when:** you can draw your real boundary and beds on your phone, standing in the garden, as accurately as on a computer.
+
 ## Stage 4 — Planting (week 5)
 - Placement: drag a plant from the library onto a bed. The plant must land inside the bed's polygon. Choose single, row (click start and end, then the count is worked out from spacing) or block (fill a rectangle at the plant's spacing). Each plant is drawn as a circle of its spread.
 - `src/planting/rules.ts`, pure functions returning `Warning[]`:

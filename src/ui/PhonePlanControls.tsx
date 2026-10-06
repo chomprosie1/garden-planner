@@ -1,0 +1,225 @@
+// Phone controls for the plan: a tool tray, a drawing bar that works with the
+// crosshair, and a bottom sheet for details.
+
+import { useState } from 'preact/hooks';
+import { parseLength } from '../canvas/snap';
+import { KINDS } from '../model/features';
+import type { FeatureKind } from '../model/types';
+import type { ComponentChildren } from 'preact';
+import { geometryForTool, type CanvasApi, type Tool } from './PlanCanvas';
+
+const TRAY: { tool: Tool; label: string }[] = [
+  { tool: 'boundary', label: 'Boundary' },
+  { tool: 'bed', label: 'Bed' },
+  { tool: 'path', label: 'Path' },
+  { tool: 'fence', label: 'Fence' },
+  { tool: 'tree', label: 'Tree' },
+];
+const MORE: FeatureKind[] = ['wall', 'hedge', 'building', 'greenhouse', 'compost', 'water', 'other'];
+
+/** Sizes offered when placing a rectangle by size. */
+const DEFAULT_SIZE: Partial<Record<Tool, [number, number]>> = {
+  boundary: [10000, 15000],
+  bed: [2400, 1200],
+  building: [2400, 1800],
+  greenhouse: [2400, 1800],
+  compost: [1000, 1000],
+  water: [1500, 1000],
+  other: [1000, 1000],
+};
+
+export function PhoneToolTray({ setTool, gardenOpen, toggleGarden }: { setTool: (t: Tool) => void; gardenOpen: boolean; toggleGarden: () => void }) {
+  return (
+    <div class="phone-tray" role="toolbar" aria-label="Drawing tools">
+      <button type="button" class="tool" aria-pressed={gardenOpen} onClick={toggleGarden}>
+        Garden
+      </button>
+      {TRAY.map((t) => (
+        <button key={t.tool} type="button" class="tool" onClick={() => setTool(t.tool)}>
+          {t.label}
+        </button>
+      ))}
+      <select
+        class="tool tool-more"
+        aria-label="More things to draw"
+        value=""
+        onChange={(e) => {
+          const v = (e.currentTarget as HTMLSelectElement).value as FeatureKind;
+          if (v) setTool(v);
+        }}
+      >
+        <option value="">More…</option>
+        {MORE.map((k) => (
+          <option key={k} value={k}>
+            {KINDS[k].label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+interface DrawBarProps {
+  tool: Tool;
+  corners: number;
+  api: { current: CanvasApi | null };
+}
+
+type Panel = 'main' | 'length' | 'size';
+
+/** Buttons for drawing with the crosshair. */
+export function PhoneDrawBar({ tool, corners, api }: DrawBarProps) {
+  const geometry = geometryForTool(tool);
+  const [panel, setPanel] = useState<Panel>('main');
+  const [length, setLength] = useState('');
+  const [w, setW] = useState(String(DEFAULT_SIZE[tool]?.[0] ?? 2000));
+  const [h, setH] = useState(String(DEFAULT_SIZE[tool]?.[1] ?? 1000));
+  const [spread, setSpread] = useState(String((KINDS[tool as FeatureKind]?.radiusMm ?? 2000) * 2));
+  const [error, setError] = useState('');
+  const name = tool === 'boundary' ? 'boundary' : KINDS[tool as FeatureKind]?.label.toLowerCase() ?? '';
+  const minCorners = geometry === 'area' ? 3 : 2;
+
+  const placeLength = (e: Event) => {
+    e.preventDefault();
+    const mm = parseLength(length);
+    if (!mm) return setError('Type a length, such as 3450 or 3.45 m.');
+    const problem = api.current?.typeLength(mm);
+    if (problem) return setError(problem);
+    setLength('');
+    setError('');
+    setPanel('main');
+  };
+
+  const placeSize = (e: Event) => {
+    e.preventDefault();
+    const W = parseLength(w);
+    const H = parseLength(h);
+    if (!W || !H) return setError('Type a width and a depth, such as 2400 and 1200.');
+    api.current?.placeRect(W, H);
+  };
+
+  const hint =
+    geometry === 'circle'
+      ? `Drag the plan to put the crosshair on the middle of the ${name}, then place it.`
+      : corners === 0
+        ? `Drag the plan to put the crosshair on the first corner of the ${name}, then tap Add corner.`
+        : `Move the crosshair to the next corner and tap Add corner, or type the length of this side.`;
+
+  if (geometry === 'circle')
+    return (
+      <form class="draw-bar" onSubmit={(e) => {
+        e.preventDefault();
+        const mm = parseLength(spread);
+        if (!mm) return setError('Type the spread across, such as 4000 or 4 m.');
+        api.current?.placeCircle(mm / 2);
+      }}>
+        <p class="draw-hint">{hint}</p>
+        <label class="field">
+          Spread across
+          <input inputMode="decimal" value={spread} onInput={(e) => setSpread((e.currentTarget as HTMLInputElement).value)} />
+        </label>
+        {error && <p class="message">{error}</p>}
+        <div class="draw-buttons">
+          <button type="button" class="btn" onClick={() => api.current?.cancel()}>
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary">
+            Place {name} here
+          </button>
+        </div>
+      </form>
+    );
+
+  if (panel === 'length')
+    return (
+      <form class="draw-bar" onSubmit={placeLength}>
+        <label class="field">
+          Length of this side, towards the crosshair
+          <input autoFocus inputMode="decimal" placeholder="e.g. 3450 or 3.45 m" value={length} onInput={(e) => setLength((e.currentTarget as HTMLInputElement).value)} />
+        </label>
+        {error && <p class="message">{error}</p>}
+        <div class="draw-buttons">
+          <button type="button" class="btn" onClick={() => { setPanel('main'); setError(''); }}>
+            Back
+          </button>
+          <button type="submit" class="btn btn-primary">
+            Place corner
+          </button>
+        </div>
+      </form>
+    );
+
+  if (panel === 'size')
+    return (
+      <form class="draw-bar" onSubmit={placeSize}>
+        <p class="draw-hint">The {name} is placed centred on the crosshair. You can adjust it afterwards.</p>
+        <div class="field-row">
+          <label class="field">
+            Width (mm)
+            <input inputMode="decimal" value={w} onInput={(e) => setW((e.currentTarget as HTMLInputElement).value)} />
+          </label>
+          <label class="field">
+            Depth (mm)
+            <input inputMode="decimal" value={h} onInput={(e) => setH((e.currentTarget as HTMLInputElement).value)} />
+          </label>
+        </div>
+        {error && <p class="message">{error}</p>}
+        <div class="draw-buttons">
+          <button type="button" class="btn" onClick={() => { setPanel('main'); setError(''); }}>
+            Back
+          </button>
+          <button type="submit" class="btn btn-primary">
+            Place here
+          </button>
+        </div>
+      </form>
+    );
+
+  return (
+    <div class="draw-bar">
+      <p class="draw-hint">{hint}</p>
+      {error && <p class="message">{error}</p>}
+      <div class="draw-buttons">
+        <button type="button" class="btn" onClick={() => api.current?.cancel()}>
+          Cancel
+        </button>
+        <button type="button" class="btn" disabled={corners === 0} onClick={() => api.current?.undoCorner()}>
+          Undo corner
+        </button>
+        {geometry === 'area' && corners === 0 && (
+          <button type="button" class="btn" onClick={() => { setError(''); setPanel('size'); }}>
+            By size
+          </button>
+        )}
+        <button type="button" class="btn" disabled={corners === 0} onClick={() => { setError(''); setPanel('length'); }}>
+          Type length
+        </button>
+        <button type="button" class="btn btn-primary" onClick={() => { setError(''); api.current?.addCorner(); }}>
+          Add corner
+        </button>
+        <button type="button" class="btn btn-primary" disabled={corners < minCorners} onClick={() => api.current?.finish()}>
+          Done
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** A sheet along the bottom of the plan; tap its header to expand or collapse. */
+export function PhoneSheet({ title, open, setOpen, onClose, children }: { title: string; open: boolean; setOpen: (o: boolean) => void; onClose: () => void; children: ComponentChildren }) {
+  return (
+    <section class={`phone-sheet ${open ? 'open' : ''}`} aria-label={title}>
+      <header class="phone-sheet-head">
+        <button type="button" class="phone-sheet-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
+          <span class="phone-sheet-grip" aria-hidden="true" />
+          <span class="phone-sheet-title">{title}</span>
+          <span class="muted small">{open ? 'Hide details' : 'Details'}</span>
+        </button>
+        <button type="button" class="icon-btn" aria-label="Close" onClick={onClose}>
+          ✕
+        </button>
+      </header>
+      {open && <div class="phone-sheet-body">{children}</div>}
+    </section>
+  );
+}

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'preact/hooks';
-import { KINDS, type Target } from '../../model/features';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import { featureLabel, KINDS, type Target } from '../../model/features';
 import type { Store } from '../../model/store';
 import type { FeatureKind, Garden, Point } from '../../model/types';
 import { resolveMode } from '../../theme/apply';
@@ -9,7 +9,8 @@ import { loadBlob } from '../../storage/idb';
 import { useIsPhone } from '../hooks';
 import { Icon } from '../icons';
 import { Inspector } from '../Inspector';
-import { geometryForTool, PlanCanvas, type Tool } from '../PlanCanvas';
+import { geometryForTool, PlanCanvas, type CanvasApi, type Tool } from '../PlanCanvas';
+import { PhoneDrawBar, PhoneSheet, PhoneToolTray } from '../PhonePlanControls';
 import { SeasonPhoto } from '../SeasonPhoto';
 
 interface Props {
@@ -51,6 +52,10 @@ export function Plan({ store, garden, prefs, prefsStore, now = new Date() }: Pro
   const [calibration, setCalibration] = useState<[Point, Point] | null>(null);
   const [traceImage, setTraceImage] = useState<HTMLImageElement | null>(null);
   const [mode, setMode] = useState(() => resolveMode(prefs, matchMedia('(prefers-color-scheme: dark)').matches));
+  const canvasApi = useRef<CanvasApi | null>(null);
+  const [corners, setCorners] = useState(0);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [gardenSheet, setGardenSheet] = useState(false);
 
   const focus = prefs.focus ?? LOOKS[prefs.look].focusByDefault;
   const showPhoto = prefs.photos === 'full' && !focus;
@@ -98,6 +103,29 @@ export function Plan({ store, garden, prefs, prefsStore, now = new Date() }: Pro
 
   const empty = garden.boundary.length === 0 && garden.features.length === 0;
   const moreValue = MORE.includes(tool as FeatureKind) ? tool : '';
+  const drawing = geometryForTool(tool) !== null;
+
+  const inspector = (
+    <Inspector
+      store={store}
+      garden={garden}
+      selected={selected}
+      setSelected={(t) => {
+        setSelected(t);
+        setSelectedVertex(null);
+      }}
+      setTool={(t) => {
+        setTool(t);
+        setGardenSheet(false);
+      }}
+      calibration={calibration}
+      clearCalibration={() => setCalibration(null)}
+    />
+  );
+
+  const selectedFeature = selected?.type === 'feature' ? garden.features.find((f) => f.id === selected.id) : undefined;
+  const sheetTitle = calibration ? 'Set the scale' : selectedFeature ? featureLabel(selectedFeature) : selected?.type === 'boundary' ? 'Boundary' : garden.name;
+  const showSheet = phone && !drawing && (selected !== null || gardenSheet || calibration !== null);
 
   return (
     <div class={`plan ${focus ? 'plan-focus' : ''}`}>
@@ -132,16 +160,12 @@ export function Plan({ store, garden, prefs, prefsStore, now = new Date() }: Pro
           <button type="button" class="icon-btn" aria-label="Fit the garden to the screen" title="Fit (0)" onClick={() => setFitSignal((n) => n + 1)}>
             <Icon name="fit" />
           </button>
-          {!phone && (
-            <>
-              <button type="button" class="icon-btn" aria-label="Undo" title="Undo (Ctrl+Z)" disabled={!store.canUndo()} onClick={() => store.undo()}>
-                <Icon name="undo" />
-              </button>
-              <button type="button" class="icon-btn" aria-label="Redo" title="Redo (Ctrl+Y)" disabled={!store.canRedo()} onClick={() => store.redo()}>
-                <Icon name="redo" />
-              </button>
-            </>
-          )}
+          <button type="button" class="icon-btn" aria-label="Undo" title="Undo (Ctrl+Z)" disabled={!store.canUndo()} onClick={() => store.undo()}>
+            <Icon name="undo" />
+          </button>
+          <button type="button" class="icon-btn" aria-label="Redo" title="Redo (Ctrl+Y)" disabled={!store.canRedo()} onClick={() => store.redo()}>
+            <Icon name="redo" />
+          </button>
           <button
             type="button"
             class="icon-btn"
@@ -170,7 +194,10 @@ export function Plan({ store, garden, prefs, prefsStore, now = new Date() }: Pro
               setSelected={setSelected}
               selectedVertex={selectedVertex}
               setSelectedVertex={setSelectedVertex}
-              readOnly={phone}
+              readOnly={false}
+              crosshair={phone}
+              apiRef={canvasApi}
+              onDraftChange={setCorners}
               fitSignal={fitSignal}
               traceImage={traceImage}
               onCalibrate={(a, b) => {
@@ -178,36 +205,63 @@ export function Plan({ store, garden, prefs, prefsStore, now = new Date() }: Pro
                 setTool('select');
               }}
             />
-            {empty && tool === 'select' && !phone && (
+            {empty && tool === 'select' && (
               <div class="plan-empty">
                 <p class="plan-empty-title">Start with your boundary</p>
-                <p>Measure each side of your garden with a tape, then click its corners and type the lengths.</p>
+                <p>
+                  {phone
+                    ? 'Measure each side of your garden with a tape. Then put the crosshair on each corner and type the lengths.'
+                    : 'Measure each side of your garden with a tape, then click its corners and type the lengths.'}
+                </p>
                 <button type="button" class="btn btn-primary" onClick={() => setTool('boundary')}>
                   Draw the boundary
                 </button>
               </div>
             )}
             {!phone && <p class="plan-hint">{hintFor(tool)}</p>}
-            {phone && <p class="plan-hint">Pinch to zoom and drag to look around. Drawing works on a computer.</p>}
+            {phone && !drawing && !showSheet && !empty && <p class="plan-hint">Tap something to select it; tap again and drag to move it. Pinch to zoom.</p>}
           </div>
         </main>
-        {!phone && (
-          <aside class="inspector" aria-label="Details">
-            <Inspector
-              store={store}
-              garden={garden}
-              selected={selected}
-              setSelected={(t) => {
-                setSelected(t);
-                setSelectedVertex(null);
-              }}
-              setTool={setTool}
-              calibration={calibration}
-              clearCalibration={() => setCalibration(null)}
-            />
-          </aside>
-        )}
+        {!phone && <aside class="inspector" aria-label="Details">{inspector}</aside>}
       </div>
+
+      {phone &&
+        (tool === 'trace' || tool === 'calibrate' ? (
+          <div class="draw-bar">
+            <p class="draw-hint">
+              {tool === 'trace' ? 'Drag to move the photo under the plan.' : 'Tap two points on the photo that you know the real distance between.'}
+            </p>
+            <div class="draw-buttons">
+              <button type="button" class="btn btn-primary" onClick={() => setTool('select')}>
+                Done
+              </button>
+            </div>
+          </div>
+        ) : drawing ? (
+          <PhoneDrawBar key={tool} tool={tool} corners={corners} api={canvasApi} />
+        ) : showSheet ? (
+          <>
+          <PhoneSheet
+            title={sheetTitle}
+            open={sheetOpen || gardenSheet || calibration !== null}
+            setOpen={setSheetOpen}
+            onClose={() => {
+              setSelected(null);
+              setSelectedVertex(null);
+              setGardenSheet(false);
+              setCalibration(null);
+              setSheetOpen(false);
+            }}
+          >
+            {inspector}
+          </PhoneSheet>
+          {!(sheetOpen || gardenSheet || calibration !== null) && (
+            <PhoneToolTray setTool={setTool} gardenOpen={gardenSheet} toggleGarden={() => setGardenSheet((o) => !o)} />
+          )}
+          </>
+        ) : (
+          <PhoneToolTray setTool={setTool} gardenOpen={gardenSheet} toggleGarden={() => setGardenSheet((o) => !o)} />
+        ))}
     </div>
   );
 }

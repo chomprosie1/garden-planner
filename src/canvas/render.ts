@@ -58,6 +58,8 @@ export interface Scene {
   hoverId: string | null;
   draft: Draft | null;
   trace: HTMLImageElement | null;
+  /** Phones: a fixed crosshair at the centre marks where the next corner goes. */
+  crosshair?: boolean;
 }
 
 // ---------- Patterns, cached per look and mode ----------
@@ -210,6 +212,7 @@ export function render(ctx: CanvasRenderingContext2D, s: Scene) {
 
   if (s.selected) drawSelection(ctx, s, s.selected);
   if (s.draft) drawDraft(ctx, s, s.draft);
+  if (s.crosshair) drawCrosshair(ctx, s);
 
   drawScaleBar(ctx, s);
   drawNorth(ctx, s);
@@ -500,6 +503,32 @@ function drawDraft(ctx: CanvasRenderingContext2D, s: Scene, d: Draft) {
       ctx.fillText(text, x + 22, y - 21.5);
     }
   }
+}
+
+function drawCrosshair(ctx: CanvasRenderingContext2D, s: Scene) {
+  const cx = Math.round(s.width / 2) + 0.5;
+  const cy = Math.round(s.height / 2) + 0.5;
+  const sel = s.style.plan.selection;
+  // A pale halo under the lines keeps them visible over any fill.
+  for (const [colour, width] of [[s.style.plan.paper, 5], [sel, 2]] as const) {
+    ctx.strokeStyle = colour;
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    for (const [x1, y1, x2, y2] of [
+      [cx - 22, cy, cx - 7, cy],
+      [cx + 7, cy, cx + 22, cy],
+      [cx, cy - 22, cx, cy - 7],
+      [cx, cy + 7, cx, cy + 22],
+    ] as const) {
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+    }
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.arc(cx, cy, 2.5, 0, Math.PI * 2);
+  ctx.fillStyle = sel;
+  ctx.fill();
 }
 
 function drawScaleBar(ctx: CanvasRenderingContext2D, s: Scene) {
