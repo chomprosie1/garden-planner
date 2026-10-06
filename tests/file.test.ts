@@ -38,9 +38,11 @@ function fullState(): AppState {
           deciduous: true,
           opacityInLeaf: 0.7,
           opacityBare: 0.2,
-          canopy: { centre: [5, 5], radiusMm: 2000 },
+          circle: { centre: [5, 5], radiusMm: 2000 },
         },
+        { id: 'f2', kind: 'fence', footprint: [[0, -25], [5000, -25], [5000, 25], [0, 25]], line: [[0, 0], [5000, 0]], widthMm: 50, heightMm: 1800 },
       ],
+      trace: { x: -500, y: -500, widthMm: 12000, opacity: 0.5, calibrated: true },
       plantings: [
         { id: 'p1', plantId: 'user-abc12345', featureId: 'f1', x: 5, y: 5, layout: 'row', endPoint: [1000, 5], count: 7, removedOn: '2026-09-30' },
       ],
@@ -78,6 +80,24 @@ describe('export and import', () => {
     expect(tree).toMatchObject({ opacityInLeaf: 0.6, opacityBare: 0.6 });
     expect(tree).not.toHaveProperty('opacity');
     expect(g.plantings[0]?.plantId).toBe('carrot');
+  });
+
+  it('migrates a v1 tree canopy to a circle', () => {
+    const v1 = {
+      ...toFile(newAppState()),
+      schemaVersion: 1,
+      garden: {
+        ...newAppState().garden,
+        schemaVersion: 1,
+        features: [{ id: 't', kind: 'tree', footprint: [[0, 0], [1, 0], [1, 1]], canopy: { centre: [0, 0], radiusMm: 1500 } }],
+      },
+    };
+    const result = parseFile(v1);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.state.garden.features[0]).toMatchObject({ circle: { centre: [0, 0], radiusMm: 1500 } });
+      expect(result.state.garden.features[0]).not.toHaveProperty('canopy');
+    }
   });
 
   it('migrates a v0 user plant with a single sowing', () => {

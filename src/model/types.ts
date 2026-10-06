@@ -16,6 +16,18 @@ export interface Garden {
   wishlist: string[]; // plant ids you mean to sow, for the calendar
   jobsDone: JobDone[];
   notes: Note[];
+  /** A photo or screenshot to trace over. The image itself stays in this browser (IndexedDB). */
+  trace?: Trace;
+}
+
+export interface Trace {
+  /** Bottom-left corner of the image, mm. */
+  x: number;
+  y: number;
+  /** Real-world width of the whole image, mm; height follows the image's proportions. */
+  widthMm: number;
+  opacity: number; // 0 to 1
+  calibrated: boolean;
 }
 
 export const FEATURE_KINDS = [
@@ -37,9 +49,14 @@ export interface Feature {
   id: string;
   kind: FeatureKind;
   name?: string;
+  /** The outline on the ground. For lines and circles it is derived from `line` or `circle`. */
   footprint: Point[];
   heightMm?: number; // used by the sun layer; absent for flat features
-  canopy?: { centre: Point; radiusMm: number }; // trees
+  /** Centre line of a fence, wall, hedge or path, with its width. */
+  line?: Point[];
+  widthMm?: number;
+  /** Round features: a tree's canopy, a water butt. */
+  circle?: { centre: Point; radiusMm: number };
   deciduous?: boolean;
   opacityInLeaf?: number; // 0 to 1, share of light blocked in leaf
   opacityBare?: number; // 0 to 1, share of light blocked when bare

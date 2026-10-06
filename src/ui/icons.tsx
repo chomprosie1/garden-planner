@@ -11,6 +11,7 @@ const PATHS = {
   undo: 'M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3',
   redo: 'm15 14 5-5-5-5M20 9H10a6 6 0 0 0 0 12h3',
   focus: 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5',
+  fit: 'M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5M8 8h8v8H8z',
   chevron: 'm9 6 6 6-6 6',
   back: 'm15 6-6 6 6 6',
   warn: 'M12 3 2 21h20zM12 10v5M12 18h.01',

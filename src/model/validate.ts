@@ -53,7 +53,21 @@ export function validateGarden(g: unknown): string[] {
         const o = f[key];
         need(o === undefined || (isNum(o) && o >= 0 && o <= 1), `${at}.${key} must be between 0 and 1.`);
       }
+      need(f.line === undefined || (Array.isArray(f.line) && f.line.length >= 2 && f.line.every(isPoint)), `${at}.line needs two or more points.`);
+      need(f.widthMm === undefined || (isNum(f.widthMm) && f.widthMm > 0), `${at}.widthMm must be above 0.`);
+      need(
+        f.circle === undefined || (isObject(f.circle) && isPoint(f.circle.centre) && isNum(f.circle.radiusMm) && f.circle.radiusMm > 0),
+        `${at}.circle needs a centre and a radius above 0.`,
+      );
     });
+
+  if (g.trace !== undefined) {
+    const t = g.trace;
+    need(
+      isObject(t) && isNum(t.x) && isNum(t.y) && isNum(t.widthMm) && t.widthMm > 0 && isNum(t.opacity) && typeof t.calibrated === 'boolean',
+      'trace needs a position, a width above 0, an opacity and a calibrated flag.',
+    );
+  }
 
   if (!Array.isArray(g.plantings)) errors.push('plantings must be a list.');
   else

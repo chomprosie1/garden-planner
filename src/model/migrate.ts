@@ -1,7 +1,7 @@
 // Brings saved gardens and plants from older versions up to the current shape.
 // Bump SCHEMA_VERSION whenever the saved shape changes, and add a step here.
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 type Raw = Record<string, unknown>;
 
@@ -17,6 +17,10 @@ export function migrateGarden(raw: unknown): unknown {
   if (version === 0) {
     g = gardenV0toV1(g);
     version = 1;
+  }
+  if (version === 1) {
+    g = gardenV1toV2(g);
+    version = 2;
   }
   return g;
 }
@@ -48,5 +52,19 @@ function gardenV0toV1(g: Raw): Raw {
     notes: Array.isArray(g.notes) ? g.notes : [],
     wishlist: [],
     jobsDone: [],
+  };
+}
+
+// v2: a tree's `canopy` became the general `circle` used by any round feature.
+function gardenV1toV2(g: Raw): Raw {
+  const features = Array.isArray(g.features) ? g.features : [];
+  return {
+    ...g,
+    schemaVersion: 2,
+    features: features.map((f) => {
+      if (!isObject(f) || !('canopy' in f)) return f;
+      const { canopy, ...rest } = f;
+      return canopy === undefined ? rest : { ...rest, circle: canopy };
+    }),
   };
 }
