@@ -50,6 +50,7 @@ import { FindingsList } from './Findings';
 import { UseLocationButton } from './GardenSettings';
 import { formatDate, NotesSection } from './NotesSection';
 import { deletedMessage, type Tool } from './PlanCanvas';
+import { PlantIcon } from './PlantIcon';
 import { StageStrip } from './StageStrip';
 
 interface Props {
@@ -67,8 +68,6 @@ interface Props {
   focusFinding: string | null;
   setFocusFinding: (id: string | null) => void;
   onPickFinding?: (f: Finding) => void;
-  /** The colour a plant is drawn in on the plan. */
-  colourOf: (plantId: string) => string;
   /** Sun hours on the 15th of a month (June, or the month shown in the sun view), for how sunny a bed or planting is. */
   sunJune: SunGrid | null;
   /** Opens the Plant tool. */
@@ -141,13 +140,13 @@ export function Section({ id, title, open: openByDefault = true, children }: { i
   );
 }
 
-const Heading = ({ eyebrow, title, swatch }: { eyebrow: string; title: string; swatch?: string }) => (
-  <div>
-    <p class="eyebrow muted">{eyebrow}</p>
-    <h2 class="panel-title">
-      {swatch && <span class="swatch swatch-plant" style={{ background: swatch }} aria-hidden="true" />}
-      {title}
-    </h2>
+const Heading = ({ eyebrow, title, plant }: { eyebrow: string; title: string; plant?: Plant }) => (
+  <div class={plant ? 'panel-head-plant' : undefined}>
+    {plant && <PlantIcon plant={plant} size={44} />}
+    <div>
+      <p class="eyebrow muted">{eyebrow}</p>
+      <h2 class="panel-title">{title}</h2>
+    </div>
   </div>
 );
 
@@ -611,7 +610,7 @@ const findingsProps = (p: Shared) => ({ focus: p.focusFinding, setFocus: p.setFo
 
 /** Planting, with nothing selected: the checks, and every bed with what's in it. */
 function PlantingOverview(props: Props) {
-  const { garden, findings, plantOf, colourOf, setSelected, startPlanting } = props;
+  const { garden, findings, plantOf, setSelected, startPlanting } = props;
   const beds = garden.features.filter(isContainer);
   const growing = garden.plantings.filter((p) => !p.removedOn);
   const warnings = findings.filter((f) => f.level === 'warn').length;
@@ -662,7 +661,7 @@ function PlantingOverview(props: Props) {
                       {here.map((p) => (
                         <li key={p.id}>
                           <button type="button" onClick={() => setSelected({ type: 'planting', id: p.id })}>
-                            <span class="swatch swatch-plant" style={{ background: colourOf(p.plantId) }} aria-hidden="true" />
+                            <PlantIcon plant={plantOf(p.plantId)} size={22} />
                             <span>{plantOf(p.plantId).commonName}</span>
                             <span class="muted small">{STAGE_LABEL[currentStage(p)]}</span>
                           </button>
@@ -682,7 +681,7 @@ function PlantingOverview(props: Props) {
 
 /** A bed while planting: its sun, what's growing, its checks, what grew before, and notes. */
 function BedPanel(props: Shared & { bed: Feature }) {
-  const { store, garden, bed, setSelected, startPlanting, plantOf, findings, colourOf, sunJune, zoomTo } = props;
+  const { store, garden, bed, setSelected, startPlanting, plantOf, findings, sunJune, zoomTo } = props;
   const app = useApp();
   const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
   const here = garden.plantings.filter((p) => p.featureId === bed.id);
@@ -714,7 +713,7 @@ function BedPanel(props: Shared & { bed: Feature }) {
               return (
                 <li key={p.id}>
                   <button type="button" onClick={() => setSelected({ type: 'planting', id: p.id })}>
-                    <span class="swatch swatch-plant" style={{ background: colourOf(p.plantId) }} aria-hidden="true" />
+                    <PlantIcon plant={plantOf(p.plantId)} size={22} />
                     <span>{plant.commonName}</span>
                     <span class="muted small">
                       {n > 1 ? `${LAYOUT_LABEL[p.layout ?? 'single']} of ${n}` : '1 plant'} · {STAGE_LABEL[currentStage(p)]}
@@ -784,7 +783,7 @@ export function nextStep(pl: Planting, plant: Plant): string | null {
 }
 
 function PlantingPanel(props: Props & { pl: Planting }) {
-  const { store, garden, pl, setSelected, plantOf, findings, sunJune, colourOf, mode } = props;
+  const { store, garden, pl, setSelected, plantOf, findings, sunJune, mode } = props;
   const app = useApp();
   const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
   const plant = plantOf(pl.plantId);
@@ -801,7 +800,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
 
   return (
     <div class="inspector-body">
-      <Heading eyebrow={`${LAYOUT_LABEL[layout]}${bed ? ` in ${featureLabel(bed)}` : ''}`} title={plant.commonName} swatch={colourOf(plant.id)} />
+      <Heading eyebrow={`${LAYOUT_LABEL[layout]}${bed ? ` in ${featureLabel(bed)}` : ''}`} title={plant.commonName} plant={plant} />
       <p class="status-line">
         <span class={`status-chip status-${status}`}>
           {STAGE_LABEL[stage]}

@@ -1,6 +1,7 @@
 import { monthRanges } from '../library/library';
 import type { Light, Plant, Sowing } from '../model/types';
 import { formatLength } from '../canvas/viewport';
+import { PlantIcon } from './PlantIcon';
 
 export const LIGHT_LABEL: Record<Light, string> = { 'full-sun': 'Full sun', 'part-shade': 'Part shade', shade: 'Shade' };
 export const METHOD_LABEL: Record<Sowing['method'], string> = {
@@ -71,7 +72,10 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
   return (
     <article class="plant-card" aria-labelledby={`plant-${p.id}`}>
       <header class="plant-card-head">
-        <div>
+        <div class="plant-card-art">
+          <PlantIcon plant={p} size={120} />
+        </div>
+        <div class="plant-card-title">
           <h1 id={`plant-${p.id}`} class="plant-name">
             {p.commonName}
           </h1>

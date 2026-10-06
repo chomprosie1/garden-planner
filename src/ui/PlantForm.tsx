@@ -1,6 +1,7 @@
 import { useState } from 'preact/hooks';
 import { LIGHT_LEVELS, PLANT_CATEGORIES, SOWING_METHODS, WINTERING_TYPES, type Plant, type Sowing } from '../model/types';
 import { validatePlant } from '../model/validate';
+import { ArtFields } from './ArtFields';
 import { CATEGORY_LABEL, LIGHT_LABEL, METHOD_LABEL, WINTER_LABEL } from './PlantCard';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -237,6 +238,11 @@ export function PlantForm({ initial, onSave, onCancel }: Props) {
           Where your notes come from
           <input value={p.source ?? ''} placeholder="e.g. Seed packet, RHS website" onInput={(e) => set({ source: (e.currentTarget as HTMLInputElement).value || undefined })} />
         </label>
+      </details>
+
+      <details class="form-more">
+        <summary>How it’s drawn on the plan</summary>
+        <ArtFields plant={p} set={set} />
       </details>
 
       {errors.length > 0 && (

@@ -4,6 +4,7 @@ import { canSowIn, emptyFilter, filterPlants } from '../library/library';
 import type { Plant } from '../model/types';
 import { rowSpacingOf, spreadOf, type Layout } from '../planting/place';
 import { PLANT_DRAG_TYPE } from './PlanCanvas';
+import { PlantIcon } from './PlantIcon';
 
 const LAYOUTS: { value: Layout; label: string; hint: string }[] = [
   { value: 'single', label: 'Single', hint: 'One plant where you click.' },
@@ -108,6 +109,7 @@ export function PlantPicker({ plants, plantId, setPlantId, layout, setLayout, gr
               }}
               onClick={() => setPlantId(p.id)}
             >
+              <PlantIcon plant={p} size={28} />
               <span class="pick-name">{p.commonName}</span>
               <span class="small muted">
                 {formatLength(p.size.spacingMm)}

@@ -3,6 +3,9 @@
 
 import { bounds, centroid, distance } from '../geometry/polygon';
 import { featureLabel, isClosed, pointsOf, type Target } from '../model/features';
+import { artFor, drawPlant, hashString, shadeHex, stageLook, type Look } from '../art/plants';
+import { bucketFor, paintFor, plantSprite, VARIANTS } from '../art/sprites';
+import { currentStage } from '../lifecycle/stages';
 import { SKETCH_WIDTH, sketchesOf } from '../model/sketches';
 import type { Feature, Garden, Material, Plant, Planting, Point, Sketch, SketchColour, SketchKind } from '../model/types';
 import { blockGrid, isActive, MAX_PLANTS, plantCount, plantingShape, plantPositions, rowCount, spreadOf, type Layout, type PlantingShape } from '../planting/place';
@@ -107,20 +110,8 @@ export interface PlantDraft {
   typed?: string;
 }
 
-/** Colours for crops, picked by plant so the same plant always looks the same. */
-const CROPS: Record<Mode, string[]> = {
-  light: ['#5f8f3e', '#2f7a64', '#b07a1f', '#a8473c', '#7a5aa6', '#3f7aa6', '#8a8f2a', '#b5576f'],
-  dark: ['#9ccc6e', '#6fcfae', '#e8b75a', '#f08c7c', '#bfa2ee', '#86bdea', '#cfd36a', '#f29ab0'],
-};
 export const WARN_COLOUR: Record<Mode, string> = { light: '#9a3412', dark: '#ffa45c' };
 const GOOD: Record<Mode, string> = { light: '#2f7d32', dark: '#7bd88f' };
-
-export function cropColour(plantId: string, mode: Mode): string {
-  let h = 0;
-  for (const ch of plantId) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  const list = CROPS[mode];
-  return list[h % list.length]!;
-}
 
 // ---------- Patterns, cached per look and mode ----------
 
@@ -879,45 +870,75 @@ function shapePath(ctx: CanvasRenderingContext2D, s: Scene, shape: PlantingShape
   }
 }
 
-/** Draws plants as circles of their spread; when they're too small to see apart, as one band. */
-function drawPlants(ctx: CanvasRenderingContext2D, s: Scene, pts: Point[], shape: PlantingShape, spreadMm: number, colour: string, alpha: number) {
+/**
+ * Draws a planting's plants as they look from above at their stage. Far out, where plants would be specks, a row
+ * or block is one band of colour; a little closer, each is a dot; closer still, each is drawn in full.
+ */
+function drawPlants(ctx: CanvasRenderingContext2D, s: Scene, pts: Point[], shape: PlantingShape, spreadMm: number, plant: Plant, look: Look, alpha: number) {
   const v = s.view;
   const r = (spreadMm / 2) * v.scale;
-  ctx.fillStyle = colour;
-  ctx.strokeStyle = colour;
+  const art = artFor(plant);
+  const paint = paintFor(s.style.look, s.style.mode);
+  const colour = s.style.mode === 'dark' ? shadeHex(art.foliage, 0.15) : art.foliage;
+  const a = alpha * (look.ghost ? 0.5 : 1);
   if (r < 2 && pts.length > 1) {
-    ctx.globalAlpha = alpha * 0.8;
+    ctx.globalAlpha = a * 0.8;
+    ctx.fillStyle = colour;
     shapePath(ctx, s, shape, Math.max(1.5, r));
     ctx.fill();
     ctx.globalAlpha = 1;
     return;
   }
-  ctx.globalAlpha = alpha * 0.55;
-  ctx.beginPath();
-  for (const p of pts) {
-    const [x, y] = toScreen(v, p);
-    ctx.moveTo(x + r, y);
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-  }
-  ctx.fill();
-  ctx.globalAlpha = alpha;
-  ctx.lineWidth = r > 6 ? 1.5 : 1;
-  ctx.stroke();
-  if (r > 7) {
+  if (r < 5) {
+    ctx.globalAlpha = a * 0.9;
+    ctx.fillStyle = colour;
     ctx.beginPath();
+    const dot = Math.max(1.2, r * Math.max(0.4, look.grow));
     for (const p of pts) {
       const [x, y] = toScreen(v, p);
-      ctx.moveTo(x + 2, y);
-      ctx.arc(x, y, 2, 0, Math.PI * 2);
+      ctx.moveTo(x + dot, y);
+      ctx.arc(x, y, dot, 0, Math.PI * 2);
     }
     ctx.fill();
+    ctx.globalAlpha = 1;
+    return;
   }
+  const dpr = ctx.getTransform().a || 1;
+  const bucket = bucketFor(r);
+  const styleKey = `${s.style.look}-${s.style.mode}`;
+  const reach = r * 1.2;
+  // The few drawings this planting needs, fetched once rather than for every plant.
+  const sprites: (HTMLCanvasElement | undefined)[] = [];
+  const spriteFor = (variant: number) => (sprites[variant] ??= plantSprite(plant.id, art, look, paint, styleKey, bucket!, dpr, variant));
+  const seed = hashString(plant.id);
+  ctx.globalAlpha = alpha;
+  for (const p of pts) {
+    const [x, y] = toScreen(v, p);
+    if (x < -reach || y < -reach || x > s.width + reach || y > s.height + reach) continue;
+    // Each plant gets its own variation and turn, worked out from where it is, so it never changes between frames.
+    const h = (Math.imul(p[0], 73856093) ^ Math.imul(p[1], 19349663)) >>> 0;
+    const variant = h % VARIANTS;
+    const turn = ((h >>> 5) % 360) * (Math.PI / 180);
+    const cos = Math.cos(turn);
+    const sin = Math.sin(turn);
+    if (bucket) {
+      const sprite = spriteFor(variant);
+      const size = (sprite.width / dpr) * (r / bucket);
+      // One transform per plant: turned about its own centre, on top of the pixel ratio.
+      ctx.setTransform(dpr * cos, dpr * sin, -dpr * sin, dpr * cos, dpr * x, dpr * y);
+      ctx.drawImage(sprite, -size / 2, -size / 2, size, size);
+    } else {
+      ctx.setTransform(dpr * cos, dpr * sin, -dpr * sin, dpr * cos, dpr * x, dpr * y);
+      drawPlant(ctx, { art, look, r, paint, seed: seed + variant * 7919 });
+    }
+  }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.globalAlpha = 1;
 }
 
 function drawPlanting(ctx: CanvasRenderingContext2D, s: Scene, pl: Planting, plant: Plant) {
   const pts = plantPositions(pl, plant);
-  drawPlants(ctx, s, pts, plantingShape(pl, plant), spreadOf(plant), cropColour(plant.id, s.style.mode), s.hoverId === pl.id ? 1 : 0.9);
+  drawPlants(ctx, s, pts, plantingShape(pl, plant), spreadOf(plant), plant, stageLook(currentStage(pl), plant, pl), s.hoverId === pl.id ? 1 : 0.95);
 }
 
 /** Outlines plantings with a problem; the one picked in the list is drawn strongly. */
@@ -1011,7 +1032,7 @@ function drawPlantDraft(ctx: CanvasRenderingContext2D, s: Scene, d: PlantDraft) 
     ctx.stroke();
     ctx.setLineDash([]);
   }
-  if (n <= MAX_PLANTS) drawPlants(ctx, s, plantPositions(pl, d.plant), plantingShape(pl, d.plant), spreadOf(d.plant), cropColour(d.plant.id, s.style.mode), 0.6);
+  if (n <= MAX_PLANTS) drawPlants(ctx, s, plantPositions(pl, d.plant), plantingShape(pl, d.plant), spreadOf(d.plant), d.plant, stageLook('vegetative', d.plant), 0.6);
   if (d.layout === 'row' && start) lengthTag(ctx, s, start, end);
   // How many, beside the cursor.
   const [x, y] = toScreen(v, end);

@@ -14,6 +14,7 @@ import { useIsPhone } from '../hooks';
 import { Icon } from '../icons';
 import { CATEGORY_LABEL, LIGHT_LABEL, PlantCard } from '../PlantCard';
 import { PlantForm } from '../PlantForm';
+import { PlantIcon } from '../PlantIcon';
 
 interface Props {
   store: Store;
@@ -125,6 +126,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
         {results.map((p) => (
           <li key={p.id}>
             <button type="button" class="plant-row" aria-current={current?.id === p.id ? 'true' : undefined} onClick={() => setPanel({ kind: 'card', id: p.id })}>
+              <PlantIcon plant={p} size={34} />
               <span class="plant-row-main">
                 <span class="plant-row-name">{p.commonName}</span>
                 {p.latinName && <span class="latin small">{p.latinName}</span>}

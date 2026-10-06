@@ -3,9 +3,13 @@
 
 import {
   FEATURE_KINDS,
+  BLOOMS,
+  CROP_KINDS,
+  LEAF_SHAPES,
   LIGHT_LEVELS,
   MATERIALS,
   PLANT_CATEGORIES,
+  PLANT_FORMS,
   SKETCH_COLOURS,
   SKETCH_KINDS,
   SOWING_METHODS,
@@ -170,6 +174,20 @@ export function validatePlant(p: unknown): string[] {
       isObject(p.stageTips) && Object.entries(p.stageTips).every(([k, v]) => oneOf(STAGES, k) && Array.isArray(v) && v.every(isStr)),
       'stageTips must be lists of advice for each stage.',
     );
+  if (p.art !== undefined) {
+    const a = p.art;
+    const colour = (c: unknown) => isStr(c) && /^#[0-9a-f]{6}$/i.test(c);
+    need(
+      isObject(a) &&
+        oneOf(PLANT_FORMS, a.form) &&
+        oneOf(LEAF_SHAPES, a.leaf) &&
+        colour(a.foliage) &&
+        (a.flower === undefined || colour(a.flower)) &&
+        (a.bloom === undefined || oneOf(BLOOMS, a.bloom)) &&
+        (a.crop === undefined || (isObject(a.crop) && oneOf(CROP_KINDS, a.crop.kind) && colour(a.crop.colour))),
+      'art needs a form, a leaf shape and #rrggbb colours.',
+    );
+  }
   if (p.image !== undefined)
     need(
       isObject(p.image) && isStr(p.image.url) && isStr(p.image.credit) && isStr(p.image.licence) && isStr(p.image.sourceUrl),

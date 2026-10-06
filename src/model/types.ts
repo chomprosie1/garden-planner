@@ -183,11 +183,33 @@ export interface Plant {
   lifePath?: { flowering?: boolean; perennial?: boolean };
   /** Advice for each stage, shown when a planting reaches it. Falls back to general advice. */
   stageTips?: Partial<Record<Stage, string[]>>;
+  /** How it's drawn from above on the plan and on its card. Falls back to a drawing for its category. */
+  art?: PlantArt;
   image?: { url: string; credit: string; licence: string; sourceUrl: string }; // PD, CC0, CC BY or CC BY-SA only
   source?: string;
   lastChecked?: string; // ISO date
   verified: boolean;
   userAdded: boolean;
+}
+
+/** The shape of a plant seen from above. */
+export const PLANT_FORMS = ['rosette', 'clump', 'mound', 'upright', 'climber', 'sprawl', 'grass', 'bulb', 'shrub', 'tree'] as const;
+export const LEAF_SHAPES = ['broad', 'lobed', 'feathery', 'strap', 'needle', 'round'] as const;
+/** How its flowers look from above: small daisies, one big bloom, cups, spikes, or round heads of tiny flowers. */
+export const BLOOMS = ['daisy', 'big', 'cup', 'spike', 'umbel'] as const;
+/** What you harvest, as seen from above when it's ready. */
+export const CROP_KINDS = ['fruit', 'head', 'pod', 'root', 'stem'] as const;
+
+export interface PlantArt {
+  form: (typeof PLANT_FORMS)[number];
+  leaf: (typeof LEAF_SHAPES)[number];
+  /** Leaf colour, #rrggbb. */
+  foliage: string;
+  /** Flower colour, #rrggbb, drawn when it's flowering. */
+  flower?: string;
+  bloom?: (typeof BLOOMS)[number];
+  /** The crop, drawn when it's ready to harvest. */
+  crop?: { kind: (typeof CROP_KINDS)[number]; colour: string };
 }
 
 /** Everything the app holds and saves. */

@@ -26,6 +26,7 @@
         "Pinch out the growing tips once the lowest pods form, to deter blackfly."
       ]
     },
+    "art": {"form":"upright","leaf":"broad","foliage":"#6a8a55","flower":"#f3f0e8","bloom":"daisy","crop":{"kind":"pod","colour":"#7da04f"}},
     "source": "Check against: RHS Grow Your Own – broad beans; seed packet",
     "verified": false,
     "userAdded": false
@@ -64,6 +65,7 @@
         "Pick pods young and often, before the beans bulge; leaving them stops new pods forming."
       ]
     },
+    "art": {"form":"climber","leaf":"broad","foliage":"#4f7f3a","flower":"#d9432f","bloom":"daisy","crop":{"kind":"pod","colour":"#5f9a3a"}},
     "source": "Check against: RHS Grow Your Own – runner beans; seed packet",
     "verified": false,
     "userAdded": false
@@ -96,6 +98,7 @@
         "Pick pods young and often, before the beans bulge."
       ]
     },
+    "art": {"form":"mound","leaf":"broad","foliage":"#5a8a3c","flower":"#f1eedf","bloom":"daisy","crop":{"kind":"pod","colour":"#6aa043"}},
     "source": "Check against: RHS Grow Your Own – French beans; seed packet",
     "verified": false,
     "userAdded": false
@@ -128,6 +131,7 @@
         "Pick pods as they fill, from the bottom up; regular picking keeps more coming."
       ]
     },
+    "art": {"form":"climber","leaf":"round","foliage":"#7fa86a","flower":"#f6f3ea","bloom":"daisy","crop":{"kind":"pod","colour":"#7cb257"}},
     "source": "Check against: RHS Grow Your Own – peas; seed packet",
     "verified": false,
     "userAdded": false
@@ -157,6 +161,7 @@
         "Earlies are ready when the flowers open; maincrop when the foliage dies back."
       ]
     },
+    "art": {"form":"mound","leaf":"broad","foliage":"#4f7a3a","flower":"#e9e2f2","bloom":"daisy"},
     "source": "Check against: RHS Grow Your Own – potatoes; seed potato supplier",
     "verified": false,
     "userAdded": false
@@ -187,6 +192,7 @@
         "Lift when the tops have flopped and yellowed; dry thoroughly before storing."
       ]
     },
+    "art": {"form":"clump","leaf":"strap","foliage":"#5f8f6a","crop":{"kind":"head","colour":"#c9a35a"}},
     "source": "Check against: RHS Grow Your Own – onions; seed packet",
     "verified": false,
     "userAdded": false
@@ -204,6 +210,7 @@
     "pests": [{ "name": "Onion white rot", "signs": "Yellowing leaves and white mould at the base", "control": "Remove affected plants; avoid growing alliums there again for many years." }],
     "companions": { "good": ["carrot", "beetroot"], "avoid": ["broad-bean", "pea"] },
     "wintering": { "type": "lift-and-store", "notes": "Dry well, separate the bulbs and store somewhere cool and airy." },
+    "art": {"form":"clump","leaf":"strap","foliage":"#62906b","crop":{"kind":"head","colour":"#b07850"}},
     "source": "Check against: RHS Grow Your Own – shallots",
     "verified": false,
     "userAdded": false
@@ -229,6 +236,7 @@
         "Lift when the lower leaves turn yellow, and dry in the sun before storing."
       ]
     },
+    "art": {"form":"clump","leaf":"strap","foliage":"#6f9a72","crop":{"kind":"head","colour":"#efe7d6"}},
     "source": "Check against: RHS Grow Your Own – garlic",
     "verified": false,
     "userAdded": false
@@ -251,6 +259,7 @@
     ],
     "companions": { "good": ["carrot"], "avoid": ["broad-bean", "pea"] },
     "wintering": { "type": "hardy", "notes": "Leave in the ground and lift as needed." },
+    "art": {"form":"clump","leaf":"strap","foliage":"#5c8a74"},
     "source": "Check against: RHS Grow Your Own – leeks; seed packet",
     "verified": false,
     "userAdded": false
@@ -268,6 +277,7 @@
     "pests": [{ "name": "Onion white rot", "signs": "Yellowing leaves and white mould at the base", "control": "Rotate crops; avoid ground where white rot has been." }],
     "companions": { "good": ["carrot", "lettuce"], "avoid": ["pea", "broad-bean"] },
     "wintering": { "type": "annual" },
+    "art": {"form":"clump","leaf":"strap","foliage":"#6fa060"},
     "source": "Check against: RHS Grow Your Own – spring onions; seed packet",
     "verified": false,
     "userAdded": false
@@ -285,6 +295,7 @@
     "pests": [{ "name": "Carrot fly", "signs": "Rusty-brown tunnels in the roots", "control": "Cover with fine insect mesh; sow thinly so you don't have to thin, as the smell attracts the fly." }],
     "companions": { "good": ["onion", "leek", "pea"], "avoid": [] },
     "wintering": { "type": "lift-and-store", "notes": "Lift by late autumn on heavy soil and store in boxes of damp sand." },
+    "art": {"form":"clump","leaf":"feathery","foliage":"#5e9a3c","crop":{"kind":"root","colour":"#e07b24"}},
     "source": "Check against: RHS Grow Your Own – carrots; seed packet",
     "verified": false,
     "userAdded": false
@@ -305,6 +316,7 @@
     ],
     "companions": { "good": ["onion", "radish"], "avoid": [] },
     "wintering": { "type": "hardy", "notes": "Leave in the ground and lift as needed." },
+    "art": {"form":"rosette","leaf":"lobed","foliage":"#6a9a4a","crop":{"kind":"root","colour":"#efe2c0"}},
     "source": "Check against: RHS Grow Your Own – parsnips; seed packet",
     "verified": false,
     "userAdded": false
@@ -322,6 +334,7 @@
     "pests": [{ "name": "Birds", "signs": "Seedlings pecked", "control": "Cover with netting or fleece until established." }],
     "companions": { "good": ["onion", "garlic", "lettuce"], "avoid": [] },
     "wintering": { "type": "lift-and-store", "notes": "Twist off the leaves and store in boxes of damp sand." },
+    "art": {"form":"rosette","leaf":"broad","foliage":"#5d7a3e","crop":{"kind":"root","colour":"#8e1f3f"}},
     "source": "Check against: RHS Grow Your Own – beetroot; seed packet",
     "verified": false,
     "userAdded": false
@@ -339,6 +352,7 @@
     "pests": [{ "name": "Flea beetle", "signs": "Lots of small round holes in the leaves", "control": "Cover with fleece and keep the soil moist." }],
     "companions": { "good": ["pea", "lettuce", "parsnip"], "avoid": [] },
     "wintering": { "type": "annual" },
+    "art": {"form":"rosette","leaf":"broad","foliage":"#6aa04a","crop":{"kind":"root","colour":"#d23c5a"}},
     "source": "Check against: RHS Grow Your Own – radish; seed packet",
     "verified": false,
     "userAdded": false
@@ -359,6 +373,7 @@
     ],
     "companions": { "good": ["pea"], "avoid": [] },
     "wintering": { "type": "lift-and-store" },
+    "art": {"form":"rosette","leaf":"lobed","foliage":"#6f9e4a","crop":{"kind":"root","colour":"#9a5aa0"}},
     "source": "Check against: RHS Grow Your Own – turnips; seed packet",
     "verified": false,
     "userAdded": false
@@ -391,6 +406,7 @@
         "Pick outer leaves as you need them, or cut whole heads."
       ]
     },
+    "art": {"form":"rosette","leaf":"broad","foliage":"#8cc063"},
     "source": "Check against: RHS Grow Your Own – lettuce; seed packet",
     "verified": false,
     "userAdded": false
@@ -414,6 +430,7 @@
     ],
     "companions": { "good": ["radish", "lettuce"], "avoid": [] },
     "wintering": { "type": "hardy", "notes": "Autumn sowings overwinter better under a cloche." },
+    "art": {"form":"rosette","leaf":"broad","foliage":"#3f7a35"},
     "source": "Check against: RHS Grow Your Own – spinach; seed packet",
     "verified": false,
     "userAdded": false
@@ -431,6 +448,7 @@
     "pests": [{ "name": "Slugs", "signs": "Holes in young leaves", "control": "Check after dark; protect young plants." }],
     "companions": { "good": ["onion", "lettuce"], "avoid": [] },
     "wintering": { "type": "hardy", "notes": "Usually survives winter and crops again in spring." },
+    "art": {"form":"rosette","leaf":"broad","foliage":"#3f6e33","crop":{"kind":"stem","colour":"#e0503a"}},
     "source": "Check against: RHS Grow Your Own – Swiss chard; seed packet",
     "verified": false,
     "userAdded": false
@@ -453,6 +471,7 @@
     ],
     "companions": { "good": ["onion", "beetroot"], "avoid": ["tomato"] },
     "wintering": { "type": "hardy", "notes": "Crops right through winter." },
+    "art": {"form":"rosette","leaf":"lobed","foliage":"#3f6a4a"},
     "source": "Check against: RHS Grow Your Own – kale; seed packet",
     "verified": false,
     "userAdded": false
@@ -475,6 +494,7 @@
     ],
     "companions": { "good": ["onion", "beetroot"], "avoid": ["tomato"] },
     "wintering": { "type": "hardy", "notes": "Winter and spring cabbages stand through cold weather." },
+    "art": {"form":"rosette","leaf":"broad","foliage":"#7fa37a","crop":{"kind":"head","colour":"#bcd49a"}},
     "source": "Check against: RHS Grow Your Own – cabbages; seed packet",
     "verified": false,
     "userAdded": false
@@ -496,6 +516,7 @@
     ],
     "companions": { "good": ["onion"], "avoid": ["tomato"] },
     "wintering": { "type": "hardy", "notes": "Stands over winter to crop in early spring." },
+    "art": {"form":"rosette","leaf":"broad","foliage":"#4f7a5a","crop":{"kind":"head","colour":"#6a4a7a"}},
     "source": "Check against: RHS Grow Your Own – broccoli; seed packet",
     "verified": false,
     "userAdded": false
@@ -517,6 +538,7 @@
     "pests": [{ "name": "Cabbage white caterpillars", "signs": "Holes in leaves and heads", "control": "Cover with fine mesh." }],
     "companions": { "good": ["onion", "beetroot"], "avoid": ["tomato"] },
     "wintering": { "type": "annual" },
+    "art": {"form":"rosette","leaf":"broad","foliage":"#4f7a5a","crop":{"kind":"head","colour":"#3f6a3a"}},
     "source": "Check against: RHS Grow Your Own – broccoli; seed packet",
     "verified": false,
     "userAdded": false
@@ -538,6 +560,7 @@
     ],
     "companions": { "good": ["onion"], "avoid": ["tomato"] },
     "wintering": { "type": "annual", "notes": "Winter types overwinter to crop in spring." },
+    "art": {"form":"rosette","leaf":"broad","foliage":"#6a9a6a","crop":{"kind":"head","colour":"#f2ecd8"}},
     "source": "Check against: RHS Grow Your Own – cauliflowers; seed packet",
     "verified": false,
     "userAdded": false
@@ -559,6 +582,7 @@
     ],
     "companions": { "good": ["onion"], "avoid": ["tomato"] },
     "wintering": { "type": "hardy", "notes": "Crops through winter." },
+    "art": {"form":"upright","leaf":"broad","foliage":"#5a8a5a","crop":{"kind":"fruit","colour":"#86b05a"}},
     "source": "Check against: RHS Grow Your Own – Brussels sprouts; seed packet",
     "verified": false,
     "userAdded": false
@@ -594,6 +618,7 @@
         "Pick at about 10 to 15 cm, every few days; left on, they turn into marrows and the plant stops cropping."
       ]
     },
+    "art": {"form":"sprawl","leaf":"lobed","foliage":"#4f8a3a","flower":"#f2b52a","bloom":"cup","crop":{"kind":"fruit","colour":"#3f6a2a"}},
     "source": "Check against: RHS Grow Your Own – courgettes; seed packet",
     "verified": false,
     "userAdded": false
@@ -623,6 +648,7 @@
         "Leave the fruit on the plant to ripen; cure in the sun for a week or two before storing."
       ]
     },
+    "art": {"form":"sprawl","leaf":"lobed","foliage":"#5a8a3a","flower":"#f2b52a","bloom":"cup","crop":{"kind":"fruit","colour":"#e2862a"}},
     "source": "Check against: RHS Grow Your Own – pumpkins and winter squash; seed packet",
     "verified": false,
     "userAdded": false
@@ -655,6 +681,7 @@
         "Pick regularly while young and firm."
       ]
     },
+    "art": {"form":"climber","leaf":"lobed","foliage":"#5a9a3a","flower":"#f2d02a","bloom":"daisy","crop":{"kind":"fruit","colour":"#4f7a2a"}},
     "source": "Check against: RHS Grow Your Own – cucumbers; seed packet",
     "verified": false,
     "userAdded": false
@@ -694,6 +721,7 @@
         "Pick fruit as it colours. Once there are four to six trusses outside (more under glass), pinch out the top of the plant."
       ]
     },
+    "art": {"form":"upright","leaf":"lobed","foliage":"#4f7f35","flower":"#f2d02a","bloom":"daisy","crop":{"kind":"fruit","colour":"#d8352a"}},
     "source": "Check against: RHS Grow Your Own – tomatoes; seed packet",
     "verified": false,
     "userAdded": false
@@ -729,6 +757,7 @@
         "Ready when the silks turn brown and a squeezed kernel gives a milky juice."
       ]
     },
+    "art": {"form":"clump","leaf":"strap","foliage":"#6a9a3a","flower":"#d9c27a","bloom":"umbel","crop":{"kind":"head","colour":"#f0d060"}},
     "source": "Check against: RHS Grow Your Own – sweetcorn; seed packet",
     "verified": false,
     "userAdded": false
@@ -758,6 +787,7 @@
         "Feed with high-potash feed once flowers form; gently shake the plants indoors to help pollination."
       ]
     },
+    "art": {"form":"upright","leaf":"broad","foliage":"#3f7a35","flower":"#f4f1e6","bloom":"daisy","crop":{"kind":"fruit","colour":"#d0282a"}},
     "source": "Check against: RHS Grow Your Own – chilli peppers; seed packet",
     "verified": false,
     "userAdded": false
@@ -823,6 +853,7 @@
     "wintering": {
       "type": "annual"
     },
+    "art": {"form":"rosette","leaf":"lobed","foliage":"#4f8a3a"},
     "source": "Check against: RHS – salad rocket; seed packet",
     "verified": false,
     "userAdded": false
@@ -884,6 +915,7 @@
     "wintering": {
       "type": "annual"
     },
+    "art": {"form":"rosette","leaf":"broad","foliage":"#5a9a4a","crop":{"kind":"stem","colour":"#e8f0d8"}},
     "source": "Check against: RHS – pak choi; seed packet",
     "verified": false,
     "userAdded": false
@@ -950,6 +982,7 @@
     "wintering": {
       "type": "annual"
     },
+    "art": {"form":"rosette","leaf":"broad","foliage":"#7fa37a","crop":{"kind":"head","colour":"#b8d49a"}},
     "source": "Check against: RHS – kohlrabi; seed packet",
     "verified": false,
     "userAdded": false
@@ -1012,6 +1045,7 @@
       "type": "hardy",
       "notes": "Can stay in the ground over winter until needed."
     },
+    "art": {"form":"rosette","leaf":"lobed","foliage":"#6f9a7a","crop":{"kind":"root","colour":"#c9a05a"}},
     "source": "Check against: RHS – swedes; seed packet",
     "verified": false,
     "userAdded": false
@@ -1077,6 +1111,7 @@
       "type": "hardy",
       "notes": "Cover with straw in hard winters."
     },
+    "art": {"form":"rosette","leaf":"broad","foliage":"#4f8a3a","crop":{"kind":"root","colour":"#e2d6b6"}},
     "source": "Check against: RHS – celeriac; seed packet",
     "verified": false,
     "userAdded": false
@@ -1142,6 +1177,7 @@
     "wintering": {
       "type": "annual"
     },
+    "art": {"form":"rosette","leaf":"broad","foliage":"#7aa85a","crop":{"kind":"stem","colour":"#b8d890"}},
     "source": "Check against: RHS – celery; seed packet",
     "verified": false,
     "userAdded": false
@@ -1216,6 +1252,7 @@
         "Feed with high-potash feed once flowers form."
       ]
     },
+    "art": {"form":"upright","leaf":"broad","foliage":"#3f7a35","flower":"#f4f1e6","bloom":"daisy","crop":{"kind":"fruit","colour":"#c8302a"}},
     "source": "Check against: RHS – sweet peppers; seed packet",
     "verified": false,
     "userAdded": false
@@ -1286,6 +1323,7 @@
         "Feed with high-potash feed once flowers form; mist the flowers to help them set."
       ]
     },
+    "art": {"form":"upright","leaf":"broad","foliage":"#5a7a5a","flower":"#9a6ac0","bloom":"daisy","crop":{"kind":"fruit","colour":"#4a2a5a"}},
     "source": "Check against: RHS – aubergines; seed packet",
     "verified": false,
     "userAdded": false
@@ -1344,6 +1382,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"grass","leaf":"feathery","foliage":"#6a9a4a","crop":{"kind":"pod","colour":"#7a9a4a"}},
     "source": "Check against: RHS – asparagus; nursery label",
     "verified": false,
     "userAdded": false
@@ -1402,6 +1441,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"rosette","leaf":"lobed","foliage":"#9ab0a0","flower":"#8a5ac0","bloom":"big","crop":{"kind":"head","colour":"#6a8a6a"}},
     "source": "Check against: RHS – globe artichokes; nursery label",
     "verified": false,
     "userAdded": false
@@ -1454,6 +1494,7 @@
       "type": "hardy",
       "notes": "A winter salad: stands in the ground until spring."
     },
+    "art": {"form":"rosette","leaf":"round","foliage":"#5a8a3a"},
     "source": "Check against: RHS – corn salad; seed packet",
     "verified": false,
     "userAdded": false
@@ -1521,6 +1562,7 @@
     "wintering": {
       "type": "annual"
     },
+    "art": {"form":"rosette","leaf":"feathery","foliage":"#5a9a3a"},
     "source": "Check against: RHS – oriental leaves; seed packet",
     "verified": false,
     "userAdded": false

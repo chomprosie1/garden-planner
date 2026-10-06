@@ -60,6 +60,7 @@
     "wintering": {
       "type": "annual"
     },
+    "art": {"form":"mound","leaf":"broad","foliage":"#5aa03a","flower":"#f4f1e6","bloom":"spike"},
     "source": "Check against: RHS – basil; seed packet",
     "verified": false,
     "userAdded": false
@@ -139,6 +140,7 @@
       "type": "hardy",
       "notes": "A biennial: it runs to seed in its second summer, so sow again each year."
     },
+    "art": {"form":"mound","leaf":"feathery","foliage":"#3f7f35"},
     "source": "Check against: RHS – parsley; seed packet",
     "verified": false,
     "userAdded": false
@@ -200,6 +202,7 @@
     "wintering": {
       "type": "annual"
     },
+    "art": {"form":"mound","leaf":"feathery","foliage":"#5a9a3a","flower":"#f4f1e6","bloom":"umbel"},
     "source": "Check against: RHS – coriander; seed packet",
     "verified": false,
     "userAdded": false
@@ -277,6 +280,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"clump","leaf":"strap","foliage":"#4f8a4a","flower":"#b07ad0","bloom":"umbel"},
     "source": "Check against: RHS – chives; seed packet",
     "verified": false,
     "userAdded": false
@@ -339,6 +343,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"mound","leaf":"broad","foliage":"#4f8f4a","flower":"#c9a0e0","bloom":"spike"},
     "source": "Check against: RHS – mint; herb nursery label",
     "verified": false,
     "userAdded": false
@@ -406,6 +411,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"shrub","leaf":"needle","foliage":"#5a7a6a","flower":"#8aa0e0","bloom":"daisy"},
     "source": "Check against: RHS – rosemary; herb nursery label",
     "verified": false,
     "userAdded": false
@@ -469,6 +475,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"mound","leaf":"round","foliage":"#6a8a5a","flower":"#d8a0d0","bloom":"daisy"},
     "source": "Check against: RHS – thyme; seed packet",
     "verified": false,
     "userAdded": false
@@ -531,6 +538,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"shrub","leaf":"broad","foliage":"#8aa08a","flower":"#8a7ad0","bloom":"spike"},
     "source": "Check against: RHS – sage; seed packet",
     "verified": false,
     "userAdded": false
@@ -590,6 +598,7 @@
     "wintering": {
       "type": "annual"
     },
+    "art": {"form":"grass","leaf":"feathery","foliage":"#7aa04a","flower":"#e8d040","bloom":"umbel"},
     "source": "Check against: RHS – dill; seed packet",
     "verified": false,
     "userAdded": false
@@ -653,6 +662,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"mound","leaf":"round","foliage":"#5a8a4a","flower":"#d8a0d0","bloom":"daisy"},
     "source": "Check against: RHS – oregano and marjoram; seed packet",
     "verified": false,
     "userAdded": false
@@ -718,6 +728,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"grass","leaf":"feathery","foliage":"#7aa05a","flower":"#e8d040","bloom":"umbel"},
     "source": "Check against: RHS – herb fennel; seed packet",
     "verified": false,
     "userAdded": false
@@ -779,6 +790,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"mound","leaf":"broad","foliage":"#7ab04a","flower":"#f4f1e6","bloom":"daisy"},
     "source": "Check against: RHS – lemon balm; seed packet",
     "verified": false,
     "userAdded": false
@@ -843,6 +855,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"shrub","leaf":"broad","foliage":"#3f6a3a"},
     "source": "Check against: RHS – bay; nursery label",
     "verified": false,
     "userAdded": false
@@ -890,6 +903,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"mound","leaf":"needle","foliage":"#6a9a5a"},
     "source": "Check against: RHS – tarragon; herb nursery label",
     "verified": false,
     "userAdded": false

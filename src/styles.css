@@ -2866,3 +2866,63 @@ kbd {
     width: 100%;
   }
 }
+
+/* ---------- Illustrated plants (Stage 10) ---------- */
+.plant-icon {
+  display: block;
+  flex: none;
+}
+.pick .pick-name {
+  flex: 1;
+}
+.panel-head-plant {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.plant-card-head .plant-card-title {
+  flex: 1 1 12rem;
+}
+.plant-card-art {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  /* A patch of bed for the plant to sit in. */
+  background: radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--plan-bed-fill) 55%, var(--surface)) 0%, color-mix(in srgb, var(--plan-bed-fill) 80%, var(--surface)) 70%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--plan-bed-stroke) 40%, transparent);
+}
+@media (max-width: 700px) {
+  .plant-card-art {
+    width: 112px;
+    height: 112px;
+  }
+  .plant-card-art .plant-icon {
+    width: 96px !important;
+    height: 96px !important;
+  }
+}
+.art-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.art-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.art-preview .plant-icon {
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--plan-bed-fill) 70%, var(--surface));
+}
+.field-colour input[type='color'] {
+  width: 3.2rem;
+  height: 2.4rem;
+  padding: 0.15rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}

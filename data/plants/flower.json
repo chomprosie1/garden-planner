@@ -71,6 +71,7 @@
         "Pick flowers every few days; if they set seed, flowering stops."
       ]
     },
+    "art": {"form":"climber","leaf":"round","foliage":"#7aa06a","flower":"#d880b0","bloom":"daisy"},
     "source": "Check against: RHS – sweet peas; seed packet",
     "verified": false,
     "userAdded": false
@@ -135,6 +136,7 @@
     "wintering": {
       "type": "annual"
     },
+    "art": {"form":"upright","leaf":"broad","foliage":"#5a8a3a","flower":"#f2c020","bloom":"big"},
     "source": "Check against: RHS – sunflowers; seed packet",
     "verified": false,
     "userAdded": false
@@ -196,6 +198,7 @@
     "wintering": {
       "type": "annual"
     },
+    "art": {"form":"mound","leaf":"feathery","foliage":"#4f7f3a","flower":"#f08a1a","bloom":"daisy"},
     "source": "Check against: RHS – French marigolds; seed packet",
     "verified": false,
     "userAdded": false
@@ -248,6 +251,7 @@
     "wintering": {
       "type": "annual"
     },
+    "art": {"form":"mound","leaf":"broad","foliage":"#6a9a4a","flower":"#f2a020","bloom":"daisy"},
     "source": "Check against: RHS – calendula; seed packet",
     "verified": false,
     "userAdded": false
@@ -320,6 +324,7 @@
     "wintering": {
       "type": "annual"
     },
+    "art": {"form":"sprawl","leaf":"round","foliage":"#7aa85a","flower":"#e8501a","bloom":"cup"},
     "source": "Check against: RHS – nasturtiums; seed packet",
     "verified": false,
     "userAdded": false
@@ -379,6 +384,7 @@
     "wintering": {
       "type": "annual"
     },
+    "art": {"form":"upright","leaf":"feathery","foliage":"#6aa04a","flower":"#e070b0","bloom":"daisy"},
     "source": "Check against: RHS – cosmos; seed packet",
     "verified": false,
     "userAdded": false
@@ -440,6 +446,7 @@
     "wintering": {
       "type": "annual"
     },
+    "art": {"form":"upright","leaf":"broad","foliage":"#5a8a3a","flower":"#e8402a","bloom":"daisy"},
     "source": "Check against: RHS – zinnias; seed packet",
     "verified": false,
     "userAdded": false
@@ -498,6 +505,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"shrub","leaf":"lobed","foliage":"#3f6a35","flower":"#c8203a","bloom":"big"},
     "source": "Check against: RHS – dahlias; nursery label",
     "verified": false,
     "userAdded": false
@@ -548,6 +556,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"bulb","leaf":"broad","foliage":"#7a9a7a","flower":"#d8283a","bloom":"cup"},
     "source": "Check against: RHS – tulips; bulb supplier",
     "verified": false,
     "userAdded": false
@@ -593,6 +602,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"bulb","leaf":"strap","foliage":"#6a8a6a","flower":"#f2d02a","bloom":"cup"},
     "source": "Check against: RHS – daffodils; bulb supplier",
     "verified": false,
     "userAdded": false
@@ -637,6 +647,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"bulb","leaf":"strap","foliage":"#6a8a7a","flower":"#f8f8f4","bloom":"cup"},
     "source": "Check against: RHS – snowdrops; bulb supplier",
     "verified": false,
     "userAdded": false
@@ -686,6 +697,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"bulb","leaf":"strap","foliage":"#5a7a4a","flower":"#9a6ad0","bloom":"cup"},
     "source": "Check against: RHS – crocuses; bulb supplier",
     "verified": false,
     "userAdded": false
@@ -729,6 +741,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"bulb","leaf":"strap","foliage":"#7a9a7a","flower":"#a070d0","bloom":"umbel"},
     "source": "Check against: RHS – ornamental alliums; bulb supplier",
     "verified": false,
     "userAdded": false
@@ -782,6 +795,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"shrub","leaf":"needle","foliage":"#8aa090","flower":"#8a70c0","bloom":"spike"},
     "source": "Check against: RHS – lavender; nursery label",
     "verified": false,
     "userAdded": false
@@ -843,6 +857,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"shrub","leaf":"broad","foliage":"#3f6a35","flower":"#e0607a","bloom":"big"},
     "source": "Check against: RHS – roses; nursery label",
     "verified": false,
     "userAdded": false
@@ -894,6 +909,7 @@
       "type": "hardy",
       "notes": "A biennial: leaves the first year, flowers the second."
     },
+    "art": {"form":"rosette","leaf":"broad","foliage":"#5a7a4a","flower":"#c070b0","bloom":"spike"},
     "source": "Check against: RHS – foxgloves; seed packet",
     "verified": false,
     "userAdded": false
@@ -950,6 +966,7 @@
     "wintering": {
       "type": "hardy"
     },
+    "art": {"form":"upright","leaf":"lobed","foliage":"#5a8a4a","flower":"#e080a0","bloom":"daisy"},
     "source": "Check against: RHS – hollyhocks; seed packet",
     "verified": false,
     "userAdded": false
@@ -1015,6 +1032,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"mound","leaf":"lobed","foliage":"#5a8a5a","flower":"#7a6ad0","bloom":"spike"},
     "source": "Check against: RHS – lupins; seed packet",
     "verified": false,
     "userAdded": false
@@ -1064,6 +1082,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"upright","leaf":"lobed","foliage":"#4f7f4a","flower":"#4a6ad0","bloom":"spike"},
     "source": "Check against: RHS – delphiniums; nursery label",
     "verified": false,
     "userAdded": false
@@ -1112,6 +1131,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"mound","leaf":"lobed","foliage":"#4f7f3a","flower":"#9a7ae0","bloom":"daisy"},
     "source": "Check against: RHS – hardy geraniums; nursery label",
     "verified": false,
     "userAdded": false
@@ -1164,6 +1184,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"rosette","leaf":"lobed","foliage":"#3f5f3a","flower":"#e8d0e0","bloom":"cup"},
     "source": "Check against: RHS – hellebores; nursery label",
     "verified": false,
     "userAdded": false
@@ -1213,6 +1234,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"shrub","leaf":"lobed","foliage":"#4f7f45","flower":"#f090b0","bloom":"big"},
     "source": "Check against: RHS – peonies; nursery label",
     "verified": false,
     "userAdded": false
@@ -1264,6 +1286,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"mound","leaf":"needle","foliage":"#4f7f3a","flower":"#c080d0","bloom":"daisy"},
     "source": "Check against: RHS – asters; nursery label",
     "verified": false,
     "userAdded": false
@@ -1322,6 +1345,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"mound","leaf":"broad","foliage":"#4f7f3a","flower":"#d070a0","bloom":"daisy"},
     "source": "Check against: RHS – echinacea; seed packet",
     "verified": false,
     "userAdded": false
@@ -1373,6 +1397,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"mound","leaf":"broad","foliage":"#4f7f3a","flower":"#f2b020","bloom":"daisy"},
     "source": "Check against: RHS – rudbeckias; nursery label",
     "verified": false,
     "userAdded": false
@@ -1428,6 +1453,7 @@
     "lifePath": {
       "perennial": true
     },
+    "art": {"form":"grass","leaf":"needle","foliage":"#6a9a5a","flower":"#9a60c0","bloom":"umbel"},
     "source": "Check against: RHS – Verbena bonariensis; seed packet",
     "verified": false,
     "userAdded": false
@@ -1476,6 +1502,7 @@
     "wintering": {
       "type": "annual"
     },
+    "art": {"form":"grass","leaf":"needle","foliage":"#7a9a8a","flower":"#4a7ad0","bloom":"daisy"},
     "source": "Check against: RHS – cornflowers; seed packet",
     "verified": false,
     "userAdded": false
@@ -1524,6 +1551,7 @@
     "wintering": {
       "type": "annual"
     },
+    "art": {"form":"rosette","leaf":"feathery","foliage":"#6a9a5a","flower":"#e0281a","bloom":"cup"},
     "source": "Check against: RHS – poppies; seed packet",
     "verified": false,
     "userAdded": false
@@ -1572,6 +1600,7 @@
     "wintering": {
       "type": "annual"
     },
+    "art": {"form":"grass","leaf":"feathery","foliage":"#7aa06a","flower":"#7aa0e0","bloom":"daisy"},
     "source": "Check against: RHS – love-in-a-mist; seed packet",
     "verified": false,
     "userAdded": false
@@ -1622,6 +1651,7 @@
       "type": "hardy",
       "notes": "A biennial: plant out in autumn to flower the next year."
     },
+    "art": {"form":"mound","leaf":"strap","foliage":"#4f7f4a","flower":"#c8304a","bloom":"daisy"},
     "source": "Check against: RHS – sweet William; seed packet",
     "verified": false,
     "userAdded": false

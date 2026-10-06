@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { cropColour } from '../../canvas/render';
 import { featureLabel, KINDS, type Target } from '../../model/features';
 import type { Store } from '../../model/store';
 import type { FeatureKind, Garden, Plant, Point } from '../../model/types';
@@ -327,7 +326,6 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       focusFinding={focusFinding}
       setFocusFinding={setFocusFinding}
       onPickFinding={showFinding}
-      colourOf={(id) => cropColour(id, colourMode)}
       startPlanting={() => setTool('plant')}
       sunJune={sunOn && sunView === 'hours' && viewGrid ? viewGrid : (juneGrid ?? null)}
       zoomTo={(pts) => {

@@ -258,7 +258,7 @@ Brought forward from "parked": the plant life cycle, frost and Growing Degree Da
 | --- | --- | --- |
 | 8 | Life stages, without weather | Built |
 | 9 | Drawing upgrade: surfaces, curved edges, freehand shapes, sketch layer | Built |
-| 10 | Illustrated plants, drawn by code, changing with the stage | |
+| 10 | Illustrated plants, drawn by code, changing with the stage | Built |
 | 11 | Depth and texture: material textures, raised-bed edging, soft shadows, cached static layer | |
 | 12 | The Potting Shed, with shelves: trays, places, frost dates, plant out from a tray | |
 | 13 | Screens and cards polish | |
@@ -296,6 +296,18 @@ Tests: `tests/stages.test.ts` covers paths, moving on and back, failed sowings, 
 - **Not done:** the mock-up for you to choose from before building was skipped, as you asked for Stages 8 and 9 to be built straight away. Textures and colours are easy to tune if any look wrong on your phone.
 
 Tests: `tests/drawing.test.ts` covers curves, simplifying strokes, curved features, surfaces, sketches and the schema 5 round trip.
+
+### Stage 10 — Illustrated plants (as built)
+- **Drawn by code** (`src/art/plants.ts`) from a few traits in each plant's `art`: its shape from above (rosette, clump, mound, upright, climber, sprawl, grassy, bulb, bush or tree), its leaves (broad, lobed, feathery, long and thin, needles or round), and the colours of its leaves, flowers and crop. Flowers can be small flowers, one big bloom, cups, spikes or round heads; crops can be fruit, a head, pods, a root or stems. No images, so nothing to license.
+- **All 100 library plants** have a drawing (`art` in `data/plants/*.json`, unchecked like the rest of the data). Your own plants get one for their category until you choose, under "How it's drawn on the plan" on the plant form, with a live preview.
+- **Stages show:** planned plants, and seedlings still indoors, are drawn faintly at full size, so a plan still reads as a plan. Sowings outside show seeds, then seed leaves. Plants are planted out small (bought plants and bulbs bigger) and grow to full size; flowers show when flowering, and fruit, heads, pods or roots when harvesting.
+- **Every plant is a little different:** three variations per plant, each turned at random, fixed by its position so nothing changes between frames.
+- **Each look draws in its own way:** a soft wash in Cottage and Allotment, ink lines in Heritage, flat colour in Modern and fine outlines in Minimal, in light and dark.
+- **Detail by zoom:** a band of colour for a row or block too small to see apart, then a dot per plant, then the full drawing.
+- **Speed:** drawings are cached as small images (`src/art/sprites.ts`) at a few sizes, per stage, look and variation, so zooming reuses them. With about 2,000 plants on screen, drawing takes a few milliseconds more than the old circles; the cached static layer in Stage 11 is where the frame budget is met.
+- **Everywhere else too:** the same drawings on plant cards (a large one in a patch of soil), in the plant list, the plant picker, the planting panel and the list of beds and plants. They replace the old coloured dots, and `cropColour` is gone.
+
+Tests: `tests/art.test.ts` checks every plant has a valid drawing, how each stage is drawn, that drawings repeat exactly for the same plant, and that every plant draws without error at every stage in every style.
 
 ---
 

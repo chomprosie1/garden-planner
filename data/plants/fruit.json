@@ -70,6 +70,7 @@
         "Pick fruit when fully red, ideally in the warmth of the day."
       ]
     },
+    "art": {"form":"mound","leaf":"lobed","foliage":"#3f7a35","flower":"#f8f6ee","bloom":"daisy","crop":{"kind":"fruit","colour":"#d8282a"}},
     "source": "Check against: RHS – strawberries; nursery label",
     "verified": false,
     "userAdded": false
@@ -132,6 +133,7 @@
       "type": "hardy",
       "notes": "Summer kinds: cut fruited canes to the ground after picking. Autumn kinds: cut all canes down in late winter."
     },
+    "art": {"form":"shrub","leaf":"lobed","foliage":"#4f7f3a","flower":"#f4f1e6","bloom":"daisy","crop":{"kind":"fruit","colour":"#c8283a"}},
     "source": "Check against: RHS – raspberries; nursery label",
     "verified": false,
     "userAdded": false
@@ -186,6 +188,7 @@
       "type": "hardy",
       "notes": "Cut out the canes that fruited; tie in the new ones."
     },
+    "art": {"form":"shrub","leaf":"lobed","foliage":"#3f6a35","flower":"#f2d6e0","bloom":"daisy","crop":{"kind":"fruit","colour":"#2a1a2a"}},
     "source": "Check against: RHS – blackberries; nursery label",
     "verified": false,
     "userAdded": false
@@ -243,6 +246,7 @@
       "type": "hardy",
       "notes": "Prune in winter, removing about a third of the oldest stems."
     },
+    "art": {"form":"shrub","leaf":"lobed","foliage":"#4f7f3a","flower":"#c9d07a","bloom":"daisy","crop":{"kind":"fruit","colour":"#1f1a2a"}},
     "source": "Check against: RHS – blackcurrants; nursery label",
     "verified": false,
     "userAdded": false
@@ -301,6 +305,7 @@
       "type": "hardy",
       "notes": "Prune in winter to an open goblet shape."
     },
+    "art": {"form":"shrub","leaf":"lobed","foliage":"#5a8a3a","flower":"#c9d07a","bloom":"daisy","crop":{"kind":"fruit","colour":"#d0202a"}},
     "source": "Check against: RHS – redcurrants; nursery label",
     "verified": false,
     "userAdded": false
@@ -358,6 +363,7 @@
       "type": "hardy",
       "notes": "Prune in winter to an open goblet shape."
     },
+    "art": {"form":"shrub","leaf":"lobed","foliage":"#5a8a4a","flower":"#c9d07a","bloom":"daisy","crop":{"kind":"fruit","colour":"#a8c060"}},
     "source": "Check against: RHS – gooseberries; nursery label",
     "verified": false,
     "userAdded": false
@@ -412,6 +418,7 @@
     "wintering": {
       "type": "hardy"
     },
+    "art": {"form":"shrub","leaf":"round","foliage":"#4f7a5a","flower":"#f6f0f0","bloom":"cup","crop":{"kind":"fruit","colour":"#3a4a8a"}},
     "source": "Check against: RHS – blueberries; nursery label",
     "verified": false,
     "userAdded": false
@@ -466,6 +473,7 @@
       "perennial": true,
       "flowering": false
     },
+    "art": {"form":"rosette","leaf":"broad","foliage":"#3f7a35","crop":{"kind":"stem","colour":"#c8304a"}},
     "source": "Check against: RHS – rhubarb; nursery label",
     "verified": false,
     "userAdded": false
@@ -530,6 +538,7 @@
       "type": "hardy",
       "notes": "Prune in winter."
     },
+    "art": {"form":"tree","leaf":"broad","foliage":"#4f7f3a","flower":"#f6d6de","bloom":"daisy","crop":{"kind":"fruit","colour":"#c8382a"}},
     "source": "Check against: RHS – apples; nursery label",
     "verified": false,
     "userAdded": false
@@ -588,6 +597,7 @@
       "type": "hardy",
       "notes": "Prune in winter."
     },
+    "art": {"form":"tree","leaf":"broad","foliage":"#4f7f3a","flower":"#f8f6ee","bloom":"daisy","crop":{"kind":"fruit","colour":"#b8b040"}},
     "source": "Check against: RHS – pears; nursery label",
     "verified": false,
     "userAdded": false
@@ -644,6 +654,7 @@
     "wintering": {
       "type": "hardy"
     },
+    "art": {"form":"tree","leaf":"broad","foliage":"#4a6a3a","flower":"#f8f6ee","bloom":"daisy","crop":{"kind":"fruit","colour":"#5a2a5a"}},
     "source": "Check against: RHS – plums; nursery label",
     "verified": false,
     "userAdded": false
@@ -699,6 +710,7 @@
     "wintering": {
       "type": "hardy"
     },
+    "art": {"form":"tree","leaf":"broad","foliage":"#4f7f3a","flower":"#f8e6ee","bloom":"daisy","crop":{"kind":"fruit","colour":"#a01a2a"}},
     "source": "Check against: RHS – cherries; nursery label",
     "verified": false,
     "userAdded": false
@@ -742,6 +754,7 @@
       "type": "protect",
       "notes": "Fleece the young fruitlets on cold nights. Remove larger figs in autumn: they won’t ripen."
     },
+    "art": {"form":"tree","leaf":"lobed","foliage":"#4f7f3a","crop":{"kind":"fruit","colour":"#5a3a4a"}},
     "source": "Check against: RHS – figs; nursery label",
     "verified": false,
     "userAdded": false
@@ -800,6 +813,7 @@
       "type": "hardy",
       "notes": "Prune hard in early winter, while dormant."
     },
+    "art": {"form":"climber","leaf":"lobed","foliage":"#5a8a3a","crop":{"kind":"fruit","colour":"#4a2a5a"}},
     "source": "Check against: RHS – grapes; nursery label",
     "verified": false,
     "userAdded": false
