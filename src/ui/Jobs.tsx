@@ -76,6 +76,13 @@ function PlantJob({ job, done, onToggle }: { job: Job; done?: boolean; onToggle?
       <span class="visually-hidden"> {job.plant}</span>
     </button>
   );
+  // Sowing-list plants sown under cover can go straight into a tray in the shed.
+  const shed =
+    job.kind === 'sow-indoors' && !first && onToggle ? (
+      <button type="button" class="job-link link-btn small" onClick={() => app.sowInShed(job.plantId)}>
+        Sow in the shed
+      </button>
+    ) : null;
   if (!onToggle)
     return (
       <span class="job-line">
@@ -89,6 +96,7 @@ function PlantJob({ job, done, onToggle }: { job: Job; done?: boolean; onToggle?
         <input type="checkbox" checked={done} onChange={onToggle} />
         {text}
       </label>
+      {shed}
       {link}
     </span>
   );

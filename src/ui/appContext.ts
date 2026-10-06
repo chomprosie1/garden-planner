@@ -16,9 +16,13 @@ export interface AppActions {
   showOnPlan(target: Target): void;
   /** The plan, with the Plant tool ready to place this plant. */
   plantIt(id: string): void;
+  /** The plan, with the Plant tool ready to plant out this tray from the Potting Shed. */
+  plantOutTray(trayId: string): void;
+  /** The Potting Shed, ready to sow this plant (or any plant). */
+  sowInShed(plantId?: string): void;
 }
 
 const noop = () => undefined;
-export const AppContext = createContext<AppActions>({ notify: noop, go: noop, openPlant: noop, showOnPlan: noop, plantIt: noop });
+export const AppContext = createContext<AppActions>({ notify: noop, go: noop, openPlant: noop, showOnPlan: noop, plantIt: noop, plantOutTray: noop, sowInShed: noop });
 
 export const useApp = () => useContext(AppContext);

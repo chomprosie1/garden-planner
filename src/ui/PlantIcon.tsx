@@ -8,7 +8,7 @@ import type { Plant } from '../model/types';
 import { LOOK_IDS, type LookId, type Mode } from '../theme/looks';
 
 /** The look and mode on the page now, following changes to them. */
-function useThemeAttrs(): { look: LookId; mode: Mode } {
+export function useThemeAttrs(): { look: LookId; mode: Mode } {
   const read = () => {
     const d = document.documentElement.dataset;
     const look = (LOOK_IDS as readonly string[]).includes(d.look ?? '') ? (d.look as LookId) : 'cottage';

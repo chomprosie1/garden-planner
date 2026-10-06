@@ -4,6 +4,7 @@
 import {
   FEATURE_KINDS,
   BLOOMS,
+  CONTAINERS,
   CROP_KINDS,
   EDGINGS,
   LEAF_SHAPES,
@@ -11,6 +12,7 @@ import {
   MATERIALS,
   PLANT_CATEGORIES,
   PLANT_FORMS,
+  SHED_PLACE_KINDS,
   SKETCH_COLOURS,
   SKETCH_KINDS,
   SOWING_METHODS,
@@ -117,6 +119,31 @@ export function validateGarden(g: unknown): string[] {
       });
   }
 
+  const monthDay = (v: unknown) => v === undefined || (isStr(v) && /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(v));
+  need(monthDay(g.lastFrost) && monthDay(g.firstFrost), 'frost dates must be MM-DD.');
+  const placeIds = new Set<string>();
+  if (g.shedPlaces !== undefined) {
+    if (!Array.isArray(g.shedPlaces)) errors.push('shedPlaces must be a list.');
+    else
+      g.shedPlaces.forEach((pl, i) => {
+        const ok = isObject(pl) && isStr(pl.id) && oneOf(SHED_PLACE_KINDS, pl.kind) && isStr(pl.name) && Number.isInteger(pl.shelves) && (pl.shelves as number) >= 1 && Number.isInteger(pl.slots) && (pl.slots as number) >= 1;
+        need(ok, `shedPlaces[${i}] needs an id, a kind, a name, and shelves and slots of 1 or more.`);
+        if (ok) placeIds.add(pl.id as string);
+      });
+  }
+  if (g.trays !== undefined) {
+    if (!Array.isArray(g.trays)) errors.push('trays must be a list.');
+    else
+      g.trays.forEach((t, i) => {
+        const at = `trays[${i}]`;
+        if (!isObject(t)) return errors.push(`${at} is not an object.`);
+        need(isStr(t.id) && isStr(t.plantId) && oneOf(CONTAINERS, t.container) && Number.isInteger(t.count) && (t.count as number) >= 1 && isStr(t.sownOn), `${at} needs an id, a plant, a container, a count and a sowing date.`);
+        need(t.stage === undefined || t.stage === 'germinated' || t.stage === 'hardening', `${at}.stage must be germinated or hardening.`);
+        need(t.stageDates === undefined || (isObject(t.stageDates) && Object.entries(t.stageDates).every(([k, v]) => (k === 'germinated' || k === 'hardening') && isStr(v))), `${at}.stageDates must give a date for each stage.`);
+        need(isStr(t.placeId) && placeIds.has(t.placeId) && Number.isInteger(t.shelf) && Number.isInteger(t.slot) && (t.shelf as number) >= 0 && (t.slot as number) >= 0, `${at} must be on a shelf of a place in the shed.`);
+      });
+  }
+
   if (!Array.isArray(g.notes)) errors.push('notes must be a list.');
   else
     g.notes.forEach((n, i) => {
@@ -190,6 +217,11 @@ export function validatePlant(p: unknown): string[] {
       'art needs a form, a leaf shape and #rrggbb colours.',
     );
   }
+  if (p.germinationDays !== undefined)
+    need(
+      Array.isArray(p.germinationDays) && p.germinationDays.length === 2 && p.germinationDays.every((d) => Number.isInteger(d) && d >= 1) && (p.germinationDays[0] as number) <= (p.germinationDays[1] as number),
+      'germinationDays must be [fewest, most] days.',
+    );
   if (p.image !== undefined)
     need(
       isObject(p.image) && isStr(p.image.url) && isStr(p.image.credit) && isStr(p.image.licence) && isStr(p.image.sourceUrl),

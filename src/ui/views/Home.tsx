@@ -11,6 +11,7 @@ import { BackupCard, GardenCard, JournalCard, SaveIndicator, SetupCard } from '.
 import { Icon } from '../icons';
 import { doneOf, JobList, jobsDoneCount, PlantJobs } from '../Jobs';
 import { PhotoCredit, SeasonPhoto } from '../SeasonPhoto';
+import { ReadyCard } from '../ShedCards';
 
 interface Props {
   store: Store;
@@ -123,6 +124,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
 
       <div class="home-body">
         <SetupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} />
+        {plants && <ReadyCard store={store} garden={garden} plantOf={plantOf} />}
         <section class="card">
           <div class="card-head">
             <h2>{layout === 'packet' ? 'Jobs on the plot' : layout === 'framed' ? 'Tasks for the month' : 'This month'}</h2>

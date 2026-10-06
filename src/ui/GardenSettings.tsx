@@ -5,6 +5,7 @@ import { todayIso } from '../model/ids';
 import type { PrefsStore } from '../theme/prefs';
 import { downloadFile, parseFileText } from '../storage/file';
 import { Icon } from './icons';
+import { estimateFrost, frostDates, inYear, short } from '../lifecycle/shed';
 
 interface Props {
   store: Store;
@@ -93,6 +94,7 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
             between rows. Spacing checks and the number of plants in a row or block follow your choice.
           </p>
         </fieldset>
+        <FrostDates store={store} garden={garden} />
       </section>
 
       <section class="card" aria-labelledby="backup">
@@ -157,5 +159,76 @@ export function UseLocationButton({ store, onMessage }: { store: Store; onMessag
     <button type="button" class="btn" onClick={locate}>
       <Icon name="locate" size={18} /> Use this device's location
     </button>
+  );
+}
+
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+/** A day and month, "MM-DD", as a month list and a day number. */
+function MonthDayField({ label, value, onChange }: { label: string; value: string; onChange: (md: string) => void }) {
+  const [m, d] = value.split('-').map(Number) as [number, number];
+  const days = new Date(Date.UTC(2027, m, 0)).getUTCDate();
+  const set = (month: number, day: number) => onChange(`${String(month).padStart(2, '0')}-${String(Math.min(day, new Date(Date.UTC(2027, month, 0)).getUTCDate())).padStart(2, '0')}`);
+  return (
+    <fieldset class="month-day">
+      <legend>{label}</legend>
+      <div class="field-row">
+        <label class="field">
+          <span class="visually-hidden">Day</span>
+          <input type="number" min={1} max={days} value={d} onChange={(e) => set(m, Math.max(1, Number((e.currentTarget as HTMLInputElement).value) || 1))} />
+        </label>
+        <label class="field">
+          <span class="visually-hidden">Month</span>
+          <select value={m} onChange={(e) => set(Number((e.currentTarget as HTMLSelectElement).value), d)}>
+            {MONTH_NAMES.map((name, i) => (
+              <option key={name} value={i + 1}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+    </fieldset>
+  );
+}
+
+/** Average last and first frosts: estimated from the latitude until you set your own. They time hardening off and winter jobs. */
+function FrostDates({ store, garden }: { store: Store; garden: Garden }) {
+  const f = frostDates(garden);
+  const est = estimateFrost(garden.latitude);
+  const set = (patch: Partial<Pick<Garden, 'lastFrost' | 'firstFrost'>>) => store.apply(updateGarden((g) => ({ ...g, lastFrost: g.lastFrost ?? f.lastFrost, firstFrost: g.firstFrost ?? f.firstFrost, ...patch })));
+  return (
+    <div class="frost-dates">
+      <h3>Frosts</h3>
+      <div class="field-row">
+        <MonthDayField label="Last frost in spring" value={f.lastFrost} onChange={(lastFrost) => set({ lastFrost })} />
+        <MonthDayField label="First frost in autumn" value={f.firstFrost} onChange={(firstFrost) => set({ firstFrost })} />
+      </div>
+      <p class="muted small">
+        {f.estimated
+          ? 'Estimated from your location. Local weather records or neighbours will know better: frost pockets and coastal gardens can be weeks either side.'
+          : 'Your own dates.'}{' '}
+        They decide when the Potting Shed suggests hardening off and planting out tender plants, and when to protect plants for winter.
+        {!f.estimated && (
+          <>
+            {' '}
+            <button
+              type="button"
+              class="link-btn"
+              onClick={() =>
+                store.apply(
+                  updateGarden((g) => {
+                    const { lastFrost: _l, firstFrost: _f, ...rest } = g;
+                    return rest;
+                  }),
+                )
+              }
+            >
+              Use the estimate ({short(inYear(est.lastFrost, 2027))} and {short(inYear(est.firstFrost, 2027))})
+            </button>
+          </>
+        )}
+      </p>
+    </div>
   );
 }

@@ -2,6 +2,7 @@ import { monthRanges } from '../library/library';
 import type { Light, Plant, Sowing } from '../model/types';
 import { formatLength } from '../canvas/viewport';
 import { PlantIcon } from './PlantIcon';
+import { useApp } from './appContext';
 
 export const LIGHT_LABEL: Record<Light, string> = { 'full-sun': 'Full sun', 'part-shade': 'Part shade', shade: 'Shade' };
 export const METHOD_LABEL: Record<Sowing['method'], string> = {
@@ -64,6 +65,7 @@ interface Props {
 }
 
 export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPlant, sowing, where, onShow, onCheck, month }: Props) {
+  const app = useApp();
   const c = p.conditions;
   const s = p.size;
   const neighbours = (ids: string[]) =>
@@ -112,6 +114,11 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
         {sowing && (
           <button type="button" class="btn" aria-pressed={sowing.listed} onClick={sowing.toggle}>
             {sowing.listed ? 'On your sowing list ✓' : 'Add to sowing list'}
+          </button>
+        )}
+        {p.sowing?.some((s) => s.method !== 'direct') && (
+          <button type="button" class="btn" onClick={() => app.sowInShed(p.id)}>
+            Sow in the shed
           </button>
         )}
         {onCopy && (

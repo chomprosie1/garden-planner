@@ -6,7 +6,7 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 
 | Idea | From | Size | Notes |
 | --- | --- | --- | --- |
-| Potting Shed shelves you can stack seedlings on | You, 6 Oct 2026 | L | Planned as Stage 12 |
+| Potting Shed shelves you can stack seedlings on | You, 6 Oct 2026 | L | Built in Stage 12 |
 | Illustrated plants that change with the stage | You, 6 Oct 2026 | L | Built in Stage 10 |
 | Grass, gravel and free drawing on the plan | You, 6 Oct 2026 | M | Built in Stage 9 |
 | 3D or angled view of the garden | You, 6 Oct 2026 | L | Planned as Stage 17 |
@@ -17,3 +17,6 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Plants dropping their leaves in winter, and dying back after flowering | Build, Stage 10 | S | Drawings follow the stage you set, not the month |
 | Tall plants and trees drawn over the plants beneath them, by height | Build, Stage 10 | S | For now, plantings are drawn in the order they were added |
 | Soft shadows that follow the real sun at the time of day | Build, Stage 11 | S | For now they fall to the bottom right; the Sun view shows the real ones |
+| Germination times for each plant | Build, Stage 12 | S | For now every plant uses one to three weeks; `germinationDays` is ready for the data |
+| Potting on: move seedlings from a module tray into pots, splitting a tray | Build, Stage 12 | S | For now: change the tray's container and count |
+| Cold frames on the plan sharing their place in the shed | Build, Stage 12 | S | Comes with Stage 14's cold-frame feature |

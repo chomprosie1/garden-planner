@@ -7,6 +7,7 @@ import type { Prefs, View } from '../../theme/prefs';
 import { Icon } from '../icons';
 import { doneOf, JobList, PlantJobs } from '../Jobs';
 import { SeasonPhoto } from '../SeasonPhoto';
+import { ShedSummary } from '../ShedCards';
 import { usePlants } from '../usePlants';
 
 interface Props {
@@ -73,6 +74,8 @@ export function Month({ store, garden, userPlants, prefs, go, now = new Date() }
         )}
         {hasPlants && <p class="muted small">Harvest and winter jobs start once a planting has a sowing date. Ticking its sowing job sets the date, or you can set it on the plan.</p>}
       </section>
+
+      {plants && <ShedSummary garden={garden} plantOf={plantOf} />}
 
       <section class="card">
         <h2>Around the garden</h2>

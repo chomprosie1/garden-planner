@@ -10,6 +10,8 @@ import { fit, pan, toScreen, toWorld, zoomAt, type Viewport } from '../canvas/vi
 import { bounds, distance } from '../geometry/polygon';
 import { pointAtLength } from '../geometry/snap';
 import { simplify, simplifyClosed } from '../geometry/simplify';
+import { plantOutTray } from '../lifecycle/shed';
+import { todayIso } from '../model/ids';
 import { addSketch, deleteSketches, makeSketch, sketchesAt } from '../model/sketches';
 import {
   addFeature,
@@ -57,6 +59,8 @@ export interface Placing {
   layout: Layout;
   /** Already in the ground, rather than planned. */
   growing?: boolean;
+  /** Planting out this tray from the Potting Shed: the planting takes its sowing date and stages. */
+  trayId?: string;
 }
 
 /** Drag-and-drop type for a plant dragged from a list onto the plan. */
@@ -535,6 +539,14 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const n = layout === 'row' && end ? rowCount(start, end, sp) : layout === 'block' && end ? blockGrid(start, end, sp).cols * blockGrid(start, end, sp).rows : 1;
     if (n > MAX_PLANTS) return say(`That's ${n.toLocaleString()} plants, which is more than one planting can hold. Make it smaller.`);
     const pl = makePlanting(plant, bed.id, layout, start, end, !!placing.growing);
+    if (placing.trayId) {
+      const trayId = placing.trayId;
+      commit((g) => plantOutTray(g, trayId, pl, todayIso()));
+      A.current.notify(`Planted out ${n === 1 ? `a ${plant.commonName.toLowerCase()}` : `${n} ${plant.commonName.toLowerCase()} plants`} from the shed into ${featureLabel(bed)}.`, { undo: true });
+      say(null);
+      p.setTool('select');
+      return;
+    }
     commit((g) => addPlanting(g, pl));
     say(`Planted ${n === 1 ? `a ${plant.commonName.toLowerCase()}` : `${n} ${plant.commonName.toLowerCase()} plants`} in ${featureLabel(bed)}.`);
   };

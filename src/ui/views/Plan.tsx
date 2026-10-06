@@ -25,7 +25,7 @@ import { spacingStyle } from '../../planting/place';
 import { useSunHours } from '../useSunHours';
 
 /** Something another screen asked the plan to do. */
-export type PlanIntent = { kind: 'plant'; id: string } | { kind: 'select'; target: Target };
+export type PlanIntent = { kind: 'plant'; id: string } | { kind: 'select'; target: Target } | { kind: 'tray'; trayId: string };
 
 interface Props {
   store: Store;
@@ -99,6 +99,9 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const [plantId, setPlantId] = useState<string | null>(null);
   const [layout, setLayout] = useState<Layout>('single');
   const [growingNow, setGrowingNow] = useState(false);
+  /** A tray from the Potting Shed being planted out. */
+  const [trayId, setTrayId] = useState<string | null>(null);
+  const tray = trayId ? garden.trays?.find((t) => t.id === trayId) ?? null : null;
   const [pickerOpen, setPickerOpen] = useState(false);
   const [focusFinding, setFocusFinding] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -192,16 +195,26 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const tapHours = sunOn && sunView === 'hours' && viewGrid && tapPoint ? hoursAt(viewGrid, tapPoint) : null;
   const warnings = findings.filter((f) => f.level === 'warn').length;
   const placing: Placing | null = useMemo(
-    () => (plantId && plants ? { plant: plantOf(plantId), layout, growing: growingNow } : null),
-    [plantId, layout, growingNow, plants, plantOf],
+    () => (plantId && plants ? { plant: plantOf(plantId), layout, growing: growingNow, ...(tray && tray.plantId === plantId ? { trayId: tray.id } : {}) } : null),
+    [plantId, layout, growingNow, plants, plantOf, tray],
   );
 
   // Another screen asked for something: a plant to place, or a thing to show.
   useEffect(() => {
     if (!intent || !plants) return;
     if (intent.kind === 'plant') {
+      setTrayId(null);
       setPlantId(intent.id);
       setTool('plant');
+    } else if (intent.kind === 'tray') {
+      const t = garden.trays?.find((x) => x.id === intent.trayId);
+      if (t) {
+        setTrayId(t.id);
+        setPlantId(t.plantId);
+        setLayout(t.count > 1 ? 'row' : 'single');
+        setTool('plant');
+        setMessage(`Planting out ${t.count} ${plantOf(t.plantId).commonName.toLowerCase()} ${t.count === 1 ? 'plant' : 'plants'} from the Potting Shed: ${t.count > 1 ? 'click both ends of the row, or choose Block' : 'click where it goes'}.`);
+      }
     } else {
       const t = intent.target;
       const pts =
@@ -229,6 +242,11 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       setSheetOpen(false);
     }
   };
+
+  // A tray is only being planted out while the Plant tool is on, and until it's planted.
+  useEffect(() => {
+    if (trayId && (tool !== 'plant' || !tray)) setTrayId(null);
+  }, [tool, tray, trayId]);
 
   // S switches to sun and shade and back.
   useEffect(() => {

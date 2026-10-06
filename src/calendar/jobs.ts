@@ -5,6 +5,7 @@
 // Once a planting has a sowing date, it gets harvest, winter and tidy jobs.
 // When a planting has probably reached flowering, a "check progress" job asks you to confirm it.
 
+import { addDays, frostDates } from '../lifecycle/shed';
 import { currentStage, pathFor, setStage, STAGE_LABEL, stageTips, suggestedStage } from '../lifecycle/stages';
 import { featureLabel } from '../model/features';
 import { STAGES, type Garden, type Plant, type Planting, type Stage } from '../model/types';
@@ -42,7 +43,6 @@ export interface Job {
   stage?: Stage;
 }
 
-const MONTH_FIRST_FROST = 10;
 
 const ym = (year: number, month: number) => `${year}-${String(month).padStart(2, '0')}`;
 
@@ -101,6 +101,9 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     jobs.push(job);
   };
 
+  // Protect tender plants in the month before the first frost is due (about ten days ahead).
+  const protectMonth = Number(addDays(`2027-${frostDates(g).firstFrost}`, -10).slice(5, 7));
+
   // What's on the plan, grouped by plant and bed so three rows of carrots are one job.
   const groups = new Map<string, Planting[]>();
   for (const pl of g.plantings.filter(isActive)) {
@@ -147,7 +150,7 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
       }
     }
     const winter = plant.wintering;
-    if (winter?.type === 'protect' && month === MONTH_FIRST_FROST) add('protect', plant, where, featureId, ids(growing), winter.notes ?? 'Bring pots under cover or fleece the plants before the first frosts.', featureId);
+    if (winter?.type === 'protect' && month === protectMonth) add('protect', plant, where, featureId, ids(growing), winter.notes ?? 'Bring pots under cover or fleece the plants before the first frosts.', featureId);
     if (winter?.type === 'lift-and-store' && runEnds(harvest).includes(month)) add('lift', plant, where, featureId, ids(growing), winter.notes, featureId);
     if (winter?.type === 'annual' && runEnds(harvest).some((m) => m % 12 === month - 1 && month >= 9)) add('tidy', plant, where, featureId, ids(growing), 'Pull up finished plants and compost them, then mark the planting as harvested.', featureId);
   }

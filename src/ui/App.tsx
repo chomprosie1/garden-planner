@@ -18,6 +18,7 @@ import { Notes } from './views/Notes';
 import { Plan, type PlanIntent } from './views/Plan';
 import { Plants } from './views/Plants';
 import { Settings } from './views/Settings';
+import { Shed } from './views/Shed';
 
 const NAV: { view: View; label: string; icon: IconName }[] = [
   { view: 'home', label: 'Home', icon: 'home' },
@@ -27,7 +28,7 @@ const NAV: { view: View; label: string; icon: IconName }[] = [
 ];
 
 /** Pages that sit under a tab rather than being one: they highlight their parent. */
-const PARENT: Partial<Record<View, View>> = { notes: 'home', check: 'plants' };
+const PARENT: Partial<Record<View, View>> = { notes: 'home', check: 'plants', shed: 'month' };
 
 const isTyping = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
@@ -49,9 +50,10 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   const [plantCard, setPlantCard] = useState<string | null>(null);
   const [checkFrom, setCheckFrom] = useState<string | null>(null);
   const [shortcuts, setShortcuts] = useState(false);
+  const [shedSow, setShedSow] = useState<string | null>(null);
 
   const navigate = (v: View) => {
-    if ((v === 'settings' || v === 'check' || v === 'notes') && view !== v) setPrevious(view);
+    if ((v === 'settings' || v === 'check' || v === 'notes' || v === 'shed') && view !== v) setPrevious(view);
     go(v);
   };
 
@@ -74,6 +76,14 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
       plantIt(id) {
         setPlanIntent({ kind: 'plant', id });
         navigate('plan');
+      },
+      plantOutTray(trayId) {
+        setPlanIntent({ kind: 'tray', trayId });
+        navigate('plan');
+      },
+      sowInShed(plantId) {
+        setShedSow(plantId ?? '');
+        navigate('shed');
       },
     }),
     [store, view],
@@ -147,6 +157,8 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
         );
       case 'notes':
         return <Notes store={store} garden={garden} userPlants={userPlants} back={back} />;
+      case 'shed':
+        return <Shed store={store} garden={garden} userPlants={userPlants} back={back} sowPlantId={shedSow} clearSow={() => setShedSow(null)} />;
       case 'check':
         return <CheckPlants store={store} userPlants={userPlants} startAt={checkFrom} back={back} />;
       case 'settings':

@@ -260,7 +260,7 @@ Brought forward from "parked": the plant life cycle, frost and Growing Degree Da
 | 9 | Drawing upgrade: surfaces, curved edges, freehand shapes, sketch layer | Built |
 | 10 | Illustrated plants, drawn by code, changing with the stage | Built |
 | 11 | Depth and texture: material textures, raised-bed edging, soft shadows, cached static layer | Built |
-| 12 | The Potting Shed, with shelves: trays, places, frost dates, plant out from a tray | |
+| 12 | The Potting Shed, with shelves: trays, places, frost dates, plant out from a tray | Built |
 | 13 | Screens and cards polish | |
 | 14 | Greenhouses and cold frames as microclimates | |
 | 15 | Growing Degree Days from UK climate averages (capped at 2 weeks) | |
@@ -317,6 +317,18 @@ Tests: `tests/art.test.ts` checks every plant has a valid drawing, how each stag
 - **Speed:** the plan is now drawn in two layers. What's on the ground (`renderStatic`) is drawn once into an image with a margin round the screen; panning moves the image, and wheel or pinch zooming stretches it until you stop, then it's redrawn sharp. Only the selection, drafts, crosshair, scale bar and compass (`renderLive`) are drawn every frame. In a garden of about 2,000 plants, zooming went from about 37 ms a frame to the screen's own 16.7 ms.
 
 Tests: `tests/depth.test.ts` covers edging and the shadows setting.
+
+### Stage 12 — The Potting Shed (as built)
+- **Where:** a page under Month (`#shed`), reached from a Potting Shed card on Month, from "Sow in the shed" on plant cards and on sowing-list jobs, and from a "Ready for the garden" card on Home.
+- **Places:** a windowsill, a propagator and shed shelves are set up when you first sow; you can add more shelves, windowsills, propagators, greenhouse benches and cold frames, rename them, change how many shelves and trays they hold, and remove empty ones. Each is drawn: planks behind the shelves, sky through the window behind the sill, a clear domed lid on the propagator, a glazed wooden frame for the cold frame. On a phone they're tabs, one at a time.
+- **Trays:** sow a plant in a module tray, seed tray, 9 cm or 1 litre pots, or root trainers, with how many and where. Each tray is drawn from above with its seedlings at their stage: bare compost, seed leaves, then young plants. Drag a tray to another space (dropping on a tray swaps them), or pick it and tap an empty space; "Move to" in its details does the same from the keyboard.
+- **Stages and what's next:** Sown → Up → Hardening off → Planted out. Each tray says what's next: when seedlings are due (from `germinationDays`, or one to three weeks), when it's late enough to worry, when to start hardening off, and when it's ready. "Sowing failed" removes the tray with a note in the journal.
+- **Frost dates:** the last spring frost and first autumn frost (`garden.lastFrost`, `firstFrost`, "MM-DD") are estimated from the latitude, from about 20 April on the south coast to the end of May in the far north, and can be set in Settings. Tender and half-hardy plants start hardening off two weeks before the last frost and are ready after a week of it, and not before the last frost; hardy plants are ready after a week of hardening off. The "protect for winter" job now comes in the month before your first frost, not always October.
+- **Planting out:** "Plant out" opens the plan with the Plant tool ready for that plant; placing it (a row by default) turns the tray into a planting in the bed with its sowing date and stages, marked planted out today, and the tray leaves the shed. One undo puts it back.
+- **Sown for the plan:** plantings already on the plan that were sown indoors and aren't out yet are listed in the shed too, with the same "what's next" and buttons to move them on.
+- **Model:** schema 6 adds `shedPlaces`, `trays`, `lastFrost` and `firstFrost` to the garden and `germinationDays` to plants, all optional.
+
+Tests: `tests/shed.test.ts` covers dates and frost estimates, places and trays (filling, swapping, resizing), stages and what's next, planting out, the frost-timed winter job, and the schema 6 round trip.
 
 ---
 

@@ -3,7 +3,7 @@
 
 import { LOOK_IDS, type LookId } from './looks';
 
-export const VIEWS = ['home', 'plan', 'plants', 'month', 'notes', 'settings', 'check'] as const;
+export const VIEWS = ['home', 'plan', 'plants', 'month', 'notes', 'settings', 'check', 'shed'] as const;
 export type View = (typeof VIEWS)[number];
 
 export interface Prefs {

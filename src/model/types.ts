@@ -22,6 +22,47 @@ export interface Garden {
   trace?: Trace;
   /** Pen marks, arrows and words drawn over the plan: ideas, not measurements. */
   sketches?: Sketch[];
+  /** Where seedlings are raised before they go in the garden: shelves, windowsills, a propagator, a cold frame. */
+  shedPlaces?: ShedPlace[];
+  /** Seeds sown in trays and pots, not yet planted out. They have no place on the plan until they are. */
+  trays?: Tray[];
+  /** Average last spring frost and first autumn frost, "MM-DD". Absent: estimated from the latitude. */
+  lastFrost?: string;
+  firstFrost?: string;
+}
+
+export const SHED_PLACE_KINDS = ['shelves', 'windowsill', 'propagator', 'greenhouse-bench', 'cold-frame'] as const;
+export type ShedPlaceKind = (typeof SHED_PLACE_KINDS)[number];
+
+export interface ShedPlace {
+  id: string;
+  kind: ShedPlaceKind;
+  name: string;
+  shelves: number;
+  /** Trays or pots each shelf holds. */
+  slots: number;
+}
+
+export const CONTAINERS = ['module-tray', 'seed-tray', 'pot-9cm', 'pot-1l', 'root-trainer'] as const;
+export type Container = (typeof CONTAINERS)[number];
+
+/** Stages a tray goes through before it's planted out. */
+export type TrayStage = 'sown' | 'germinated' | 'hardening';
+
+export interface Tray {
+  id: string;
+  plantId: string;
+  container: Container;
+  /** Seedlings (or seeds sown) in it. */
+  count: number;
+  sownOn: string; // ISO date
+  /** Absent: just sown. */
+  stage?: Exclude<TrayStage, 'sown'>;
+  stageDates?: Partial<Record<Exclude<TrayStage, 'sown'>, string>>;
+  placeId: string;
+  /** Shelf and slot, from 0, top shelf first. */
+  shelf: number;
+  slot: number;
 }
 
 export const SKETCH_KINDS = ['pen', 'highlighter', 'arrow', 'text'] as const;
@@ -189,6 +230,8 @@ export interface Plant {
   stageTips?: Partial<Record<Stage, string[]>>;
   /** How it's drawn from above on the plan and on its card. Falls back to a drawing for its category. */
   art?: PlantArt;
+  /** Days from sowing until seedlings usually show, fewest and most. Falls back to one to three weeks. */
+  germinationDays?: [number, number];
   image?: { url: string; credit: string; licence: string; sourceUrl: string }; // PD, CC0, CC BY or CC BY-SA only
   source?: string;
   lastChecked?: string; // ISO date
