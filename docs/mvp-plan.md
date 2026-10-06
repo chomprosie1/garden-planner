@@ -45,6 +45,7 @@ The MVP is a small whole-garden planner: lay out the garden, fill it with plants
 - Simple dated notes on any bed or plant
 - Sun and shade as the first environment layer: shadows by date and time, and sun hours per patch
 - Save in the browser, plus export and import as a JSON file
+- A choice of five looks, each in light and dark, with an openly licensed seasonal photo for every month (see `docs/look-and-feel-plan.md`)
 
 **Out, parked for later**
 

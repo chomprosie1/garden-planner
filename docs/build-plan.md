@@ -8,7 +8,9 @@ Decisions settled:
 - **Draw on desktop, use on phone.** Drawing and editing are built for mouse and keyboard. Viewing, plant cards, notes and the job list must work at phone width with touch pan and zoom.
 - **Plant data: I draft, you verify.** Entries ship marked `verified: false` until you check them.
 
-Pace assumed: part-time evenings, about 6–8 h a week. Start Tue 6 Oct 2026, build done around week 9 (early Dec), gate 3 on **31 Mar 2027**.
+Pace assumed: part-time evenings, about 6–8 h a week. Start Tue 6 Oct 2026, build done around week 10–11 (mid-December), gate 3 on **31 Mar 2027**.
+
+> **Since 6 Oct 2026:** Stage 1.5 (look and feel) was added after Stage 1, so Stages 2 to 6 run about 1.5 weeks later than the week numbers below. Gate 3 is unchanged.
 
 ---
 
@@ -48,6 +50,21 @@ Tasks
 
 Tests: geometry unit tests; the export → import round trip is lossless; migrating a v0 fixture works.
 **Done when:** the Pages URL loads on your phone, an edited garden name survives a reload, and CI is green.
+
+## Stage 1.5 — Look and feel (capped at 1.5 weeks)
+**Goal:** the app feels like a garden book, not a form, before more screens are built on top of it. Full design: [look-and-feel-plan.md](look-and-feel-plan.md). Mock-ups: https://claude.ai/artifact/HZ2596eLZtiqVTwoUtrX3B
+
+- **Five looks** (Cottage, Heritage, Allotment, Modern, Minimal), each with light and dark, as tokens in `src/theme/looks.ts`. That file also holds a plan palette and plan style per look, for Stage 2's renderer.
+- **Fonts:** self-hosted (`@fontsource`, all Open Font License), loaded only for the look in use (`src/theme/fonts.ts`).
+- **Preferences** per device (`src/theme/prefs.ts`): look, light/dark/auto, photos full/subtle/off, photo month, text size, Focus. Applied by `src/theme/apply.ts`. An inline script in `index.html` paints the right background before load.
+- **Navigation:** Home, Plan, Plants, Month, Notes, plus Settings. A rail on desktop, a tab bar on phones, kept in the URL hash.
+- **Home** in five layouts (hero, framed print, seed packet, sheet, band), with the month's line and general UK jobs (`src/content/seasons.ts`). Ticks are saved in `garden.jobsDone`.
+- **Plan workspace:** the photo in the margins, a Focus toggle (F key), and an empty sheet ready for Stage 2.
+- **Appearance settings** with live preview cards; a **first-run** flow (welcome, choose a look, name and locate the garden); a "Welcome to November" note when the month changes.
+- **Photos:** `tools/add-photo.ts` reads the licence and author from Wikimedia Commons, refuses anything outside PD, CC0, CC BY and CC BY-SA, and writes AVIF and WebP at 640, 1280 and 1920 px plus a manifest entry. A Credits section lists every photo and font.
+- **Tests:** WCAG AA contrast for every look in both modes (`tests/contrast.test.ts`), plus licence, credit and size budget for every photo (`tests/photos.test.ts`).
+
+**Done when:** all five looks work on your phone in light and dark, every month has a chosen and credited photo, and all tests pass.
 
 ## Stage 2 — Garden canvas and layout (weeks 2–3)
 **Goal:** your real garden drawn to scale, within about 5% of tape measurements.

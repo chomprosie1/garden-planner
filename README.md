@@ -28,7 +28,11 @@ Your garden is saved in your browser, never on a server. Use **Export garden** f
 | `src/model/` | The garden and plant types, the store with undo, migrations and validation |
 | `src/storage/` | Browser autosave, export and import, IndexedDB for images |
 | `src/geometry/` | Pure maths in millimetres: areas, snapping, hulls, fence outlines |
-| `src/ui/` | Preact panels and forms |
+| `src/theme/` | The five looks (light and dark), fonts, and per-device preferences |
+| `src/content/` | Seasonal lines and jobs for each month, and the photo manifest |
+| `src/ui/` | Preact screens: Home, Plan, Month, Settings, first run |
+| `public/seasons/` | Seasonal photos, added only with `npm run add-photo` |
+| `tools/` | `add-photo.ts`: fetches a Commons photo, checks its licence, makes the sizes |
 | `data/plants/` | The starter plant library, one JSON file per category |
 | `tests/` | Vitest unit tests and fixtures |
 

@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content="A to-scale garden planner: layout, plants, jobs by month, and sun and shade." />
     <title>Garden Planner</title>
+    <script>
+      // Paint the chosen look's background before the app loads, so dark mode never flashes white.
+      try {
+        var p = JSON.parse(localStorage.getItem('garden-planner:paint') || 'null');
+        if (p && /^#[0-9a-f]{6}$/i.test(p.bg)) {
+          document.documentElement.style.background = p.bg;
+          document.documentElement.style.colorScheme = p.mode === 'dark' ? 'dark' : 'light';
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="app"></div>
