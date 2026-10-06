@@ -189,6 +189,45 @@ Tests: job fixtures for a month for 5 known plants.
 
 **Done when:** one fence's shadow matches a photo, which needs a clear day, so take it whenever one comes. The heat map agrees for the main patches.
 
+## Usability round (U1–U6), after Stage 6
+The full review, against Nielsen's heuristics and aimed at members of the public, is in the approved plan. What changed:
+- **U1, quick wins:**
+  - Deleting a bed, a planting or a note, or clearing a bed, shows a message with **Undo**. Deleting a bed says what goes with it.
+  - One set of words across the app: "Mark as cleared", "Clear this bed", "things on the plan", "Checked plants only", "Hide photos" (H) in place of Focus, and "Single · Row · Block".
+  - Links between screens:
+    - **Jobs → plan:** each job's "Show" opens its planting on the plan; sowing-list jobs get "About", which opens the plant card.
+    - **Planting → plant card:** "About this plant".
+    - **Plant card → plan:** "Growing in …".
+  - Plant cards have their buttons at the top.
+  - On a phone, tap the sun-hours map to read a spot.
+- **U2, Plan modes:**
+  - The plan is split into **Layout · Planting · Sun**, remembered per device. A new garden starts in Layout until it has a boundary.
+  - Each mode shows only its own tools and panels. In Planting, beds can't be moved and plants can; in Layout it's the other way round. Sun is for looking only.
+  - Phones get one bar per mode, with nothing scrolling sideways. A selection's sheet replaces the bar, so there are never more than two bars.
+  - Shapes drawn on a phone report "Bed added" rather than opening their details over the tools.
+  - Double-tap a bed in Planting, or use "Zoom to bed", to zoom in on it.
+- **U3, planting status:**
+  - **Planned · Sown · Growing · Cleared** (schema v3 adds `status: 'growing'`).
+  - "Already in the ground" when placing plants; a status chip with the next step.
+  - Growing plants skip sowing jobs. Ticking "plant out" marks plants growing.
+- **U4, Home:**
+  - Four tabs. Notes became the **Garden journal**, on Home and as a page of its own.
+  - A **getting-started** list worked out from the garden (boundary, bed, location, north, plants, backup).
+  - A live mini plan with the warnings count.
+  - A backup reminder when there's something worth keeping and no backup in 30 days.
+  - "Saved on this device", or a warning if the browser won't save.
+- **U5, checking the plants:**
+  - A one-at-a-time **Check the plants** page (Settings, or a plant card's draft notice): Looks right / Needs a change / Skip.
+  - Checks are kept per device (`garden-planner:checks`) and count as verified everywhere.
+- **U6, accessibility:**
+  - "?" shows the keyboard shortcuts.
+  - Plantings are reachable from the keyboard in the Planting overview's "Beds and plants" list.
+  - The plan canvas can take keyboard focus and shows it.
+  - Play and animations respect reduced motion.
+  - Sun hours have contour lines at 3 h (dashed) and 6 h (solid), so the bands don't rely on colour alone.
+  - Panels are split into collapsible sections that are remembered.
+  - The warning colour was darkened to pass 3:1 on every look's paper and lawn; this is tested.
+
 ## Stage 7 — Real use and hardening (week 9 → 31 Mar 2027) → Gate 3
 - Use it to plan the 2027 sowing. Keep a `docs/mismatch-log.md` of every time the app was wrong or awkward, and fix the worst each fortnight.
 - Export a backup monthly. Keep each export so an old garden can be checked against the migrations.

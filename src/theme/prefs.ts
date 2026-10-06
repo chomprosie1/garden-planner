@@ -3,7 +3,7 @@
 
 import { LOOK_IDS, type LookId } from './looks';
 
-export const VIEWS = ['home', 'plan', 'plants', 'month', 'notes', 'settings'] as const;
+export const VIEWS = ['home', 'plan', 'plants', 'month', 'notes', 'settings', 'check'] as const;
 export type View = (typeof VIEWS)[number];
 
 export interface Prefs {
@@ -18,7 +18,18 @@ export interface Prefs {
   lastView: View;
   /** Last month the app was opened in, for the "Welcome to …" note. */
   seenMonth: number | null;
+  /** Which part of the plan you were last using. null = pick one for you. */
+  planMode: PlanMode | null;
+  /** When a backup file was last downloaded (ISO date). */
+  lastBackup: string | null;
+  /** You've confirmed the north arrow, even if it still points up. */
+  northChecked: boolean;
+  /** The getting-started list on Home has been put away. */
+  setupHidden: boolean;
 }
+
+export const PLAN_MODES = ['layout', 'planting', 'sun'] as const;
+export type PlanMode = (typeof PLAN_MODES)[number];
 
 const KEY = 'garden-planner:prefs';
 
@@ -36,6 +47,10 @@ export function defaultPrefs(): Prefs {
     onboarded: false,
     lastView: 'plan',
     seenMonth: null,
+    planMode: null,
+    lastBackup: null,
+    northChecked: false,
+    setupHidden: false,
   };
 }
 
@@ -62,6 +77,10 @@ export function sanitisePrefs(raw: unknown): Prefs {
       typeof r.seenMonth === 'number' && Number.isInteger(r.seenMonth) && r.seenMonth >= 1 && r.seenMonth <= 12
         ? r.seenMonth
         : null,
+    planMode: typeof r.planMode === 'string' && (PLAN_MODES as readonly string[]).includes(r.planMode) ? (r.planMode as PlanMode) : null,
+    lastBackup: typeof r.lastBackup === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.lastBackup) ? r.lastBackup : null,
+    northChecked: r.northChecked === true,
+    setupHidden: r.setupHidden === true,
   };
 }
 

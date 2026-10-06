@@ -72,6 +72,8 @@ export interface Planting {
   endPoint?: Point; // far end of a row, or opposite corner of a block
   count?: number;
   sownOn?: string; // ISO date
+  /** "growing": already in the ground, e.g. bought as plants. Otherwise the status follows the dates. */
+  status?: 'growing';
   removedOn?: string; // ISO date; kept for history
 }
 

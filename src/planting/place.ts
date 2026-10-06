@@ -113,8 +113,9 @@ export const activePlantings = (g: Garden) => g.plantings.filter(isActive);
 
 // ---------- Edits. Each returns a new Garden, so each is one undo step. ----------
 
-export function makePlanting(plant: Plant, featureId: string, layout: Layout, start: Point, end?: Point): Planting {
+export function makePlanting(plant: Plant, featureId: string, layout: Layout, start: Point, end?: Point, growing = false): Planting {
   const pl: Planting = { id: newId('p'), plantId: plant.id, featureId, x: Math.round(start[0]), y: Math.round(start[1]), layout };
+  if (growing) pl.status = 'growing';
   if (layout !== 'single' && end) pl.endPoint = [Math.round(end[0]), Math.round(end[1])];
   if (layout === 'row') pl.count = rowCount(start, end ?? start, plant.size.spacingMm);
   return pl;
@@ -180,4 +181,33 @@ export const clearBed = (g: Garden, featureId: string, date: string): Garden =>
 export function setRowCount(g: Garden, id: string, count: number): Garden {
   const n = Math.max(1, Math.min(MAX_PLANTS, Math.round(count)));
   return updatePlanting(g, id, { count: n });
+}
+
+// ---------- Status: planned, sown, growing, cleared ----------
+
+export type Status = 'planned' | 'sown' | 'growing' | 'cleared';
+
+export const STATUS_LABEL: Record<Status, string> = { planned: 'Planned', sown: 'Sown', growing: 'Growing', cleared: 'Cleared' };
+
+/** Where a planting is in its life. A sowing date makes it sown; "growing" is set for plants already in the ground. */
+export function plantingStatus(pl: Planting): Status {
+  if (pl.removedOn) return 'cleared';
+  if (pl.status === 'growing') return 'growing';
+  if (pl.sownOn) return 'sown';
+  return 'planned';
+}
+
+/** Sets plantings to planned, sown (on a date) or growing. Clearing has its own edit, harvestPlantings. */
+export function setStatus(g: Garden, ids: string[], status: 'planned' | 'sown' | 'growing', date: string): Garden {
+  const set = new Set(ids);
+  return {
+    ...g,
+    plantings: g.plantings.map((p) => {
+      if (!set.has(p.id)) return p;
+      const { status: _s, sownOn: _d, ...rest } = p;
+      if (status === 'planned') return rest;
+      if (status === 'sown') return { ...rest, sownOn: p.sownOn ?? date };
+      return { ...rest, status: 'growing', ...(p.sownOn ? { sownOn: p.sownOn } : {}) };
+    }),
+  };
 }

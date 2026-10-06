@@ -1,4 +1,4 @@
-// Phone controls for the plan: a tool tray, a drawing bar that works with the
+// Phone controls for the plan: a bar for each part of the plan, a drawing bar that works with the
 // crosshair, and a bottom sheet for details.
 
 import { useState } from 'preact/hooks';
@@ -7,17 +7,8 @@ import { KINDS } from '../model/features';
 import type { FeatureKind } from '../model/types';
 import type { ComponentChildren } from 'preact';
 import type { Layout } from '../planting/place';
+import type { PlanMode } from '../theme/prefs';
 import { geometryForTool, type CanvasApi, type Placing, type Tool } from './PlanCanvas';
-
-const TRAY: { tool: Tool; label: string }[] = [
-  { tool: 'plant', label: 'Plant' },
-  { tool: 'boundary', label: 'Boundary' },
-  { tool: 'bed', label: 'Bed' },
-  { tool: 'path', label: 'Path' },
-  { tool: 'fence', label: 'Fence' },
-  { tool: 'tree', label: 'Tree' },
-];
-const MORE: FeatureKind[] = ['wall', 'hedge', 'building', 'greenhouse', 'compost', 'water', 'other'];
 
 /** Sizes offered when placing a rectangle by size. */
 const DEFAULT_SIZE: Partial<Record<Tool, [number, number]>> = {
@@ -30,13 +21,57 @@ const DEFAULT_SIZE: Partial<Record<Tool, [number, number]>> = {
   other: [1000, 1000],
 };
 
-export function PhoneToolTray({ setTool, gardenOpen, toggleGarden }: { setTool: (t: Tool) => void; gardenOpen: boolean; toggleGarden: () => void }) {
+const LAYOUT_TRAY: { tool: Tool; label: string }[] = [
+  { tool: 'boundary', label: 'Boundary' },
+  { tool: 'bed', label: 'Bed' },
+  { tool: 'tree', label: 'Tree' },
+];
+const MORE: FeatureKind[] = ['path', 'fence', 'wall', 'hedge', 'building', 'greenhouse', 'compost', 'water', 'other'];
+
+interface ModeBarProps {
+  mode: PlanMode;
+  setTool: (t: Tool) => void;
+  warnings: number;
+  /** Opens the sheet for the whole garden: layers, checks or sun, depending on the mode. */
+  openDetails: () => void;
+  empty: boolean;
+}
+
+/** The phone's one bar for the current part of the plan. Everything fits; nothing scrolls sideways. */
+export function PhoneModeBar({ mode, setTool, warnings, openDetails, empty }: ModeBarProps) {
+  if (mode === 'planting')
+    return (
+      <div class="phone-tray" role="toolbar" aria-label="Planting">
+        <button type="button" class="tool" onClick={openDetails}>
+          Beds and checks
+        </button>
+        {warnings > 0 && (
+          <button type="button" class="tool warn-count" onClick={openDetails}>
+            <span aria-hidden="true">!</span> {warnings}
+            <span class="visually-hidden"> {warnings === 1 ? 'thing' : 'things'} to check</span>
+          </button>
+        )}
+        <button type="button" class="tool tool-primary" onClick={() => setTool('plant')}>
+          Plant
+        </button>
+      </div>
+    );
+  if (mode === 'sun')
+    return (
+      <div class="phone-tray" role="toolbar" aria-label="Sun">
+        <button type="button" class="tool" onClick={openDetails}>
+          Sun in each bed
+        </button>
+      </div>
+    );
   return (
     <div class="phone-tray" role="toolbar" aria-label="Drawing tools">
-      <button type="button" class="tool" aria-pressed={gardenOpen} onClick={toggleGarden}>
-        Garden
-      </button>
-      {TRAY.map((t) => (
+      {!empty && (
+        <button type="button" class="tool" onClick={openDetails}>
+          Garden
+        </button>
+      )}
+      {LAYOUT_TRAY.map((t) => (
         <button key={t.tool} type="button" class="tool" onClick={() => setTool(t.tool)}>
           {t.label}
         </button>
@@ -238,7 +273,7 @@ interface PlantBarProps {
 }
 
 const LAYOUT_NAMES: [Layout, string][] = [
-  ['single', 'One'],
+  ['single', 'Single'],
   ['row', 'Row'],
   ['block', 'Block'],
 ];

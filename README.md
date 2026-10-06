@@ -19,7 +19,7 @@ Every push to `main` runs the tests and deploys to Pages.
 
 ## Your data
 
-Your garden is saved in your browser, never on a server. Use **Export garden** for a backup file, and **Import** to restore it or move it to another device.
+Your garden is saved in your browser, never on a server. Use **Download a backup** (Settings, or the reminder on Home) for a backup file, and **Restore from a backup** to get it back or move it to another device. Plant checks are kept per device.
 
 ## Layout
 
@@ -30,7 +30,11 @@ Your garden is saved in your browser, never on a server. Use **Export garden** f
 | `src/geometry/` | Pure maths in millimetres: areas, snapping, hulls, fence outlines |
 | `src/theme/` | The five looks (light and dark), fonts, and per-device preferences |
 | `src/content/` | Seasonal lines and jobs for each month, and the photo manifest |
-| `src/ui/` | Preact screens: Home, Plan, Month, Settings, first run |
+| `src/ui/` | Preact screens: Home (with the journal), Plan (Layout, Planting and Sun), Plants, Month, Settings, plant checks, first run |
+| `src/planting/` | Plantings, their positions and status, and the spacing, neighbour and light rules |
+| `src/calendar/` | Each month's jobs for your own plants |
+| `src/sun/` | Sun position (UK time), shadows and sun hours |
+| `src/library/` | Loading the plant library, your own plants and your plant checks |
 | `public/seasons/` | Seasonal photos, added only with `npm run add-photo` |
 | `tools/` | `add-photo.ts`: fetches a Commons photo, checks its licence, makes the sizes |
 | `data/plants/` | The starter plant library, one JSON file per category |

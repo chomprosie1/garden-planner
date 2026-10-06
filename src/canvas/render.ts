@@ -77,6 +77,8 @@ export interface Scene {
   sunGrid?: SunGrid | null;
   /** Where the sun is, marked on the compass. */
   sun?: Sun | null;
+  /** A small picture of the plan: no grid, scale bar or compass. */
+  minimal?: boolean;
 }
 
 /** A planting being placed: the plant, how it's laid out, and the points so far. */
@@ -93,7 +95,7 @@ const CROPS: Record<Mode, string[]> = {
   light: ['#5f8f3e', '#2f7a64', '#b07a1f', '#a8473c', '#7a5aa6', '#3f7aa6', '#8a8f2a', '#b5576f'],
   dark: ['#9ccc6e', '#6fcfae', '#e8b75a', '#f08c7c', '#bfa2ee', '#86bdea', '#cfd36a', '#f29ab0'],
 };
-export const WARN_COLOUR: Record<Mode, string> = { light: '#c2410c', dark: '#ffa45c' };
+export const WARN_COLOUR: Record<Mode, string> = { light: '#9a3412', dark: '#ffa45c' };
 const GOOD: Record<Mode, string> = { light: '#2f7d32', dark: '#7bd88f' };
 
 export function cropColour(plantId: string, mode: Mode): string {
@@ -223,7 +225,7 @@ export function render(ctx: CanvasRenderingContext2D, s: Scene) {
   // Ground outside the garden, and the grid.
   ctx.fillStyle = P.paper;
   ctx.fillRect(0, 0, s.width, s.height);
-  drawGrid(ctx, s);
+  if (!s.minimal) drawGrid(ctx, s);
 
   // The garden itself.
   if (g.boundary.length >= 3) {
@@ -263,6 +265,7 @@ export function render(ctx: CanvasRenderingContext2D, s: Scene) {
   if (s.plantDraft) drawPlantDraft(ctx, s, s.plantDraft);
   if (s.crosshair) drawCrosshair(ctx, s);
 
+  if (s.minimal) return;
   drawScaleBar(ctx, s);
   drawNorth(ctx, s);
 }
@@ -776,6 +779,22 @@ function drawHeatMap(ctx: CanvasRenderingContext2D, s: Scene, grid: SunGrid) {
   ctx.globalAlpha = 0.72;
   ctx.imageSmoothingEnabled = true;
   ctx.drawImage(heatImage(grid), x, y, grid.cols * grid.step * v.scale, grid.rows * grid.step * v.scale);
+  ctx.globalAlpha = 1;
+  // Lines where the light bands change, so they don't rely on colour alone: dashed at 3 h, solid at 6 h.
+  for (const [threshold, dash] of [[3, [5, 4]], [6, []]] as const) {
+    ctx.beginPath();
+    for (const [a, b2] of contours(grid, threshold)) {
+      const [ax, ay] = toScreen(v, a);
+      const [bx, by] = toScreen(v, b2);
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(bx, by);
+    }
+    ctx.setLineDash([...dash]);
+    ctx.strokeStyle = s.style.plan.label;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
   ctx.restore();
 }
 
@@ -953,4 +972,40 @@ function drawPlantDraft(ctx: CanvasRenderingContext2D, s: Scene, d: PlantDraft) 
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
   ctx.fillText(text, x + 22, y - 22.5);
+}
+
+
+/** Which edges of a square the contour crosses, for each pattern of corners above the threshold (bottom-left, bottom-right, top-right, top-left). */
+const MARCH: [number, number][][] = [
+  [], [[3, 0]], [[0, 1]], [[3, 1]], [[1, 2]], [[3, 0], [1, 2]], [[0, 2]], [[3, 2]],
+  [[3, 2]], [[0, 2]], [[0, 1], [3, 2]], [[1, 2]], [[3, 1]], [[0, 1]], [[3, 0]], [],
+];
+
+/** Smooth contour lines at a number of hours, by marching squares over the cell centres. */
+export function contours(grid: SunGrid, threshold: number): [Point, Point][] {
+  const out: [Point, Point][] = [];
+  const { cols, rows, step, x0, y0, hours, inside } = grid;
+  for (let r = 0; r + 1 < rows; r++) {
+    for (let c = 0; c + 1 < cols; c++) {
+      const idx = [r * cols + c, r * cols + c + 1, (r + 1) * cols + c + 1, (r + 1) * cols + c];
+      if (idx.some((i) => !inside[i])) continue;
+      const val = idx.map((i) => hours[i]!);
+      const kind = val.reduce((k, h, n) => k | ((h >= threshold ? 1 : 0) << n), 0);
+      const segs = MARCH[kind]!;
+      if (!segs.length) continue;
+      const cx = x0 + (c + 0.5) * step;
+      const cy = y0 + (r + 0.5) * step;
+      const corner: Point[] = [[cx, cy], [cx + step, cy], [cx + step, cy + step], [cx, cy + step]];
+      // Where on an edge the value crosses the threshold, by straight-line interpolation.
+      const at = (edge: number): Point => {
+        const [i, j] = [[0, 1], [1, 2], [3, 2], [0, 3]][edge]!;
+        const t = (threshold - val[i!]!) / (val[j!]! - val[i!]! || 1);
+        const a = corner[i!]!;
+        const b = corner[j!]!;
+        return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+      };
+      for (const [e1, e2] of segs) out.push([at(e1), at(e2)]);
+    }
+  }
+  return out;
 }

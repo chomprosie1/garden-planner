@@ -5,7 +5,8 @@ import type { Garden, Plant } from '../../model/types';
 import { jobsFor } from '../../calendar/jobs';
 import { usePlants } from '../usePlants';
 import { LOOKS } from '../../theme/looks';
-import type { Prefs, View } from '../../theme/prefs';
+import type { Prefs, PrefsStore, View } from '../../theme/prefs';
+import { BackupCard, GardenCard, JournalCard, SaveIndicator, SetupCard } from '../HomeCards';
 import { Icon } from '../icons';
 import { doneOf, JobList, jobsDoneCount, PlantJobs } from '../Jobs';
 import { PhotoCredit, SeasonPhoto } from '../SeasonPhoto';
@@ -15,11 +16,12 @@ interface Props {
   garden: Garden;
   userPlants: Plant[];
   prefs: Prefs;
+  prefsStore: PrefsStore;
   go: (v: View) => void;
   now?: Date;
 }
 
-export function Home({ store, garden, userPlants, prefs, go, now = new Date() }: Props) {
+export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = new Date() }: Props) {
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
   const season = seasonFor(month);
@@ -32,7 +34,6 @@ export function Home({ store, garden, userPlants, prefs, go, now = new Date() }:
   const mine = plants ? jobsFor(garden, plantOf, month, year) : [];
   const total = mine.length || seasonFor(month).jobs.length;
   const doneCount = mine.length ? doneOf(garden, mine) : jobsDoneCount(garden, month, year);
-  const latestNote = [...garden.notes].sort((a, b) => b.date.localeCompare(a.date))[0];
 
   const settingsButton = (
     <button type="button" class="icon-btn home-settings" aria-label="Settings" onClick={() => go('settings')}>
@@ -120,6 +121,7 @@ export function Home({ store, garden, userPlants, prefs, go, now = new Date() }:
       )}
 
       <div class="home-body">
+        <SetupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} />
         <section class="card">
           <div class="card-head">
             <h2>{layout === 'packet' ? 'Jobs on the plot' : layout === 'framed' ? 'Tasks for the month' : 'This month'}</h2>
@@ -147,31 +149,10 @@ export function Home({ store, garden, userPlants, prefs, go, now = new Date() }:
           </p>
         </section>
 
-        <a
-          href="#/plan"
-          class="card card-link"
-          onClick={(e) => {
-            e.preventDefault();
-            go('plan');
-          }}
-        >
-          <span class="mini-plan" aria-hidden="true" />
-          <span class="card-link-text">
-            <strong>Your garden</strong>
-            <span class="muted">
-              {garden.features.length > 0 ? `${garden.features.length} features · open the plan` : 'Open the plan and start drawing'}
-            </span>
-          </span>
-          <Icon name="chevron" />
-        </a>
-
-        {latestNote && (
-          <section class="card">
-            <h2>Latest note</h2>
-            <p class="muted small">{latestNote.date}</p>
-            <p>{latestNote.text}</p>
-          </section>
-        )}
+        <GardenCard garden={garden} prefs={prefs} plants={plants} plantOf={plantOf} />
+        <JournalCard store={store} garden={garden} plantOf={plantOf} />
+        <BackupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} now={now} />
+        <SaveIndicator />
       </div>
     </div>
   );

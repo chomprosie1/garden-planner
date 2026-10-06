@@ -177,3 +177,16 @@ describe('sun hours', () => {
     expect(grid.hours.some((h) => h > 0)).toBe(true);
   });
 });
+
+describe('sun band outlines', () => {
+  it('traces a smooth line where the hours cross a threshold', async () => {
+    const { contours } = await import('../src/canvas/render');
+    // A 4 × 2 grid of 1 m cells: 0, 2, 4, 6 h from west to east. The 3 h line runs north–south at x = 2 m.
+    const hours = new Float32Array([0, 2, 4, 6, 0, 2, 4, 6]);
+    const grid = { x0: 0, y0: 0, step: 1000, cols: 4, rows: 2, hours, inside: new Uint8Array(8).fill(1), month: 6, maxHours: 16 };
+    const segs = contours(grid, 3);
+    expect(segs.length).toBe(1);
+    for (const p of segs[0]!) expect(p[0]).toBeCloseTo(2000);
+    expect(contours(grid, 10)).toEqual([]);
+  });
+});

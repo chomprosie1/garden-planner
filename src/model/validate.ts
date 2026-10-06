@@ -81,6 +81,7 @@ export function validateGarden(g: unknown): string[] {
       need(p.count === undefined || (Number.isInteger(p.count) && (p.count as number) >= 1), `${at}.count must be a whole number, 1 or more.`);
       need(p.sownOn === undefined || isStr(p.sownOn), `${at}.sownOn must be a date.`);
       need(p.removedOn === undefined || isStr(p.removedOn), `${at}.removedOn must be a date.`);
+      need(p.status === undefined || p.status === 'growing', `${at}.status can only be "growing".`);
     });
 
   if (!Array.isArray(g.notes)) errors.push('notes must be a list.');

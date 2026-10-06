@@ -1,0 +1,265 @@
+// The cards on Home besides the month's jobs: getting started, the garden at a
+// glance, the journal, and keeping your garden safe.
+
+import { useEffect, useRef, useState } from 'preact/hooks';
+import { planStyle, render } from '../canvas/render';
+import { fit } from '../canvas/viewport';
+import { gardenBounds } from '../model/features';
+import { addNote, makeNote, newestFirst } from '../model/notes';
+import { updateGarden, type Store } from '../model/store';
+import type { Garden, Plant } from '../model/types';
+import { checkGarden } from '../planting/rules';
+import { saveStatus, type SaveStatus } from '../storage/local';
+import { resolveMode } from '../theme/apply';
+import type { Prefs, PrefsStore } from '../theme/prefs';
+import { useApp } from './appContext';
+import { backUp, UseLocationButton } from './GardenSettings';
+import { Icon } from './icons';
+import { NoteForm, NoteList, noteAbout } from './NotesSection';
+import { backupDue, daysSinceBackup, setupSteps, type StepId } from './setup';
+
+// ---------- Saved ----------
+
+/** "Saved on this device", or a warning when the browser won't keep it. */
+export function SaveIndicator() {
+  const [status, setStatus] = useState<SaveStatus>(saveStatus.get());
+  useEffect(() => saveStatus.subscribe(setStatus), []);
+  if (status === 'failed')
+    return (
+      <p class="save-status save-failed" role="alert">
+        Not saved: this browser isn’t keeping your changes. Download a backup to keep them.
+      </p>
+    );
+  return (
+    <p class="save-status" aria-live="polite">
+      <Icon name="check" size={14} /> {status === 'saving' ? 'Saving…' : 'Saved on this device'}
+    </p>
+  );
+}
+
+// ---------- Getting started ----------
+
+export function SetupCard({ store, garden, prefs, prefsStore }: { store: Store; garden: Garden; prefs: Prefs; prefsStore: PrefsStore }) {
+  const app = useApp();
+  const steps = setupSteps(garden, prefs);
+  const done = steps.filter((s) => s.done).length;
+  if (prefs.setupHidden || done === steps.length) return null;
+  const next = steps.find((s) => !s.done)!;
+  const toPlan = (mode: 'layout' | 'planting') => {
+    prefsStore.set({ planMode: mode });
+    app.go('plan');
+  };
+  const action: Record<StepId, preact.JSX.Element> = {
+    boundary: (
+      <button type="button" class="btn btn-primary" onClick={() => toPlan('layout')}>
+        Draw the boundary
+      </button>
+    ),
+    bed: (
+      <button type="button" class="btn btn-primary" onClick={() => toPlan('layout')}>
+        Add a bed
+      </button>
+    ),
+    location: <UseLocationButton store={store} onMessage={(m) => m && app.notify(m.lines.join(' '))} />,
+    north: (
+      <>
+        <button type="button" class="btn btn-primary" onClick={() => toPlan('layout')}>
+          Turn the north arrow
+        </button>
+        <button type="button" class="btn" onClick={() => prefsStore.set({ northChecked: true })}>
+          North is the top of my plan
+        </button>
+      </>
+    ),
+    plants: (
+      <button type="button" class="btn btn-primary" onClick={() => toPlan('planting')}>
+        Start planting
+      </button>
+    ),
+    backup: (
+      <button type="button" class="btn btn-primary" onClick={() => backUp(store, prefsStore)}>
+        Download a backup
+      </button>
+    ),
+  };
+  return (
+    <section class="card setup-card" aria-labelledby="setup-title">
+      <div class="card-head">
+        <h2 id="setup-title">Getting started</h2>
+        <span class="muted small">
+          {done} of {steps.length} done
+        </span>
+      </div>
+      <div class="progress" role="progressbar" aria-valuemin={0} aria-valuemax={steps.length} aria-valuenow={done} aria-label="Getting started">
+        <div style={{ width: `${(done / steps.length) * 100}%` }} />
+      </div>
+      <ol class="setup-steps">
+        {steps.map((s) => (
+          <li key={s.id} class={s.done ? 'done' : s === next ? 'next' : ''}>
+            <span class="setup-mark" aria-hidden="true">
+              {s.done ? '✓' : ''}
+            </span>
+            <div>
+              <p class="setup-title">
+                {s.title}
+                {s.done && <span class="visually-hidden"> (done)</span>}
+              </p>
+              {s === next && (
+                <>
+                  <p class="muted small">{s.why}</p>
+                  <div class="button-row">{action[s.id]}</div>
+                </>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+      <button type="button" class="link-btn small" onClick={() => prefsStore.set({ setupHidden: true })}>
+        Hide this list
+      </button>
+    </section>
+  );
+}
+
+// ---------- The garden at a glance ----------
+
+/** A small, still drawing of the plan, with plants and a warnings count. Tap to open the plan. */
+export function GardenCard({ garden, prefs, plants, plantOf }: { garden: Garden; prefs: Prefs; plants: Plant[] | null; plantOf: (id: string) => Plant }) {
+  const app = useApp();
+  const wrap = useRef<HTMLDivElement>(null);
+  const canvas = useRef<HTMLCanvasElement>(null);
+  const [width, setWidth] = useState(0);
+  const height = 200;
+  const growing = garden.plantings.filter((p) => !p.removedOn).length;
+  const warnings = plants ? checkGarden(garden, plantOf).filter((f) => f.level === 'warn').length : 0;
+  const empty = garden.boundary.length === 0 && garden.features.length === 0;
+
+  useEffect(() => {
+    const el = wrap.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setWidth(el.getBoundingClientRect().width));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const c = canvas.current;
+    if (!c || !width || empty) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    c.width = Math.round(width * dpr);
+    c.height = Math.round(height * dpr);
+    const ctx = c.getContext('2d')!;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const mode = resolveMode(prefs, matchMedia('(prefers-color-scheme: dark)').matches);
+    render(ctx, {
+      garden,
+      view: fit(gardenBounds(garden), width, height, 14),
+      width,
+      height,
+      style: planStyle(prefs.look, mode),
+      selected: null,
+      selectedVertex: null,
+      hoverId: null,
+      draft: null,
+      trace: null,
+      plantOf: plants ? plantOf : undefined,
+      minimal: true,
+    });
+  }, [garden, width, prefs.look, prefs.mode, plants]);
+
+  const summary = empty
+    ? 'Nothing drawn yet. Open the plan and start with your garden’s boundary.'
+    : [
+        `${garden.features.length} ${garden.features.length === 1 ? 'thing' : 'things'} on the plan`,
+        growing ? `${growing} ${growing === 1 ? 'planting' : 'plantings'}` : 'nothing planted yet',
+      ].join(' · ');
+
+  return (
+    <a
+      href="#/plan"
+      class="card card-link garden-card"
+      onClick={(e) => {
+        e.preventDefault();
+        app.go('plan');
+      }}
+    >
+      {!empty && (
+        <div ref={wrap} class="mini-plan-wrap" aria-hidden="true">
+          <canvas ref={canvas} class="mini-plan-canvas" style={{ height: `${height}px` }} />
+        </div>
+      )}
+      <span class="card-link-text">
+        <strong>Your garden</strong>
+        <span class="muted">{summary}</span>
+        {warnings > 0 && (
+          <span class="garden-warn">
+            <span aria-hidden="true">!</span> {warnings} {warnings === 1 ? "thing" : "things"} to check in your planting
+          </span>
+        )}
+      </span>
+      <Icon name="chevron" />
+    </a>
+  );
+}
+
+// ---------- Journal ----------
+
+export function JournalCard({ store, garden, plantOf }: { store: Store; garden: Garden; plantOf: (id: string) => Plant }) {
+  const app = useApp();
+  const [adding, setAdding] = useState(false);
+  const latest = newestFirst(garden.notes).slice(0, 3);
+  return (
+    <section class="card" aria-labelledby="journal-title">
+      <div class="card-head">
+        <h2 id="journal-title">Garden journal</h2>
+        {garden.notes.length > 0 && (
+          <a
+            href="#/notes"
+            class="small"
+            onClick={(e) => {
+              e.preventDefault();
+              app.go('notes');
+            }}
+          >
+            All notes ({garden.notes.length})
+          </a>
+        )}
+      </div>
+      {latest.length === 0 && !adding && <p class="muted">Jot down what you sowed, what worked and what didn’t, so next year is easier.</p>}
+      <NoteList notes={latest} about={noteAbout(garden, (id) => plantOf(id).commonName)} onDelete={() => app.go('notes')} readOnly />
+      {adding ? (
+        <NoteForm
+          label="Note about the whole garden"
+          onAdd={(text, date) => {
+            store.apply(updateGarden((g) => addNote(g, makeNote(text, date))));
+            setAdding(false);
+            app.notify('Note added to your journal.');
+          }}
+        />
+      ) : (
+        <button type="button" class="btn" onClick={() => setAdding(true)}>
+          Add a note
+        </button>
+      )}
+    </section>
+  );
+}
+
+// ---------- Keeping it safe ----------
+
+export function BackupCard({ store, garden, prefs, prefsStore, now = new Date() }: { store: Store; garden: Garden; prefs: Prefs; prefsStore: PrefsStore; now?: Date }) {
+  if (!backupDue(garden, prefs.lastBackup, now)) return null;
+  const days = daysSinceBackup(prefs.lastBackup, now);
+  return (
+    <section class="card backup-card" aria-labelledby="backup-title">
+      <h2 id="backup-title">Keep your garden safe</h2>
+      <p class="muted">
+        Your garden is kept only in this browser, on this device. {days === null ? 'You haven’t downloaded a backup yet.' : `Your last backup was ${days} days ago.`} A backup file
+        lets you get it back, or move it to another device.
+      </p>
+      <button type="button" class="btn btn-primary" onClick={() => backUp(store, prefsStore)}>
+        Download a backup
+      </button>
+    </section>
+  );
+}

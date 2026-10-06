@@ -50,11 +50,13 @@ interface Props {
   sun: Sun | null;
   /** undefined while sun hours are being worked out. */
   grid: SunGrid | null | undefined;
+  /** Phones: the sun hours where the plan was last tapped. */
+  spot?: string | null;
   defaultLocation: boolean;
 }
 
 /** Date, time and view controls for sun and shade. */
-export function SunBar({ view, setView, today, date, setDate, minutes, setMinutes, playing, setPlaying, day, sun, grid, defaultLocation }: Props) {
+export function SunBar({ view, setView, today, date, setDate, minutes, setMinutes, playing, setPlaying, day, sun, grid, spot, defaultLocation }: Props) {
   // Whole five-minute steps on the clock, from just before sunrise.
   const rise = Math.floor(toMinutes(day.sunrise, 0) / 5) * 5;
   const set = toMinutes(day.sunset, 24 * 60 - 1);
@@ -137,9 +139,11 @@ export function SunBar({ view, setView, today, date, setDate, minutes, setMinute
           <p class="sun-readout">
             {grid === undefined ? (
               <span class="muted">Working out the sun…</span>
+            ) : spot ? (
+              <strong>{spot}</strong>
             ) : (
               <span class="muted">
-                Hours of direct sun on 15 {MONTHS[date.month - 1]}. Shade under 3 h, part shade 3–6 h, full sun 6 h or more.
+                Hours of direct sun on 15 {MONTHS[date.month - 1]}. Shade under 3 h, part shade 3–6 h, full sun 6 h or more. Tap or point at the plan for a spot.
               </span>
             )}
           </p>

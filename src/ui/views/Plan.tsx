@@ -1,27 +1,30 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { cropColour } from '../../canvas/render';
 import { featureLabel, KINDS, type Target } from '../../model/features';
 import type { Store } from '../../model/store';
 import type { FeatureKind, Garden, Plant, Point } from '../../model/types';
-import type { Layout } from '../../planting/place';
-import { usePlants } from '../usePlants';
+import { isContainer, type Layout } from '../../planting/place';
 import { checkGarden, formatHours, type Finding } from '../../planting/rules';
 import { hoursAt } from '../../sun/hours';
 import { fromUkClock, sunAt, sunDay, ukClock } from '../../sun/position';
 import { shadowsAt } from '../../sun/shadow';
-import { clockText, SunBar, type CalendarDate, type SunView } from '../SunBar';
-import { useSunHours } from '../useSunHours';
-import { PlantPicker } from '../PlantPicker';
-import { cropColour } from '../../canvas/render';
+import { loadBlob } from '../../storage/idb';
 import { resolveMode } from '../../theme/apply';
 import { LOOKS } from '../../theme/looks';
-import type { Prefs, PrefsStore } from '../../theme/prefs';
-import { loadBlob } from '../../storage/idb';
+import type { PlanMode, Prefs, PrefsStore } from '../../theme/prefs';
 import { useIsPhone } from '../hooks';
 import { Icon } from '../icons';
 import { Inspector } from '../Inspector';
+import { PhoneDrawBar, PhoneModeBar, PhonePlantBar, PhoneSheet } from '../PhonePlanControls';
 import { geometryForTool, PlanCanvas, type CanvasApi, type Placing, type Tool } from '../PlanCanvas';
-import { PhoneDrawBar, PhonePlantBar, PhoneSheet, PhoneToolTray } from '../PhonePlanControls';
+import { PlantPicker } from '../PlantPicker';
 import { SeasonPhoto } from '../SeasonPhoto';
+import { clockText, SunBar, type CalendarDate, type SunView } from '../SunBar';
+import { usePlants } from '../usePlants';
+import { useSunHours } from '../useSunHours';
+
+/** Something another screen asked the plan to do. */
+export type PlanIntent = { kind: 'plant'; id: string } | { kind: 'select'; target: Target };
 
 interface Props {
   store: Store;
@@ -29,25 +32,34 @@ interface Props {
   userPlants: Plant[];
   prefs: Prefs;
   prefsStore: PrefsStore;
-  /** A plant chosen elsewhere (the Plants tab) to place on the plan. */
-  pendingPlant?: string | null;
-  clearPending?: () => void;
+  intent?: PlanIntent | null;
+  clearIntent?: () => void;
   now?: Date;
 }
 
-const MAIN_TOOLS: { tool: Tool; label: string; key: string }[] = [
+const MODES: { mode: PlanMode; label: string; hint: string }[] = [
+  { mode: 'layout', label: 'Layout', hint: 'Draw the boundary, beds, paths and other things' },
+  { mode: 'planting', label: 'Planting', hint: 'Put plants in beds and check them' },
+  { mode: 'sun', label: 'Sun', hint: 'Shadows and hours of sun' },
+];
+
+const LAYOUT_TOOLS: { tool: Tool; label: string; key: string }[] = [
   { tool: 'select', label: 'Select', key: 'V' },
   { tool: 'boundary', label: 'Boundary', key: 'B' },
   { tool: 'bed', label: 'Bed', key: 'R' },
   { tool: 'path', label: 'Path', key: 'P' },
   { tool: 'fence', label: 'Fence', key: 'L' },
   { tool: 'tree', label: 'Tree', key: 'T' },
-  { tool: 'plant', label: 'Plant', key: 'G' },
 ];
 const MORE: FeatureKind[] = ['wall', 'hedge', 'building', 'greenhouse', 'compost', 'water', 'other'];
 
-function hintFor(tool: Tool): string {
-  if (tool === 'select') return 'Click something to select it. Drag empty space to pan; scroll to zoom. Press 0 to fit the garden.';
+const modeOfTool = (t: Tool): PlanMode | null => (t === 'plant' ? 'planting' : t === 'select' ? null : 'layout');
+
+function hintFor(tool: Tool, mode: PlanMode): string {
+  if (tool === 'select') {
+    if (mode === 'planting') return 'Click a plant or bed to see it; drag a plant to move it. Double-click a bed to zoom in. Choose Plant to add plants.';
+    return 'Click something to select it. Drag empty space to pan; scroll to zoom. Press 0 to fit the garden.';
+  }
   if (tool === 'calibrate') return 'Click two points on the photo that you know the real distance between, such as the ends of a fence.';
   if (tool === 'trace') return 'Drag to move the photo under the plan. Press Esc when done.';
   if (tool === 'plant') return 'Choose a plant on the right, then click in a bed. For a row, click both ends or type its length; for a block, click two corners. Esc when done.';
@@ -59,7 +71,9 @@ function hintFor(tool: Tool): string {
   return 'Drag out from the centre, or click the centre and type the radius.';
 }
 
-export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlant = null, clearPending, now = new Date() }: Props) {
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = null, clearIntent, now = new Date() }: Props) {
   const phone = useIsPhone();
   const [tool, setToolState] = useState<Tool>('select');
   const [selected, setSelected] = useState<Target | null>(null);
@@ -67,33 +81,59 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
   const [fitSignal, setFitSignal] = useState(0);
   const [calibration, setCalibration] = useState<[Point, Point] | null>(null);
   const [traceImage, setTraceImage] = useState<HTMLImageElement | null>(null);
-  const [mode, setMode] = useState(() => resolveMode(prefs, matchMedia('(prefers-color-scheme: dark)').matches));
+  const [colourMode, setColourMode] = useState(() => resolveMode(prefs, matchMedia('(prefers-color-scheme: dark)').matches));
   const canvasApi = useRef<CanvasApi | null>(null);
   const [corners, setCorners] = useState(0);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [gardenSheet, setGardenSheet] = useState(false);
   const [plantId, setPlantId] = useState<string | null>(null);
   const [layout, setLayout] = useState<Layout>('single');
+  const [growingNow, setGrowingNow] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [focusFinding, setFocusFinding] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
+  // Which part of the plan: the layout until there's a boundary, then planting, unless you've chosen.
+  const mode: PlanMode = prefs.planMode ?? (garden.boundary.length < 3 ? 'layout' : 'planting');
+  const [previousMode, setPreviousMode] = useState<PlanMode>(mode === 'sun' ? 'planting' : mode);
+
   // Sun and shade.
   const clock = ukClock(now);
   const today: CalendarDate = { year: clock.year, month: clock.month, day: clock.day };
-  const [sunOn, setSunOn] = useState(false);
+  const sunOn = mode === 'sun';
   const [sunView, setSunView] = useState<SunView>('shadows');
   const [sunDate, setSunDate] = useState<CalendarDate>(today);
   const [minutes, setMinutes] = useState(clock.hour * 60 + clock.minute);
   const [playing, setPlaying] = useState(false);
   const [hoverPoint, setHoverPoint] = useState<Point | null>(null);
+  const [tapPoint, setTapPoint] = useState<Point | null>(null);
 
-  const focus = prefs.focus ?? LOOKS[prefs.look].focusByDefault;
-  const showPhoto = prefs.photos === 'full' && !focus;
+  const hidePhotos = prefs.focus ?? LOOKS[prefs.look].focusByDefault;
+  const showPhoto = prefs.photos === 'full' && !hidePhotos;
   const month = now.getMonth() + 1;
   const photoMonth = prefs.photoMonth === 'auto' ? month : prefs.photoMonth;
 
+  const setMode = (m: PlanMode) => {
+    if (m === mode) {
+      if (prefs.planMode !== m) prefsStore.set({ planMode: m });
+      return;
+    }
+    if (mode !== 'sun') setPreviousMode(mode);
+    prefsStore.set({ planMode: m });
+    setToolState('select');
+    setMessage(null);
+    setPlaying(false);
+    setSelectedVertex(null);
+    setGardenSheet(false);
+    // A plant selected for planting means nothing to the layout, and the other way round.
+    if (m === 'layout' && selected?.type === 'planting') setSelected(null);
+  };
+
   const setTool = (t: Tool) => {
+    const m = modeOfTool(t);
+    if (m && m !== mode && mode !== 'sun') setPreviousMode(mode);
+    // Remember the mode as soon as a tool is used, so finishing a boundary doesn't flip you into Planting.
+    if (m && prefs.planMode !== m) prefsStore.set({ planMode: m });
     setToolState(t);
     setMessage(null);
     if (t !== 'select') setSelectedVertex(null);
@@ -125,26 +165,49 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
   const viewGrid = useSunHours(garden, sunDate.month, sunDate.year, sunOn && sunView === 'hours');
   useEffect(() => {
     if (!playing) return;
-    const t = setInterval(() => setMinutes((m) => (m + 10 > set || m < rise ? rise : m + 10)), 120);
+    // With reduced motion, the day moves in bigger, slower steps.
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const t = setInterval(() => setMinutes((m) => (m + (reduced ? 30 : 10) > set || m < rise ? rise : m + (reduced ? 30 : 10))), reduced ? 700 : 120);
     return () => clearInterval(t);
   }, [playing, rise, set]);
 
   // Light is checked against June's sun hours, worked out once the plan has drawn.
   const growing = garden.plantings.some((p) => !p.removedOn);
-  const juneGrid = useSunHours(garden, 6, today.year, growing && !!plants);
+  const juneGrid = useSunHours(garden, 6, today.year, (growing || sunOn) && !!plants);
   // Checks wait for the library, so plants never show as "unknown" for a moment.
   const findings: Finding[] = useMemo(() => (plants ? checkGarden(garden, plantOf, juneGrid ?? null) : []), [garden, plantOf, plants, juneGrid]);
   const hoverHours = sunOn && sunView === 'hours' && viewGrid && hoverPoint ? hoursAt(viewGrid, hoverPoint) : null;
+  const tapHours = sunOn && sunView === 'hours' && viewGrid && tapPoint ? hoursAt(viewGrid, tapPoint) : null;
   const warnings = findings.filter((f) => f.level === 'warn').length;
-  const placing: Placing | null = useMemo(() => (plantId && plants ? { plant: plantOf(plantId), layout } : null), [plantId, layout, plants, plantOf]);
+  const placing: Placing | null = useMemo(
+    () => (plantId && plants ? { plant: plantOf(plantId), layout, growing: growingNow } : null),
+    [plantId, layout, growingNow, plants, plantOf],
+  );
 
-  // A plant picked on the Plants tab opens the Plant tool with it.
+  // Another screen asked for something: a plant to place, or a thing to show.
   useEffect(() => {
-    if (!pendingPlant || !plants) return;
-    setPlantId(pendingPlant);
-    setTool('plant');
-    clearPending?.();
-  }, [pendingPlant, plants]);
+    if (!intent || !plants) return;
+    if (intent.kind === 'plant') {
+      setPlantId(intent.id);
+      setTool('plant');
+    } else {
+      const t = intent.target;
+      const pts =
+        t.type === 'planting'
+          ? garden.plantings.filter((p) => p.id === t.id).flatMap((p): Point[] => [[p.x, p.y], ...(p.endPoint ? [p.endPoint] : [])])
+          : t.type === 'feature'
+            ? (garden.features.find((f) => f.id === t.id)?.footprint ?? [])
+            : garden.boundary;
+      const f = t.type === 'feature' ? garden.features.find((x) => x.id === t.id) : undefined;
+      prefsStore.set({ planMode: t.type === 'planting' || (f && isContainer(f)) ? 'planting' : 'layout' });
+      setToolState('select');
+      setSelected(t);
+      if (phone) setSheetOpen(true);
+      // The canvas sizes itself on its first frame; zoom once it has.
+      setTimeout(() => (t.type === 'planting' ? canvasApi.current?.show(pts) : canvasApi.current?.zoomTo(pts)), 80);
+    }
+    clearIntent?.();
+  }, [intent, plants]);
 
   const showFinding = (f: Finding) => {
     const pts = garden.plantings.filter((p) => f.plantingIds.includes(p.id)).flatMap((p): Point[] => [[p.x, p.y], ...(p.endPoint ? [p.endPoint] : [])]);
@@ -155,29 +218,28 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
     }
   };
 
-  // S shows or hides sun and shade.
+  // S switches to sun and shade and back.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
       if (e.ctrlKey || e.metaKey || e.altKey || e.key.toLowerCase() !== 's') return;
       if (t && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName))) return;
-      setSunOn((on) => !on);
-      setPlaying(false);
+      setMode(sunOn ? previousMode : 'sun');
     };
     addEventListener('keydown', onKey);
     return () => removeEventListener('keydown', onKey);
-  }, []);
+  });
 
   // Follow light/dark changes from the device.
   useEffect(() => {
     const mq = matchMedia('(prefers-color-scheme: dark)');
-    const on = () => setMode(resolveMode(prefs, mq.matches));
+    const on = () => setColourMode(resolveMode(prefs, mq.matches));
     on();
     mq.addEventListener('change', on);
     return () => mq.removeEventListener('change', on);
   }, [prefs.mode]);
 
-  // Drop a selection whose feature has gone (deleted, or undone).
+  // Drop a selection whose thing has gone (deleted, or undone).
   useEffect(() => {
     if (selected?.type === 'feature' && !garden.features.some((f) => f.id === selected.id)) setSelected(null);
     if (selected?.type === 'planting' && !garden.plantings.some((p) => p.id === selected.id)) setSelected(null);
@@ -207,16 +269,19 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
   const empty = garden.boundary.length === 0 && garden.features.length === 0;
   const moreValue = MORE.includes(tool as FeatureKind) ? tool : '';
   const drawing = geometryForTool(tool) !== null;
+  const select = (t: Target | null) => {
+    setSelected(t);
+    setSelectedVertex(null);
+  };
 
   const inspector = (
     <Inspector
       store={store}
       garden={garden}
+      mode={mode}
+      setMode={setMode}
       selected={selected}
-      setSelected={(t) => {
-        setSelected(t);
-        setSelectedVertex(null);
-      }}
+      setSelected={select}
       setTool={(t) => {
         setTool(t);
         setGardenSheet(false);
@@ -228,9 +293,13 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
       focusFinding={focusFinding}
       setFocusFinding={setFocusFinding}
       onPickFinding={showFinding}
-      colourOf={(id) => cropColour(id, mode)}
+      colourOf={(id) => cropColour(id, colourMode)}
       startPlanting={() => setTool('plant')}
-      sunJune={juneGrid ?? null}
+      sunJune={sunOn && sunView === 'hours' && viewGrid ? viewGrid : (juneGrid ?? null)}
+      zoomTo={(pts) => {
+        canvasApi.current?.zoomTo(pts);
+        if (phone) setSheetOpen(false);
+      }}
     />
   );
 
@@ -245,6 +314,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
       }}
       layout={layout}
       setLayout={setLayout}
+      growing={growingNow}
+      setGrowing={setGrowingNow}
       month={month}
       phone={phone}
     />
@@ -260,55 +331,89 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
         ? plantOf(selectedPlanting.plantId).commonName
         : selected?.type === 'boundary'
           ? 'Boundary'
-          : garden.name;
-  const showSheet = phone && !drawing && (selected !== null || gardenSheet || calibration !== null);
+          : mode === 'planting'
+            ? 'Beds and plant checks'
+            : mode === 'sun'
+              ? 'Sun in your garden'
+              : garden.name;
+  const showSheet = phone && !drawing && tool !== 'plant' && (selected !== null || gardenSheet || calibration !== null);
+  const sheetIsOpen = sheetOpen || gardenSheet || calibration !== null;
+  const spotText =
+    tapHours !== null
+      ? `About ${formatHours(tapHours)} of direct sun where you tapped, on 15 ${MONTH_NAMES[sunDate.month - 1]}.`
+      : null;
+
+  const modeSwitch = (
+    <div class="mode-switch" role="tablist" aria-label="Plan">
+      {MODES.map((m) => (
+        <button key={m.mode} type="button" role="tab" class="mode-tab" aria-selected={mode === m.mode} title={m.hint} onClick={() => setMode(m.mode)}>
+          {m.mode === 'sun' && <Icon name="sun" size={16} />}
+          {m.label}
+          {m.mode === 'planting' && warnings > 0 && (
+            <span class="mode-badge" aria-label={`${warnings} ${warnings === 1 ? 'warning' : 'warnings'}`}>
+              {warnings}
+            </span>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+
+  // Desktop: the tools for the current mode, under the header.
+  const desktopBar =
+    mode === 'layout' ? (
+      <div class="mode-bar" role="toolbar" aria-label="Drawing tools">
+        {LAYOUT_TOOLS.map((t) => (
+          <button key={t.tool} type="button" class="tool" aria-pressed={tool === t.tool} title={`${t.label} (${t.key})`} onClick={() => setTool(t.tool)}>
+            {t.label}
+          </button>
+        ))}
+        <select
+          class="tool tool-more"
+          aria-label="More things to draw"
+          value={moreValue}
+          onChange={(e) => {
+            const v = (e.currentTarget as HTMLSelectElement).value as FeatureKind;
+            if (v) setTool(v);
+          }}
+        >
+          <option value="">More…</option>
+          {MORE.map((k) => (
+            <option key={k} value={k}>
+              {KINDS[k].label}
+            </option>
+          ))}
+        </select>
+      </div>
+    ) : mode === 'planting' ? (
+      <div class="mode-bar" role="toolbar" aria-label="Planting tools">
+        <button type="button" class="tool" aria-pressed={tool === 'select'} title="Select (V)" onClick={() => setTool('select')}>
+          Select
+        </button>
+        <button type="button" class="tool" aria-pressed={tool === 'plant'} title="Plant (G)" onClick={() => setTool('plant')}>
+          Plant
+        </button>
+        {warnings > 0 && (
+          <button
+            type="button"
+            class="warn-count"
+            onClick={() => {
+              setTool('select');
+              setSelected(null);
+            }}
+          >
+            <span aria-hidden="true">!</span> {warnings} {warnings === 1 ? 'thing' : 'things'} to check
+          </button>
+        )}
+      </div>
+    ) : null;
 
   return (
-    <div class={`plan ${focus ? 'plan-focus' : ''}`}>
+    <div class={`plan plan-mode-${mode} ${hidePhotos ? 'plan-focus' : ''}`}>
       <header class="toolbar">
         <h1 class="toolbar-title">{garden.name}</h1>
-        {!phone && (
-          <div class="tools" role="toolbar" aria-label="Drawing tools">
-            {MAIN_TOOLS.map((t) => (
-              <button key={t.tool} type="button" class="tool" aria-pressed={tool === t.tool} title={`${t.label} (${t.key})`} onClick={() => setTool(t.tool)}>
-                {t.label}
-              </button>
-            ))}
-            <select
-              class="tool tool-more"
-              aria-label="More things to draw"
-              value={moreValue}
-              onChange={(e) => {
-                const v = (e.currentTarget as HTMLSelectElement).value as FeatureKind;
-                if (v) setTool(v);
-              }}
-            >
-              <option value="">More…</option>
-              {MORE.map((k) => (
-                <option key={k} value={k}>
-                  {KINDS[k].label}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        {!phone && modeSwitch}
         <div class="toolbar-actions">
-          {warnings > 0 && (
-            <button
-              type="button"
-              class="warn-count"
-              aria-label={`${warnings} planting ${warnings === 1 ? 'warning' : 'warnings'}: show them`}
-              title="Planting warnings"
-              onClick={() => {
-                setTool('select');
-                setSelected(null);
-                setCalibration(null);
-                if (phone) setGardenSheet(true);
-              }}
-            >
-              <span aria-hidden="true">!</span> {warnings}
-            </button>
-          )}
           <button type="button" class="icon-btn" aria-label="Fit the garden to the screen" title="Fit (0)" onClick={() => setFitSignal((n) => n + 1)}>
             <Icon name="fit" />
           </button>
@@ -318,33 +423,23 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
           <button type="button" class="icon-btn" aria-label="Redo" title="Redo (Ctrl+Y)" disabled={!store.canRedo()} onClick={() => store.redo()}>
             <Icon name="redo" />
           </button>
-          <button
-            type="button"
-            class="icon-btn"
-            aria-pressed={sunOn}
-            aria-label={sunOn ? 'Hide sun and shade' : 'Show sun and shade'}
-            title="Sun and shade (S)"
-            onClick={() => {
-              setSunOn(!sunOn);
-              setPlaying(false);
-            }}
-          >
-            <Icon name="sun" />
-          </button>
-          <button
-            type="button"
-            class="icon-btn"
-            aria-pressed={focus}
-            aria-label={focus ? 'Focus is on: photos hidden. Show photos' : 'Focus: hide photos'}
-            title="Focus (F)"
-            onClick={() => prefsStore.set({ focus: !focus })}
-          >
-            <Icon name="focus" />
-          </button>
+          {prefs.photos === 'full' && (
+            <button
+              type="button"
+              class="icon-btn"
+              aria-pressed={hidePhotos}
+              aria-label={hidePhotos ? 'Show photos around the plan' : 'Hide photos around the plan'}
+              title={hidePhotos ? 'Show photos (H)' : 'Hide photos (H)'}
+              onClick={() => prefsStore.set({ focus: !hidePhotos })}
+            >
+              <Icon name={hidePhotos ? 'image-off' : 'image'} />
+            </button>
+          )}
         </div>
       </header>
+      {phone && <div class="mode-switch-row">{modeSwitch}</div>}
 
-      {sunOn && (
+      {sunOn ? (
         <SunBar
           view={sunView}
           setView={setSunView}
@@ -358,8 +453,11 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
           day={day}
           sun={sun}
           grid={viewGrid}
+          spot={phone ? spotText : null}
           defaultLocation={garden.latitude === 52.5 && garden.longitude === -1.5}
         />
+      ) : (
+        !phone && desktopBar
       )}
       <div class="plan-body">
         <main class="plan-stage">
@@ -369,7 +467,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
               store={store}
               garden={garden}
               look={prefs.look}
-              mode={mode}
+              mode={colourMode}
               tool={tool}
               setTool={setTool}
               selected={selected}
@@ -377,6 +475,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
               selectedVertex={selectedVertex}
               setSelectedVertex={setSelectedVertex}
               readOnly={false}
+              edit={mode === 'sun' ? 'view' : mode}
               crosshair={phone}
               apiRef={canvasApi}
               onDraftChange={setCorners}
@@ -387,7 +486,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
                 setTool('select');
               }}
               plantOf={plantOf}
-              findings={findings}
+              findings={mode === 'planting' ? findings : []}
               focusFinding={focusFinding}
               placing={placing}
               onMessage={setMessage}
@@ -395,6 +494,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
               sunGrid={sunOn && sunView === 'hours' ? (viewGrid ?? null) : null}
               sun={sun}
               onHoverPoint={setHoverPoint}
+              onTap={setTapPoint}
             />
             {empty && tool === 'select' && (
               <div class="plan-empty">
@@ -411,10 +511,16 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
             )}
             {!phone && (
               <p class={`plan-hint ${message ? 'plan-message' : ''}`} role="status">
-                {message ?? (hoverHours !== null ? `About ${formatHours(hoverHours)} of direct sun here on 15 ${new Date(2000, sunDate.month - 1).toLocaleString('en-GB', { month: 'long' })}.` : sunOn && sunView === 'shadows' ? `Shadows at ${clockText(shownMinutes)}. Drag the slider or press play to watch them move.` : hintFor(tool))}
+                {message ??
+                  (hoverHours !== null
+                    ? `About ${formatHours(hoverHours)} of direct sun here on 15 ${MONTH_NAMES[sunDate.month - 1]}.`
+                    : sunOn && sunView === 'shadows'
+                      ? `Shadows at ${clockText(shownMinutes)}. Drag the slider or press play to watch them move.`
+                      : sunOn
+                        ? 'Point at the plan to see how many hours of sun each spot gets.'
+                        : hintFor(tool, mode))}
               </p>
             )}
-            {phone && !drawing && tool !== 'plant' && !showSheet && !empty && !sunOn && <p class="plan-hint">Tap something to select it; tap again and drag to move it. Pinch to zoom.</p>}
           </div>
         </main>
         {!phone && (
@@ -455,10 +561,9 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
         ) : drawing ? (
           <PhoneDrawBar key={tool} tool={tool} corners={corners} api={canvasApi} />
         ) : showSheet ? (
-          <>
           <PhoneSheet
             title={sheetTitle}
-            open={sheetOpen || gardenSheet || calibration !== null}
+            open={sheetIsOpen}
             setOpen={setSheetOpen}
             onClose={() => {
               setSelected(null);
@@ -470,12 +575,14 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, pendingPlan
           >
             {inspector}
           </PhoneSheet>
-          {!(sheetOpen || gardenSheet || calibration !== null) && (
-            <PhoneToolTray setTool={setTool} gardenOpen={gardenSheet} toggleGarden={() => setGardenSheet((o) => !o)} />
-          )}
-          </>
         ) : (
-          <PhoneToolTray setTool={setTool} gardenOpen={gardenSheet} toggleGarden={() => setGardenSheet((o) => !o)} />
+          <PhoneModeBar
+            mode={mode}
+            setTool={setTool}
+            warnings={warnings}
+            openDetails={() => setGardenSheet(true)}
+            empty={empty}
+          />
         ))}
     </div>
   );

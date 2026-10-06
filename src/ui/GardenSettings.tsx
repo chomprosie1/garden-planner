@@ -1,18 +1,27 @@
 import { useRef, useState } from 'preact/hooks';
 import { updateGarden, type Store } from '../model/store';
 import type { Garden } from '../model/types';
+import { todayIso } from '../model/ids';
+import type { PrefsStore } from '../theme/prefs';
 import { downloadFile, parseFileText } from '../storage/file';
 import { Icon } from './icons';
 
 interface Props {
   store: Store;
   garden: Garden;
+  prefsStore?: PrefsStore;
+}
+
+/** Downloads a backup file and remembers when, for the reminder on Home. */
+export function backUp(store: Store, prefsStore?: PrefsStore) {
+  downloadFile(store.get());
+  prefsStore?.set({ lastBackup: todayIso() });
 }
 
 type Message = { kind: 'ok' | 'error'; lines: string[] } | null;
 
 /** Name, location and north, plus export and import. */
-export function GardenSettings({ store, garden }: Props) {
+export function GardenSettings({ store, garden, prefsStore }: Props) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<Message>(null);
 
@@ -29,13 +38,13 @@ export function GardenSettings({ store, garden }: Props) {
     if (!file) return;
     const result = parseFileText(await file.text());
     if (!result.ok) {
-      setMessage({ kind: 'error', lines: ['That file could not be imported:', ...result.errors.slice(0, 8)] });
+      setMessage({ kind: 'error', lines: ['That file could not be restored:', ...result.errors.slice(0, 8)] });
       return;
     }
-    if (!confirm(`Replace "${garden.name}" with "${result.state.garden.name}" from the file? Export first if you want to keep the current one.`))
+    if (!confirm(`Replace "${garden.name}" with "${result.state.garden.name}" from the file? Download a backup first if you want to keep the current one.`))
       return;
     store.replace(result.state);
-    setMessage({ kind: 'ok', lines: [`Imported "${result.state.garden.name}".`] });
+    setMessage({ kind: 'ok', lines: [`Restored "${result.state.garden.name}" from the backup.`] });
   };
 
   return (
@@ -62,14 +71,17 @@ export function GardenSettings({ store, garden }: Props) {
       </section>
 
       <section class="card" aria-labelledby="backup">
-        <h2 id="backup">Backup</h2>
-        <p class="muted small">Your garden saves in this browser automatically. Export a copy to keep it safe or move it to another device.</p>
+        <h2 id="backup">Backups</h2>
+        <p class="muted small">
+          Your garden is saved automatically, but only in this browser on this device. Clearing your browsing data would delete it. Download a backup now and then
+          to keep it safe, or to move it to another device.
+        </p>
         <div class="button-row">
-          <button type="button" class="btn btn-primary" onClick={() => downloadFile(store.get())}>
-            Export garden
+          <button type="button" class="btn btn-primary" onClick={() => backUp(store, prefsStore)}>
+            Download a backup
           </button>
           <button type="button" class="btn" onClick={() => fileInput.current?.click()}>
-            Import…
+            Restore from a backup…
           </button>
           <input ref={fileInput} type="file" accept="application/json,.json" hidden onChange={importFile} />
         </div>

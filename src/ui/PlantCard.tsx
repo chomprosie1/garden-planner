@@ -54,10 +54,15 @@ interface Props {
   onPlant?: () => void;
   /** Whether it's on your sowing list, and a way to change that. */
   sowing?: { listed: boolean; toggle: () => void };
+  /** Plantings of this plant on the plan, to jump to. */
+  where?: { id: string; label: string }[];
+  onShow?: (plantingId: string) => void;
+  /** Opens the one-at-a-time plant check at this plant. */
+  onCheck?: () => void;
   month: number;
 }
 
-export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPlant, sowing, month }: Props) {
+export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPlant, sowing, where, onShow, onCheck, month }: Props) {
   const c = p.conditions;
   const s = p.size;
   const neighbours = (ids: string[]) =>
@@ -85,7 +90,55 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
       </header>
 
       {!p.userAdded && !p.verified && (
-        <p class="message">These notes are a draft. Check them against the source below before relying on them.</p>
+        <p class="message">
+          These notes are a draft. Check them against the source at the bottom before relying on them.{' '}
+          {onCheck && (
+            <button type="button" class="link-btn" onClick={onCheck}>
+              Check this plant
+            </button>
+          )}
+        </p>
+      )}
+      <div class="button-row">
+        {onPlant && (
+          <button type="button" class="btn btn-primary" onClick={onPlant}>
+            Plant in a bed
+          </button>
+        )}
+        {sowing && (
+          <button type="button" class="btn" aria-pressed={sowing.listed} onClick={sowing.toggle}>
+            {sowing.listed ? 'On your sowing list ✓' : 'Add to sowing list'}
+          </button>
+        )}
+        {onCopy && (
+          <button type="button" class="btn" onClick={onCopy}>
+            Make my own version
+          </button>
+        )}
+        {onEdit && (
+          <button type="button" class="btn" onClick={onEdit}>
+            Edit
+          </button>
+        )}
+        {onDelete && (
+          <button type="button" class="btn btn-danger" onClick={onDelete}>
+            Delete
+          </button>
+        )}
+      </div>
+
+      {where && where.length > 0 && (
+        <p class="where-growing">
+          <span class="muted">Growing in </span>
+          {where.map((w, i) => (
+            <span key={w.id}>
+              <button type="button" class="link-btn" onClick={() => onShow?.(w.id)}>
+                {w.label}
+              </button>
+              {i < where.length - 2 ? ', ' : i === where.length - 2 ? ' and ' : ''}
+            </span>
+          ))}
+        </p>
       )}
 
       <section class="plant-section">
@@ -240,33 +293,6 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
         <p class="small">{p.source || (p.userAdded ? 'Added by you.' : 'No source recorded.')}</p>
       </section>
 
-      <div class="button-row">
-        {onPlant && (
-          <button type="button" class="btn btn-primary" onClick={onPlant}>
-            Plant in a bed
-          </button>
-        )}
-        {sowing && (
-          <button type="button" class="btn" aria-pressed={sowing.listed} onClick={sowing.toggle}>
-            {sowing.listed ? 'On your sowing list ✓' : 'Add to sowing list'}
-          </button>
-        )}
-        {onCopy && (
-          <button type="button" class="btn" onClick={onCopy}>
-            Make my own version
-          </button>
-        )}
-        {onEdit && (
-          <button type="button" class="btn btn-primary" onClick={onEdit}>
-            Edit
-          </button>
-        )}
-        {onDelete && (
-          <button type="button" class="btn btn-danger" onClick={onDelete}>
-            Delete
-          </button>
-        )}
-      </div>
     </article>
   );
 }

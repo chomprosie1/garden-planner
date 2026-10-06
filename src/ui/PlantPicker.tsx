@@ -6,7 +6,7 @@ import { rowSpacingOf, spreadOf, type Layout } from '../planting/place';
 import { PLANT_DRAG_TYPE } from './PlanCanvas';
 
 const LAYOUTS: { value: Layout; label: string; hint: string }[] = [
-  { value: 'single', label: 'One plant', hint: 'One plant where you click.' },
+  { value: 'single', label: 'Single', hint: 'One plant where you click.' },
   { value: 'row', label: 'Row', hint: 'Click where the row starts and ends; plants go at their spacing.' },
   { value: 'block', label: 'Block', hint: 'Click two opposite corners; the block fills at the plant’s spacing.' },
 ];
@@ -17,13 +17,16 @@ interface Props {
   setPlantId: (id: string) => void;
   layout: Layout;
   setLayout: (l: Layout) => void;
+  /** Already in the ground, rather than planned. */
+  growing: boolean;
+  setGrowing: (g: boolean) => void;
   month: number;
   /** Phones: no drag and drop, shorter hints. */
   phone?: boolean;
 }
 
 /** Choose what to plant and how it's laid out. */
-export function PlantPicker({ plants, plantId, setPlantId, layout, setLayout, month, phone = false }: Props) {
+export function PlantPicker({ plants, plantId, setPlantId, layout, setLayout, growing, setGrowing, month, phone = false }: Props) {
   const [query, setQuery] = useState('');
   const [thisMonth, setThisMonth] = useState(false);
   const results = useMemo(
@@ -52,6 +55,11 @@ export function PlantPicker({ plants, plantId, setPlantId, layout, setLayout, mo
         </div>
         {!phone && <p class="muted small">{LAYOUTS.find((l) => l.value === layout)!.hint}</p>}
       </fieldset>
+
+      <label class="check">
+        <input type="checkbox" checked={growing} onChange={(e) => setGrowing((e.currentTarget as HTMLInputElement).checked)} />
+        Already in the ground (not just planned)
+      </label>
 
       {chosen && (
         <dl class="facts">

@@ -5,6 +5,7 @@ import type { Garden } from '../../model/types';
 import { FONT_CREDITS } from '../../theme/fonts';
 import type { Prefs, PrefsStore, View } from '../../theme/prefs';
 import { GardenSettings } from '../GardenSettings';
+import { usePlants } from '../usePlants';
 import { Icon } from '../icons';
 import { Choice, LookPicker } from '../LookPicker';
 
@@ -15,9 +16,13 @@ interface Props {
   prefsStore: PrefsStore;
   back: () => void;
   go: (v: View) => void;
+  showShortcuts: () => void;
 }
 
-export function Settings({ store, garden, prefs, prefsStore, back }: Props) {
+export function Settings({ store, garden, prefs, prefsStore, back, go, showShortcuts }: Props) {
+  const { library } = usePlants(store.get().userPlants);
+  const starters = (library ?? []).filter((p) => !p.userAdded);
+  const checked = starters.filter((p) => p.verified).length;
   return (
     <div class="page settings">
       <header class="page-head">
@@ -82,7 +87,25 @@ export function Settings({ store, garden, prefs, prefsStore, back }: Props) {
         />
       </section>
 
-      <GardenSettings store={store} garden={garden} />
+      <GardenSettings store={store} garden={garden} prefsStore={prefsStore} />
+
+      <section class="card" aria-labelledby="plant-notes">
+        <h2 id="plant-notes">Plant notes</h2>
+        <p class="muted small">
+          The starter plants are drafts until checked against a trusted source. {library ? `${checked} of ${starters.length} checked on this device.` : ''}
+        </p>
+        <button type="button" class="btn" onClick={() => go('check')}>
+          Check the plants
+        </button>
+      </section>
+
+      <section class="card desktop-only" aria-labelledby="keys">
+        <h2 id="keys">Keyboard</h2>
+        <p class="muted small">Press ? at any time to see the shortcuts.</p>
+        <button type="button" class="btn" onClick={showShortcuts}>
+          Keyboard shortcuts
+        </button>
+      </section>
 
       <section class="card" aria-labelledby="credits">
         <h2 id="credits">Credits</h2>

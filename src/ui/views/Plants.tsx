@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import { allPlants, blankPlant, copyAsUserPlant, deleteUserPlant, emptyFilter, filterPlants, loadLibrary, saveUserPlant, type PlantFilter } from '../../library/library';
+import { blankPlant, copyAsUserPlant, deleteUserPlant, emptyFilter, filterPlants, saveUserPlant, type PlantFilter } from '../../library/library';
+import { featureLabel } from '../../model/features';
+import { useApp } from '../appContext';
+import { usePlants } from '../usePlants';
 import type { Store } from '../../model/store';
 import { LIGHT_LEVELS, PLANT_CATEGORIES, type Garden, type Plant } from '../../model/types';
 import { onWishlist, toggleWishlist } from '../../calendar/jobs';
@@ -16,26 +19,33 @@ interface Props {
   garden: Garden;
   userPlants: Plant[];
   go: (v: View) => void;
-  /** Opens the plan with this plant ready to place. */
-  plantIt?: (id: string) => void;
+  /** A card to open, e.g. from a planting's "About this plant". */
+  openId?: string | null;
+  clearOpen?: () => void;
+  /** Opens the plant check at this plant. */
+  checkPlant?: (id: string) => void;
   now?: Date;
 }
 
 type Panel = { kind: 'card'; id: string } | { kind: 'form'; plant: Plant } | null;
 
-export function Plants({ store, garden, userPlants, go, plantIt, now = new Date() }: Props) {
+export function Plants({ store, garden, userPlants, go, openId = null, clearOpen, checkPlant, now = new Date() }: Props) {
+  const app = useApp();
   const phone = useIsPhone();
   const month = now.getMonth() + 1;
-  const [library, setLibrary] = useState<Plant[] | null>(null);
-  const [failed, setFailed] = useState(false);
   const [filter, setFilter] = useState<PlantFilter>(emptyFilter);
   const [panel, setPanel] = useState<Panel>(null);
 
-  useEffect(() => {
-    loadLibrary().then(setLibrary, () => setFailed(true));
-  }, []);
+  const { plants: loaded, library } = usePlants(userPlants);
+  const failed = library !== null && library.length === 0;
+  const plants = loaded ?? [];
 
-  const plants = useMemo(() => allPlants(library ?? [], userPlants), [library, userPlants]);
+  // Another screen asked for a plant's card.
+  useEffect(() => {
+    if (!openId) return;
+    setPanel({ kind: 'card', id: openId });
+    clearOpen?.();
+  }, [openId]);
   const byId = useMemo(() => new Map(plants.map((p) => [p.id, p])), [plants]);
   const results = useMemo(() => filterPlants(plants, filter), [plants, filter]);
 
@@ -48,10 +58,18 @@ export function Plants({ store, garden, userPlants, go, plantIt, now = new Date(
     setPanel({ kind: 'card', id: p.id });
   };
   const remove = (p: Plant) => {
-    if (!confirm(`Delete "${p.commonName}"? You can undo this with Ctrl+Z.`)) return;
     store.apply(deleteUserPlant(p.id));
     setPanel(null);
+    app.notify(`"${p.commonName}" deleted.`, { undo: true });
   };
+  /** Where a plant is growing on the plan: "Veg bed", "Bed two". */
+  const whereGrowing = (id: string) =>
+    garden.plantings
+      .filter((pl) => pl.plantId === id && !pl.removedOn)
+      .map((pl) => {
+        const bed = garden.features.find((f) => f.id === pl.featureId);
+        return { id: pl.id, label: bed ? featureLabel(bed) : 'a bed' };
+      });
 
   const list = (
     <div class="plants-list-pane">
@@ -88,7 +106,7 @@ export function Plants({ store, garden, userPlants, go, plantIt, now = new Date(
         </label>
         <label class="check">
           <input type="checkbox" checked={filter.checkedOnly} onChange={(e) => setFilter({ ...filter, checkedOnly: (e.currentTarget as HTMLInputElement).checked })} />
-          Checked notes only
+          Checked plants only
         </label>
       </div>
       <button type="button" class="btn btn-primary" onClick={() => setPanel({ kind: 'form', plant: blankPlant() })}>
@@ -132,7 +150,10 @@ export function Plants({ store, garden, userPlants, go, plantIt, now = new Date(
         byId={byId}
         month={month}
         open={(id) => setPanel({ kind: 'card', id })}
-        {...(plantIt ? { onPlant: () => plantIt(current.id) } : {})}
+        onPlant={() => app.plantIt(current.id)}
+        where={whereGrowing(current.id)}
+        onShow={(plantingId) => app.showOnPlan({ type: 'planting', id: plantingId })}
+        {...(checkPlant && !current.userAdded && !current.verified ? { onCheck: () => checkPlant(current.id) } : {})}
         sowing={{ listed: onWishlist(garden, current.id), toggle: () => store.apply(updateGarden((g) => toggleWishlist(g, current.id))) }}
         {...(current.userAdded
           ? { onEdit: () => setPanel({ kind: 'form', plant: current }), onDelete: () => remove(current) }

@@ -3,49 +3,38 @@ import { featureLabel } from '../../model/features';
 import { addNote, deleteNote, makeNote } from '../../model/notes';
 import { updateGarden, type Store } from '../../model/store';
 import type { Garden, Note, Plant } from '../../model/types';
-import type { View } from '../../theme/prefs';
+import { isContainer } from '../../planting/place';
+import { useApp } from '../appContext';
 import { Icon } from '../icons';
-import { NoteForm, NoteList } from '../NotesSection';
+import { NoteForm, NoteList, noteAbout } from '../NotesSection';
 import { usePlants } from '../usePlants';
 
 interface Props {
   store: Store;
   garden: Garden;
   userPlants: Plant[];
-  go: (v: View) => void;
+  back: () => void;
 }
 
-/** Every dated note, newest first, with what each is about. */
-export function Notes({ store, garden, userPlants, go }: Props) {
+/** The garden journal: every dated note, newest first, with what each is about. */
+export function Notes({ store, garden, userPlants, back }: Props) {
+  const app = useApp();
   const [about, setAbout] = useState('');
   const [show, setShow] = useState('all');
   const { plantOf } = usePlants(userPlants);
-  const plantName = (id: string) => plantOf(id).commonName;
-
-  const bedName = (id: string) => {
-    const f = garden.features.find((x) => x.id === id);
-    return f ? featureLabel(f) : 'a deleted bed';
-  };
-  const describe = (n: Note): string => {
-    if (n.plantingId) {
-      const p = garden.plantings.find((x) => x.id === n.plantingId);
-      return p ? `${plantName(p.plantId)} in ${bedName(p.featureId)}` : 'A planting';
-    }
-    if (n.featureId) return bedName(n.featureId);
-    return 'The whole garden';
-  };
+  const describe = noteAbout(garden, (id) => plantOf(id).commonName);
   // Notes on a bed include notes on what grew in it.
   const bedOf = (n: Note) => n.featureId ?? garden.plantings.find((p) => p.id === n.plantingId)?.featureId;
   const shown = show === 'all' ? garden.notes : show === 'garden' ? garden.notes.filter((n) => !bedOf(n)) : garden.notes.filter((n) => bedOf(n) === show);
-  const beds = garden.features.filter((f) => f.kind === 'bed' || f.kind === 'greenhouse');
+  const beds = garden.features.filter(isContainer);
 
   return (
     <div class="page notes-page">
       <header class="page-head">
-        <h1 class="title">Notes</h1>
-        <button type="button" class="icon-btn phone-only" aria-label="Settings" onClick={() => go('settings')}>
-          <Icon name="settings" />
+        <button type="button" class="icon-btn" aria-label="Back" onClick={back}>
+          <Icon name="back" />
         </button>
+        <h1 class="title">Garden journal</h1>
       </header>
       <section class="card">
         <label class="field">
@@ -80,7 +69,14 @@ export function Notes({ store, garden, userPlants, go }: Props) {
             </select>
           </label>
           {shown.length === 0 && <p class="muted">No notes here yet.</p>}
-          <NoteList notes={shown} about={describe} onDelete={(id) => store.apply(updateGarden((g) => deleteNote(g, id)))} />
+          <NoteList
+            notes={shown}
+            about={describe}
+            onDelete={(id) => {
+              store.apply(updateGarden((g) => deleteNote(g, id)));
+              app.notify('Note deleted.', { undo: true });
+            }}
+          />
         </section>
       )}
     </div>

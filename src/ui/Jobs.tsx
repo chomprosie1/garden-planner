@@ -2,6 +2,7 @@ import { seasonFor } from '../content/seasons';
 import { todayIso } from '../model/ids';
 import { updateGarden, type Store } from '../model/store';
 import type { Garden } from '../model/types';
+import { useApp } from './appContext';
 import { groupJobs, JOB_LABEL, toggleJob, type Job } from '../calendar/jobs';
 
 export const jobKey = (year: number, month: number, i: number) =>
@@ -62,12 +63,34 @@ function PlantJob({ job, done, onToggle }: { job: Job; done?: boolean; onToggle?
       {job.detail && <span class="job-detail small muted">{job.detail}</span>}
     </span>
   );
-  if (!onToggle) return <span class="job job-preview">{text}</span>;
+  const app = useApp();
+  const first = job.plantingIds[0];
+  // Jump to the planting on the plan, or to the plant's card for something on your sowing list.
+  const link = (
+    <button
+      type="button"
+      class="job-link link-btn small"
+      onClick={() => (first ? app.showOnPlan({ type: 'planting', id: first }) : app.openPlant(job.plantId))}
+    >
+      {first ? 'Show' : 'About'}
+      <span class="visually-hidden"> {job.plant}</span>
+    </button>
+  );
+  if (!onToggle)
+    return (
+      <span class="job-line">
+        <span class="job job-preview">{text}</span>
+        {link}
+      </span>
+    );
   return (
-    <label class="job">
-      <input type="checkbox" checked={done} onChange={onToggle} />
-      {text}
-    </label>
+    <span class="job-line">
+      <label class="job">
+        <input type="checkbox" checked={done} onChange={onToggle} />
+        {text}
+      </label>
+      {link}
+    </span>
   );
 }
 

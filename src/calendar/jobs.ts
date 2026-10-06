@@ -110,15 +110,19 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     const ids = (list: Planting[]) => list.map((p) => p.id);
 
     // Not sown yet, or sown this month (so a ticked job stays in this month's list).
-    const toSow = group.filter((p) => !p.sownOn || sownThisMonth(p, year, month));
+    // Plants already growing skip sowing and planting out.
+    const notGrowing = group.filter((p) => p.status !== 'growing');
+    const toSow = notGrowing.filter((p) => !p.sownOn || sownThisMonth(p, year, month));
     if (toSow.length)
       for (const s of sowingKinds(plant, month)) add(s.kind, plant, s.kind === 'sow-indoors' ? `for ${where.slice(3)}` : where, featureId, ids(toSow), s.detail, featureId);
     if (plant.plantOutMonths?.includes(month)) {
-      const toPlant = group.filter((p) => !p.sownOn || p.sownOn.slice(0, 7) <= ym(year, month));
+      // Ticking a planting-out job marks the plants as growing; the ticked job stays for the rest of the month.
+      const tickedNow = g.jobsDone.some((j) => j.key === `plant-out:${plant.id}:${featureId}:${ym(year, month)}`);
+      const toPlant = (tickedNow ? group : notGrowing).filter((p) => !p.sownOn || p.sownOn.slice(0, 7) <= ym(year, month));
       if (toPlant.length && !doneBefore(g, `plant-out:${plant.id}:${featureId}:`, year, month)) add('plant-out', plant, where, featureId, ids(toPlant), undefined, featureId);
     }
 
-    const growing = group.filter((p) => afterSowing(p, year, month));
+    const growing = group.filter((p) => p.status === 'growing' || afterSowing(p, year, month));
     if (!growing.length) continue;
     const harvest = plant.cropping?.harvestMonths ?? [];
     if (harvest.includes(month)) add('harvest', plant, where, featureId, ids(growing), plant.cropping?.notes, featureId);
@@ -149,16 +153,24 @@ export function groupJobs(jobs: Job[]): [JobKind, Job[]][] {
 
 // ---------- Ticking jobs off ----------
 
-/** Ticks or unticks a job. Ticking a sowing or planting-out job also dates its plantings, if they have no date yet. */
+/** Ticks or unticks a job. Ticking a sowing job dates its plantings (if they have no date); ticking planting out marks them growing. */
 export function toggleJob(g: Garden, job: Job, date: string): Garden {
   const done = g.jobsDone.some((j) => j.key === job.key);
   if (done) return { ...g, jobsDone: g.jobsDone.filter((j) => j.key !== job.key) };
-  const dates = job.kind === 'sow-indoors' || job.kind === 'sow-direct' || job.kind === 'plant-out';
+  const sowing = job.kind === 'sow-indoors' || job.kind === 'sow-direct';
+  const planting = job.kind === 'plant-out';
   const ids = new Set(job.plantingIds);
   return {
     ...g,
     jobsDone: [...g.jobsDone, { key: job.key, date }],
-    plantings: dates && ids.size ? g.plantings.map((p) => (ids.has(p.id) && !p.sownOn ? { ...p, sownOn: date } : p)) : g.plantings,
+    plantings:
+      (sowing || planting) && ids.size
+        ? g.plantings.map((p) => {
+            if (!ids.has(p.id)) return p;
+            if (planting) return { ...p, status: 'growing' as const };
+            return p.sownOn ? p : { ...p, sownOn: date };
+          })
+        : g.plantings,
   };
 }
 
