@@ -81,13 +81,13 @@ Tests: viewport transform round trips; snapping; command undo and redo. Then com
 **Done when:** your boundary, beds and main features are within 5% of the tape and survive a reload. On a phone you can view, pan and zoom.
 
 ## Data track — plant library content (weeks 2–9 and after, running in parallel)
-- Files: `data/plants/<category>.json`. They are checked by `tools/validate-plants.ts`, which uses the same types plus checks for months 1–12, companion ids that resolve, a unique id per plant, and source present. The validator runs in CI.
+- Files: `data/plants/<category>.json`. They are checked by `tests/plants.test.ts` (a `tools/validate-plants.ts` script was planned but the test does the job). It uses `validatePlant` plus checks for months 1–12, companion ids that resolve, a unique id per plant, and source present. It runs in CI with the rest of the tests.
 - Batches:
   - **B1**: 30 common vegetables, by week 3 (needed for gate 1)
   - **B2**: 30 more vegetables, by week 5
   - **B3**: 30 herbs and fruit, by week 7
   - **B4**: 30 flowers, by week 9
-  - **B5**: 30 shrubs, trees and gaps, after the build
+  - **B5**: 30 shrubs, trees and gaps, after the build (now part of release 9's 150 plants)
   - **Done so far (6 Oct 2026):**
     - B1: the 30 vegetables.
     - A combined B2–B4 batch of 70 more plants:
@@ -268,7 +268,7 @@ Brought forward from "parked": the plant life cycle, frost and Growing Degree Da
 | 15 | Greenhouses and cold frames as microclimates | Built |
 | 16 | Growing Degree Days from UK climate averages (capped at 2 weeks) | Built |
 | 17 | Live weather (opt-in Open-Meteo) and succession sowing, plus What's new | Built |
-| 18 | 3D garden view (three.js, loaded only when opened) | |
+| 18 | 3D garden view (three.js, loaded only when opened) | Moved to release 10 |
 
 Stages 13a to 14 replace "Screens and cards polish" (the old Stage 13), from the proposal in [plan-refresh.md](plan-refresh.md). The stages after them moved up by one.
 
@@ -542,6 +542,137 @@ Tests: `tests/ux-daily.test.ts` covers this week and next (batches, to do first,
 
 Tests: `tests/ux-delight.test.ts` covers notes with only a photo, photos newest first and by planting, a bad photo id, backups with photos (and leaving out anything that isn't a picture), picks by size and weight, totals by crop and year, weights in words, "Picked some" from "What's happened?" with a photo, schema 11, the season's stats and cards (and none for an empty year), which season, what frost reminders watch (outside, under glass, on a bench, hardening off), Mondays, the weekly reminder's weeks, what the service worker is given, the reminder and install settings, and picking from a harvest job.
 
+## The second round: releases 5 to 10 (added 7 Oct 2026)
+Everything planned up to UX release 4 is built. This round comes from your notes of 7 Oct 2026:
+- a 3D view;
+- a simpler planner on a phone;
+- planting on lawn;
+- resizable fruit trees and a list of tree types;
+- 150 more plants;
+- alerts when something's running behind;
+- weeds;
+- the year slider over photos;
+- an aerial-photo spike;
+- leaner testing.
+
+Each idea was checked against the code and against everything still open. Stage 7 (real use) and Gate 3 run alongside. Anything in [mismatch-log.md](mismatch-log.md) that's worse than the next release's items goes first.
+
+| Release | What | Size | Status |
+| --- | --- | --- | --- |
+| 5. Housekeeping | Testing by risk (`CLAUDE.md`), doc fixes, the mismatch log | 1 evening | Built |
+| 6. Plant anywhere, right size | Plants on soft ground, resizing big plants, 50 tree types, the year slider over photos | ~1.5 wk | |
+| 7. A simple planner | A Simple / Advanced switch on the plan, and a phone pass | ~2 wk | |
+| 8. Keeping on track | "Running behind" alerts with common causes, weeds and weeding | ~1.5 wk | |
+| 9. A bigger library | 150 more plants in three batches of 50 (can run alongside 7 and 8) | ~3 wk of data | |
+| Spike | The garden from an aerial photo: research and a prototype, go or no-go | 2–3 evenings | |
+| 10. The garden in 3D | An angled view to look at, three.js loaded only when opened, with the sun and the year | ~2–3 wk | |
+
+### Release 5 — Housekeeping (as built)
+- **Testing by risk:** `CLAUDE.md` at the repo root.
+  - While working, run only the tests for the areas touched, and typecheck any TypeScript change.
+  - Changes to the files many tests depend on (the model, file storage, placing, jobs, stages and the timeline) run the full suite.
+  - At the end of a release, one full `npm test` and `npm run build`.
+  - Screenshots only of the screens that changed.
+  - It also has the table of which tests cover which source.
+- **Doc fixes:**
+  - The plant data is checked by `tests/plants.test.ts`; `tools/validate-plants.ts` was never made.
+  - Stage 18 has moved to release 10.
+  - The wishlist says where each idea now goes.
+- **The mismatch log:** [mismatch-log.md](mismatch-log.md) is started, for Stage 7.
+
+### Release 6 — Plant anywhere, right size (planned, schema 12)
+- **Plants on soft ground.**
+  - `canHold(f)` in `src/planting/place.ts` replaces `CONTAINER_KINDS` and `isContainer`. It allows beds, greenhouses, cold frames, pots and planters, plus lawn, meadow, soil, bark and gravel.
+  - It refuses paving, decking, paths, buildings, water and walls ("Plants can't go on paving or paths").
+  - A bed on top of a lawn still takes the plant (topmost wins).
+  - Plantings on the ground:
+    - aren't gaps;
+    - get jobs that name the place ("Lawn edge: plant crocus");
+    - if a bulb in a lawn, get "Leave the grass long until the leaves die back".
+  - The other users of the old check are reviewed: kits, Inspector, ActionPill, projection, PlanCanvas, setup and Notes.
+- **Resize plants that grow big** (fruit trees, shrubs, climbers; any plant in Advanced). `Planting.size` (small, medium or large) and `spreadMm` / `heightMm` override the library. The action pill gets "Size: S M L". Drawing, spacing rules, sun and shade all use the override. Plants are drawn by height, so trees sit over what's beneath them (from the wishlist).
+- **Tree types in Structures.**
+  - `src/model/trees.ts` has about 50 UK garden trees. Each has its Latin name, deciduous or evergreen, a shape (round, columnar, weeping, conical, spreading), small/medium/large sizes, and the light it blocks in leaf and bare.
+  - Tree in the dock opens a searchable list, popular first, then small, medium or large. Exact sizes stay in the details.
+  - `drawTree` draws the shape.
+  - Fruit trees in the list drop the fruit plant, so its jobs and harvests still work.
+- **The year slider over full photos:** a frosted, near-solid panel like the other overlays (and the sun bar), checked for contrast on every look.
+
+Tests: `tests/anywhere.test.ts`.
+
+### Release 7 — A simple planner (planned)
+- **A Simple | Advanced switch** in the plan toolbar (`prefs.planMode`). It starts on Simple and is remembered.
+- **Simple:**
+  - The dock is Plants · Beds and pots · Ground · Trees and structures, with short lists.
+  - Show offers Plan, In flower and Harvest.
+  - The action pill offers Size, Duplicate, Delete and About.
+  - Hidden: the Draw tab, by hand, sketch, trace, calibrate, typed sizes, curved edges, the boundary, lock, and sun and shade.
+- **Advanced** is everything there today.
+- **Nothing disappears:** in Simple, sketches and drawn shapes stay on the plan. Tapping one says "Switch to Advanced to edit this."
+- **A phone pass:** 44 px touch targets, one bottom bar at a time, and the first plant in five taps or fewer.
+
+Tests: `tests/planmode.test.ts`.
+
+### Release 8 — Keeping on track (planned, schema 13)
+- **Running behind** (`src/lifecycle/behind.ts`).
+  - Each planting's next stage is checked against its expected date: from `timeline()` unclamped, by the warmth where the plant has days, otherwise its months.
+  - Slack: the germination maximum plus a week; otherwise two weeks or a quarter of the stage.
+  - A Today card shows up to three, and the planting panel gets a line. The buttons are "It's moved on", "Still waiting" (two weeks; `Planting.snoozeUntil`) and "Sowing failed".
+  - Common causes are listed by stage, plus the plant's own pests and things to look out for.
+  - It goes in the weekly reminder too.
+  - It replaces check-progress jobs from the months (from the wishlist and Stage 16).
+- **Weeds:**
+  - A `weed` category with `data/plants/weed.json` of about 20 UK weeds (how they spread, wildlife value, how to remove them).
+  - Weeds go anywhere soft, with Keep or Remove (`Planting.keep`).
+  - Remove gives "Pull before it seeds", or "Dig out the roots" for root spreaders.
+  - A seasonal "Weed the beds" job each month, March to October, which can be turned off in Settings.
+  - Weeds stay out of search and Want to grow unless the Weeds filter is on.
+
+Tests: `tests/on-track.test.ts`.
+
+### Release 9 — A bigger library (planned, data track)
+150 plants in three batches of 50. The rules are the same as the data track above, plus `germinationDays` and `growth.days` where known (from the wishlist). The mix:
+- about 40 veg and salad
+- 15 herbs
+- 15 fruit (trees and bushes)
+- 45 flowers and bulbs
+- 25 shrubs (`shrub.json`)
+- 10 climbers
+
+This finishes B5; ornamental trees are structures (release 6). The plant and art tests cover each batch.
+
+### Spike — the garden from an aerial photo (planned)
+2–3 evenings, building on the trace image (Stage 2e). It looks at:
+- where the photos come from (your own, or satellite tiles, whose terms mostly forbid tracing);
+- colour segmentation in the browser;
+- a vision model returning outlines (needs a server or key, and the app has none);
+- an in-browser segmentation model.
+
+The best two are tried on 3–5 real photos, measuring how much is right and how many fixes it needs. The result goes in `docs/aerial-spike.md` with a go or no-go. Nothing ships.
+
+### Release 10 — The garden in 3D (planned)
+- "See it in 3D" in the ⋯ menu and Show.
+- three.js is loaded only when opened (a dynamic import). With no WebGL, it says so.
+- Read-only: drag to spin, pinch to zoom, two preset angles, tap for a name.
+- Built from the plan:
+  - surfaces use the `materials.ts` textures;
+  - beds are raised to their edging;
+  - walls, fences, buildings, greenhouses and hedges stand at their heights;
+  - trees in their shape, bare in winter;
+  - plants as crossed sprites by stage and height.
+- The real sun and its shadows; the year slider moves the season.
+- `src/three/scene.ts` (pure, tested in Node) and `src/three/view.tsx` (WebGL).
+- About 30 fps on a mid-range phone with 500 plantings. Share a picture.
+- Leaves drop in winter, in 3D and on the plan (from the wishlist).
+
+Tests: `tests/three.test.ts`.
+
+### Still open, not in this round
+- Advanced-only polish: equal-spacing guides, tap a length to type it, sketch text size, move a sketch, recompute footprints on load.
+- Small extras: recent searches, searching jobs and notes, weekly jobs on the plan, joining batches, days to crop for your own plants, a warm or cold correction, perennials moved by this year's warmth, potting on, picks on shed trays, a better "best photo".
+- Push with the app closed on an iPhone or a computer (it needs a server).
+- Parked: accounts and sync, crop rotation, more environment layers, a paid tier.
+
 ---
 
 ## Repo layout
@@ -559,13 +690,13 @@ garden-planner/
   src/calendar/    jobs
   src/sun/         position, shadow, hours, hours.worker
   src/ui/          Preact panels, plant card, forms, notes, tabs
-  tools/validate-plants.ts
+  tests/            plants.test.ts validates the plant data
   tests/fixtures/
 ```
 **Rule:** features talk only to `model/` and `library/`. They never import each other, and none adds its own storage.
 
 ## Definition of done for every stage
-- `npm test` passes, the plant validator passes, and the site is deployed to Pages.
+- `npm test` passes (it includes the plant data checks) and the site is deployed to Pages. While working, test by risk as `CLAUDE.md` says; the full suite runs once at the end.
 - The app is usable without the sun layer.
 - It is checked once on your phone.
 - The MVP doc and this plan are updated if anything changed.
