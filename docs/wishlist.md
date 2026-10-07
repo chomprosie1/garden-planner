@@ -16,9 +16,12 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Select and move a sketch after drawing it | Build, Stage 9 | S | For now: rub out and draw again |
 | Plants dropping their leaves in winter, and dying back after flowering | Build, Stage 10 | S | Drawings follow the stage you set, not the month |
 | Tall plants and trees drawn over the plants beneath them, by height | Build, Stage 10 | S | For now, plantings are drawn in the order they were added |
-| Soft shadows that follow the real sun at the time of day | Build, Stage 11 | S | Planned in Stage 14, from the sun's angle in the chosen week. For now they fall to the bottom right; the Shade lens shows the real ones |
+| Soft shadows that follow the real sun at the time of day | Build, Stage 11 | S | Built in Stage 14: from the sun at 1 pm in the chosen week |
 | Germination times for each plant | Build, Stage 12 | S | For now every plant uses one to three weeks; `germinationDays` is ready for the data |
 | Potting on: move seedlings from a module tray into pots, splitting a tray | Build, Stage 12 | S | For now: change the tray's container and count |
 | Cold frames on the plan sharing their place in the shed | Build, Stage 12 | S | Comes with Stage 15's cold-frame feature |
 | Equal-spacing guides, and snapping to path widths, when moving beds | Build, Stage 13 | S | Edges and middles line up for now |
 | Tap a length on the plan to type it | Build, Stage 13 | S | For now: the size button on the action pill |
+| Recent searches, and searching jobs and journal notes | Build, Stage 13c | S | Search finds plants, things on the plan and actions |
+| Jobs for the week, not just the month, on the plan | Build, Stage 14 | S | Chips show the month's jobs |
+| Ideas for an empty bed from your own sowing list | Build, Stage 14 | S | For now, quick crops that can go in that month |

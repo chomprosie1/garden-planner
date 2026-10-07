@@ -264,7 +264,7 @@ Brought forward from "parked": the plant life cycle, frost and Growing Degree Da
 | 13a | No modes: the padlock, the floating action pill, handles with typed sizes, rotate, smart guides | Built |
 | 13b | The dock and stickers, the fill pop-over, pots and planters, dropping trays from the shed | Built |
 | 13c | First run ("Where are you growing?") and search everything | Built |
-| 14 | The garden through the year: scrubber, projected stages, gaps, job chips, lenses, share and timelapse | |
+| 14 | The garden through the year: scrubber, projected stages, gaps, job chips, lenses, share and timelapse | Built |
 | 15 | Greenhouses and cold frames as microclimates | |
 | 16 | Growing Degree Days from UK climate averages (capped at 2 weeks) | |
 | 17 | Live weather (opt-in Open-Meteo) and succession sowing | |
@@ -382,6 +382,24 @@ Tests: `tests/arrange.test.ts` covers stickers, pots and planters as containers,
 - **Not done:** recent searches, and searching jobs and journal notes.
 
 Tests: `tests/start.test.ts` covers each space at its usual and smallest sizes, allotment plots, naming, and search: verbs, things on the plan, stickers, the lock, suggestions and empty results.
+
+### Stage 14 — The garden through the year (as built)
+- **The year scrubber** under the plan: weeks from a year ago to a year ahead, months labelled (January shows its year), today marked. Drag it, or press play for a ten-second year (with reduced motion, four weeks at a time, more slowly). "Back to today" returns. The Sun and Shade lenses use the same day.
+- **Each planting at its stage that week** (`src/lifecycle/projection.ts`):
+  - Up to today, it's what you've marked: sowing, each stage's date, and clearing. A planting cleared since comes back when you scrub to before it was cleared.
+  - After today, it carries on from its latest stage with the plant's usual months: germination days, hardening off and planting out (after the last frost for tender plants, as in the shed), then flowering or harvest, whichever comes first. An annual is cleared after its harvest months, or after about six weeks for one sowing of a quick leafy crop; a perennial goes round again. A planned planting starts at its next sowing (or planting) month.
+  - Steps that are overdue all land tomorrow, so a planting not updated since spring shows where it probably is now.
+  - Guessed stages have a dotted edge, and lens legends say "Based on usual months". Stages you've marked always win.
+- **The plan changes with the season:** deciduous trees in leaf or bare, the lawn greener in spring and paler in a dry August, frost sparkle between your first and last frost dates, and soft shadows that fall away from the sun at 1 pm that day (short at midsummer, long in winter), replacing the fixed light from the top left.
+- **Gaps show up:** a bed, pot or planter standing empty, having grown something before or with something planned, glows faintly with a dashed edge and a chip: "Empty from 1 Nov: sow lettuce or radish?". Tap a plant's name to plant it there. Ideas are quick crops that can be sown outside or planted out that month.
+- **Jobs on the plan:** the month's jobs sit as chips on their beds ("Harvest carrot", "Sow lettuce", two per bed and a count of the rest). In this month, tap one to tick it off (with Undo); later months' chips are shown, dashed, to tick off then. Chips hide on beds too small on screen and wrap to the bed's width. The Month page stays the list of the same jobs.
+- **Lenses,** one at a time: Plan · Sun hours · Shade · **In flower** (for bees) · **Harvest** · **Water** (pots and planters first, then young plants and those that like it moist; sharper once live weather arrives). The three new ones dim the plan and ring what they pick out, each with its own colour and dash, with a legend and a count. On a phone the chips scroll sideways.
+- **Share:** the share button on the scrubber makes a picture of the plan in the chosen week, in your look, with the garden's name and month, framed for a post (4:5) or a story (9:16). Share it with the phone's share sheet where it takes files, or save it. **Make a timelapse** records the year ahead from that week as a short video (MP4 where the browser can, otherwise WebM), with the month changing as it plays. Both are made on the device; nothing is uploaded.
+- **Speed:** scrubbing redraws the ground only when something visible changes (stages, the month, frost, gaps, or the light, which moves twice a month); while scrubbing it's drawn the size of the screen, and filled out for panning when you stop. Each feature's blurred shadow is drawn once per zoom and moved with the light. Scrubbing a week of the 2,000-plant test garden takes about 36 ms in headless Edge with no GPU (it was 550 ms before this work); panning stays at 60 frames a second.
+- **Search** gains the three new lenses and "Share a picture of the plan".
+- **Not done:** jobs for the week rather than the month, gap ideas from your own sowing list, and sharper projections from growing degree days (Stage 16).
+
+Tests: `tests/year.test.ts` covers months and runs, stages up to and after today, planned plantings, quick crops, perennials, cleared plantings, what's in the ground, gaps and ideas, the three lenses, the light by season, frost, and the picture's name.
 
 ---
 

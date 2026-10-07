@@ -96,6 +96,9 @@ describe('search everything', () => {
     expect(first('go to the shed')?.command).toEqual({ kind: 'go', view: 'shed' });
     expect(first('show sun')?.command).toEqual({ kind: 'lens', lens: 'sun' });
     expect(first('shade')?.command).toEqual({ kind: 'lens', lens: 'shade' });
+    expect(first('share')?.command).toEqual({ kind: 'share' });
+    expect(first('bees')?.command).toEqual({ kind: 'lens', lens: 'flower' });
+    expect(first('watering')?.command).toEqual({ kind: 'lens', lens: 'water' });
   });
 
   it('sows a plant in the shed, or opens its card, with a word before it', () => {

@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { jobsFor } from '../../calendar/jobs';
+import type { Focus, TimeScene } from '../../canvas/render';
+import { pickedBy, timeline } from '../../lifecycle/projection';
 import { featureLabel, KINDS, type Target } from '../../model/features';
 import { makeSpace, spaceInfo } from '../../model/spaces';
 import { updateGarden, type Store } from '../../model/store';
@@ -17,10 +20,12 @@ import { FillPopover, type Placed } from '../FillPopover';
 import { useIsPhone } from '../hooks';
 import { Icon } from '../icons';
 import { Inspector } from '../Inspector';
-import { LensBar, type Lens } from '../Lenses';
+import { isFocusLens, LensBar, LensLegend, type Lens } from '../Lenses';
 import { PhoneDrawBar, PhoneHandBar, PhoneSheet, PlantingBar } from '../PhonePlanControls';
 import { canDrawByHand, geometryForTool, PlanCanvas, type CanvasApi, type Placing, type SketchPen, type Tool } from '../PlanCanvas';
 import { SeasonPhoto } from '../SeasonPhoto';
+import { PlanChips } from '../PlanChips';
+import { ShareDialog } from '../ShareDialog';
 import { SketchBar } from '../SketchBar';
 import { SpaceDialog } from '../SpacePicker';
 import { useApp } from '../appContext';
@@ -28,6 +33,8 @@ import { clockText, SunBar, type CalendarDate, type SunView } from '../SunBar';
 import { usePlants } from '../usePlants';
 import { spacingStyle } from '../../planting/place';
 import { useSunHours } from '../useSunHours';
+import { yearScene } from '../yearScene';
+import { YearScrubber } from '../YearScrubber';
 
 /** Something another screen (or search) asked the plan to do. */
 export type PlanIntent =
@@ -40,7 +47,9 @@ export type PlanIntent =
   | { kind: 'tool'; tool: Tool }
   | { kind: 'fit' }
   /** Ask "Where are you growing?". */
-  | { kind: 'setup' };
+  | { kind: 'setup' }
+  /** Share a picture of the plan. */
+  | { kind: 'share' };
 
 interface Props {
   store: Store;
@@ -77,6 +86,10 @@ function hintFor(tool: Tool, phone: boolean, byHand = false, pen?: SketchPen): s
   return 'Drag out from the centre, or click the centre and type the radius.';
 }
 
+const pad2 = (n: number) => String(n).padStart(2, '0');
+const isoOf = (d: CalendarDate) => `${d.year}-${pad2(d.month)}-${pad2(d.day)}`;
+const calendarOf = (iso: string): CalendarDate => ({ year: Number(iso.slice(0, 4)), month: Number(iso.slice(5, 7)), day: Number(iso.slice(8, 10)) });
+
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = null, clearIntent, now = new Date() }: Props) {
@@ -106,6 +119,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const [placed, setPlaced] = useState<Placed | null>(null);
   const [lens, setLens] = useState<Lens>('none');
   const [settingUp, setSettingUp] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const locked = prefs.layoutLocked;
   const app = useApp();
 
@@ -114,7 +128,12 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const today: CalendarDate = { year: clock.year, month: clock.month, day: clock.day };
   const sunOn = lens === 'sun' || lens === 'shade';
   const sunView: SunView = lens === 'sun' ? 'hours' : 'shadows';
-  const [sunDate, setSunDate] = useState<CalendarDate>(today);
+  // The day the plan shows: today, or a week chosen on the year scrubber. The sun and shade lenses use it too.
+  const todayIso = isoOf(today);
+  const [when, setWhen] = useState(todayIso);
+  const [yearPlaying, setYearPlaying] = useState(false);
+  const sunDate = useMemo(() => calendarOf(when), [when]);
+  const setSunDate = (d: CalendarDate) => setWhen(isoOf(d));
   const [minutes, setMinutes] = useState(clock.hour * 60 + clock.minute);
   const [playing, setPlaying] = useState(false);
   const [hoverPoint, setHoverPoint] = useState<Point | null>(null);
@@ -165,6 +184,42 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const juneGrid = useSunHours(garden, 6, today.year, (growing || sunOn) && !!plants);
   // Checks wait for the library, so plants never show as "unknown" for a moment.
   const findings: Finding[] = useMemo(() => (plants ? checkGarden(garden, plantOf, juneGrid ?? null) : []), [garden, plantOf, plants, juneGrid]);
+  // The garden through the year: each planting's life, read at the chosen day.
+  const timelines = useMemo(() => (plants ? new Map(garden.plantings.map((pl) => [pl.id, timeline(plantOf(pl.plantId), pl, garden, todayIso)])) : null), [garden, plants, plantOf, todayIso]);
+  const plantById = useMemo(() => new Map((plants ?? []).map((pl) => [pl.id, pl])), [plants]);
+  const ideaOf = (id: string) => plantById.get(id) ?? null;
+  const year = useMemo(() => (timelines ? yearScene(garden, plantOf, timelines, when, ideaOf) : null), [garden, plantOf, timelines, when, plantById]);
+  const stageAt = year?.stageAt ?? null;
+  const gaps = year?.gaps ?? [];
+  // A week that looks the same as the last (same stages, month, frost, light and gaps) keeps the same scene, so
+  // the plan isn't redrawn: scrubbing a big garden only redraws when something on it changes.
+  const lastScene = useRef<{ key: string; garden: Garden; time: TimeScene } | null>(null);
+  const time = useMemo(() => {
+    if (!year) return null;
+    const t = year.time;
+    const key = [year.month, t.frost, t.light?.map((n) => n.toFixed(3)).join(':'), [...t.gaps].sort().join('.'), garden.plantings.map((pl) => `${t.stageOf(pl).stage}${t.stageOf(pl).guessed ? '?' : ''}`).join(',')].join('|');
+    const prev = lastScene.current;
+    if (prev && prev.key === key && prev.garden === garden) return prev.time;
+    lastScene.current = { key, garden, time: t };
+    return t;
+  }, [year]);
+  const shownMonth = Number(when.slice(5, 7));
+  // The same goes for a lens that picks out the same plantings as last week.
+  const lastFocus = useRef<Focus | null>(null);
+  const focus: Focus | null = useMemo(() => {
+    if (!isFocusLens(lens) || !stageAt) return (lastFocus.current = null);
+    const ids = pickedBy(lens, garden, plantOf, stageAt, when);
+    const prev = lastFocus.current;
+    if (prev && prev.kind === lens && prev.ids.size === ids.size && [...ids].every((id) => prev.ids.has(id))) return prev;
+    return (lastFocus.current = { kind: lens, ids });
+  }, [lens, stageAt, garden, plantOf, when]);
+  const focusGuessed = !!focus && !!stageAt && garden.plantings.some((pl) => focus.ids.has(pl.id) && stageAt(pl).guessed);
+  // The month's jobs on their beds, from this month on; they can be ticked off in this month.
+  const monthJobs = useMemo(() => {
+    if (!plants || when.slice(0, 7) < todayIso.slice(0, 7)) return [];
+    const done = new Set(garden.jobsDone.map((j) => j.key));
+    return jobsFor(garden, plantOf, shownMonth, Number(when.slice(0, 4))).filter((j) => !done.has(j.key));
+  }, [garden, plants, plantOf, when, todayIso, shownMonth]);
   const hoverHours = lens === 'sun' && viewGrid && hoverPoint ? hoursAt(viewGrid, hoverPoint) : null;
   const tapHours = lens === 'sun' && viewGrid && tapPoint ? hoursAt(viewGrid, tapPoint) : null;
   const warnings = findings.filter((f) => f.level === 'warn').length;
@@ -190,6 +245,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
     else if (intent.kind === 'tool') setTool(intent.tool);
     else if (intent.kind === 'fit') setFitSignal((n) => n + 1);
     else if (intent.kind === 'setup') setSettingUp(true);
+    else if (intent.kind === 'share') setSharing(true);
     else if (intent.kind === 'sticker') {
       const id = intent.id;
       setToolState('select');
@@ -552,6 +608,9 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               shadows={shadows}
               sunGrid={lens === 'sun' ? (viewGrid ?? null) : null}
               sun={sun}
+              time={time}
+              month={shownMonth}
+              focus={focus}
               onHoverPoint={setHoverPoint}
               onTap={setTapPoint}
             >
@@ -569,7 +628,24 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
                 redrawBoundary={() => setTool('boundary')}
               />
               {placed && <FillPopover placed={placed} garden={garden} store={store} plantOf={plantOf} close={() => setPlaced(null)} />}
+              {tool === 'select' && lens === 'none' && plants && (
+                <PlanChips
+                  garden={garden}
+                  store={store}
+                  plantOf={plantOf}
+                  jobs={monthJobs}
+                  canTick={when.slice(0, 7) === todayIso.slice(0, 7)}
+                  gaps={gaps}
+                  today={todayIso}
+                  plant={(id) => startPlanting(id)}
+                />
+              )}
             </PlanCanvas>
+            {focus && (
+              <div class="lens-legend-wrap">
+                <LensLegend kind={focus.kind} count={focus.ids.size} guessed={focusGuessed} />
+              </div>
+            )}
             {empty && tool === 'select' && (
               <div class="plan-empty">
                 <p class="plan-empty-title">Start your plan</p>
@@ -600,6 +676,20 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               </p>
             )}
           </div>
+          {(tool === 'select' || tool === 'plant') && !empty && (
+            <YearScrubber
+              today={todayIso}
+              date={when}
+              setDate={setWhen}
+              playing={yearPlaying}
+              setPlaying={setYearPlaying}
+              phone={phone}
+              share={() => {
+                setYearPlaying(false);
+                setSharing(true);
+              }}
+            />
+          )}
           {!phone && bottom}
         </main>
         {!phone && (
@@ -610,6 +700,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       </div>
       {phone && bottom}
       {settingUp && <SpaceDialog make={(c) => makeTheSpace(c.space, c.w, c.d)} close={() => setSettingUp(false)} />}
+      {sharing && timelines && <ShareDialog garden={garden} plantOf={plantOf} ideaOf={ideaOf} timelines={timelines} date={when} look={prefs.look} mode={colourMode} close={() => setSharing(false)} />}
     </div>
   );
 }

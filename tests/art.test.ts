@@ -112,7 +112,8 @@ describe('drawing', () => {
           // Every save has its restore, so one plant never changes how the next is drawn.
           expect(log.filter((l) => l.startsWith('save(')).length).toBe(log.filter((l) => l.startsWith('restore(')).length);
         }
-  });
+    // Every plant, stage and style: a couple of seconds alone, longer while the other test files run beside it.
+  }, 30_000);
 
   it('caches drawings at a few sizes, and draws very large plants directly', () => {
     expect(bucketFor(5)).toBe(6);

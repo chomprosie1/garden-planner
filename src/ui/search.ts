@@ -23,6 +23,8 @@ export type Command =
   | { kind: 'fit' }
   /** "Where are you growing?", for an empty plan. */
   | { kind: 'setup' }
+  /** A picture of the plan, or a timelapse of the year. */
+  | { kind: 'share' }
   | { kind: 'shortcuts' };
 
 export type Group = 'Actions' | 'On your plan' | 'Plants';
@@ -91,7 +93,11 @@ function actions(g: Garden, locked: boolean): Candidate[] {
   out.push(
     { key: 'lens-sun', group: 'Actions', label: 'Show sun hours', words: 'light sunny lens', command: { kind: 'lens', lens: 'sun' } },
     { key: 'lens-shade', group: 'Actions', label: 'Show shade', words: 'shadows shadow time lens', command: { kind: 'lens', lens: 'shade' } },
+    { key: 'lens-flower', group: 'Actions', label: 'Show what’s in flower', words: 'flowers bees pollinators lens bloom', command: { kind: 'lens', lens: 'flower' } },
+    { key: 'lens-harvest', group: 'Actions', label: 'Show what’s ready to harvest', words: 'pick crops ripe lens', command: { kind: 'lens', lens: 'harvest' } },
+    { key: 'lens-water', group: 'Actions', label: 'Show what needs water', words: 'watering thirsty dry lens', command: { kind: 'lens', lens: 'water' } },
     { key: 'lens-none', group: 'Actions', label: 'Show just the plan', words: 'hide sun shade lens plain', command: { kind: 'lens', lens: 'none' } },
+    { key: 'share', group: 'Actions', label: 'Share a picture of the plan', words: 'picture photo image story post timelapse video instagram', command: { kind: 'share' } },
     locked
       ? { key: 'unlock', group: 'Actions', label: 'Unlock the layout', words: 'padlock lock move beds', command: { kind: 'lock', on: false } }
       : { key: 'lock', group: 'Actions', label: 'Lock the layout', words: 'padlock stop moving beds', command: { kind: 'lock', on: true } },

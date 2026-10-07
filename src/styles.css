@@ -3848,3 +3848,230 @@ kbd {
     display: none;
   }
 }
+
+/* ---------- The garden through the year (Stage 14) ---------- */
+.year-scrubber {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.8rem 0.35rem;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.year-track {
+  flex: 1;
+  min-width: 0;
+}
+.year-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  min-height: 1.3rem;
+  white-space: nowrap;
+}
+.year-today {
+  margin-left: auto;
+  font-size: 0.82rem;
+}
+.year-range {
+  position: relative;
+}
+.year-range input {
+  width: 100%;
+  margin: 0.2rem 0 0;
+  accent-color: var(--accent);
+}
+.year-now {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--accent);
+  border-radius: 1px;
+  pointer-events: none;
+}
+.year-months {
+  position: relative;
+  height: 1rem;
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+.year-months span {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+  border-left: 1px solid var(--border);
+  padding-left: 2px;
+  line-height: 1rem;
+}
+.year-months .year-new {
+  color: var(--text);
+  font-weight: 700;
+}
+@media (max-width: 700px) {
+  .year-scrubber {
+    border-radius: 0;
+    border-width: 1px 0 0;
+    padding: 0.3rem var(--gutter) 0.2rem;
+  }
+  .year-head {
+    font-size: 0.8rem;
+  }
+}
+
+/* Lenses: rings in the chips and the legend, each with its own colour and dash. */
+.lens-bar {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  min-width: 0;
+}
+.lens-row .lens-bar {
+  justify-content: flex-start;
+}
+.lens-ring-flower {
+  color: #b8357a;
+}
+.lens-ring-harvest {
+  color: #b85c10;
+}
+.lens-ring-water {
+  color: #1f64ad;
+}
+:root[data-mode='dark'] .lens-ring-flower {
+  color: #f28cc4;
+}
+:root[data-mode='dark'] .lens-ring-harvest {
+  color: #f5a54a;
+}
+:root[data-mode='dark'] .lens-ring-water {
+  color: #79b4f2;
+}
+.chip[aria-checked='true'] .lens-ring {
+  color: currentColor;
+}
+.lens-legend-wrap {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  right: 72px;
+  z-index: 1;
+  pointer-events: none;
+}
+.lens-legend {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin: 0;
+  max-width: 30rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  font-size: 0.82rem;
+}
+.lens-legend svg {
+  flex: none;
+  margin-top: 0.15rem;
+}
+
+/* Jobs and gaps on the beds. */
+.plan-chips {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: center;
+  gap: 0.2rem;
+  width: max-content;
+  transform: translate(-50%, calc(-100% - 4px));
+  pointer-events: none;
+}
+.plan-chip {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 26px;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+button.plan-chip:hover {
+  border-color: var(--accent);
+}
+.plan-chip-box {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  border: 1.5px solid currentColor;
+  opacity: 0.7;
+}
+.plan-chip-later {
+  cursor: default;
+  opacity: 0.85;
+  border-style: dashed;
+}
+.plan-gap {
+  display: inline-block;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.35;
+  padding: 0.2rem 0.6rem;
+  cursor: default;
+  border-color: var(--accent);
+  border-style: dashed;
+}
+.plan-gap .link-btn {
+  font-weight: 700;
+  padding: 0.2rem 0;
+}
+@media (pointer: coarse) {
+  .plan-chip {
+    min-height: 32px;
+  }
+}
+
+/* Sharing a picture or a timelapse. */
+.share-dialog {
+  width: min(34rem, calc(100% - 2rem));
+}
+.share-preview {
+  display: flex;
+  justify-content: center;
+  padding: 0.6rem;
+  border-radius: var(--radius-card);
+  background: var(--surface2);
+}
+.share-preview canvas,
+.share-preview video {
+  display: block;
+  height: min(46vh, 30rem);
+  width: auto;
+  max-width: 100%;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  background: var(--bg);
+}
+.share-preview [hidden] {
+  display: none;
+}
+.share-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+}

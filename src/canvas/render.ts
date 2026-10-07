@@ -5,7 +5,8 @@ import { bounds, centroid, distance } from '../geometry/polygon';
 import { featureLabel, isClosed, pointsOf, type Target } from '../model/features';
 import { artFor, drawPlant, hashString, OVERHANG, shadeHex, stageLook, type Look } from '../art/plants';
 import { bucketFor, paintFor, plantSprite, VARIANTS } from '../art/sprites';
-import { currentStage } from '../lifecycle/stages';
+import type { Projected } from '../lifecycle/projection';
+import { currentStage, type LifeStage } from '../lifecycle/stages';
 import { SKETCH_WIDTH, sketchesOf } from '../model/sketches';
 import type { Feature, Garden, Material, Plant, Planting, Point, Sketch, SketchColour, SketchKind } from '../model/types';
 import { blockGrid, isActive, MAX_PLANTS, plantCount, plantingShape, plantPositions, rowCount, spreadOf, type Layout, type PlantingShape } from '../planting/place';
@@ -100,7 +101,35 @@ export interface Scene {
   noLabels?: boolean;
   /** Alignment lines while moving something, garden mm. */
   guides?: Guide[];
+  /** The plan on a day: plantings at their stage then, and that week's light, lawn and frost. */
+  time?: TimeScene | null;
+  /** A lens picking out some plantings; the rest of the plan is dimmed. */
+  focus?: Focus | null;
 }
+
+export interface TimeScene {
+  /** Each planting's stage on the day. Guessed stages get a dotted edge. */
+  stageOf: (pl: Planting) => Projected;
+  /** Which way, and how far, shadows fall on screen, per px of reach. null: the usual light from the top left. */
+  light: Point | null;
+  /** The lawn in its season: above 0 greener (spring), below 0 paler (a dry August). */
+  lawn: number;
+  /** Frost on the ground. */
+  frost: boolean;
+  /** Beds standing empty, which glow faintly. */
+  gaps: Set<string>;
+}
+
+export type FocusKind = 'flower' | 'harvest' | 'water';
+export interface Focus {
+  kind: FocusKind;
+  /** The plantings it picks out. */
+  ids: Set<string>;
+}
+
+const stageFor = (s: Scene, pl: Planting): LifeStage => (s.time ? s.time.stageOf(pl).stage : currentStage(pl));
+/** The usual light, from the top left: shadows fall down and to the right. */
+const lightOf = (s: Scene): Point => s.time?.light ?? [0.7, 0.9];
 
 /** A line showing two things lined up: vertical at x, or horizontal at y, between two points along it. */
 export type Guide = { axis: 'x' | 'y'; at: number; from: number; to: number };
@@ -314,6 +343,7 @@ export function renderStatic(ctx: CanvasRenderingContext2D, s: Scene) {
     polyPath(ctx, g.boundary.map(scr));
     ctx.fillStyle = placePattern(pats.lawn, v, pats.tileMm.lawn);
     ctx.fill();
+    if (s.time?.lawn) tintLawn(ctx, s, s.time.lawn);
   }
 
   if (s.trace && g.trace) {
@@ -337,9 +367,13 @@ export function renderStatic(ctx: CanvasRenderingContext2D, s: Scene) {
   const depth = s.depth !== false && !s.minimal && !s.shadows;
   if (depth) for (const f of g.features) drawFeatureShadow(ctx, s, f);
   for (const f of g.features) if (f.kind !== 'surface') drawFeature(ctx, s, f, pats);
-  const planted = s.plantOf ? g.plantings.filter(isActive) : [];
+  if (s.time?.frost) drawFrost(ctx, s);
+  if (s.time?.gaps.size) for (const f of g.features) if (s.time.gaps.has(f.id)) drawGap(ctx, s, f);
+  // On a day, plantings cleared since are back, and ones cleared by then are left out.
+  const planted = s.plantOf ? (s.time ? g.plantings.filter((pl) => stageFor(s, pl) !== 'cleared') : g.plantings.filter(isActive)) : [];
   if (depth) for (const pl of planted) drawPlantingShadow(ctx, s, pl, s.plantOf!(pl.plantId));
   for (const pl of planted) drawPlanting(ctx, s, pl, s.plantOf!(pl.plantId));
+  if (s.focus) drawFocus(ctx, s, s.focus, planted);
   if (s.sunGrid) drawHeatMap(ctx, s, s.sunGrid);
   if (s.shadows) drawShadows(ctx, s, s.shadows);
   if (planted.length) drawFindings(ctx, s);
@@ -393,15 +427,55 @@ function drawFeatureShadow(ctx: CanvasRenderingContext2D, s: Scene, f: Feature) 
   const v = s.view;
   const d = shadowReach(f.kind === 'tree' ? Math.min(h, 3000) : h, v.scale);
   if (d < 1) return;
+  const [lx, ly] = lightOf(s);
+  const pts = f.footprint.map((p) => toScreen(v, p));
+  const blur = Math.max(1, d * 0.5);
+  const alpha = shadowAlpha(s) * (f.kind === 'greenhouse' ? 0.5 : 1);
+  const b = bounds(pts)!;
+  const pad = Math.ceil(blur * 3);
+  const x0 = b.minX - pad + d * lx;
+  const y0 = b.minY - pad + d * ly;
+  const w = b.maxX - b.minX + 2 * pad;
+  const hh = b.maxY - b.minY + 2 * pad;
+  if (x0 > s.width || y0 > s.height || x0 + w < 0 || y0 + hh < 0) return;
+  const dpr = ctx.getTransform().a || 1;
+  // A blur over the whole plan is slow, so each shadow is blurred once on a canvas just big enough for it, and
+  // kept until the feature or the zoom changes: the year's light only moves it.
+  const pw = Math.ceil(w * dpr);
+  const ph = Math.ceil(hh * dpr);
+  if (canBlur && pw * ph < 4e6) {
+    let img = shadowImages.get(f);
+    if (!img || img.scale !== v.scale || img.dpr !== dpr || img.canvas.width !== pw || img.canvas.height !== ph) {
+      const c = document.createElement('canvas');
+      c.width = pw;
+      c.height = ph;
+      const sc = c.getContext('2d')!;
+      sc.setTransform(dpr, 0, 0, dpr, (pad - b.minX) * dpr, (pad - b.minY) * dpr);
+      sc.filter = `blur(${blur.toFixed(1)}px)`;
+      sc.fillStyle = '#1a140c';
+      polyPath(sc, pts);
+      sc.fill();
+      img = { canvas: c, scale: v.scale, dpr };
+      shadowImages.set(f, img);
+    }
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(img.canvas, x0, y0, pw / dpr, ph / dpr);
+    ctx.restore();
+    return;
+  }
   ctx.save();
-  if (canBlur) ctx.filter = `blur(${Math.max(1, d * 0.5).toFixed(1)}px)`;
-  ctx.globalAlpha = shadowAlpha(s) * (f.kind === 'greenhouse' ? 0.5 : 1);
+  if (canBlur) ctx.filter = `blur(${blur.toFixed(1)}px)`;
+  ctx.globalAlpha = alpha;
   ctx.fillStyle = '#1a140c';
-  ctx.translate(d * 0.7, d * 0.9);
-  polyPath(ctx, f.footprint.map((p) => toScreen(v, p)));
+  ctx.translate(d * lx, d * ly);
+  polyPath(ctx, pts);
   ctx.fill();
   ctx.restore();
 }
+
+/** Each feature's blurred shadow, at the zoom it was drawn for. Features are replaced when they change, so these go with them. */
+const shadowImages = new WeakMap<Feature, { canvas: HTMLCanvasElement; scale: number; dpr: number }>();
 
 /** A soft round shadow, drawn once and reused for every plant. */
 let plantShadow: HTMLCanvasElement | null = null;
@@ -421,20 +495,23 @@ function plantShadowImage(): HTMLCanvasElement {
 
 /** Shadows under plants that stand up from the bed: not seeds, seedlings or anything still only planned. */
 function drawPlantingShadow(ctx: CanvasRenderingContext2D, s: Scene, pl: Planting, plant: Plant) {
-  const look = stageLook(currentStage(pl), plant, pl);
+  const look = stageLook(stageFor(s, pl), plant, pl);
   const tall = (plant.size.heightMm ?? 300) * look.grow;
   if (look.ghost || look.seeds || look.seedling || tall < 250) return;
   const v = s.view;
   const r = (spreadOf(plant) / 2) * v.scale * look.grow;
   if (r < 4) return;
   const d = Math.min(shadowReach(tall, v.scale), r * 0.45);
+  // A low sun's shadow is longer, but never leaves the plant behind.
+  const [lx, ly] = lightOf(s);
+  const k = Math.min(1, (r * 0.9) / Math.max(1e-6, d * Math.hypot(lx, ly)));
   const img = plantShadowImage();
   ctx.globalAlpha = shadowAlpha(s);
   const size = r * 2.1;
   for (const p of plantPositions(pl, plant)) {
     const [x, y] = toScreen(v, p);
     if (x < -size || y < -size || x > s.width + size || y > s.height + size) continue;
-    ctx.drawImage(img, x + d * 0.7 - size / 2, y + d * 0.9 - size / 2, size, size);
+    ctx.drawImage(img, x + d * lx * k - size / 2, y + d * ly * k - size / 2, size, size);
   }
   ctx.globalAlpha = 1;
 }
@@ -511,6 +588,7 @@ function drawFeature(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, pats: 
   else ctx.fillStyle = c.fill;
   if (f.kind === 'tree' && f.circle) return drawTree(ctx, s, f, c.stroke);
   ctx.fill();
+  if (material === 'lawn' && s.time?.lawn) tintLawn(ctx, s, s.time.lawn);
   if (f.kind === 'greenhouse') {
     // A sheen across the glass.
     const bx = bounds(pts)!;
@@ -1250,7 +1328,102 @@ function drawPlants(ctx: CanvasRenderingContext2D, s: Scene, pts: Point[], shape
 
 function drawPlanting(ctx: CanvasRenderingContext2D, s: Scene, pl: Planting, plant: Plant) {
   const pts = plantPositions(pl, plant);
-  drawPlants(ctx, s, pts, plantingShape(pl, plant), spreadOf(plant), plant, stageLook(currentStage(pl), plant, pl), s.hoverId === pl.id ? 1 : 0.95);
+  const shape = plantingShape(pl, plant);
+  const at = s.time?.stageOf(pl);
+  drawPlants(ctx, s, pts, shape, spreadOf(plant), plant, stageLook(at?.stage ?? currentStage(pl), plant, pl), s.hoverId === pl.id ? 1 : 0.95);
+  // A stage from the plant's usual months, not one you've marked: a dotted edge says it's a guess.
+  if (at?.guessed && at.stage !== 'planned') {
+    shapePath(ctx, s, shape, (spreadOf(plant) / 2) * s.view.scale + 2);
+    ctx.save();
+    ctx.strokeStyle = s.style.plan.label;
+    ctx.globalAlpha = 0.55;
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([2, 3]);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+// ---------- The garden through the year ----------
+
+/** Greener in spring, paler in a dry summer: a wash over the lawn path that's just been filled. */
+function tintLawn(ctx: CanvasRenderingContext2D, s: Scene, k: number) {
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, Math.abs(k)) * (s.style.mode === 'dark' ? 0.16 : 0.24);
+  ctx.fillStyle = k > 0 ? '#4c9a36' : '#dcc57e';
+  ctx.fill();
+  ctx.restore();
+}
+
+/** Frost: a pale wash over the garden, with a sparkle of ice crystals that stay put as you scrub. */
+function drawFrost(ctx: CanvasRenderingContext2D, s: Scene) {
+  const g = s.garden;
+  if (g.boundary.length < 3) return;
+  ctx.save();
+  polyPath(ctx, g.boundary.map((p) => toScreen(s.view, p)));
+  ctx.clip();
+  ctx.fillStyle = s.style.mode === 'dark' ? 'rgba(200,220,255,0.10)' : 'rgba(255,255,255,0.28)';
+  ctx.fillRect(0, 0, s.width, s.height);
+  // Crystals on a grid in garden mm, so they don't shimmer when the plan moves.
+  const b = bounds(g.boundary)!;
+  const step = Math.max(150, 9 / s.view.scale);
+  ctx.fillStyle = s.style.mode === 'dark' ? 'rgba(230,240,255,0.55)' : 'rgba(255,255,255,0.9)';
+  for (let x = Math.floor(b.minX / step) * step; x <= b.maxX; x += step)
+    for (let y = Math.floor(b.minY / step) * step; y <= b.maxY; y += step) {
+      const h = (Math.imul(Math.round(x), 73856093) ^ Math.imul(Math.round(y), 19349663)) >>> 0;
+      if (h % 3) continue;
+      const [sx, sy] = toScreen(s.view, [x + ((h >>> 4) % 100) * step * 0.01, y + ((h >>> 11) % 100) * step * 0.01]);
+      if (sx < -2 || sy < -2 || sx > s.width + 2 || sy > s.height + 2) continue;
+      const r = 0.6 + ((h >>> 18) % 3) * 0.35;
+      ctx.fillRect(sx - r, sy - r, r * 2, r * 2);
+    }
+  ctx.restore();
+}
+
+/** A bed standing empty glows faintly round its edge. */
+function drawGap(ctx: CanvasRenderingContext2D, s: Scene, f: Feature) {
+  const pts = f.footprint.map((p) => toScreen(s.view, p));
+  if (pts.length < 3) return;
+  ctx.save();
+  polyPath(ctx, pts, true, f.kind === 'bed' && !f.smooth ? s.style.bedRadiusMm * s.view.scale : 0);
+  ctx.shadowColor = s.style.accent;
+  ctx.shadowBlur = 14;
+  ctx.strokeStyle = s.style.accent;
+  ctx.globalAlpha = 0.75;
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([7, 5]);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** Ring colours for each lens, and a dash so they differ by more than colour. */
+export const FOCUS_STYLE: Record<FocusKind, { light: string; dark: string; dash: number[]; width: number }> = {
+  flower: { light: '#b8357a', dark: '#f28cc4', dash: [1.5, 4], width: 3.5 },
+  harvest: { light: '#b85c10', dark: '#f5a54a', dash: [], width: 3 },
+  water: { light: '#1f64ad', dark: '#79b4f2', dash: [9, 5], width: 2.5 },
+};
+
+/** A lens: the plan dimmed, with the plantings it picks out drawn again on top and ringed. */
+function drawFocus(ctx: CanvasRenderingContext2D, s: Scene, focus: Focus, planted: Planting[]) {
+  ctx.save();
+  ctx.globalAlpha = 0.6;
+  ctx.fillStyle = s.style.plan.paper;
+  ctx.fillRect(0, 0, s.width, s.height);
+  ctx.restore();
+  const st = FOCUS_STYLE[focus.kind];
+  for (const pl of planted) {
+    if (!focus.ids.has(pl.id)) continue;
+    const plant = s.plantOf!(pl.plantId);
+    drawPlanting(ctx, s, pl, plant);
+    shapePath(ctx, s, plantingShape(pl, plant), (spreadOf(plant) / 2) * s.view.scale + 4);
+    ctx.save();
+    ctx.strokeStyle = s.style.mode === 'dark' ? st.dark : st.light;
+    ctx.lineWidth = st.width;
+    ctx.lineCap = 'round';
+    ctx.setLineDash(st.dash);
+    ctx.stroke();
+    ctx.restore();
+  }
 }
 
 /** Outlines plantings with a problem; the one picked in the list is drawn strongly. */

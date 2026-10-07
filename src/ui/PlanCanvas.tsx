@@ -5,7 +5,7 @@ import type { ComponentChildren } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 import { useApp } from './appContext';
 import { hitEdge, hitFeature, hitPlanting, hitVertex } from '../canvas/hit';
-import { northCentre, NORTH_RADIUS, plantingHandles, planStyle, renderLive, renderStatic, rotateHandleAt, sketchTextPx, type Draft, type Guide, type PlantDraft, type Scene, type Stroke } from '../canvas/render';
+import { northCentre, NORTH_RADIUS, plantingHandles, planStyle, renderLive, renderStatic, rotateHandleAt, sketchTextPx, type Draft, type Focus, type Guide, type PlantDraft, type Scene, type Stroke, type TimeScene } from '../canvas/render';
 import { parseLength, snapPoint, snapStepFor, type SnapKind } from '../canvas/snap';
 import { fit, pan, toScreen, toWorld, zoomAt, type Viewport } from '../canvas/viewport';
 import { bounds, distance, type Bounds } from '../geometry/polygon';
@@ -147,6 +147,12 @@ export interface PlanCanvasProps {
   shadows?: Shade[] | null;
   sunGrid?: SunGrid | null;
   sun?: Sun | null;
+  /** The plan on a day: plantings at their stage then, and that week's light, lawn and frost. */
+  time?: TimeScene | null;
+  /** The month shown, for trees in or out of leaf. */
+  month?: number;
+  /** A lens picking out some plantings. */
+  focus?: Focus | null;
   /** The garden point under a mouse pointer, or null when it leaves. */
   onHoverPoint?: (p: Point | null) => void;
   /** A short message about the last action, e.g. why a plant couldn't go there. null clears it. */
@@ -230,6 +236,12 @@ export function PlanCanvas(props: PlanCanvasProps) {
    */
   const layer = useRef<{ canvas: HTMLCanvasElement; key: unknown[]; view: Viewport; margin: number } | null>(null);
   const zoomingUntil = useRef(0);
+  /**
+   * While the year is being scrubbed, the ground is drawn just the size of the screen, which is much quicker;
+   * the margin for panning is filled in once it stops.
+   */
+  const yearMoved = useRef<{ time: unknown; until: number }>({ time: undefined, until: 0 });
+  const yearSettle = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   /** Alignment lines while moving something, and which ones were showing (for a haptic tick when they change). */
   const guides = useRef<Guide[]>([]);
   const guideKey = useRef('');
@@ -304,16 +316,28 @@ export function PlanCanvas(props: PlanCanvasProps) {
       shadows: p.shadows ?? null,
       sunGrid: p.sunGrid ?? null,
       sun: p.sun ?? null,
+      time: p.time ?? null,
+      focus: p.focus ?? null,
+      ...(p.month ? { month: p.month } : {}),
     };
 
     // The ground: redrawn only when something on it changes, the zoom settles, or a pan runs past the margin.
-    const key = [scene.garden, p.look, p.mode, hover.current, p.findings, p.focusFinding, p.traceImage, p.plantOf, p.shadows, p.sunGrid, scene.sketches, scene.depth, scene.drawing, w, h, dpr];
+    const key = [scene.garden, p.look, p.mode, hover.current, p.findings, p.focusFinding, p.traceImage, p.plantOf, p.shadows, p.sunGrid, p.time, p.focus, p.month, scene.sketches, scene.depth, scene.drawing, w, h, dpr];
     let L = layer.current;
     const stale = !L || key.some((k, i) => k !== L!.key[i]);
+    const ym = yearMoved.current;
+    if (p.time !== ym.time) yearMoved.current = { time: p.time, until: ym.time === undefined ? 0 : performance.now() + 350 };
+    const scrubbing = performance.now() < yearMoved.current.until;
+    if (scrubbing) {
+      clearTimeout(yearSettle.current);
+      yearSettle.current = setTimeout(redraw, 380);
+    }
+    // Drawn without its margin while scrubbing: fill it in now that it's stopped.
+    const thin = !!L && L.margin === 0 && !scrubbing;
     const rescaled = !!L && L.view.scale !== v.scale;
     const outside = !!L && (Math.abs(v.ox - L.view.ox) > L.margin || Math.abs(v.oy - L.view.oy) > L.margin);
-    if (stale || outside || (rescaled && performance.now() >= zoomingUntil.current)) {
-      const margin = Math.round(Math.max(w, h) * 0.3);
+    if (stale || outside || thin || (rescaled && performance.now() >= zoomingUntil.current)) {
+      const margin = scrubbing ? 0 : Math.round(Math.max(w, h) * 0.3);
       const lc = L?.canvas ?? document.createElement('canvas');
       const cw = Math.round((w + 2 * margin) * dpr);
       const ch = Math.round((h + 2 * margin) * dpr);
@@ -353,6 +377,11 @@ export function PlanCanvas(props: PlanCanvasProps) {
       const [sx, sy] = toScreen(v, [x, y]);
       el.style.left = `${Math.round(sx)}px`;
       el.style.top = `${Math.round(sy)}px`;
+      // Chips on a bed too small on screen to carry them are hidden until you zoom in.
+      const w = Number(el.dataset.worldW ?? 0);
+      el.style.visibility = w && w * v.scale < 56 ? 'hidden' : '';
+      // No wider than the bed, so chips on neighbouring beds don't run into each other.
+      if (w) el.style.maxWidth = `${Math.round(Math.max(140, w * v.scale + 16))}px`;
     }
   };
 
@@ -443,6 +472,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
       document.fonts?.removeEventListener?.('loadingdone', onFonts);
       cancelAnimationFrame(raf.current);
       clearTimeout(settle.current);
+      clearTimeout(yearSettle.current);
     };
   }, []);
 
@@ -460,7 +490,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
   }
   useEffect(redraw, [drawKey]);
 
-  useEffect(redraw, [props.garden, props.look, props.mode, props.selected, props.selectedVertex, props.traceImage, props.findings, props.focusFinding, props.shadows, props.sunGrid, props.sun, props.showSketches, props.byHand, props.depth, props.locked, props.tool]);
+  useEffect(redraw, [props.garden, props.look, props.mode, props.selected, props.selectedVertex, props.traceImage, props.findings, props.focusFinding, props.shadows, props.sunGrid, props.sun, props.showSketches, props.byHand, props.depth, props.locked, props.tool, props.time, props.focus, props.month]);
 
   // ---------- helpers ----------
 

@@ -166,6 +166,8 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
         return toPlan({ kind: 'fit' });
       case 'setup':
         return toPlan({ kind: 'setup' });
+      case 'share':
+        return toPlan({ kind: 'share' });
     }
   };
   const screen = (() => {
