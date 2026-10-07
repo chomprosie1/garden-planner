@@ -30,6 +30,7 @@ import { PlanChips } from '../PlanChips';
 import { ShareDialog } from '../ShareDialog';
 import { SketchBar } from '../SketchBar';
 import { SpaceDialog } from '../SpacePicker';
+import { applyKit, type Kit } from '../../planting/kits';
 import { useApp } from '../appContext';
 import { clockText, SunBar, type CalendarDate, type SunView } from '../SunBar';
 import { usePlants } from '../usePlants';
@@ -364,9 +365,13 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
     setSelected(t);
     setSelectedVertex(null);
   };
-  const makeTheSpace = (space: Parameters<typeof makeSpace>[1], w: number, d: number) => {
-    store.apply(updateGarden((g) => makeSpace(g, space, w, d)));
+  const makeTheSpace = (space: Parameters<typeof makeSpace>[1], w: number, d: number, kit: Kit | null = null) => {
+    store.apply(updateGarden((g) => (kit ? applyKit(makeSpace(g, space, w, d), kit, (id) => plantById.get(id) ?? null, todayIso) : makeSpace(g, space, w, d))));
     setFitSignal((n) => n + 1);
+    if (kit) {
+      setMessage(`${kit.title}: planted up and ready. Drag the timeline below to see it grow, or see what to sow on Today.`);
+      return;
+    }
     setDrawer('plants');
     setMessage(`Your ${spaceInfo(space).label.toLowerCase()} is laid out. Drop plants from below into a bed or pot.`);
   };
@@ -705,7 +710,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
         )}
       </div>
       {phone && bottom}
-      {settingUp && <SpaceDialog make={(c) => makeTheSpace(c.space, c.w, c.d)} close={() => setSettingUp(false)} />}
+      {settingUp && <SpaceDialog make={(c, kit) => makeTheSpace(c.space, c.w, c.d, kit)} close={() => setSettingUp(false)} plantOf={plants ? plantOf : null} />}
       {sharing && timelines && <ShareDialog garden={garden} plantOf={plantOf} ideaOf={ideaOf} timelines={timelines} date={when} look={prefs.look} mode={colourMode} close={() => setSharing(false)} />}
     </div>
   );

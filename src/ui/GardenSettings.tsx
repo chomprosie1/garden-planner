@@ -11,6 +11,8 @@ import { ATTRIBUTION } from '../weather/openMeteo';
 import { lastDay } from '../weather/weather';
 import { usePrefs } from './hooks';
 import { useWeatherNow } from './useWeather';
+import { CompassNorth } from './CompassNorth';
+import { PlaceSearch } from './PlaceSearch';
 
 interface Props {
   store: Store;
@@ -34,7 +36,15 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
   const setNumber = (key: 'latitude' | 'longitude' | 'northRotationDeg', min: number, max: number) => (e: Event) => {
     const value = Number((e.currentTarget as HTMLInputElement).value);
     if (!Number.isFinite(value) || value < min || value > max) return;
-    store.apply(updateGarden((g) => (g[key] === value ? g : { ...g, [key]: value })));
+    store.apply(
+      updateGarden((g) => {
+        if (g[key] === value) return g;
+        // A typed location is no longer the place you searched for.
+        if (key === 'northRotationDeg') return { ...g, [key]: value };
+        const { placeName: _old, ...rest } = g;
+        return { ...rest, [key]: value };
+      }),
+    );
   };
 
   const importFile = async (e: Event) => {
@@ -60,6 +70,7 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
         <GardenNameField store={store} garden={garden} />
         <h3>Where it is</h3>
         <p>{placeText(garden)}</p>
+        <PlaceSearch store={store} />
         <UseLocationButton store={store} onMessage={setMessage} />
         <p class="muted small">Its place times the sun and shade, the frosts and the seasons.</p>
         <details class="advanced">
@@ -80,7 +91,8 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
           Degrees clockwise from the top of your plan to north
           <input type="number" step="1" min={-360} max={360} value={garden.northRotationDeg} onChange={setNumber('northRotationDeg', -360, 360)} />
         </label>
-        <p class="muted small">0 if the top of your plan faces north. Check against a map: a compass points a little off true north.</p>
+        <CompassNorth store={store} />
+        <p class="muted small">0 if the top of your plan faces north. On a phone, the compass can work it out for you.</p>
         <fieldset class="choice">
           <legend>How you space plants</legend>
           <div class="choice-row">
@@ -166,7 +178,12 @@ export function UseLocationButton({ store, onMessage }: { store: Store; onMessag
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         const round = (n: number) => Math.round(n * 10000) / 10000;
-        store.apply(updateGarden((g) => ({ ...g, latitude: round(coords.latitude), longitude: round(coords.longitude) })));
+        store.apply(
+          updateGarden((g) => {
+            const { placeName: _old, ...rest } = g;
+            return { ...rest, latitude: round(coords.latitude), longitude: round(coords.longitude) };
+          }),
+        );
         onMessage({ kind: 'ok', lines: ['Location set from this device.'] });
       },
       () => onMessage({ kind: 'error', lines: ['Location was not shared. Type it in instead.'] }),
@@ -328,6 +345,7 @@ function WeatherSwitch({ garden, prefsStore }: { garden: Garden; prefsStore: Pre
 
 /** "Near Leeds", from the nearest weather station; or a prompt, if it's still the middle of England a new garden starts at. */
 export function placeText(g: Garden): string {
+  if (g.placeName) return `${g.placeName}.`;
   if (g.latitude === 52.5 && g.longitude === -1.5) return 'Not set yet: for now, the middle of England.';
   const av = averagesAt(g.latitude, g.longitude);
   if (av.nearestKm > 150) return 'Set from your location.';

@@ -44,6 +44,7 @@ export function validateGarden(g: unknown): string[] {
   need(isNum(g.latitude) && g.latitude >= -90 && g.latitude <= 90, 'latitude must be between -90 and 90.');
   need(isNum(g.longitude) && g.longitude >= -180 && g.longitude <= 180, 'longitude must be between -180 and 180.');
   need(isNum(g.northRotationDeg), 'northRotationDeg must be a number.');
+  need(g.placeName === undefined || (isStr(g.placeName) && g.placeName.length <= 120), 'placeName must be text.');
   need(Array.isArray(g.boundary) && g.boundary.every(isPoint), 'boundary must be a list of [x, y] points.');
   need(Array.isArray(g.wishlist) && g.wishlist.every(isStr), 'wishlist must be a list of plant ids.');
   need(

@@ -2,10 +2,10 @@
 // stickers, and the spaces offered by "Where are you growing?".
 
 import { useEffect, useRef } from 'preact/hooks';
-import { planStyle, renderStatic } from '../canvas/render';
+import { planStyle, render, renderStatic } from '../canvas/render';
 import { fit } from '../canvas/viewport';
 import { bounds } from '../geometry/polygon';
-import type { Garden } from '../model/types';
+import type { Garden, Plant } from '../model/types';
 import { useThemeAttrs } from './PlantIcon';
 
 interface Props {
@@ -15,9 +15,11 @@ interface Props {
   /** Space round the garden, as a share of its longer side. */
   pad?: number;
   class?: string;
+  /** Draw the plants too, as they look from above. */
+  plantOf?: (id: string) => Plant;
 }
 
-export function MiniPlan({ garden, width, height = width, pad = 0.12, class: cls }: Props) {
+export function MiniPlan({ garden, width, height = width, pad = 0.12, class: cls, plantOf }: Props) {
   const ref = useRef<HTMLCanvasElement>(null);
   const { look, mode } = useThemeAttrs();
   useEffect(() => {
@@ -32,7 +34,9 @@ export function MiniPlan({ garden, width, height = width, pad = 0.12, class: cls
     if (!b) return ctx.clearRect(0, 0, width, height);
     const m = Math.max(b.maxX - b.minX, b.maxY - b.minY) * pad;
     const view = fit({ minX: b.minX - m, minY: b.minY - m, maxX: b.maxX + m, maxY: b.maxY + m }, width, height, 3);
-    renderStatic(ctx, { garden, view, width, height, style: planStyle(look, mode), selected: null, selectedVertex: null, hoverId: null, draft: null, trace: null, minimal: true, depth: false, noLabels: true });
-  }, [garden, width, height, look, mode]);
+    const scene = { garden, view, width, height, style: planStyle(look, mode), selected: null, selectedVertex: null, hoverId: null, draft: null, trace: null, minimal: true, depth: false, noLabels: true };
+    if (plantOf) render(ctx, { ...scene, plantOf });
+    else renderStatic(ctx, scene);
+  }, [garden, width, height, look, mode, plantOf]);
   return <canvas ref={ref} class={cls} width={width} height={height} style={{ width: `${width}px`, height: `${height}px` }} aria-hidden="true" />;
 }

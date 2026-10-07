@@ -31,9 +31,9 @@ Your garden is saved in your browser, never on a server. If you turn on this yea
 | `src/theme/` | The five looks (light and dark), fonts, and per-device preferences |
 | `src/content/` | Seasonal lines and jobs for each month, the photo manifest, and What's new |
 | `src/ui/` | Preact screens. Four tabs: Today (with the journal and the month's jobs), Garden (the plan: one canvas with a dock, an action pill and ways to show sun, shade and more), Seedlings (the Potting Shed) and Plants. Plus Your garden, Settings, plant checks, first run and What’s new |
-| `src/planting/` | Plantings, their positions and status, filling a bed, and the spacing, neighbour and light rules |
+| `src/planting/` | Plantings, their positions and status, filling a bed, sowing in batches, starter kits, and the spacing, neighbour and light rules |
 | `src/climate/` | Greenhouses and cold frames as microclimates, and your garden's usual warmth from UK climate averages |
-| `src/weather/` | This year's weather and the forecast from Open-Meteo (opt-in): fetching and reading it |
+| `src/weather/` | This year's weather and the forecast from Open-Meteo (opt-in), and finding a place by postcode or name |
 | `src/lifecycle/` | Life stages, the Potting Shed, growing degree days, and each planting's stage on any day of the year |
 | `src/share/` | A picture of the plan, and a timelapse of the year, made on the device |
 | `src/calendar/` | Each month's jobs for your own plants |

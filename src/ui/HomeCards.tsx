@@ -14,6 +14,8 @@ import { resolveMode } from '../theme/apply';
 import type { Prefs, PrefsStore } from '../theme/prefs';
 import { latestNews, unseenNews } from '../content/whatsNew';
 import { useApp } from './appContext';
+import { CompassNorth } from './CompassNorth';
+import { PlaceSearch } from './PlaceSearch';
 import { backUp, UseLocationButton } from './GardenSettings';
 import { Icon } from './icons';
 import { NoteForm, NoteList, noteAbout } from './NotesSection';
@@ -71,7 +73,12 @@ export function SetupCard({ store, garden, prefs, prefsStore }: { store: Store; 
         Add a bed or pot
       </button>
     ),
-    location: <UseLocationButton store={store} onMessage={(m) => m && app.notify(m.lines.join(' '))} />,
+    location: (
+      <>
+        <PlaceSearch store={store} onSet={(label) => app.notify(`Your garden is near ${label}.`)} />
+        <UseLocationButton store={store} onMessage={(m) => m && app.notify(m.lines.join(' '))} />
+      </>
+    ),
     north: (
       <>
         <button type="button" class="btn btn-primary" onClick={toPlan}>
@@ -80,6 +87,7 @@ export function SetupCard({ store, garden, prefs, prefsStore }: { store: Store; 
         <button type="button" class="btn" onClick={() => prefsStore.set({ northChecked: true })}>
           North is the top of my plan
         </button>
+        <CompassNorth store={store} onDone={() => prefsStore.set({ northChecked: true })} />
       </>
     ),
     plants: (

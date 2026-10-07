@@ -9,6 +9,8 @@ export interface Garden {
   name: string;
   latitude: number; // WGS84 decimal degrees
   longitude: number;
+  /** Where it is in words, from a place search: "Headingley, Leeds". Absent: described from the nearest weather station. */
+  placeName?: string;
   northRotationDeg: number; // 0 = top of canvas is true north, clockwise positive
   boundary: Point[];
   features: Feature[];

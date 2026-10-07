@@ -4,6 +4,9 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { newGarden } from '../model/defaults';
 import { makeSpace, metres, MAX_SPACE_MM, PLOTS, SPACES, spaceInfo, type Space } from '../model/spaces';
+import type { Plant } from '../model/types';
+import { kitsFor, type Kit } from '../planting/kits';
+import { KitPicker } from './KitPicker';
 import { MiniPlan } from './MiniPlan';
 
 export interface SpaceChoice {
@@ -98,10 +101,12 @@ export function SpacePicker({ value, onChange }: { value: SpaceChoice | null; on
   );
 }
 
-/** "Where are you growing?" over an empty plan. */
-export function SpaceDialog({ make, close }: { make: (c: SpaceChoice) => void; close: () => void }) {
+/** "Where are you growing?" over an empty plan, with a starter kit to plant it up if you like. */
+export function SpaceDialog({ make, close, plantOf }: { make: (c: SpaceChoice, kit: Kit | null) => void; close: () => void; plantOf: ((id: string) => Plant) | null }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [choice, setChoice] = useState<SpaceChoice | null>(null);
+  const [kit, setKit] = useState<Kit | null>(null);
+  const kits = choice && plantOf ? kitsFor(choice.space) : [];
   useEffect(() => {
     const d = ref.current;
     if (d && !d.open) d.showModal();
@@ -112,14 +117,26 @@ export function SpaceDialog({ make, close }: { make: (c: SpaceChoice) => void; c
         <h2 id="space-title" class="title">
           Where are you growing?
         </h2>
-        <SpacePicker value={choice} onChange={setChoice} />
+        <SpacePicker
+          value={choice}
+          onChange={(c) => {
+            if (c.space !== choice?.space) setKit(null);
+            setChoice(c);
+          }}
+        />
+        {kits.length > 0 && plantOf && (
+          <>
+            <h3>Plant it up?</h3>
+            <KitPicker kits={kits} value={kit} onChange={setKit} plantOf={plantOf} />
+          </>
+        )}
         <div class="button-row">
           <button
             type="button"
             class="btn btn-primary"
             disabled={!choice}
             onClick={() => {
-              if (choice) make(choice);
+              if (choice) make(choice, kit);
               ref.current?.close();
             }}
           >

@@ -469,7 +469,7 @@ A product designer's pass for the people this is for: Gen Z, millennials and tec
 | Release | Changes | Status |
 | --- | --- | --- |
 | 1. Foundations | Four tabs (1), Your garden page (3), plant editor switch (5), calmer plan toolbar (10), fewer display settings (19), plain words (20) | Built |
-| 2. The first minute | Place search (6), onboarding from your plants (7), starter kits (8), north from the compass (9) | |
+| 2. The first minute | Place search (6), onboarding from your plants (7), starter kits (8), north from the compass (9) | Built |
 | 3. Daily use | Today as a weekly feed (2), Want to grow (4), one timeline (11), planting panel (12), "What's happened?" (13), first-visit tips (14) | |
 | 4. Delight | Photo diary (15), harvest log (16), season wrapped (17), install, offline and reminders (18) | |
 
@@ -491,6 +491,28 @@ A product designer's pass for the people this is for: Gen Z, millennials and tec
 - **Not done in this release:** the rest of the plan, in releases 2 to 4.
 
 Tests: `tests/ux.test.ts` covers the addresses (new and old), the place in words, the plant editor setting and the report link; `tests/words.test.ts` covers plain words in every source file.
+
+### UX release 2 — The first minute (as built)
+- **Find your garden by postcode or town** (`src/weather/places.ts`, `src/ui/PlaceSearch.tsx`): a whole UK postcode or its first half goes to postcodes.io, anything else to Open-Meteo's place search (free and keyless, the weather's provider). Pick from what matches; the garden gets its place in words (`garden.placeName`, "LS6, Leeds") and the numbers behind it, rounded to about 10 m. It's in onboarding, Your garden and the Getting started card. Typing exact numbers, or using the device's location, clears the place name. Only what you type is sent, when you search, and the screen says so.
+- **Onboarding starts with your plants** (`src/ui/Onboarding.tsx`):
+  1. Where's your garden? (place search, the device's location, the name).
+  2. What are you growing in? (the space and its size; new gardens only).
+  3. What would you like to grow? Starter kits for that space with a picture of each planted up, or "Just the space"; and 16 favourites to tap (`FAVOURITES`), which go on your sowing list.
+
+  "Start growing" lays out the space, plants the kit and lands on Today. Skip on the welcome goes straight to the plan; Skip on a later step keeps what you've chosen. The look picker is only in Settings now; the look defaults to Cottage, in light or dark to match the device.
+- **Starter kits** (`src/planting/kits.ts`, `src/ui/KitPicker.tsx`): eight, at least one for each space:
+  - Salad and tomatoes, Kitchen herbs (balcony);
+  - Patio crops;
+  - First veg bed, Salad bed (a single bed);
+  - Veg and flowers, Pollinator garden (garden);
+  - Allotment starter.
+
+  Each lists what goes in each bed or pot the space makes, in order: rows across a bed (strips), blocks side by side along a border, one plant to a pot, half a spacing in from the edges. Salads are split into batches three weeks apart from their next sowing time. The kit's plants go on your sowing list, and plants not in the library are left out. Offered in onboarding and in "Where are you growing?" from an empty plan ("Plant it up?"). `MiniPlan` can now draw plants, for the kits' pictures.
+- **North from the compass** (`src/geometry/compass.ts`, `src/ui/CompassNorth.tsx`): on a phone or tablet, "Use your phone's compass" asks for permission where needed (iPhone), reads the heading (`webkitCompassHeading`, or alpha on the "absolute" event), averages the last ten readings round the circle, says which way the top of the plan faces, and sets north (360° less the heading). In the UK a compass is within a couple of degrees of true north. In Your garden and the Getting started card; no compass reading after 3 s says so.
+- **Model:** schema 10 adds the optional `garden.placeName`.
+- **Screenshots:** a small script drives headless Edge over the DevTools protocol at a true 390 × 844 phone size, clicking through onboarding and a place search.
+
+Tests: `tests/ux-first-minute.test.ts` covers kits for every space, each kit planted inside its beds and pots and listed to grow, salads in batches, unknown plants left out, the favourites, postcode and place requests, each service's reply, no match and failure, the place name and schema 10, north from a heading, reading a heading, and averaging round the circle.
 
 ---
 

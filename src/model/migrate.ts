@@ -1,7 +1,7 @@
 // Brings saved gardens and plants from older versions up to the current shape.
 // Bump SCHEMA_VERSION whenever the saved shape changes, and add a step here.
 
-export const SCHEMA_VERSION = 9;
+export const SCHEMA_VERSION = 10;
 
 type Raw = Record<string, unknown>;
 
@@ -55,6 +55,11 @@ export function migrateGarden(raw: unknown): unknown {
     // v9 added sowing in batches: a planned sowing date and a batch number on plantings, both optional. Nothing to convert.
     g = { ...g, schemaVersion: 9 };
     version = 9;
+  }
+  if (version === 9) {
+    // v10 added the garden's place name, from a place search. Optional; nothing to convert.
+    g = { ...g, schemaVersion: 10 };
+    version = 10;
   }
   return g;
 }

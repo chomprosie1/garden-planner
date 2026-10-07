@@ -347,8 +347,8 @@ describe('sowing in batches', () => {
   });
 
   it('saves as schema 9, and checks a batch’s fields', () => {
-    expect(SCHEMA_VERSION).toBe(9);
-    expect((migrateGarden({ ...LEEDS, schemaVersion: 8 }) as Garden).schemaVersion).toBe(9);
+    expect(SCHEMA_VERSION).toBeGreaterThanOrEqual(9);
+    expect((migrateGarden({ ...LEEDS, schemaVersion: 8 }) as Garden).schemaVersion).toBe(SCHEMA_VERSION);
     const bad = { ...g, plantings: [{ ...row, sowBy: 'soon', batch: { group: 'b', n: 4, of: 3 } }] };
     expect(validateGarden(bad)).toHaveLength(2);
   });

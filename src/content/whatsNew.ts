@@ -17,6 +17,18 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-07-first-minute',
+    date: '2026-10-07',
+    title: 'Get started in a minute',
+    items: [
+      'Find your garden by its postcode or town, instead of typing numbers. Tap your garden’s name to change it.',
+      'Starter kits: salad and tomatoes for a balcony, a first veg bed, a pollinator garden, an allotment starter and more. Each is planted for you, with salads sown in batches. Choose one when you lay out a new space.',
+      'New gardens start by asking what you’d like to grow. Your picks go on your list, with sowing jobs when it’s time.',
+      'On a phone, set which way is north with the compass: lay your phone along the top of your plan.',
+    ],
+    tryIt: { label: 'Find your garden', view: 'profile' },
+  },
+  {
     id: '2026-10-07-simpler',
     date: '2026-10-07',
     title: 'A simpler app: four tabs and a calmer garden plan',
