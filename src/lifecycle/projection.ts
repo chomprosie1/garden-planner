@@ -305,6 +305,24 @@ export function timeline(plant: Plant, pl: Planting, g: Garden, today: string, w
   return steps;
 }
 
+/**
+ * The step a planting should reach next after the latest one you've marked, and when, as it was expected: not moved to
+ * tomorrow when it's overdue, as the timeline does. Null when it's planned or cleared, or its latest stage has no date.
+ * From: when the latest stage was reached.
+ */
+export function expectedNext(plant: Plant, pl: Planting, g: Garden, weather: Weather | null = null): { stage: LifeStage; date: string; from: string } | null {
+  const now = currentStage(pl);
+  if (now === 'planned' || now === 'cleared' || pl.removedOn) return null;
+  const steps = marked(pl);
+  const latest = steps[steps.length - 1];
+  if (!latest?.date) return null;
+  const c: Context = { plant, pl, g, cover: microclimateOf(g, pl), start: null, weather };
+  for (const s of steps) if (startsGrowth(s, plant, pl)) c.start = s.date;
+  if (!c.start && isGrowingStage(latest.stage)) c.start = latest.date;
+  const next = after(c, latest.stage, latest.date);
+  return next?.date ? { stage: next.stage, date: next.date, from: latest.date } : null;
+}
+
 /** Where a planting is on a day, from its timeline. Before anything's marked or expected, it's planned. */
 export function stageIn(steps: Step[], date: string): Projected {
   let at: Projected = { stage: 'planned', guessed: false };
@@ -365,6 +383,8 @@ export function pickedBy(lens: YearLens, g: Garden, plantOf: (id: string) => Pla
     const plant = plantOf(pl.plantId);
     const { stage } = at(pl);
     if (!inGround(stage, plant, pl)) continue;
+    // A weed you keep can be in flower for the bees; it's never one to pick or water.
+    if (plant.category === 'weed' && (lens !== 'flower' || !pl.keep)) continue;
     const grown = stage === 'vegetative' || stage === 'flowering' || stage === 'harvesting';
     let picked = false;
     if (lens === 'flower') picked = stage === 'flowering' || (grown && !!plant.flowerMonths?.includes(month));
@@ -483,7 +503,8 @@ export function gapsOn(g: Garden, plantOf: (id: string) => Plant, timelines: Map
   const gaps: Gap[] = [];
   for (const bed of g.features) {
     if (!isContainer(bed)) continue;
-    const here = g.plantings.filter((p) => p.featureId === bed.id);
+    // Weeds don't fill a bed.
+    const here = g.plantings.filter((p) => p.featureId === bed.id && plantOf(p.plantId).category !== 'weed');
     if (!here.length) continue;
     let used = false;
     let emptyFrom: string | null = null;

@@ -31,6 +31,7 @@ export const CATEGORY_LABEL: Record<Plant['category'], string> = {
   flower: 'Flower',
   shrub: 'Shrub',
   tree: 'Tree',
+  weed: 'Weed',
 };
 
 const LETTERS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
@@ -119,10 +120,10 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
       <div class="button-row">
         {onPlant && (
           <button type="button" class="btn btn-primary" onClick={onPlant}>
-            Plant in a bed
+            {p.category === 'weed' ? 'Mark where it grows' : 'Plant in a bed'}
           </button>
         )}
-        {sowing && (
+        {sowing && p.category !== 'weed' && (
           <button type="button" class={`btn heart${sowing.listed ? ' heart-on' : ''}`} aria-pressed={sowing.listed} title={sowing.listed ? 'On your Want to grow list' : 'Want to grow'} onClick={sowing.toggle}>
             <Icon name="heart" size={18} filled={sowing.listed} />
             {sowing.listed ? 'Want to grow' : 'Want to grow it?'}
@@ -251,6 +252,17 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
                 <strong>{growth.label}.</strong> {growth.text}
               </li>
             )}
+          </ul>
+        </section>
+      )}
+
+      {p.weed && (
+        <section class="plant-section">
+          <h2>A weed</h2>
+          <ul class="plain-list">
+            <li>Spreads {p.weed.spreads === 'seed' ? 'by seed' : p.weed.spreads === 'roots' ? 'by its roots' : 'by seed and by its roots'}.</li>
+            {p.weed.wildlife && <li>{p.weed.wildlife}</li>}
+            <li>{p.weed.removal}</li>
           </ul>
         </section>
       )}

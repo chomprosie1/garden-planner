@@ -562,7 +562,7 @@ Each idea was checked against the code and against everything still open. Stage 
 | 5. Housekeeping | Testing by risk (`CLAUDE.md`), doc fixes, the mismatch log | 1 evening | Built |
 | 6. Plant anywhere, right size | Plants on soft ground, resizing big plants, 50 tree types, the year slider over photos | ~1.5 wk | Built |
 | 7. A simple planner | A Simple / Advanced switch on the plan, and a phone pass | ~2 wk | Built |
-| 8. Keeping on track | "Running behind" alerts with common causes, weeds and weeding | ~1.5 wk | |
+| 8. Keeping on track | "Running behind" alerts with common causes, weeds and weeding | ~1.5 wk | Built |
 | 9. A bigger library | 150 more plants in three batches of 50 (can run alongside 7 and 8) | ~3 wk of data | |
 | Spike | The garden from an aerial photo: research and a prototype, go or no-go | 2–3 evenings | |
 | 10. The garden in 3D | An angled view to look at, three.js loaded only when opened, with the sun and the year | ~2–3 wk | |
@@ -631,22 +631,44 @@ Tests: `tests/anywhere.test.ts` covers what can hold a plant, a bed on a lawn (e
 
 Tests: `tests/planmode.test.ts` covers the setting and its fallback, the lock only in Advanced, the drawers, the short lists (every one real, something in each drawer), the lenses, which tools ask for Advanced, the pill's extras, and what resizes in Simple (rectangles at any angle and round things; not drawn shapes, curves or lines).
 
-### Release 8 — Keeping on track (planned, schema 13)
+### Release 8 — Keeping on track (as built, schema 13)
 - **Running behind** (`src/lifecycle/behind.ts`).
-  - Each planting's next stage is checked against its expected date: from `timeline()` unclamped, by the warmth where the plant has days, otherwise its months.
-  - Slack: the germination maximum plus a week; otherwise two weeks or a quarter of the stage.
-  - A Today card shows up to three, and the planting panel gets a line. The buttons are "It's moved on", "Still waiting" (two weeks; `Planting.snoozeUntil`) and "Sowing failed".
-  - Common causes are listed by stage, plus the plant's own pests and things to look out for.
-  - It goes in the weekly reminder too.
-  - It replaces check-progress jobs from the months (from the wishlist and Stage 16).
-- **Weeds:**
-  - A `weed` category with `data/plants/weed.json` of about 20 UK weeds (how they spread, wildlife value, how to remove them).
-  - Weeds go anywhere soft, with Keep or Remove (`Planting.keep`).
-  - Remove gives "Pull before it seeds", or "Dig out the roots" for root spreaders.
-  - A seasonal "Weed the beds" job each month, March to October, which can be turned off in Settings.
-  - Weeds stay out of search and Want to grow unless the Weeds filter is on.
+  - `expectedNext` in `src/lifecycle/projection.ts` gives the step after the latest one you've marked, and when it was due: by the warmth where the plant has days, otherwise its months, not moved to tomorrow as the timeline does.
+  - A planting is running behind once it's past that date plus some slack (`slackDays`): a week for seedlings to come up, otherwise two weeks or a quarter of the wait.
+  - Left out: weeds, anything planned or cleared, a latest stage with no date, the step to clearing, and anything you're still waiting on (`Planting.snoozeUntil`).
+  - **On Today**, a "Running behind" card shows up to three, the latest first: "Carrot in Veg bed. Expected to be up by 31 Aug." It has "Why might it be slow?" folded away, and three buttons:
+    - "It's moved on" opens the planting on the plan, where "What's happened?" records it.
+    - "Still waiting" gives two weeks' quiet.
+    - "Sowing failed" (sowings only) uses `markFailed`, with a journal note.
+  - **On the planting**, the same line and buttons appear under its expected date.
+  - The usual reasons are listed for each stage (`causesFor`): not up, not ready to harden off, not planted out, not growing away, not flowering, not cropping. Once it's up, the plant's own pests are added.
+  - The Monday reminder adds "Running behind: carrot" to this week's.
+- **Weeds** (`data/plants/weed.json`, category `weed`, `Plant.weed`).
+  - 21 common UK weeds: dandelion, bindweed, ground elder, couch grass, creeping buttercup, nettle, bramble, dock, hairy bittercress, groundsel, chickweed, horsetail, white clover, lawn daisy, herb Robert, rosebay willowherb, shepherd's purse, fat hen, oxalis, annual meadow grass and lesser celandine.
+  - Each says how it spreads (seed, roots or both), what it's good for (bees, butterflies, birds), and how to be rid of it by hand. Never a weedkiller: the tests check.
+  - They're left out of the plant lists unless asked for: the Weeds filter in the dock, Weed in the Plants page, or by name. They have no Want to grow heart. A weed is marked as already growing when placed, and it isn't checked for spacing, neighbours or light.
+  - **Keep or be rid of it** (`Planting.keep`): "Remove" / "Keeping it" on the action pill. A weed's details show how it spreads, what it's good for, how to remove it, and "It's gone".
+  - **Jobs** (`weed` kind, `weedJob`): for a weed you want gone, "Get it out before it seeds" in the month before it flowers and while it does, and "Dig out the roots" in April and September for those that spread by their roots. Ticking clears the weed from the plan; unticking brings it back.
+  - **Weed the beds:** one job a month from March to October, for the beds with something growing, with a word for the month. `jobsFor`'s `weeding` option, on unless "Weeding reminders" is off in Your garden → Reminders (`prefs.weeding`).
+  - Weeds don't fill a bed (it can still be a gap), aren't looked forward to on Today, aren't watered or picked in the lenses (a kept one shows in flower), and aren't counted as grown in Your season, wrapped.
+- **Phone:** the year slider also steps aside while a plant's details or the planting bar are open.
+- **Model:** schema 13 adds `Planting.keep` and `Planting.snoozeUntil`, both optional.
+- **Not done:**
+  - Check-progress jobs still guess flowering from the months; running behind uses the warmth, so it does that job's work for plants you date.
+  - A direct sowing that's running behind still gets its harvest job in its harvest months.
+  - Weeds can't be marked across a whole lawn as a patch.
 
-Tests: `tests/on-track.test.ts`.
+Tests: `tests/on-track.test.ts` covers:
+- running behind (late, within its time, moved on, what's left out, still waiting, slack, the plant's pests);
+- weeds (valid with no weedkillers, left out of lists, already growing and not checked, jobs by seed and by roots, keeping, ticking and unticking);
+- weeding the beds (months, beds, the setting);
+- schema 13.
+
+**Fixed before this release (reported 7 Oct 2026):** putting broad beans into an empty bed left it marked empty, with "sow foxglove or garlic?", and garlic was then warned against beside the beans.
+- A bed with a crop going in within eight weeks is now waiting, not empty (`GAP_MIN_DAYS`).
+- Ideas for a gap leave out anything usually kept apart from what's growing or planned there.
+- Before a crop planned months ahead, only something done in time is offered, to sow first ("Empty until 1 May: sow radish first?"; `daysToCrop`).
+- Tests in `tests/year.test.ts`; logged in [mismatch-log.md](mismatch-log.md).
 
 ### Release 9 — A bigger library (planned, data track)
 150 plants in three batches of 50. The rules are the same as the data track above, plus `germinationDays` and `growth.days` where known (from the wishlist). The mix:

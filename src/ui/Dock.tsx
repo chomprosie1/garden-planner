@@ -129,7 +129,7 @@ const DRAW_TOOLS: { tool: Tool; label: string }[] = [
   { tool: 'other', label: 'Other' },
 ];
 
-type PlantFilter = 'now' | 'mine' | 'list' | 'shed' | 'all';
+type PlantFilter = 'now' | 'mine' | 'list' | 'shed' | 'all' | 'weeds';
 
 interface Props {
   open: Drawer | null;
@@ -163,7 +163,8 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
     if (filter === 'now') return plants.filter((p) => canSowIn(p, month));
     if (filter === 'mine') return plants.filter((p) => p.userAdded);
     if (filter === 'list') return [...new Set(garden.wishlist)].map(plantOf);
-    if (filter === 'all') return plants;
+    if (filter === 'all') return plants.filter((p) => p.category !== 'weed');
+    if (filter === 'weeds') return plants.filter((p) => p.category === 'weed');
     return [];
   }, [plants, query, filter, month, garden.wishlist]);
   const filters: [PlantFilter, string, number][] = [
@@ -172,6 +173,7 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
     ['list', 'Want to grow', garden.wishlist.length],
     ['mine', 'Your plants', plants ? plants.filter((p) => p.userAdded).length : 0],
     ['all', 'All plants', plants?.length ?? 0],
+    ['weeds', 'Weeds', plants ? plants.filter((p) => p.category === 'weed').length : 0],
   ];
 
   return (
@@ -193,7 +195,7 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
                       .map(([id, label, n]) => (
                         <button key={id} type="button" role="radio" class="chip" aria-checked={filter === id} onClick={() => setFilter(id)}>
                           {label}
-                          {id !== 'all' && n > 0 ? <span class="chip-count">{n}</span> : null}
+                          {id !== 'all' && id !== 'weeds' && n > 0 ? <span class="chip-count">{n}</span> : null}
                         </button>
                       ))}
                   </div>

@@ -73,7 +73,7 @@ export const SIZE_FACTOR: Record<PlantSize, number> = { small: 0.5, medium: 1, l
 export const SIZE_LABEL: Record<PlantSize, string> = { small: 'Small', medium: 'Medium', large: 'Large' };
 
 /** Plants whose size varies a lot by variety, pruning and age: trees, shrubs and anything a metre or more across. */
-export const canResize = (p: Plant) => p.category === 'tree' || p.category === 'shrub' || p.art?.form === 'tree' || p.art?.form === 'shrub' || spreadOf(p) >= 1000;
+export const canResize = (p: Plant) => p.category !== 'weed' && (p.category === 'tree' || p.category === 'shrub' || p.art?.form === 'tree' || p.art?.form === 'shrub' || spreadOf(p) >= 1000);
 
 /**
  * A plant at the size this planting is: its own height and spread if you've typed them, otherwise the library's scaled
@@ -201,7 +201,8 @@ export const activePlantings = (g: Garden) => g.plantings.filter(isActive);
 
 export function makePlanting(plant: Plant, featureId: string, layout: Layout, start: Point, end?: Point, growing = false): Planting {
   const pl: Planting = { id: newId('p'), plantId: plant.id, featureId, x: Math.round(start[0]), y: Math.round(start[1]), layout };
-  if (growing) pl.stage = 'transplanted';
+  // A weed is already there when you mark it.
+  if (growing || plant.category === 'weed') pl.stage = 'transplanted';
   if (layout !== 'single' && end) pl.endPoint = [Math.round(end[0]), Math.round(end[1])];
   if (layout === 'row') pl.count = rowCount(start, end ?? start, plant.size.spacingMm);
   return pl;

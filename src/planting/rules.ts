@@ -30,7 +30,8 @@ type PlantOf = (id: string) => Plant;
 
 /** Checks everything. With a sun-hours grid (normally June's), light is checked too. */
 export function checkGarden(g: Garden, plantOf: PlantOf, sun: SunGrid | null = null): Finding[] {
-  const active = activePlantings(g);
+  // Weeds aren't checked for spacing, neighbours or light: they're not a planting choice.
+  const active = activePlantings(g).filter((pl) => plantOf(pl.plantId).category !== 'weed');
   const findings = [...checkPlacement(g, active, plantOf), ...checkSpacing(active, plantOf), ...checkNeighbours(g, active, plantOf), ...checkLight(active, plantOf, sun)];
   return findings.sort((a, b) => (a.level === b.level ? 0 : a.level === 'warn' ? -1 : 1));
 }

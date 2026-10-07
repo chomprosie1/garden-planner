@@ -59,6 +59,8 @@ import { currentStage, sowingOf, STAGE_LABEL, stageDate } from '../lifecycle/sta
 import { deleteBlob, saveBlob } from '../storage/idb';
 import { areaHours, averageHours, lightBand, type SunGrid } from '../sun/hours';
 import { useApp } from './appContext';
+import { BehindActions, Causes } from './BehindCard';
+import { behindOf, behindText } from '../lifecycle/behind';
 import { FindingsList } from './Findings';
 import { UseLocationButton } from './GardenSettings';
 import { formatDate, NotesSection } from './NotesSection';
@@ -186,7 +188,7 @@ export function Inspector(props: Props) {
 
   if (selected?.type === 'planting') {
     const pl = garden.plantings.find((x) => x.id === selected.id);
-    if (pl) return <PlantingPanel {...props} pl={pl} />;
+    if (pl) return props.plantOf(pl.plantId).category === 'weed' ? <WeedPanel {...props} pl={pl} /> : <PlantingPanel {...props} pl={pl} />;
   }
   const f = selected?.type === 'feature' ? garden.features.find((x) => x.id === selected.id) : undefined;
   if (f) {
@@ -903,6 +905,69 @@ export function nextStep(pl: Planting, plant: Plant, under: Climate | null = nul
   return null;
 }
 
+const SPREADS_TEXT = { seed: 'By seed', roots: 'By its roots', both: 'By seed and by its roots' } as const;
+
+/** A weed on the plan: keep it or be rid of it, how it spreads, and how to get it out. */
+function WeedPanel({ store, garden, pl, setSelected, plantOf }: Props & { pl: Planting }) {
+  const app = useApp();
+  const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
+  const plant = plantOf(pl.plantId);
+  const bed = garden.features.find((f) => f.id === pl.featureId);
+  const w = plant.weed;
+  return (
+    <div class="inspector-body">
+      <Heading eyebrow={`Weed${bed ? ` in ${placeLabel(bed)}` : ''}`} title={plant.commonName} plant={plant} />
+      <fieldset class="choice">
+        <legend>Keep it, or be rid of it?</legend>
+        <div class="happened-chips">
+          <button type="button" class="chip" aria-pressed={!pl.keep} onClick={() => commit((g) => updatePlanting(g, pl.id, { keep: undefined }))}>
+            Be rid of it
+          </button>
+          <button type="button" class="chip" aria-pressed={!!pl.keep} onClick={() => commit((g) => updatePlanting(g, pl.id, { keep: true }))}>
+            Keep it
+          </button>
+        </div>
+        <p class="muted small">{pl.keep ? 'No jobs to remove it.' : 'Jobs to pull it before it seeds, or dig out its roots, show with the month’s jobs.'}</p>
+      </fieldset>
+      {w && (
+        <dl class="facts">
+          <dt>Spreads</dt>
+          <dd>{SPREADS_TEXT[w.spreads]}</dd>
+          {w.wildlife && (
+            <>
+              <dt>Good for</dt>
+              <dd>{w.wildlife}</dd>
+            </>
+          )}
+          <dt>To be rid of it</dt>
+          <dd>{w.removal}</dd>
+        </dl>
+      )}
+      {plant.lookOutFor?.map((t) => (
+        <p key={t} class="muted small">
+          {t}
+        </p>
+      ))}
+      <div class="button-row">
+        <button
+          type="button"
+          class="btn"
+          onClick={() => {
+            commit((g) => harvestPlantings(g, [pl.id], todayIso()));
+            setSelected(null);
+            app.notify(`${plant.commonName} cleared.`, { undo: true });
+          }}
+        >
+          It’s gone
+        </button>
+        <button type="button" class="link-btn" onClick={() => app.openPlant(plant.id)}>
+          About {plant.commonName.toLowerCase()}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function PlantingPanel(props: Props & { pl: Planting }) {
   const { store, garden, pl, setSelected, plantOf, findings, sunJune } = props;
   const app = useApp();
@@ -924,6 +989,8 @@ function PlantingPanel(props: Props & { pl: Planting }) {
   const { weather } = useWeatherNow();
   const expected = status !== 'planned' ? expectedText(timeline(plant, pl, garden, today, weather), plant, today) : null;
   const canEdit = true;
+  // Late to reach its next stage, unless you've said you're still waiting.
+  const behind = pl.snoozeUntil && pl.snoozeUntil > today ? null : behindOf(plant, pl, garden, today, weather);
 
   const steps = timeline(plant, pl, garden, today, weather);
 
@@ -938,6 +1005,15 @@ function PlantingPanel(props: Props & { pl: Planting }) {
         {step && <span class="muted small">{step}</span>}
       </p>
       {expected && <p class="expect-line">{expected}<span class="muted small">, {weather ? 'by this year’s weather and the forecast' : 'by the usual warmth here'}</span></p>}
+      {behind && (
+        <div class="behind-line">
+          <p>
+            <strong>Running behind.</strong> {behindText(behind, shortDate)} If it has moved on, say so with “What’s happened?” below.
+          </p>
+          <Causes b={behind} />
+          <BehindActions b={behind} store={store} plant={plant} />
+        </div>
+      )}
       {cover && (
         <p class="cover-fact">
           Under cover in {featureLabel(cover.feature)}: {climateText(cover.climate)}.

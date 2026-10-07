@@ -10,7 +10,7 @@ import { todayIso } from '../model/ids';
 import { asTree, treeSizeText, treeType } from '../model/trees';
 import { updateGarden, type Store } from '../model/store';
 import { MATERIALS, PLANT_SIZES, type Feature, type PlantSize, type Garden, type Material, type Plant } from '../model/types';
-import { canHold, canResize, deletePlanting, plantCount, setPlantingSize, setRowCount, SIZE_FACTOR, SIZE_LABEL, spreadOf } from '../planting/place';
+import { canHold, canResize, deletePlanting, updatePlanting, plantCount, setPlantingSize, setRowCount, SIZE_FACTOR, SIZE_LABEL, spreadOf } from '../planting/place';
 import { setStage } from '../lifecycle/stages';
 import { useApp } from './appContext';
 import { Icon } from './icons';
@@ -62,7 +62,18 @@ export function ActionPill({ pillRef, target, garden, store, plantOf, locked, mo
               {n > 1 ? ` ×${n}` : ''}
             </span>
           </span>
-          {next && (
+          {plant.category === 'weed' && (
+            <button
+              type="button"
+              class="pill-btn"
+              aria-pressed={!!pl.keep}
+              title={pl.keep ? 'You’re keeping it: tap if you want it gone' : 'You want it gone: tap to keep it instead'}
+              onClick={() => commit((g) => updatePlanting(g, pl.id, { keep: !pl.keep }))}
+            >
+              {pl.keep ? 'Keeping it' : 'Remove'}
+            </button>
+          )}
+          {next && plant.category !== 'weed' && (
             <button type="button" class="pill-btn" onClick={() => commit((g) => setStage(g, [pl.id], next, todayIso(), { newSeason: isNewSeason(plant, pl) }))}>
               {isNewSeason(plant, pl) ? 'New season' : STAGE_ACTION[next]}
             </button>

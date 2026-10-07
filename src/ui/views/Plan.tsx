@@ -254,7 +254,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const monthJobs = useMemo(() => {
     if (!plants || when.slice(0, 7) < todayIso.slice(0, 7)) return [];
     const done = new Set(garden.jobsDone.map((j) => j.key));
-    return jobsFor(garden, plantOf, shownMonth, Number(when.slice(0, 4))).filter((j) => !done.has(j.key));
+    return jobsFor(garden, plantOf, shownMonth, Number(when.slice(0, 4)), { weeding: prefs.weeding }).filter((j) => !done.has(j.key));
   }, [garden, plants, plantOf, when, todayIso, shownMonth]);
   const hoverHours = lens === 'sun' && viewGrid && hoverPoint ? hoursAt(viewGrid, hoverPoint) : null;
   const tapHours = lens === 'sun' && viewGrid && tapPoint ? hoursAt(viewGrid, tapPoint) : null;
@@ -740,8 +740,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               </p>
             )}
           </div>
-          {/* On a phone, one bar at a time under the plan: the year slider steps aside while a drawer is open. */}
-          {(tool === 'select' || tool === 'plant') && !empty && !(phone && drawer) && (
+          {/* On a phone, one bar at a time under the plan: the year slider steps aside for a drawer, the details or planting. */}
+          {(tool === 'select' || tool === 'plant') && !empty && !(phone && (drawer || sheetOpen || calibration || tool === 'plant')) && (
             <YearScrubber
               today={todayIso}
               date={when}

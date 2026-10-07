@@ -190,6 +190,10 @@ export interface Planting {
   /** Its spread and height, typed exactly; these win over size. */
   spreadMm?: number;
   heightMm?: number;
+  /** A weed you're keeping (for the wildlife, or because you like it): no jobs to remove it. Absent: you want it gone. */
+  keep?: boolean;
+  /** Not "running behind" until this date (ISO): you've said you're still waiting. */
+  snoozeUntil?: string;
 }
 
 export const PLANT_SIZES = ['small', 'medium', 'large'] as const;
@@ -234,7 +238,7 @@ export interface JobDone {
   date: string; // ISO date it was ticked off
 }
 
-export const PLANT_CATEGORIES = ['vegetable', 'herb', 'fruit', 'flower', 'shrub', 'tree'] as const;
+export const PLANT_CATEGORIES = ['vegetable', 'herb', 'fruit', 'flower', 'shrub', 'tree', 'weed'] as const;
 export type PlantCategory = (typeof PLANT_CATEGORIES)[number];
 
 export const LIGHT_LEVELS = ['full-sun', 'part-shade', 'shade'] as const;
@@ -289,11 +293,24 @@ export interface Plant {
   germinationDays?: [number, number];
   /** How fast it grows, for growing degree days. See src/lifecycle/growth.ts. */
   growth?: Growth;
+  /** A weed: how it spreads, what it's good for, and how to get rid of it, by hand. */
+  weed?: WeedInfo;
   image?: { url: string; credit: string; licence: string; sourceUrl: string }; // PD, CC0, CC BY or CC BY-SA only
   source?: string;
   lastChecked?: string; // ISO date
   verified: boolean;
   userAdded: boolean;
+}
+
+export const WEED_SPREADS = ['seed', 'roots', 'both'] as const;
+
+export interface WeedInfo {
+  /** By seed (pull it before it seeds), by its roots (dig every bit out), or both. */
+  spreads: (typeof WEED_SPREADS)[number];
+  /** Why some people keep it: food for bees, caterpillars or birds. */
+  wildlife?: string;
+  /** How to be rid of it, by hand or with a hoe: never a weedkiller. */
+  removal: string;
 }
 
 export interface Growth {

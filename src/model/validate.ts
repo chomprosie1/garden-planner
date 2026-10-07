@@ -19,6 +19,7 @@ import {
   SKETCH_KINDS,
   SOWING_METHODS,
   STAGES,
+  WEED_SPREADS,
   WINTERING_TYPES,
   type Garden,
   type Plant,
@@ -126,6 +127,8 @@ export function validateGarden(g: unknown): string[] {
         `${at}.batch needs a group and which batch it is, of how many.`,
       );
       need(p.size === undefined || oneOf(PLANT_SIZES, p.size), `${at}.size must be small, medium or large.`);
+      need(p.keep === undefined || typeof p.keep === 'boolean', `${at}.keep must be true or false.`);
+      need(p.snoozeUntil === undefined || (isStr(p.snoozeUntil) && /^\d{4}-\d{2}-\d{2}$/.test(p.snoozeUntil)), `${at}.snoozeUntil must be a date.`);
       for (const key of ['spreadMm', 'heightMm'] as const) {
         const v = p[key];
         need(v === undefined || (isNum(v) && v > 0 && v <= 50000), `${at}.${key} must be above 0 and at most 50 m.`);
@@ -267,6 +270,12 @@ export function validatePlant(p: unknown): string[] {
       isObject(p.image) && isStr(p.image.url) && isStr(p.image.credit) && isStr(p.image.licence) && isStr(p.image.sourceUrl),
       'image needs url, credit, licence and sourceUrl.',
     );
+  if (p.weed !== undefined)
+    need(
+      isObject(p.weed) && oneOf(WEED_SPREADS, p.weed.spreads) && isStr(p.weed.removal) && p.weed.removal.length > 0 && (p.weed.wildlife === undefined || isStr(p.weed.wildlife)),
+      'weed needs how it spreads (seed, roots or both) and how to remove it.',
+    );
+  need(p.category !== 'weed' || p.weed !== undefined, 'a weed needs its weed details.');
 
   return errors;
 }

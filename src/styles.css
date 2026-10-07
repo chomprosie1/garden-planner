@@ -4735,6 +4735,52 @@ button.plan-chip:hover {
   flex: 1;
 }
 
+/* Running behind: on Today, and in a planting's details. */
+.behind-card > .plain-list {
+  padding-left: 0;
+  list-style: none;
+}
+.behind-row + .behind-row {
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border);
+}
+.behind-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.behind-causes {
+  margin: 0.4rem 0 0;
+}
+.behind-causes summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.behind-causes ul {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+  list-style: disc;
+}
+.behind-causes li + li {
+  margin-top: 0.25rem;
+}
+.behind-actions {
+  margin-top: 0.5rem;
+}
+.behind-line {
+  margin: 0.5rem 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--warn, #b5651d);
+  background: var(--surface2);
+}
+.behind-line p {
+  margin: 0;
+}
+
 /* Fingers, not a mouse: 44 px to tap, the usual minimum. */
 @media (pointer: coarse) {
   .toolbar .icon-btn {

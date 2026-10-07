@@ -20,6 +20,7 @@ const SHORT: Record<JobKind, string> = {
   protect: 'Protect',
   lift: 'Lift',
   tidy: 'Clear',
+  weed: 'Weed',
 };
 
 /** At most this many jobs on a bed; the rest are counted. */

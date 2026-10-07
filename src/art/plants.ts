@@ -42,6 +42,7 @@ const CATEGORY_ART: Record<Plant['category'], Omit<PlantArt, 'foliage'>> = {
   flower: { form: 'mound', leaf: 'broad', flower: '#d9608c', bloom: 'daisy' },
   shrub: { form: 'shrub', leaf: 'broad', flower: '#f0e6f0' },
   tree: { form: 'tree', leaf: 'broad', flower: '#f6e6ee' },
+  weed: { form: 'rosette', leaf: 'lobed', flower: '#f2d23c', bloom: 'daisy' },
 };
 
 /** A plant's drawing: its own, or one for its category. */

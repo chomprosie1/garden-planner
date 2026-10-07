@@ -17,6 +17,19 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-07-on-track',
+    date: '2026-10-07',
+    title: 'Running behind, and weeds',
+    items: [
+      'Today tells you when something’s late to come up, flower or crop, with the usual reasons why: cold soil, old seed, too much feed and the like. Say it’s moved on, that you’re still waiting (it’ll check again in two weeks), or that the sowing failed. It’s on the planting too.',
+      'Weeds: about twenty common ones, from dandelions to bindweed. Mark where they grow, from the Weeds filter in Plants below the plan, then keep them for the wildlife or be rid of them.',
+      'Weeds you want gone get a job at the right time: pull it before it seeds, or dig out the roots in spring and autumn. Tick it and it’s gone from the plan.',
+      'A “Weed the beds” job each month from March to October, with what to do that month. Turn it off in Your garden, under Reminders.',
+      'On a phone, the year slider steps aside while a plant’s details are open, or while you’re planting.',
+    ],
+    tryIt: { label: 'See Today', view: 'home' },
+  },
+  {
     id: '2026-10-07-simple',
     date: '2026-10-07',
     title: 'A simpler plan, with Advanced when you want it',

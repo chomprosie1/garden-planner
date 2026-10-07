@@ -7,6 +7,7 @@
 import { timeline } from '../lifecycle/projection';
 import { sowingOf, type LifeStage } from '../lifecycle/stages';
 import { addDays, dayNumber } from '../model/dates';
+import { runningBehind } from '../lifecycle/behind';
 import { featureLabel } from '../model/features';
 import type { Garden, Plant } from '../model/types';
 import type { Weather } from '../weather/weather';
@@ -37,6 +38,8 @@ export function upcoming(g: Garden, plantOf: (id: string) => Plant, today: strin
   for (const pl of g.plantings) {
     if (pl.removedOn) continue;
     const plant = plantOf(pl.plantId);
+    // Weeds come and go on their own: nothing to look forward to.
+    if (plant.category === 'weed') continue;
     for (const s of timeline(plant, pl, g, today, weather)) {
       if (!s.guessed || s.date === null || s.date <= from || s.date > to || !SHOWN.includes(s.stage)) continue;
       // Rows of the same plant in the same bed doing the same thing are one line; batches stay apart.
@@ -120,13 +123,17 @@ export function weekNudges(g: Garden, plantOf: (id: string) => Plant, today: str
     const monday = addDays(mondayOf(today), 7 * i);
     // Steps due before today were never projected; the week's left are.
     const todo = upcoming(g, plantOf, today, addDays(monday, -1), addDays(monday, 6), weather).filter((u) => u.todo);
-    if (!todo.length) continue;
+    // This week only: anything running behind, to check on.
+    const late = i === 0 ? runningBehind(g, plantOf, today, weather) : [];
+    if (!todo.length && !late.length) continue;
     const lines = todo.slice(0, 3).map((u) => {
       const bed = g.features.find((f) => f.id === u.featureId);
       return `${upcomingVerb(u)}: ${plantOf(u.plantId).commonName.toLowerCase()}${u.batch ? ` (${u.batch})` : ''}${bed ? ` in ${featureLabel(bed)}` : ''}`;
     });
-    const more = todo.length - lines.length;
-    out.push({ week: monday, title: `${todo.length} ${todo.length === 1 ? 'job' : 'jobs'} this week`, body: `${lines.join('. ')}.${more ? ` And ${more} more.` : ''}` });
+    if (late.length) lines.push(`Running behind: ${late.slice(0, 2).map((b) => plantOf(b.plantId).commonName.toLowerCase()).join(' and ')}${late.length > 2 ? ` and ${late.length - 2} more` : ''}`);
+    const more = todo.length - Math.min(todo.length, 3);
+    const title = todo.length ? `${todo.length} ${todo.length === 1 ? 'job' : 'jobs'} this week` : `${late.length} running behind`;
+    out.push({ week: monday, title, body: `${lines.join('. ')}.${more ? ` And ${more} more.` : ''}` });
   }
   return out;
 }

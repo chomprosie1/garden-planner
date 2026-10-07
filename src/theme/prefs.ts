@@ -67,6 +67,8 @@ export interface Prefs {
   installHidden: boolean;
   /** The plan's tools: Simple (beds, pots, plants and trees, dropped and dragged) or Advanced (drawing, reshaping, sun and shade). */
   planMode: 'simple' | 'advanced';
+  /** A monthly "Weed the beds" job, March to October. */
+  weeding: boolean;
 }
 
 
@@ -100,6 +102,7 @@ export function defaultPrefs(): Prefs {
     weeklyNudge: false,
     installHidden: false,
     planMode: 'simple',
+    weeding: true,
   };
 }
 
@@ -140,6 +143,7 @@ export function sanitisePrefs(raw: unknown): Prefs {
     weeklyNudge: r.weeklyNudge === true,
     installHidden: r.installHidden === true,
     planMode: oneOf(['simple', 'advanced'] as const, r.planMode, d.planMode),
+    weeding: r.weeding !== false,
   };
 }
 

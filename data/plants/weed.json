@@ -1,0 +1,964 @@
+[
+  {
+    "id": "dandelion",
+    "commonName": "Dandelion",
+    "latinName": "Taraxacum officinale",
+    "category": "weed",
+    "conditions": {
+      "light": "full-sun",
+      "hardiness": "Hardy perennial"
+    },
+    "size": {
+      "heightMm": 300,
+      "spreadMm": 300,
+      "spacingMm": 300
+    },
+    "flowerMonths": [
+      3,
+      4,
+      5,
+      6
+    ],
+    "lookOutFor": [
+      "The young leaves are edible, a little bitter."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": true
+    },
+    "art": {
+      "form": "rosette",
+      "leaf": "lobed",
+      "foliage": "#5f8a3e",
+      "flower": "#f2c81c",
+      "bloom": "daisy"
+    },
+    "weed": {
+      "spreads": "both",
+      "wildlife": "One of the first big meals for bees in spring.",
+      "removal": "Dig out the whole taproot with a daisy grubber or an old knife before it seeds: any root left behind regrows."
+    },
+    "source": "Check against: RHS – dandelion; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "bindweed",
+    "commonName": "Bindweed",
+    "latinName": "Calystegia sepium",
+    "category": "weed",
+    "conditions": {
+      "light": "full-sun",
+      "hardiness": "Hardy perennial"
+    },
+    "size": {
+      "heightMm": 2000,
+      "spreadMm": 500,
+      "spacingMm": 500
+    },
+    "flowerMonths": [
+      6,
+      7,
+      8,
+      9
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": true
+    },
+    "art": {
+      "form": "climber",
+      "leaf": "broad",
+      "foliage": "#5d8a48",
+      "flower": "#f7f4ee",
+      "bloom": "cup"
+    },
+    "weed": {
+      "spreads": "roots",
+      "wildlife": "Its flowers feed hoverflies and moths.",
+      "removal": "Pull or dig out the white roots whenever shoots appear: every scrap regrows. Keep at it through a season or two and it weakens."
+    },
+    "source": "Check against: RHS – bindweed; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "ground-elder",
+    "commonName": "Ground elder",
+    "latinName": "Aegopodium podagraria",
+    "category": "weed",
+    "conditions": {
+      "light": "part-shade",
+      "hardiness": "Hardy perennial"
+    },
+    "size": {
+      "heightMm": 600,
+      "spreadMm": 600,
+      "spacingMm": 600
+    },
+    "flowerMonths": [
+      5,
+      6,
+      7
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": true
+    },
+    "art": {
+      "form": "clump",
+      "leaf": "lobed",
+      "foliage": "#6a9a50",
+      "flower": "#f4f2ea",
+      "bloom": "umbel"
+    },
+    "weed": {
+      "spreads": "roots",
+      "wildlife": "Its flat white flowers feed many small insects.",
+      "removal": "Fork out every bit of the white roots, or smother a patch with cardboard and mulch for a year."
+    },
+    "source": "Check against: RHS – ground elder; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "couch-grass",
+    "commonName": "Couch grass",
+    "latinName": "Elymus repens",
+    "category": "weed",
+    "conditions": {
+      "light": "full-sun",
+      "hardiness": "Hardy perennial"
+    },
+    "size": {
+      "heightMm": 800,
+      "spreadMm": 400,
+      "spacingMm": 400
+    },
+    "flowerMonths": [
+      6,
+      7,
+      8
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": true
+    },
+    "art": {
+      "form": "grass",
+      "leaf": "strap",
+      "foliage": "#6f9a4e"
+    },
+    "weed": {
+      "spreads": "roots",
+      "removal": "Fork out the long white roots, teasing them free. Don’t rotovate: it chops the roots and spreads them."
+    },
+    "source": "Check against: RHS – couch grass; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "creeping-buttercup",
+    "commonName": "Creeping buttercup",
+    "latinName": "Ranunculus repens",
+    "category": "weed",
+    "conditions": {
+      "light": "full-sun",
+      "hardiness": "Hardy perennial"
+    },
+    "size": {
+      "heightMm": 300,
+      "spreadMm": 500,
+      "spacingMm": 500
+    },
+    "flowerMonths": [
+      5,
+      6,
+      7,
+      8
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": true
+    },
+    "art": {
+      "form": "sprawl",
+      "leaf": "lobed",
+      "foliage": "#4f7d3e",
+      "flower": "#f4d21e",
+      "bloom": "cup"
+    },
+    "weed": {
+      "spreads": "both",
+      "wildlife": "Food for bees and other pollinators.",
+      "removal": "Lift each plant and its runners with a fork. It loves wet ground, so better drainage helps."
+    },
+    "source": "Check against: RHS – creeping buttercup; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "stinging-nettle",
+    "commonName": "Stinging nettle",
+    "latinName": "Urtica dioica",
+    "category": "weed",
+    "conditions": {
+      "light": "part-shade",
+      "hardiness": "Hardy perennial"
+    },
+    "size": {
+      "heightMm": 1200,
+      "spreadMm": 600,
+      "spacingMm": 600
+    },
+    "flowerMonths": [
+      6,
+      7,
+      8,
+      9
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": true
+    },
+    "art": {
+      "form": "upright",
+      "leaf": "broad",
+      "foliage": "#3f6a35"
+    },
+    "weed": {
+      "spreads": "roots",
+      "wildlife": "Food for the caterpillars of red admiral, peacock and small tortoiseshell butterflies.",
+      "removal": "Wear gloves and fork out the yellow roots; cutting it down often weakens it. The young tops make a good liquid feed."
+    },
+    "source": "Check against: RHS – stinging nettle; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "bramble",
+    "commonName": "Bramble",
+    "latinName": "Rubus fruticosus",
+    "category": "weed",
+    "conditions": {
+      "light": "full-sun",
+      "hardiness": "Hardy perennial"
+    },
+    "size": {
+      "heightMm": 2000,
+      "spreadMm": 2000,
+      "spacingMm": 2000
+    },
+    "flowerMonths": [
+      6,
+      7,
+      8
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": true
+    },
+    "art": {
+      "form": "shrub",
+      "leaf": "lobed",
+      "foliage": "#3f5f35",
+      "flower": "#f2e6ea",
+      "bloom": "cup"
+    },
+    "weed": {
+      "spreads": "both",
+      "wildlife": "Flowers for bees, and blackberries for birds and you.",
+      "removal": "Cut the stems back, then dig out the crown and roots. Stems root where their tips touch the ground, so lift those too."
+    },
+    "source": "Check against: RHS – bramble; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "dock",
+    "commonName": "Broad-leaved dock",
+    "latinName": "Rumex obtusifolius",
+    "category": "weed",
+    "conditions": {
+      "light": "full-sun",
+      "hardiness": "Hardy perennial"
+    },
+    "size": {
+      "heightMm": 1000,
+      "spreadMm": 600,
+      "spacingMm": 600
+    },
+    "flowerMonths": [
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": true
+    },
+    "art": {
+      "form": "rosette",
+      "leaf": "broad",
+      "foliage": "#4f7a3c",
+      "flower": "#8a5a3a",
+      "bloom": "spike"
+    },
+    "weed": {
+      "spreads": "both",
+      "wildlife": "Food for some moth caterpillars.",
+      "removal": "Dig out the deep taproot, at least the top 15 cm, before it seeds: one plant sets thousands."
+    },
+    "source": "Check against: RHS – docks; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "hairy-bittercress",
+    "commonName": "Hairy bittercress",
+    "latinName": "Cardamine hirsuta",
+    "category": "weed",
+    "conditions": {
+      "light": "full-sun",
+      "hardiness": "Hardy annual"
+    },
+    "size": {
+      "heightMm": 150,
+      "spreadMm": 150,
+      "spacingMm": 150
+    },
+    "flowerMonths": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "lookOutFor": [
+      "The leaves are edible, peppery like cress."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": false
+    },
+    "art": {
+      "form": "rosette",
+      "leaf": "round",
+      "foliage": "#6a9a4a",
+      "flower": "#f6f4ee",
+      "bloom": "daisy"
+    },
+    "weed": {
+      "spreads": "seed",
+      "removal": "Hoe or pull young plants before they flower: the ripe pods fling seed a metre or more. Check pots from the garden centre."
+    },
+    "source": "Check against: RHS – hairy bittercress; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "groundsel",
+    "commonName": "Groundsel",
+    "latinName": "Senecio vulgaris",
+    "category": "weed",
+    "conditions": {
+      "light": "full-sun",
+      "hardiness": "Hardy annual"
+    },
+    "size": {
+      "heightMm": 300,
+      "spreadMm": 200,
+      "spacingMm": 200
+    },
+    "flowerMonths": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": false
+    },
+    "art": {
+      "form": "upright",
+      "leaf": "feathery",
+      "foliage": "#5f8a45",
+      "flower": "#e8c83a",
+      "bloom": "daisy"
+    },
+    "weed": {
+      "spreads": "seed",
+      "removal": "Hoe or pull before the fluffy seed heads open. It flowers all year."
+    },
+    "source": "Check against: RHS – groundsel; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "chickweed",
+    "commonName": "Chickweed",
+    "latinName": "Stellaria media",
+    "category": "weed",
+    "conditions": {
+      "light": "full-sun",
+      "hardiness": "Hardy annual"
+    },
+    "size": {
+      "heightMm": 150,
+      "spreadMm": 400,
+      "spacingMm": 400
+    },
+    "flowerMonths": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": false
+    },
+    "art": {
+      "form": "sprawl",
+      "leaf": "round",
+      "foliage": "#74a050",
+      "flower": "#f8f6f0",
+      "bloom": "daisy"
+    },
+    "weed": {
+      "spreads": "seed",
+      "wildlife": "Its seeds feed finches and sparrows.",
+      "removal": "Hoe on a dry day, or pull it up in mats: it roots shallowly."
+    },
+    "source": "Check against: RHS – chickweed; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "horsetail",
+    "commonName": "Horsetail",
+    "latinName": "Equisetum arvense",
+    "category": "weed",
+    "conditions": {
+      "light": "full-sun",
+      "hardiness": "Hardy perennial"
+    },
+    "size": {
+      "heightMm": 500,
+      "spreadMm": 300,
+      "spacingMm": 300
+    },
+    "flowerMonths": [
+      3,
+      4
+    ],
+    "lookOutFor": [
+      "Its pale spring shoots carry spores, not flowers."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": true
+    },
+    "art": {
+      "form": "upright",
+      "leaf": "needle",
+      "foliage": "#5f8a45"
+    },
+    "weed": {
+      "spreads": "roots",
+      "removal": "Pull the shoots as soon as they show, all season. Its roots go a metre or more down, so it takes years of pulling to weaken it."
+    },
+    "source": "Check against: RHS – horsetail; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "white-clover",
+    "commonName": "White clover",
+    "latinName": "Trifolium repens",
+    "category": "weed",
+    "conditions": {
+      "light": "full-sun",
+      "hardiness": "Hardy perennial"
+    },
+    "size": {
+      "heightMm": 150,
+      "spreadMm": 500,
+      "spacingMm": 500
+    },
+    "flowerMonths": [
+      6,
+      7,
+      8,
+      9
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": true
+    },
+    "art": {
+      "form": "sprawl",
+      "leaf": "round",
+      "foliage": "#5f8f45",
+      "flower": "#f4f0e6",
+      "bloom": "daisy"
+    },
+    "weed": {
+      "spreads": "both",
+      "wildlife": "Bees love its flowers, and it feeds the soil with nitrogen. Many people keep it in the lawn.",
+      "removal": "Rake up the runners and pull them. Feed the lawn: clover thrives in poor, hungry turf."
+    },
+    "source": "Check against: RHS – clover in lawns; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "lawn-daisy",
+    "commonName": "Lawn daisy",
+    "latinName": "Bellis perennis",
+    "category": "weed",
+    "conditions": {
+      "light": "full-sun",
+      "hardiness": "Hardy perennial"
+    },
+    "size": {
+      "heightMm": 100,
+      "spreadMm": 150,
+      "spacingMm": 150
+    },
+    "flowerMonths": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": true
+    },
+    "art": {
+      "form": "rosette",
+      "leaf": "round",
+      "foliage": "#5f8a40",
+      "flower": "#fbf8f2",
+      "bloom": "daisy"
+    },
+    "weed": {
+      "spreads": "both",
+      "wildlife": "Early nectar for bees and hoverflies.",
+      "removal": "Lift each rosette with a daisy grubber, or mow a little higher so the grass crowds it out."
+    },
+    "source": "Check against: RHS – lawn weeds; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "herb-robert",
+    "commonName": "Herb Robert",
+    "latinName": "Geranium robertianum",
+    "category": "weed",
+    "conditions": {
+      "light": "shade",
+      "hardiness": "Hardy annual"
+    },
+    "size": {
+      "heightMm": 400,
+      "spreadMm": 400,
+      "spacingMm": 400
+    },
+    "flowerMonths": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": false
+    },
+    "art": {
+      "form": "mound",
+      "leaf": "lobed",
+      "foliage": "#6a8f45",
+      "flower": "#d870a8",
+      "bloom": "cup"
+    },
+    "weed": {
+      "spreads": "seed",
+      "wildlife": "Its small pink flowers feed bees.",
+      "removal": "Pulls up easily by hand: do it before it seeds."
+    },
+    "source": "Check against: RHS – herb robert; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "rosebay-willowherb",
+    "commonName": "Rosebay willowherb",
+    "latinName": "Chamaenerion angustifolium",
+    "category": "weed",
+    "conditions": {
+      "light": "full-sun",
+      "hardiness": "Hardy perennial"
+    },
+    "size": {
+      "heightMm": 1500,
+      "spreadMm": 500,
+      "spacingMm": 500
+    },
+    "flowerMonths": [
+      6,
+      7,
+      8,
+      9
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": true
+    },
+    "art": {
+      "form": "upright",
+      "leaf": "strap",
+      "foliage": "#4f7a40",
+      "flower": "#c8509a",
+      "bloom": "spike"
+    },
+    "weed": {
+      "spreads": "both",
+      "wildlife": "Food for elephant hawk-moth caterpillars, and for bees.",
+      "removal": "Pull young plants and dig out the roots. Cut off the flower spikes before the fluffy seed blows."
+    },
+    "source": "Check against: RHS – willowherbs; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "shepherds-purse",
+    "commonName": "Shepherd’s purse",
+    "latinName": "Capsella bursa-pastoris",
+    "category": "weed",
+    "conditions": {
+      "light": "full-sun",
+      "hardiness": "Hardy annual"
+    },
+    "size": {
+      "heightMm": 300,
+      "spreadMm": 150,
+      "spacingMm": 150
+    },
+    "flowerMonths": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": false
+    },
+    "art": {
+      "form": "rosette",
+      "leaf": "lobed",
+      "foliage": "#6a9550",
+      "flower": "#f6f4ee",
+      "bloom": "daisy"
+    },
+    "weed": {
+      "spreads": "seed",
+      "removal": "Hoe or pull before the heart-shaped pods ripen."
+    },
+    "source": "Check against: RHS – shepherd’s purse; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "fat-hen",
+    "commonName": "Fat hen",
+    "latinName": "Chenopodium album",
+    "category": "weed",
+    "conditions": {
+      "light": "full-sun",
+      "hardiness": "Hardy annual"
+    },
+    "size": {
+      "heightMm": 1000,
+      "spreadMm": 400,
+      "spacingMm": 400
+    },
+    "flowerMonths": [
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "lookOutFor": [
+      "The young leaves are edible, cooked like spinach."
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": false
+    },
+    "art": {
+      "form": "upright",
+      "leaf": "broad",
+      "foliage": "#7a9a6a",
+      "flower": "#a8b890",
+      "bloom": "spike"
+    },
+    "weed": {
+      "spreads": "seed",
+      "wildlife": "Its seeds feed birds.",
+      "removal": "Pull or hoe before it seeds: one plant can set thousands."
+    },
+    "source": "Check against: RHS – fat hen; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "oxalis",
+    "commonName": "Creeping wood sorrel",
+    "latinName": "Oxalis corniculata",
+    "category": "weed",
+    "conditions": {
+      "light": "full-sun",
+      "hardiness": "Hardy perennial"
+    },
+    "size": {
+      "heightMm": 100,
+      "spreadMm": 300,
+      "spacingMm": 300
+    },
+    "flowerMonths": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": true
+    },
+    "art": {
+      "form": "sprawl",
+      "leaf": "round",
+      "foliage": "#6a4a3a",
+      "flower": "#f0d02a",
+      "bloom": "cup"
+    },
+    "weed": {
+      "spreads": "both",
+      "removal": "Lift it carefully with its roots, and hoe often. Ripe pods fling seed when touched."
+    },
+    "source": "Check against: RHS – oxalis; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "annual-meadow-grass",
+    "commonName": "Annual meadow grass",
+    "latinName": "Poa annua",
+    "category": "weed",
+    "conditions": {
+      "light": "full-sun",
+      "hardiness": "Hardy annual"
+    },
+    "size": {
+      "heightMm": 150,
+      "spreadMm": 150,
+      "spacingMm": 150
+    },
+    "flowerMonths": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": false
+    },
+    "art": {
+      "form": "grass",
+      "leaf": "strap",
+      "foliage": "#7aa055"
+    },
+    "weed": {
+      "spreads": "seed",
+      "removal": "Hoe often, or pull young tufts: it seeds within weeks of coming up."
+    },
+    "source": "Check against: RHS – annual meadow grass; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "lesser-celandine",
+    "commonName": "Lesser celandine",
+    "latinName": "Ficaria verna",
+    "category": "weed",
+    "conditions": {
+      "light": "part-shade",
+      "hardiness": "Hardy perennial"
+    },
+    "size": {
+      "heightMm": 100,
+      "spreadMm": 200,
+      "spacingMm": 200
+    },
+    "flowerMonths": [
+      2,
+      3,
+      4,
+      5
+    ],
+    "companions": {
+      "good": [],
+      "avoid": []
+    },
+    "lifePath": {
+      "flowering": true,
+      "perennial": true
+    },
+    "art": {
+      "form": "rosette",
+      "leaf": "round",
+      "foliage": "#4f8040",
+      "flower": "#f2cf2a",
+      "bloom": "daisy"
+    },
+    "weed": {
+      "spreads": "both",
+      "wildlife": "Some of the first nectar of the year, for queen bumblebees.",
+      "removal": "Dig it out carefully with all its little tubers; it dies back by June. Many keep it under shrubs."
+    },
+    "source": "Check against: RHS – lesser celandine; Garden Organic weed guides",
+    "verified": false,
+    "userAdded": false
+  }
+]

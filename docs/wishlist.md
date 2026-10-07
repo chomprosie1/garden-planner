@@ -27,7 +27,7 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Ideas for an empty bed from your own sowing list | Build, Stage 14 | S | Built in Stage 17 |
 | Days to crop for your own plants, in the plant form | Build, Stage 16 | S | Your own plants go by their months, moved with the season |
 | A warmer or cooler correction for your garden (a city, a hillside, a frost pocket) | Build, Stage 16 | S | For now, the nearest stations’ averages and your own frost dates |
-| Check-progress jobs from the warmth, not the month | Build, Stage 16 | S | Planned in release 8, as “Running behind” |
+| Check-progress jobs from the warmth, not the month | Build, Stage 16 | S | Partly: running behind uses the warmth (release 8); the month's check jobs still use the months |
 | Frost warnings as notifications, when the app is closed | Build, Stage 17 | M | Partly built in UX release 4 (installed, on Android); an iPhone or a computer needs a server |
 | This year’s warmth moving perennials’ seasons (an early spring brings strawberries on) | Build, Stage 17 | S | Their seasons go by the averages; crops with days use the real weather |
 | Join batches back together | Build, Stage 17 | S | For now, undo straight after splitting |
@@ -36,11 +36,13 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Resize fruit trees and other big plants | You, 7 Oct 2026 | S | Built in release 6 |
 | About 50 UK tree types in Structures, small, medium or large | You, 7 Oct 2026 | M | Built in release 6 |
 | 150 more plants | You, 7 Oct 2026 | L | Planned as release 9 |
-| Alerts when a plant hasn't moved on, with common causes | You, 7 Oct 2026 | M | Planned in release 8 |
-| Weeds to keep or remove, and weeding reminders | You, 7 Oct 2026 | M | Planned in release 8 |
+| Alerts when a plant hasn't moved on, with common causes | You, 7 Oct 2026 | M | Built in release 8 |
+| Weeds to keep or remove, and weeding reminders | You, 7 Oct 2026 | M | Built in release 8 |
 | The year slider hard to see over full photos | You, 7 Oct 2026 | S | Built in release 6 |
 | The garden as it is, from an overhead photo | You, 7 Oct 2026 | ? | A spike first; tracing over a photo by hand already works (Stage 2e) |
 | Testing by risk, not the full suite every time | You, 7 Oct 2026 | S | Built in release 5 (`CLAUDE.md`) |
 | Plants (a fruit tree, a big shrub) casting shade in the sun views | Build, release 6 | M | Only features cast shade; a fruit tree planted as a plant doesn't |
 | Small, medium and large for rows and blocks | Build, release 6 | S | Single plants only for now |
 | A simpler details panel in Simple | Build, release 7 | S | More shows the full details in both modes |
+| No harvest job for a direct sowing that's running behind (not up) | Build, release 8 | S | Today can say it's not up and to harvest it in the same month |
+| Weeds marked as a patch across a lawn or bed | Build, release 8 | S | One weed at a time for now |

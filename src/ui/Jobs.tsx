@@ -68,8 +68,8 @@ function PlantJob({ job, done, onToggle, onPick }: { job: Job; done?: boolean; o
   );
   const app = useApp();
   const first = job.plantingIds[0];
-  // Jump to the planting on the plan, or to the plant's card for something on your sowing list.
-  const link = (
+  // Jump to the planting on the plan, or to the plant's card for something on your sowing list. "Weed the beds" has neither.
+  const link = !first && !job.plantId ? null : (
     <button
       type="button"
       class="job-link link-btn small"

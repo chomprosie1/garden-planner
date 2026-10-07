@@ -44,6 +44,8 @@ export function filterPlants(plants: Plant[], f: PlantFilter): Plant[] {
   const words = fold(f.query).split(/\s+/).filter(Boolean);
   return plants.filter((p) => {
     if (f.category !== 'all' && p.category !== f.category) return false;
+    // Weeds are only listed when you ask for them: by the Weeds filter, or by name.
+    if (f.category === 'all' && p.category === 'weed' && words.length === 0) return false;
     if (f.light !== 'all' && p.conditions.light !== f.light) return false;
     if (f.sowMonth !== null && !canSowIn(p, f.sowMonth)) return false;
     if (f.checkedOnly && !p.verified && !p.userAdded) return false;

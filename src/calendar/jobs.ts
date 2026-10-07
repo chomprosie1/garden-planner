@@ -12,9 +12,9 @@ import { shortDate } from '../lifecycle/projection';
 import { placeLabel } from '../model/features';
 import { STAGES, type Garden, type PickSize, type Plant, type Planting, type Stage } from '../model/types';
 import { addPick } from '../planting/harvest';
-import { isActive, plantingStatus } from '../planting/place';
+import { isActive, isContainer, plantingStatus } from '../planting/place';
 
-export const JOB_KINDS = ['sow-indoors', 'sow-direct', 'plant-out', 'check', 'harvest', 'protect', 'lift', 'tidy'] as const;
+export const JOB_KINDS = ['sow-indoors', 'sow-direct', 'plant-out', 'check', 'harvest', 'protect', 'lift', 'tidy', 'weed'] as const;
 export type JobKind = (typeof JOB_KINDS)[number];
 
 export const JOB_LABEL: Record<JobKind, string> = {
@@ -26,6 +26,7 @@ export const JOB_LABEL: Record<JobKind, string> = {
   protect: 'Protect for winter',
   lift: 'Lift and store',
   tidy: 'Clear and tidy',
+  weed: 'Weeding',
 };
 
 export interface Job {
@@ -94,8 +95,43 @@ const describeGroup = (layouts: Planting[]): string => {
   return parts.length > 1 || rows + blocks + singles > 1 ? ` (${parts.join(', ')})` : '';
 };
 
+/** Spring and early autumn, when roots that spread are dug out most easily, before they grow away or go dormant. */
+const ROOT_MONTHS = [4, 9];
+
+/**
+ * What to do about weeds you want gone, this month: pull ones that spread by seed in the month before they flower and
+ * while they do, and dig out ones that spread by their roots in spring and autumn. Null: nothing this month.
+ */
+export function weedJob(plant: Plant, toRemove: Planting[], month: number): string | null {
+  const w = plant.weed;
+  if (!w || !toRemove.length) return null;
+  const flowers = plant.flowerMonths ?? [];
+  const before = flowers.map((m) => (m === 1 ? 12 : m - 1));
+  const bySeed = (w.spreads === 'seed' || w.spreads === 'both') && (flowers.includes(month) || before.includes(month));
+  const byRoots = (w.spreads === 'roots' || w.spreads === 'both') && ROOT_MONTHS.includes(month);
+  if (!bySeed && !byRoots) return null;
+  return `${bySeed ? 'Get it out before it seeds.' : 'Dig out the roots.'} ${w.removal}`;
+}
+
+/** A word for the season's weeding, March to October. */
+const WEEDING_TIP: Record<number, string> = {
+  3: 'Hoe on a dry day while weeds are tiny: they wither in the sun.',
+  4: 'Hoe on a dry day while weeds are tiny: they wither in the sun.',
+  5: 'Weeds grow fastest now. Hoe between rows weekly, and mulch round plants.',
+  6: 'Little and often: pull weeds before they flower and seed.',
+  7: 'Little and often: pull weeds before they flower and seed. Water the plants, not the paths.',
+  8: 'Keep on top of seeding weeds: one left now is hundreds next year.',
+  9: 'Clear weeds from beds as crops finish, and dig out spreading roots while the soil’s soft.',
+  10: 'Weed beds before winter, then mulch or sow green manure on bare soil.',
+};
+
+export interface JobOptions {
+  /** A monthly "Weed the beds" reminder, March to October. The app asks for it unless it's turned off in Your garden. */
+  weeding?: boolean;
+}
+
 /** Your jobs for a month, in the order of JOB_KINDS, then by plant name. */
-export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number, year: number): Job[] {
+export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number, year: number, opts: JobOptions = {}): Job[] {
   const jobs: Job[] = [];
   const add = (kind: JobKind, plant: Plant, where: string, scope: string, plantingIds: string[], detail?: string, featureId?: string) => {
     const job: Job = { key: `${kind}:${plant.id}:${scope ? `${scope}:` : ''}${ym(year, month)}`, kind, plantId: plant.id, plant: plant.commonName, where, plantingIds };
@@ -120,6 +156,12 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     const bedName = bed ? placeLabel(bed) : 'a bed';
     const where = `in ${bedName}${describeGroup(group)}`;
     const ids = (list: Planting[]) => list.map((p) => p.id);
+    // A weed gets a job to be rid of it, unless you're keeping it; none of the jobs for crops.
+    if (plant.category === 'weed') {
+      const job = weedJob(plant, group.filter((p) => !p.keep), month);
+      if (job) add('weed', plant, `in ${bedName}`, featureId, ids(group.filter((p) => !p.keep)), job, featureId);
+      continue;
+    }
     // Under a greenhouse or cold frame: in sooner, with no hardening off, and no winter protection.
     const cover = microclimateOf(g, group[0]!);
     const outMonths = plantOutMonthsUnder(plant, cover?.climate ?? null);
@@ -176,6 +218,17 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     if (winter?.type === 'annual' && runEnds(harvest).some((m) => m % 12 === month - 1 && month >= 9)) add('tidy', plant, where, featureId, ids(growing), 'Pull up finished plants and compost them, then mark the planting as harvested.', featureId);
   }
 
+  // The season's weeding: one job for every bed with something growing in it.
+  const tip = WEEDING_TIP[month];
+  if (opts.weeding && tip) {
+    const beds = g.features.filter((f) => isContainer(f) && g.plantings.some((p) => isActive(p) && p.featureId === f.id && plantOf(p.plantId).category !== 'weed'));
+    if (beds.length) {
+      const names = beds.map(placeLabel);
+      const list = names.length > 3 ? `${names.slice(0, 3).join(', ')} and ${names.length - 3} more` : names.join(names.length === 2 ? ' and ' : ', ');
+      jobs.push({ key: `weed:beds:${ym(year, month)}`, kind: 'weed', plantId: '', plant: 'Weed the beds', where: `(${list})`, plantingIds: [], detail: tip });
+    }
+  }
+
   // Your sowing list: plants you mean to grow that aren't on the plan yet.
   const planned = new Set(g.plantings.filter(isActive).map((p) => p.plantId));
   for (const id of new Set(g.wishlist)) {
@@ -202,11 +255,18 @@ export function groupJobs(jobs: Job[]): [JobKind, Job[]][] {
  * sown; planting out marks them planted out; a progress check or the first harvest moves them on to that stage.
  */
 export function toggleJob(g: Garden, job: Job, date: string, plantOf?: (id: string) => Plant): Garden {
-  const done = g.jobsDone.some((j) => j.key === job.key);
-  if (done) return { ...g, jobsDone: g.jobsDone.filter((j) => j.key !== job.key) };
-  const ticked = { ...g, jobsDone: [...g.jobsDone, { key: job.key, date }] };
+  const done = g.jobsDone.find((j) => j.key === job.key);
   const ids = new Set(job.plantingIds);
+  if (done) {
+    const unticked = { ...g, jobsDone: g.jobsDone.filter((j) => j.key !== job.key) };
+    // A weed job unticked: the weeds it cleared are back.
+    if (job.kind === 'weed' && ids.size) return { ...unticked, plantings: unticked.plantings.map((p) => (ids.has(p.id) && p.removedOn === done.date ? withoutRemoved(p) : p)) };
+    return unticked;
+  }
+  const ticked = { ...g, jobsDone: [...g.jobsDone, { key: job.key, date }] };
   if (!ids.size) return ticked;
+  // A weed dug or pulled out is gone from the plan, kept in the bed's history.
+  if (job.kind === 'weed') return { ...ticked, plantings: ticked.plantings.map((p) => (ids.has(p.id) && !p.removedOn ? { ...p, removedOn: date } : p)) };
   const mine = g.plantings.filter((p) => ids.has(p.id));
   // Only move plantings forward: never back past a stage they've already reached.
   const before = (target: Stage) =>
@@ -244,3 +304,5 @@ export const onWishlist = (g: Garden, id: string) => g.wishlist.includes(id);
 export function toggleWishlist(g: Garden, id: string): Garden {
   return { ...g, wishlist: onWishlist(g, id) ? g.wishlist.filter((x) => x !== id) : [...g.wishlist, id] };
 }
+
+const withoutRemoved = ({ removedOn: _gone, ...rest }: Planting): Planting => rest;

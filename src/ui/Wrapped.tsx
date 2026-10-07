@@ -16,7 +16,7 @@ export function WrappedDialog({ garden, plantOf, known, close }: { garden: Garde
   const ref = useRef<HTMLDialogElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const year = seasonYear(todayIso());
-  const cards = useMemo(() => wrappedCards(seasonStats(garden, year, known), garden.name, (id) => plantOf(id).commonName), [garden, year]);
+  const cards = useMemo(() => wrappedCards(seasonStats(garden, year, known, (id) => plantOf(id).category === 'weed'), garden.name, (id) => plantOf(id).commonName), [garden, year]);
   const [i, setI] = useState(0);
   const card = cards[i];
 
@@ -100,7 +100,7 @@ export function SeasonCard({ garden, plantOf }: { garden: Garden; plantOf: (id: 
   const picked = useMemo(() => picksIn(garden, year), [garden, year]);
   const month = Number(today.slice(5, 7));
   const wrapTime = month >= 9 || month === 1;
-  const grown = useMemo(() => (wrapTime ? seasonStats(garden, seasonYear(today)).plantings : 0), [garden, wrapTime, today]);
+  const grown = useMemo(() => (wrapTime ? seasonStats(garden, seasonYear(today), undefined, (id) => plantOf(id).category === 'weed').plantings : 0), [garden, wrapTime, today]);
   if (!picked.length && !grown) return null;
   const total = picked.reduce((a, t) => a + t.grams, 0);
   return (

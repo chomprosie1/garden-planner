@@ -26,13 +26,15 @@ export interface SeasonStats {
 /** Easy, popular crops to suggest for next year, in order. */
 const SUGGEST = ['courgette', 'sweet-pea', 'strawberry', 'french-bean', 'tomato', 'lettuce', 'radish', 'sunflower', 'basil', 'potato', 'garlic', 'cosmos', 'beetroot', 'pea'];
 
-export function seasonStats(g: Garden, year: number, known: (id: string) => boolean = () => true): SeasonStats {
+/** isWeed: weeds marked on the plan aren't counted as grown. */
+export function seasonStats(g: Garden, year: number, known: (id: string) => boolean = () => true, isWeed: (id: string) => boolean = () => false): SeasonStats {
   const inYear = (d?: string) => !!d && Number(d.slice(0, 4)) === year;
   const months = new Array<number>(12).fill(0);
   const count = (d?: string) => {
     if (inYear(d)) months[Number(d!.slice(5, 7)) - 1]!++;
   };
   const grown = g.plantings.filter((pl) => {
+    if (isWeed(pl.plantId)) return false;
     const dates = [pl.sownOn, pl.removedOn, ...Object.values(pl.stageDates ?? {}), ...(pl.picks ?? []).map((k) => k.date)];
     dates.forEach(count);
     return dates.some(inYear) || g.notes.some((n) => n.plantingId === pl.id && inYear(n.date));
