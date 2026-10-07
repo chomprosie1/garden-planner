@@ -37,8 +37,8 @@ function presets(today: CalendarDate): { label: string; date: CalendarDate }[] {
 }
 
 interface Props {
+  /** Shadows or sun hours: the lens chips above the plan choose. */
   view: SunView;
-  setView: (v: SunView) => void;
   today: CalendarDate;
   date: CalendarDate;
   setDate: (d: CalendarDate) => void;
@@ -55,8 +55,8 @@ interface Props {
   defaultLocation: boolean;
 }
 
-/** Date, time and view controls for sun and shade. */
-export function SunBar({ view, setView, today, date, setDate, minutes, setMinutes, playing, setPlaying, day, sun, grid, spot, defaultLocation }: Props) {
+/** Date and time controls for the sun and shade lenses. */
+export function SunBar({ view, today, date, setDate, minutes, setMinutes, playing, setPlaying, day, sun, grid, spot, defaultLocation }: Props) {
   // Whole five-minute steps on the clock, from just before sunrise.
   const rise = Math.floor(toMinutes(day.sunrise, 0) / 5) * 5;
   const set = toMinutes(day.sunset, 24 * 60 - 1);
@@ -67,14 +67,6 @@ export function SunBar({ view, setView, today, date, setDate, minutes, setMinute
   return (
     <section class="sun-bar" aria-label="Sun and shade">
       <div class="sun-row">
-        <div class="choice-row choice-small" role="radiogroup" aria-label="Show">
-          {(['shadows', 'hours'] as const).map((v) => (
-            <label key={v} class="choice-option">
-              <input type="radio" name="sun-view" checked={view === v} onChange={() => setView(v)} />
-              <span>{v === 'shadows' ? 'Shadows' : 'Sun hours'}</span>
-            </label>
-          ))}
-        </div>
         <select
           class="sun-preset"
           aria-label="Day"

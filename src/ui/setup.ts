@@ -19,8 +19,8 @@ export const isDefaultLocation = (g: Garden) => g.latitude === 52.5 && g.longitu
 
 export function setupSteps(g: Garden, prefs: Pick<Prefs, 'northChecked' | 'lastBackup'>): Step[] {
   return [
-    { id: 'boundary', title: 'Draw your garden’s boundary', why: 'Measure each side with a tape; the plan is drawn to scale.', done: g.boundary.length >= 3 },
-    { id: 'bed', title: 'Add a bed', why: 'Beds and greenhouses are where plants go.', done: g.features.some(isContainer) },
+    { id: 'boundary', title: 'Set up your space', why: 'A balcony, a patio, a garden or an allotment: the plan is drawn to scale.', done: g.boundary.length >= 3 || g.features.length > 0 },
+    { id: 'bed', title: 'Add a bed or pot', why: 'Beds, pots and planters are where plants go. Drag one in from below the plan.', done: g.features.some(isContainer) },
     { id: 'location', title: 'Set your location', why: 'Needed for sun times and shadows.', done: !isDefaultLocation(g) },
     { id: 'north', title: 'Point the north arrow north', why: 'Shadows fall the wrong way if north is out. Check it against a map.', done: g.northRotationDeg !== 0 || prefs.northChecked },
     { id: 'plants', title: 'Put plants in a bed', why: 'Then you get spacing checks and a job list for each month.', done: g.plantings.length > 0 },

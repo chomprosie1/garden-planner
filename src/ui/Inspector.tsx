@@ -8,7 +8,6 @@ import { formatArea, formatLength } from '../canvas/viewport';
 import { lineLength, perimeter, polygonArea } from '../geometry/polygon';
 import { monthRanges } from '../library/library';
 import {
-  asRect,
   centreLineOf,
   deleteFeatures,
   duplicateFeature,
@@ -17,7 +16,8 @@ import {
   KINDS,
   kindsWithGeometry,
   MATERIAL_LABEL,
-  resizeRect,
+  rectInfo,
+  resizeRectAny,
   restack,
   setSmooth,
   updateFeature,
@@ -44,7 +44,6 @@ import { formatHours, sunNeeded, type Finding } from '../planting/rules';
 import { currentStage, STAGE_LABEL, stageDate } from '../lifecycle/stages';
 import { deleteBlob, saveBlob } from '../storage/idb';
 import { areaHours, averageHours, lightBand, type SunGrid } from '../sun/hours';
-import type { PlanMode } from '../theme/prefs';
 import { useApp } from './appContext';
 import { FindingsList } from './Findings';
 import { UseLocationButton } from './GardenSettings';
@@ -56,8 +55,10 @@ import { StageStrip } from './StageStrip';
 interface Props {
   store: Store;
   garden: Garden;
-  mode: PlanMode;
-  setMode: (m: PlanMode) => void;
+  /** The sun lenses show how sunny each bed and planting is. */
+  sunLens: boolean;
+  /** The layout is locked: beds and paths show their details but can't be reshaped here. */
+  locked: boolean;
   selected: Target | null;
   setSelected: (t: Target | null) => void;
   setTool: (t: Tool) => void;
@@ -163,7 +164,7 @@ function SunFact({ hours, month }: { hours: number; month: number }) {
 // ---------- Which panel ----------
 
 export function Inspector(props: Props) {
-  const { store, garden, mode, selected, setSelected, setTool, calibration, clearCalibration } = props;
+  const { store, garden, selected, setSelected, setTool, calibration, clearCalibration } = props;
   if (calibration) return <Calibrate store={store} garden={garden} points={calibration} done={clearCalibration} />;
 
   if (selected?.type === 'planting') {
@@ -172,8 +173,8 @@ export function Inspector(props: Props) {
   }
   const f = selected?.type === 'feature' ? garden.features.find((x) => x.id === selected.id) : undefined;
   if (f) {
-    if (mode === 'planting') return isContainer(f) ? <BedPanel {...props} bed={f} /> : <ElsewherePanel f={f} go={() => props.setMode('layout')} label="Layout" />;
-    return <FeaturePanel {...props} f={f} variant={mode === 'sun' ? 'sun' : 'layout'} />;
+    if (isContainer(f)) return <BedPanel {...props} bed={f} />;
+    return <FeaturePanel {...props} f={f} variant={props.sunLens ? 'sun' : 'layout'} />;
   }
 
   if (selected?.type === 'boundary') {
@@ -189,51 +190,35 @@ export function Inspector(props: Props) {
           <dt>Corners</dt>
           <dd>{b.length}</dd>
         </dl>
-        {mode === 'layout' ? (
-          <>
-            <p class="muted small">Drag a corner to move it. Double-click an edge to add a corner. Select a corner and press Delete to remove it.</p>
-            <button type="button" class="btn" onClick={() => setTool('boundary')}>
-              Redraw the boundary
-            </button>
-          </>
-        ) : (
-          <button type="button" class="btn" onClick={() => props.setMode('layout')}>
-            Change it in Layout
-          </button>
-        )}
+        <p class="muted small">Drag a corner to move it. Double-click an edge to add a corner. Select a corner and press Delete to remove it.</p>
+        <button type="button" class="btn" onClick={() => setTool('boundary')}>
+          Redraw the boundary
+        </button>
       </div>
     );
   }
 
-  if (mode === 'planting') return <PlantingOverview {...props} />;
-  if (mode === 'sun') return <SunOverview {...props} />;
-  return <GardenPanel store={store} garden={garden} setSelected={setSelected} setTool={setTool} setMode={props.setMode} />;
-}
-
-/** A layout thing picked while planting: say where to change it. */
-function ElsewherePanel({ f, go, label }: { f: Feature; go: () => void; label: string }) {
+  // Nothing picked: the whole garden. Its sun first when a sun lens is on.
   return (
-    <div class="inspector-body">
-      <Heading eyebrow={KINDS[f.kind].label} title={featureLabel(f)} />
-      <p class="muted">This is part of the layout. Plants go in beds and greenhouses.</p>
-      <button type="button" class="btn" onClick={go}>
-        Change it in {label}
-      </button>
-    </div>
+    <>
+      {props.sunLens && <SunOverview {...props} />}
+      <PlantingOverview {...props} />
+      <GardenPanel store={store} garden={garden} setSelected={setSelected} setTool={setTool} embedded />
+    </>
   );
 }
 
 // ---------- Layout ----------
 
-function FeaturePanel({ store, garden, f, variant, setSelected, setMode, sunJune }: Shared & { f: Feature; variant: 'layout' | 'sun' }) {
+function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, embedded = false }: Shared & { f: Feature; variant: 'layout' | 'sun'; embedded?: boolean }) {
   const app = useApp();
   const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
   const geometry = geometryOf(f);
-  const rect = geometry === 'area' ? asRect(f.footprint) : null;
+  // Rectangles at any angle keep a width and depth to type.
+  const rect = geometry === 'area' && !f.smooth ? rectInfo(f.footprint) : null;
   const set = (patch: Partial<Feature>) => commit((g) => updateFeature(g, f.id, patch));
   const kindOptions = kindsWithGeometry(geometry);
   const shading = f.opacityInLeaf !== undefined || f.kind === 'tree' || f.kind === 'hedge';
-  const planted = garden.plantings.filter((p) => p.featureId === f.id && !p.removedOn).length;
   const sun = variant === 'sun' && sunJune && isContainer(f) ? areaHours(sunJune, f.footprint) : null;
 
   const shade = (
@@ -281,16 +266,8 @@ function FeaturePanel({ store, garden, f, variant, setSelected, setMode, sunJune
     );
 
   return (
-    <div class="inspector-body">
-      <Heading eyebrow={KINDS[f.kind].label} title={featureLabel(f)} />
-      {isContainer(f) && (
-        <p class="muted small">
-          {planted ? `${planted} ${planted === 1 ? 'planting' : 'plantings'} in it. ` : ''}
-          <button type="button" class="link-btn" onClick={() => setMode('planting')}>
-            {planted ? 'See them in Planting' : 'Plant it in Planting'}
-          </button>
-        </p>
-      )}
+    <div class={embedded ? 'feature-details' : 'inspector-body'}>
+      {!embedded && <Heading eyebrow={KINDS[f.kind].label} title={featureLabel(f)} />}
       <label class="field">
         Name
         <input
@@ -346,8 +323,8 @@ function FeaturePanel({ store, garden, f, variant, setSelected, setMode, sunJune
       <Section id="size" title="Size">
         {rect && (
           <div class="field-row">
-            <NumberField label="Width" unit="mm" value={rect.w} min={50} onCommit={(w) => set({ footprint: resizeRect(f.footprint, w, rect.h)! })} />
-            <NumberField label="Depth" unit="mm" value={rect.h} min={50} onCommit={(h) => set({ footprint: resizeRect(f.footprint, rect.w, h)! })} />
+            <NumberField label="Width" unit="mm" value={Math.round(rect.w)} min={50} onCommit={(w) => set({ footprint: resizeRectAny(f.footprint, w, rect.h)! })} />
+            <NumberField label="Depth" unit="mm" value={Math.round(rect.h)} min={50} onCommit={(h) => set({ footprint: resizeRectAny(f.footprint, rect.w, h)! })} />
           </div>
         )}
         {geometry === 'line' && <NumberField label="Thickness" unit="mm" value={f.widthMm ?? 100} min={10} onCommit={(widthMm) => set({ widthMm })} />}
@@ -454,12 +431,10 @@ function MaterialPicker({ f, set }: { f: Feature; set: (patch: Partial<Feature>)
   );
 }
 
-function GardenPanel({ store, garden, setSelected, setTool, setMode }: { store: Store; garden: Garden; setSelected: (t: Target | null) => void; setTool: (t: Tool) => void; setMode: (m: PlanMode) => void }) {
+function GardenPanel({ store, garden, setSelected, setTool, embedded = false }: { store: Store; garden: Garden; setSelected: (t: Target | null) => void; setTool: (t: Tool) => void; embedded?: boolean }) {
   const app = useApp();
   const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
   const b = garden.boundary;
-  const beds = garden.features.filter(isContainer).length;
-  const planted = garden.plantings.some((p) => !p.removedOn);
   const pickTrace = async (e: Event) => {
     const input = e.currentTarget as HTMLInputElement;
     const file = input.files?.[0];
@@ -474,8 +449,8 @@ function GardenPanel({ store, garden, setSelected, setTool, setMode }: { store: 
   };
 
   return (
-    <div class="inspector-body">
-      <Heading eyebrow="Garden" title={garden.name} />
+    <div class={embedded ? 'inspector-body inspector-more' : 'inspector-body'}>
+      {!embedded && <Heading eyebrow="Garden" title={garden.name} />}
       {b.length >= 3 ? (
         <dl class="facts">
           <dt>Area</dt>
@@ -484,17 +459,7 @@ function GardenPanel({ store, garden, setSelected, setTool, setMode }: { store: 
           <dd>{formatLength(perimeter(b))}</dd>
         </dl>
       ) : (
-        <p class="muted small">No boundary yet. Choose Boundary and click each corner of your garden.</p>
-      )}
-      {beds > 0 && !planted && (
-        <div class="next-step">
-          <p>
-            <strong>Next:</strong> put plants in your {beds === 1 ? 'bed' : 'beds'}.
-          </p>
-          <button type="button" class="btn btn-primary" onClick={() => setMode('planting')}>
-            Go to Planting
-          </button>
-        </div>
+        <p class="muted small">No boundary. That's fine for a balcony or a few pots; for a garden, Draw → Boundary marks its edge.</p>
       )}
 
       <Section id="layers" title="On the plan">
@@ -627,19 +592,10 @@ function PlantingOverview(props: Props) {
   const warnings = findings.filter((f) => f.level === 'warn').length;
   return (
     <div class="inspector-body">
-      <Heading eyebrow="Planting" title={garden.name} />
+      <Heading eyebrow="Your garden" title={garden.name} />
       {beds.length === 0 ? (
         <div class="next-step">
-          <p>Plants go in beds and greenhouses. Draw one first.</p>
-          <button
-            type="button"
-            class="btn btn-primary"
-            onClick={() => {
-              props.setTool('bed');
-            }}
-          >
-            Draw a bed
-          </button>
+          <p>Plants go in beds, pots and planters. Drag one in from <strong>Beds and pots</strong> below the plan.</p>
         </div>
       ) : (
         <button type="button" class="btn btn-primary" onClick={startPlanting}>
@@ -770,6 +726,9 @@ function BedPanel(props: Shared & { bed: Feature }) {
           </ul>
         </Section>
       )}
+      <Section id="bed-shape" title="Shape, size and edging" open={false}>
+        {props.locked ? <p class="muted small">The layout is locked. Unlock it with the padlock to change the bed.</p> : <FeaturePanel {...props} f={bed} variant="layout" embedded />}
+      </Section>
       <NotesSection store={store} garden={garden} on={{ featureId: bed.id }} />
     </div>
   );
@@ -794,7 +753,7 @@ export function nextStep(pl: Planting, plant: Plant): string | null {
 }
 
 function PlantingPanel(props: Props & { pl: Planting }) {
-  const { store, garden, pl, setSelected, plantOf, findings, sunJune, mode } = props;
+  const { store, garden, pl, setSelected, plantOf, findings, sunJune } = props;
   const app = useApp();
   const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
   const plant = plantOf(pl.plantId);
@@ -807,7 +766,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
   const status = plantingStatus(pl);
   const stage = currentStage(pl);
   const step = nextStep(pl, plant);
-  const canEdit = mode === 'planting';
+  const canEdit = true;
 
   return (
     <div class="inspector-body">

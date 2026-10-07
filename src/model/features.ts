@@ -33,6 +33,8 @@ export const KINDS: Record<FeatureKind, KindInfo> = {
   compost: { kind: 'compost', label: 'Compost', geometry: 'area', heightMm: 1000 },
   water: { kind: 'water', label: 'Water', geometry: 'area', heightMm: 0 },
   surface: { kind: 'surface', label: 'Surface', geometry: 'area', heightMm: 0 },
+  pot: { kind: 'pot', label: 'Pot', geometry: 'circle', heightMm: 300, radiusMm: 150 },
+  planter: { kind: 'planter', label: 'Planter', geometry: 'area', heightMm: 300 },
   other: { kind: 'other', label: 'Other', geometry: 'area', heightMm: 1000 },
 };
 
@@ -237,6 +239,100 @@ export function removeVertex(g: Garden, t: Target, index: number): Garden {
   const min = isClosed(g, t) ? 3 : 2;
   if (!pts || pts.length <= min) return g;
   return setPoints(g, t, pts.filter((_, i) => i !== index));
+}
+
+// ---------- Rectangles at any angle, and turning things ----------
+
+/** A rectangle at any angle: its centre, its first side's length (w) and the next side's (h), the first side's angle, and which way round it goes. */
+export interface RectInfo {
+  cx: number;
+  cy: number;
+  w: number;
+  h: number;
+  /** Angle of the first side, radians. */
+  angle: number;
+  /** 1 if the corners go anticlockwise, -1 if clockwise. */
+  turn: 1 | -1;
+}
+
+/** The rectangle four corners make, at any angle, or null if they don't make one (to within 2 mm). */
+export function rectInfo(points: Point[]): RectInfo | null {
+  if (points.length !== 4) return null;
+  const [a, b, c, d] = points as [Point, Point, Point, Point];
+  const v1: Point = [b[0] - a[0], b[1] - a[1]];
+  const v2: Point = [c[0] - b[0], c[1] - b[1]];
+  const v3: Point = [d[0] - c[0], d[1] - c[1]];
+  const v4: Point = [a[0] - d[0], a[1] - d[1]];
+  const len = (v: Point) => Math.hypot(v[0], v[1]);
+  const w = len(v1);
+  const h = len(v2);
+  if (w < 1 || h < 1) return null;
+  const square = (x: Point, y: Point) => Math.abs(x[0] * y[0] + x[1] * y[1]) / (len(x) * len(y)) < 0.002;
+  if (!square(v1, v2) || !square(v2, v3) || Math.abs(len(v3) - w) > 2 || Math.abs(len(v4) - h) > 2) return null;
+  const cross = v1[0] * v2[1] - v1[1] * v2[0];
+  return { cx: (a[0] + b[0] + c[0] + d[0]) / 4, cy: (a[1] + b[1] + c[1] + d[1]) / 4, w, h, angle: Math.atan2(v1[1], v1[0]), turn: cross >= 0 ? 1 : -1 };
+}
+
+/** The corners of a rectangle, in the same order rectInfo reads them. */
+export function rectCorners(r: RectInfo): Point[] {
+  const u: Point = [Math.cos(r.angle), Math.sin(r.angle)];
+  const v: Point = [-u[1] * r.turn, u[0] * r.turn];
+  const a: Point = [r.cx - (u[0] * r.w) / 2 - (v[0] * r.h) / 2, r.cy - (u[1] * r.w) / 2 - (v[1] * r.h) / 2];
+  const pts: Point[] = [a, [a[0] + u[0] * r.w, a[1] + u[1] * r.w], [a[0] + u[0] * r.w + v[0] * r.h, a[1] + u[1] * r.w + v[1] * r.h], [a[0] + v[0] * r.h, a[1] + v[1] * r.h]];
+  return pts.map(roundPoint);
+}
+
+/** Width (the longer side, or the first if square) and depth of a rectangle at any angle. */
+export const rectSize = (r: RectInfo) => ({ w: Math.round(r.w), h: Math.round(r.h) });
+
+/** Resizes a rectangle at any angle about its centre, keeping its angle. Null if the points aren't a rectangle. */
+export function resizeRectAny(points: Point[], w: number, h: number): Point[] | null {
+  const r = rectInfo(points);
+  if (!r || w <= 0 || h <= 0) return null;
+  return rectCorners({ ...r, w, h });
+}
+
+const turnPoint = (p: Point, c: Point, cos: number, sin: number): Point => [
+  Math.round(c[0] + (p[0] - c[0]) * cos - (p[1] - c[1]) * sin),
+  Math.round(c[1] + (p[0] - c[0]) * sin + (p[1] - c[1]) * cos),
+];
+
+/** The point a feature turns about: the middle of its outline. */
+export function pivotOf(f: Feature): Point {
+  if (f.circle) return f.circle.centre;
+  const b = bounds(f.footprint);
+  return b ? [(b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2] : [0, 0];
+}
+
+/**
+ * Turns a feature by some degrees (anticlockwise) about its middle. What's planted in it turns with it: rows keep their
+ * line; blocks keep their corners in the right places but stay square to the page.
+ */
+export function rotateFeature(g: Garden, id: string, degrees: number): Garden {
+  const f = g.features.find((x) => x.id === id);
+  if (!f || f.circle || degrees % 360 === 0) return g;
+  const c = pivotOf(f);
+  const rad = (degrees * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  const t = (p: Point) => turnPoint(p, c, cos, sin);
+  const turned = withFootprint({
+    ...f,
+    footprint: f.footprint.map(t),
+    ...(f.line ? { line: f.line.map(t) } : {}),
+    ...(f.controls ? { controls: f.controls.map(t) } : {}),
+  });
+  return {
+    ...g,
+    features: g.features.map((x) => (x.id === id ? turned : x)),
+    plantings: g.plantings.some((p) => p.featureId === id)
+      ? g.plantings.map((p) => {
+          if (p.featureId !== id) return p;
+          const [x, y] = t([p.x, p.y]);
+          return { ...p, x, y, ...(p.endPoint ? { endPoint: t(p.endPoint) } : {}) };
+        })
+      : g.plantings,
+  };
 }
 
 // ---------- Rectangles ----------

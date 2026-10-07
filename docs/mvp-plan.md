@@ -289,4 +289,4 @@ If gate 3 passes, add the master plan's features one at a time, cheapest first. 
 
 **Parked indefinitely until the product works:** haptics, nightly weather cron, global expansion and the investor figures. Revisit the financials only once you have real usage numbers to put in them.
 
-**Brought forward (6 Oct 2026):** the plant life cycle (build-plan Stage 8), the Potting Shed, microclimates, Growing Degree Days, a visual overhaul and a 3D view are now Stages 8–17 of the build plan.
+**Brought forward (6 Oct 2026):** the plant life cycle (build-plan Stage 8), the Potting Shed, microclimates, Growing Degree Days, a visual overhaul and a 3D view are now Stages 8–18 of the build plan.

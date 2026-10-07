@@ -6,8 +6,6 @@ import { parseLength } from '../canvas/snap';
 import { KINDS } from '../model/features';
 import type { FeatureKind } from '../model/types';
 import type { ComponentChildren } from 'preact';
-import type { Layout } from '../planting/place';
-import type { PlanMode } from '../theme/prefs';
 import { canDrawByHand, geometryForTool, type CanvasApi, type Placing, type Tool } from './PlanCanvas';
 
 /** Sizes offered when placing a rectangle by size. */
@@ -21,85 +19,6 @@ const DEFAULT_SIZE: Partial<Record<Tool, [number, number]>> = {
   water: [1500, 1000],
   other: [1000, 1000],
 };
-
-const LAYOUT_TRAY: { tool: Tool; label: string }[] = [
-  { tool: 'boundary', label: 'Boundary' },
-  { tool: 'bed', label: 'Bed' },
-  { tool: 'tree', label: 'Tree' },
-];
-const MORE: FeatureKind[] = ['surface', 'path', 'fence', 'wall', 'hedge', 'building', 'greenhouse', 'compost', 'water', 'other'];
-
-interface ModeBarProps {
-  mode: PlanMode;
-  setTool: (t: Tool) => void;
-  warnings: number;
-  /** Opens the sheet for the whole garden: layers, checks or sun, depending on the mode. */
-  openDetails: () => void;
-  empty: boolean;
-}
-
-/** The phone's one bar for the current part of the plan. Everything fits; nothing scrolls sideways. */
-export function PhoneModeBar({ mode, setTool, warnings, openDetails, empty }: ModeBarProps) {
-  if (mode === 'planting')
-    return (
-      <div class="phone-tray" role="toolbar" aria-label="Planting">
-        <button type="button" class="tool" onClick={openDetails}>
-          Beds and checks
-        </button>
-        {warnings > 0 && (
-          <button type="button" class="tool warn-count" onClick={openDetails}>
-            <span aria-hidden="true">!</span> {warnings}
-            <span class="visually-hidden"> {warnings === 1 ? 'thing' : 'things'} to check</span>
-          </button>
-        )}
-        <button type="button" class="tool" onClick={() => setTool('sketch')}>
-          Sketch
-        </button>
-        <button type="button" class="tool tool-primary" onClick={() => setTool('plant')}>
-          Plant
-        </button>
-      </div>
-    );
-  if (mode === 'sun')
-    return (
-      <div class="phone-tray" role="toolbar" aria-label="Sun">
-        <button type="button" class="tool" onClick={openDetails}>
-          Sun in each bed
-        </button>
-      </div>
-    );
-  return (
-    <div class="phone-tray" role="toolbar" aria-label="Drawing tools">
-      {!empty && (
-        <button type="button" class="tool" onClick={openDetails}>
-          Garden
-        </button>
-      )}
-      {LAYOUT_TRAY.map((t) => (
-        <button key={t.tool} type="button" class="tool" onClick={() => setTool(t.tool)}>
-          {t.label}
-        </button>
-      ))}
-      <select
-        class="tool tool-more"
-        aria-label="More things to draw"
-        value=""
-        onChange={(e) => {
-          const v = (e.currentTarget as HTMLSelectElement).value as Tool;
-          if (v) setTool(v);
-        }}
-      >
-        <option value="">More…</option>
-        {MORE.map((k) => (
-          <option key={k} value={k}>
-            {KINDS[k].label}
-          </option>
-        ))}
-        <option value="sketch">Sketch on the plan</option>
-      </select>
-    </div>
-  );
-}
 
 /** Drawing a shape with a finger: one finger draws, two move the plan. */
 export function PhoneHandBar({ tool, message, useCorners, cancel }: { tool: Tool; message: string | null; useCorners: () => void; cancel: () => void }) {
@@ -294,59 +213,64 @@ export function PhoneSheet({ title, open, setOpen, onClose, children, fixed = fa
   );
 }
 
-interface PlantBarProps {
+interface PlantingBarProps {
   placing: Placing;
-  setLayout: (l: Layout) => void;
+  setLayout: (l: Placing['layout']) => void;
+  growing: boolean;
+  setGrowing: (g: boolean) => void;
   /** Points placed so far: the start of a row or block. */
   points: number;
   api: { current: CanvasApi | null };
   message: string | null;
   changePlant: () => void;
   done: () => void;
+  phone: boolean;
 }
 
-const LAYOUT_NAMES: [Layout, string][] = [
-  ['single', 'Single'],
+const LAYOUT_NAMES: [Placing['layout'], string][] = [
+  ['auto', 'Fill for me'],
+  ['single', 'One'],
   ['row', 'Row'],
   ['block', 'Block'],
 ];
 
-/** Placing plants with the crosshair. */
-export function PhonePlantBar({ placing, setLayout, points, api, message, changePlant, done }: PlantBarProps) {
+/** Placing a plant: tap (or click) a bed. "Fill for me" plants it the usual way for the plant. */
+export function PlantingBar({ placing, setLayout, growing, setGrowing, points, api, message, changePlant, done, phone }: PlantingBarProps) {
   const { plant, layout } = placing;
   const name = plant.commonName.toLowerCase();
-  const started = points > 0 && layout !== 'single';
-  const action = layout === 'single' ? 'Plant here' : layout === 'row' ? (started ? 'End row here' : 'Start row here') : started ? 'Opposite corner' : 'First corner';
+  const tap = phone ? 'Tap' : 'Click';
+  const started = points > 0 && (layout === 'row' || layout === 'block');
   const hint =
-    layout === 'single'
-      ? `Drag the plan to put the crosshair where the ${name} goes.`
+    layout === 'auto' || layout === 'single'
+      ? `${tap} a bed, pot or planter to plant ${name}${layout === 'auto' ? ', filled the usual way' : ''}.`
       : layout === 'row'
         ? started
-          ? 'Move the crosshair to the other end of the row.'
-          : `Put the crosshair where the row of ${name} starts.`
+          ? `${tap} the other end of the row.`
+          : `${tap} where the row of ${name} starts${phone ? '' : ', or drag along it'}.`
         : started
-          ? 'Move the crosshair to the opposite corner of the block.'
-          : `Put the crosshair on one corner of the block of ${name}.`;
+          ? `${tap} the opposite corner of the block.`
+          : `${tap} one corner of the block${phone ? '' : ', or drag across it'}.`;
   return (
-    <div class="draw-bar">
+    <div class="draw-bar planting-bar">
       <div class="plant-bar-head">
         <strong>{plant.commonName}</strong>
         <div class="choice-row choice-small" role="radiogroup" aria-label="Lay out as">
           {LAYOUT_NAMES.map(([value, label]) => (
             <label key={value} class="choice-option">
-              <input type="radio" name="phone-layout" value={value} checked={layout === value} onChange={() => setLayout(value)} />
+              <input type="radio" name="planting-layout" value={value} checked={layout === value} onChange={() => setLayout(value)} />
               <span>{label}</span>
             </label>
           ))}
         </div>
+        <label class="check small">
+          <input type="checkbox" checked={growing} onChange={(e) => setGrowing((e.currentTarget as HTMLInputElement).checked)} />
+          Already in the ground
+        </label>
       </div>
       <p class="draw-hint" role="status">
         {message ?? hint}
       </p>
       <div class="draw-buttons">
-        <button type="button" class="btn" onClick={done}>
-          Done
-        </button>
         <button type="button" class="btn" onClick={changePlant}>
           Change plant
         </button>
@@ -355,8 +279,8 @@ export function PhonePlantBar({ placing, setLayout, points, api, message, change
             Undo
           </button>
         )}
-        <button type="button" class="btn btn-primary" onClick={() => api.current?.placePlant()}>
-          {action}
+        <button type="button" class="btn btn-primary" onClick={done}>
+          Done
         </button>
       </div>
     </div>

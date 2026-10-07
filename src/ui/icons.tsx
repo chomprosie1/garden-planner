@@ -24,6 +24,22 @@ const PATHS = {
   keyboard: 'M3 6h18v12H3zM7 10h.01M11 10h.01M15 10h.01M7 14h10',
   shed: 'M3 10 12 4l9 6v10H3zM9 20v-6h6v6M7 12h2M15 12h2',
   locate: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 1v4M12 19v4M1 12h4M19 12h4',
+  lock: 'M6 11h12v10H6zM8.5 11V7.5a3.5 3.5 0 0 1 7 0V11',
+  unlock: 'M6 11h12v10H6zM8.5 11V7.5a3.5 3.5 0 0 1 6.8-1.2',
+  trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
+  copy: 'M9 9h11v11H9zM5 15H4V4h11v1',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  search: 'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-4-4',
+  share: 'M12 15V3M8 7l4-4 4 4M5 12v8h14v-8',
+  plus: 'M12 5v14M5 12h14',
+  curve: 'M4 18C8 4 16 4 20 18',
+  size: 'M4 9V4h5M20 15v5h-5M4 4l7 7M20 20l-7-7',
+  pot: 'M5 8h14l-2 12H7zM4 5h16v3H4z',
+  ground: 'M3 17c3-2 6-2 9 0s6 2 9 0M3 12c3-2 6-2 9 0s6 2 9 0',
+  build: 'M3 11 12 4l9 7M5 10v10h14V10',
+  pencil: 'M4 20h4L20 8l-4-4L4 16zM14 6l4 4',
+  close: 'M6 6l12 12M18 6 6 18',
+  film: 'M4 5h16v14H4zM4 9h16M4 15h16M8 5v4M16 5v4M8 15v4M16 15v4',
 } as const;
 
 export type IconName = keyof typeof PATHS;

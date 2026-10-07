@@ -251,7 +251,7 @@ The full review, against Nielsen's heuristics and aimed at members of the public
 
 **Gate 3 (31 Mar 2027):** did it change at least one real placement, planting or timing decision? If yes, continue with the "After the MVP" list, starting with the progressive web app. If no, stop or narrow the idea before spending anything.
 
-## Stages 8–17 — Life stages, Potting Shed, a visual overhaul, microclimates and GDD (added 6 Oct 2026)
+## Stages 8–18 — Life stages, Potting Shed, a visual overhaul, a fresh plan, microclimates and GDD (added 6 Oct 2026)
 Brought forward from "parked": the plant life cycle, frost and Growing Degree Days, plus a graphical overhaul. Stage 7 (real use) runs alongside them. The visual stages come first, so the shed, cards and dates built later use the new art. The shed should be ready before February sowing.
 
 | Stage | What | Status |
@@ -261,11 +261,16 @@ Brought forward from "parked": the plant life cycle, frost and Growing Degree Da
 | 10 | Illustrated plants, drawn by code, changing with the stage | Built |
 | 11 | Depth and texture: material textures, raised-bed edging, soft shadows, cached static layer | Built |
 | 12 | The Potting Shed, with shelves: trays, places, frost dates, plant out from a tray | Built |
-| 13 | Screens and cards polish | |
-| 14 | Greenhouses and cold frames as microclimates | |
-| 15 | Growing Degree Days from UK climate averages (capped at 2 weeks) | |
-| 16 | Live weather (opt-in Open-Meteo) and succession sowing | |
-| 17 | 3D garden view (three.js, loaded only when opened) | |
+| 13a | No modes: the padlock, the floating action pill, handles with typed sizes, rotate, smart guides | Built |
+| 13b | The dock and stickers, the fill pop-over, pots and planters, dropping trays from the shed | Built |
+| 13c | First run ("Where are you growing?") and search everything | |
+| 14 | The garden through the year: scrubber, projected stages, gaps, job chips, lenses, share and timelapse | |
+| 15 | Greenhouses and cold frames as microclimates | |
+| 16 | Growing Degree Days from UK climate averages (capped at 2 weeks) | |
+| 17 | Live weather (opt-in Open-Meteo) and succession sowing | |
+| 18 | 3D garden view (three.js, loaded only when opened) | |
+
+Stages 13a to 14 replace "Screens and cards polish" (the old Stage 13), from the proposal in [plan-refresh.md](plan-refresh.md). The stages after them moved up by one.
 
 ### Stage 8 — Life stages (as built)
 - **Stages:** Sown · Up · Hardening off · Planted out · Growing · Flowering · Harvesting, then Cleared. "Planned" comes before sowing.
@@ -281,7 +286,7 @@ Brought forward from "parked": the plant life cycle, frost and Growing Degree Da
   - Ticking a sowing job records indoors or outside.
   - Ticking plant out marks plants planted out, and ticking the first harvest marks them harvesting. Jobs only ever move plants forward.
   - A new **Check progress** job asks you to confirm flowering in the month it's likely (its flower months, or the month before a fruiting crop's harvest starts).
-- **Still to come:** a sharper guess from growing degree days (Stage 15), and seedlings off the plan in the Potting Shed (Stage 12).
+- **Still to come:** a sharper guess from growing degree days (Stage 16), and seedlings off the plan in the Potting Shed (Stage 12).
 
 Tests: `tests/stages.test.ts` covers paths, moving on and back, failed sowings, guesses, advice, jobs and the v3 → v4 migration (fixture `garden-v3.json`).
 
@@ -329,6 +334,34 @@ Tests: `tests/depth.test.ts` covers edging and the shadows setting.
 - **Model:** schema 6 adds `shedPlaces`, `trays`, `lastFrost` and `firstFrost` to the garden and `germinationDays` to plants, all optional.
 
 Tests: `tests/shed.test.ts` covers dates and frost estimates, places and trays (filling, swapping, resizing), stages and what's next, planting out, the frost-timed winter job, and the schema 6 round trip.
+
+### Stages 13a and 13b — Drop, drag, done (as built)
+- **No modes:** Layout, Planting and Sun are gone. Tap or click anything to pick it, and drag to move it: a plant, a bed, the lawn. Plants sit on top of beds and are picked first, unless the bed is already picked, so a pot dropped on a row of lettuce can still be dragged off it.
+- **The padlock** ("Lock the layout", saved per device as `layoutLocked`) stops beds, paths and the boundary moving or reshaping by accident; plants can still be moved. Trying to drag a locked bed says how to unlock it, and the pill offers "Unlock".
+- **The action pill** sits beside whatever's picked and follows it as the plan moves, with only what fits:
+  - **A planting:** move it on a stage, more or fewer plants in a row, About, Delete.
+  - **A bed, pot or planter:** Plant, its size (tap to type an exact width and depth, or a pot's width), curved edges, edging, Duplicate, Delete.
+  - **A surface or path:** what it's made of.
+  - **More (···)** opens the details panel, or a sheet on a phone. On a narrow screen the pill shows the plant's icon instead of its name.
+- **Handles:** dragging a rectangle's corner resizes it from the opposite corner and keeps it a rectangle, at any angle (Alt frees the corner). Edge lengths show while you drag.
+- **Rotate:** a handle above any picked shape turns it in 15° steps (Alt for any angle). Plants turn with their bed; blocks keep their corners but stay square to the page. Width and depth can still be typed for a turned rectangle.
+- **Smart guides:** moving something lines its edges and middle up with other things and the boundary, with a dashed line to show it and a light haptic tick on phones that have one.
+- **The dock,** along the bottom on phone and desktop, with five drawers:
+  - **Plants:** search, Sow or plant now, In the shed, Sowing list, Your plants, All plants.
+  - **Beds and pots:** raised bed, small bed, border, pot, big pot, window box, trough, grow bag, greenhouse.
+  - **Ground:** lawn, wildflower meadow, gravel, patio, decking, bark chips, path, pond.
+  - **Structures:** shed, compost bin, fence, wall, hedge, tree, small tree.
+  - **Draw:** the old precise tools (click corners, type lengths, the phone's crosshair), by hand, and sketching.
+
+  Each sticker (`src/model/stickers.ts`) is drawn by the plan's own renderer at a real size. Drag it onto the plan, or tap it to drop it in the middle of the view; the first thing in an empty garden is zoomed to.
+- **Dropping a plant into a bed** fills it the usual way for the plant (`src/planting/fill.ts`): carrots, onions, garlic and beans in a row along the bed through the drop point; a courgette, a fruit tree or anything with room for only one on its own; a window box or narrow trough gets one row; lettuce and the rest fill the bed at their spacing, shrunk until every plant is inside, so round pots and beds at an angle work too. A pop-over offers **One · A row · Fill the bed** for a few seconds. Tapping a plant then a bed works the same, and the planting bar still offers One, Row and Block for doing it by hand. Trays from the shed drop in the same way.
+- **Pots and planters:** new kinds `pot` (round, drawn as a terracotta rim round compost) and `planter` (window box, trough, grow bag, with a dark rim). Plants go in them as they do in beds.
+- **Lenses:** Plan · Sun hours · Shade chips above the plan (S still toggles shade). They replace the Sun mode; the warnings count sits on the Plan chip. The garden's details panel shows the sun overview first when a sun lens is on.
+- **Empty plan:** "Start your plan" offers Beds and pots, or Draw the boundary. The boundary is optional, so a balcony can be a few pots; the Home setup step is now "Set up your space".
+- **Model:** schema 7 adds the `pot` and `planter` kinds. Rotation turns the outline itself, so no angle is saved.
+- **Not done:** equal-spacing guides, snapping to path widths, and tapping a length on the plan to type it (the pill's size does this). Rotating doesn't apply to round things.
+
+Tests: `tests/arrange.test.ts` covers stickers, pots and planters as containers, the default fill for each kind of plant and bed, rows, fills in round pots and beds at an angle, rectangles at any angle, and turning beds with their plants.
 
 ---
 

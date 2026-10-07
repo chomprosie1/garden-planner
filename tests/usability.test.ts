@@ -68,7 +68,7 @@ describe('planting status (U3)', () => {
   });
 
   it('saves as the current schema, and older gardens load', () => {
-    expect(SCHEMA_VERSION).toBe(6);
+    expect(SCHEMA_VERSION).toBe(7);
     const { g: g0, bed } = withBed();
     const g = addPlanting(g0, makePlanting(plantOf('tomato'), bed, 'single', [0, 0], undefined, true));
     expect(validateGarden(JSON.parse(JSON.stringify(g)))).toEqual([]);
@@ -107,9 +107,9 @@ describe('getting started (U4)', () => {
   });
 
   it('keeps the new preferences, and drops bad values', () => {
-    const p = sanitisePrefs({ planMode: 'sun', lastBackup: '2026-10-01', northChecked: true, setupHidden: 'yes' });
-    expect(p).toMatchObject({ planMode: 'sun', lastBackup: '2026-10-01', northChecked: true, setupHidden: false });
-    expect(sanitisePrefs({ planMode: 'drawing', lastBackup: 'last week' })).toMatchObject({ planMode: null, lastBackup: null });
+    const p = sanitisePrefs({ layoutLocked: true, lastBackup: '2026-10-01', northChecked: true, setupHidden: 'yes' });
+    expect(p).toMatchObject({ layoutLocked: true, lastBackup: '2026-10-01', northChecked: true, setupHidden: false });
+    expect(sanitisePrefs({ layoutLocked: 'yes', lastBackup: 'last week' })).toMatchObject({ layoutLocked: false, lastBackup: null });
   });
 });
 

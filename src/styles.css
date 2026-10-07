@@ -3283,3 +3283,389 @@ kbd {
 .page.shed-page {
   max-width: 1240px;
 }
+
+/* ---------- Drop, drag, done (Stage 13) ---------- */
+.plan-stage {
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.plan-focus .plan-stage {
+  gap: 0;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 34px;
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip[aria-checked='true'],
+.chip[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+.chip-count {
+  min-width: 1.2rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  font-size: 0.72rem;
+  line-height: 1.15rem;
+  text-align: center;
+}
+.chip-warn {
+  background: var(--warn-bg);
+  color: var(--warn-text);
+  border: 1px solid var(--warn-border);
+}
+.lens-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.lens-row {
+  padding: 0.35rem var(--gutter);
+  background: var(--chrome);
+  border-bottom: 1px solid var(--border);
+}
+.lens-row .lens-bar {
+  justify-content: center;
+}
+.plan-locked .toolbar .icon-btn[aria-pressed='true'] {
+  color: var(--accent);
+}
+
+/* The dock: drawers of things to add, with tabs along the bottom. */
+.dock {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  position: relative;
+  z-index: 2;
+}
+.plan-focus .dock {
+  border-radius: 0;
+  border-width: 1px 0 0;
+}
+.dock-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.25rem;
+}
+.dock-tab {
+  flex: 0 1 8.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.35rem 0.4rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.dock-tab[aria-expanded='true'] {
+  background: var(--selected-bg);
+  color: var(--selected-text);
+}
+.dock-tab:hover {
+  color: var(--text);
+}
+.dock-drawer {
+  max-height: 13.5rem;
+  overflow-y: auto;
+  padding: 0.6rem 0.7rem 0.3rem;
+  border-bottom: 1px solid var(--border);
+}
+.dock-phone {
+  border-radius: 0;
+  border-width: 1px 0 0;
+  box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.08);
+}
+.dock-phone .dock-drawer {
+  max-height: 46vh;
+}
+.dock-phone .dock-tab {
+  font-size: 0.68rem;
+}
+.dock-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+  gap: 0.35rem;
+}
+.sticker {
+  width: 100%;
+  min-height: 92px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.35rem 0.25rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: var(--surface2);
+  color: var(--text);
+  font: inherit;
+  cursor: grab;
+  text-align: center;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+.sticker:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.sticker:active {
+  transform: scale(0.97);
+}
+.sticker-icon {
+  border-radius: 6px;
+}
+.sticker-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+.sticker-size {
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sticker {
+    transition: none;
+  }
+}
+.dock-plant-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+.dock-search {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1 1 12rem;
+  padding: 0 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+}
+.dock-search input {
+  flex: 1;
+  min-width: 0;
+  min-height: 34px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  outline: none;
+}
+.dock-search:focus-within {
+  border-color: var(--accent);
+}
+.dock-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.dock-draw {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.dock-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* The pill of actions beside the selection. The canvas moves it. */
+.action-pill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  max-width: calc(100% - 16px);
+  padding: 0.2rem;
+  /* Half a row's height: a pill on one row, a rounded card if it ever wraps to two. */
+  border-radius: 21px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  color: var(--text);
+  flex-wrap: wrap;
+}
+@media (max-width: 480px) {
+  .pill-name-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+.pill-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0 0.55rem 0 0.4rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.pill-btn,
+.pill-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pill-btn {
+  padding: 0 0.7rem;
+  background: var(--surface2);
+}
+.pill-icon {
+  width: 34px;
+}
+.pill-btn:hover,
+.pill-icon:hover {
+  background: var(--selected-bg);
+  color: var(--selected-text);
+}
+.pill-primary,
+.pill-btn[aria-pressed='true'],
+.pill-icon[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+.pill-icon:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.pill-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0 0.15rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.pill-select select {
+  min-height: 34px;
+  padding: 0 0.4rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface2);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.pill-size {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.3rem;
+}
+.pill-size input {
+  width: 5.2rem;
+  min-height: 32px;
+  padding: 0 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+.fill-popover {
+  position: absolute;
+  z-index: 4;
+  display: flex;
+  gap: 0.2rem;
+  padding: 0.2rem;
+  transform: translate(-50%, calc(-100% - 14px));
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  animation: pop-in 0.18s ease-out;
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-100% - 6px)) scale(0.94);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fill-popover {
+    animation: none;
+  }
+}
+.planting-bar .plant-bar-head {
+  flex-wrap: wrap;
+  gap: 0.4rem 0.8rem;
+}
+.inspector-more {
+  min-height: 0;
+  border-top: 1px solid var(--border);
+}
+.feature-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.inspector:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+@media (max-width: 700px) {
+  .plan-stage {
+    padding: 0;
+    gap: 0;
+  }
+  .sheet {
+    border-radius: 0;
+    border: 0;
+    box-shadow: none;
+  }
+}

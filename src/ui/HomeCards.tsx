@@ -45,25 +45,22 @@ export function SetupCard({ store, garden, prefs, prefsStore }: { store: Store; 
   const done = steps.filter((s) => s.done).length;
   if (prefs.setupHidden || done === steps.length) return null;
   const next = steps.find((s) => !s.done)!;
-  const toPlan = (mode: 'layout' | 'planting') => {
-    prefsStore.set({ planMode: mode });
-    app.go('plan');
-  };
+  const toPlan = () => app.go('plan');
   const action: Record<StepId, preact.JSX.Element> = {
     boundary: (
-      <button type="button" class="btn btn-primary" onClick={() => toPlan('layout')}>
-        Draw the boundary
+      <button type="button" class="btn btn-primary" onClick={toPlan}>
+        Set up your space
       </button>
     ),
     bed: (
-      <button type="button" class="btn btn-primary" onClick={() => toPlan('layout')}>
-        Add a bed
+      <button type="button" class="btn btn-primary" onClick={toPlan}>
+        Add a bed or pot
       </button>
     ),
     location: <UseLocationButton store={store} onMessage={(m) => m && app.notify(m.lines.join(' '))} />,
     north: (
       <>
-        <button type="button" class="btn btn-primary" onClick={() => toPlan('layout')}>
+        <button type="button" class="btn btn-primary" onClick={toPlan}>
           Turn the north arrow
         </button>
         <button type="button" class="btn" onClick={() => prefsStore.set({ northChecked: true })}>
@@ -72,7 +69,7 @@ export function SetupCard({ store, garden, prefs, prefsStore }: { store: Store; 
       </>
     ),
     plants: (
-      <button type="button" class="btn btn-primary" onClick={() => toPlan('planting')}>
+      <button type="button" class="btn btn-primary" onClick={toPlan}>
         Start planting
       </button>
     ),

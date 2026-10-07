@@ -94,6 +94,22 @@ export interface Scene {
   drawing?: boolean;
   /** The month, 1 to 12, for trees in or out of leaf. Defaults to this month. */
   month?: number;
+  /** Show the selected thing's rotate handle. */
+  rotatable?: boolean;
+  /** Leave out names and labels (small previews). */
+  noLabels?: boolean;
+  /** Alignment lines while moving something, garden mm. */
+  guides?: Guide[];
+}
+
+/** A line showing two things lined up: vertical at x, or horizontal at y, between two points along it. */
+export type Guide = { axis: 'x' | 'y'; at: number; from: number; to: number };
+
+/** Where the rotate handle sits for a selected outline: a little above its top, on screen. */
+export function rotateHandleAt(s: { view: Viewport }, pts: Point[]): Point | null {
+  const b = bounds(pts.map((q) => toScreen(s.view, q)));
+  if (!b) return null;
+  return [(b.minX + b.maxX) / 2, b.minY - 26];
 }
 
 /** A hand-drawn stroke in progress. */
@@ -328,14 +344,17 @@ export function renderStatic(ctx: CanvasRenderingContext2D, s: Scene) {
   if (s.shadows) drawShadows(ctx, s, s.shadows);
   if (planted.length) drawFindings(ctx, s);
   const bedsInUse = new Set(planted.map((p) => p.featureId));
-  for (const f of g.features) drawLabel(ctx, s, f, bedsInUse.has(f.id));
-  for (const pl of planted) drawPlantLabel(ctx, s, pl, s.plantOf!(pl.plantId));
+  if (!s.noLabels) {
+    for (const f of g.features) drawLabel(ctx, s, f, bedsInUse.has(f.id));
+    for (const pl of planted) drawPlantLabel(ctx, s, pl, s.plantOf!(pl.plantId));
+  }
   if (s.sketches !== false) for (const k of sketchesOf(g)) drawSketch(ctx, s, k);
 }
 
 /** What changes as you work: the selection, shapes and plants being drawn, the crosshair, scale bar and compass. */
 export function renderLive(ctx: CanvasRenderingContext2D, s: Scene) {
   if (s.selected) drawSelection(ctx, s, s.selected);
+  if (s.guides?.length) drawGuides(ctx, s, s.guides);
   if (s.stroke) drawStroke(ctx, s, s.stroke);
   if (s.draft) drawDraft(ctx, s, s.draft);
   if (s.plantDraft) drawPlantDraft(ctx, s, s.plantDraft);
@@ -344,6 +363,21 @@ export function renderLive(ctx: CanvasRenderingContext2D, s: Scene) {
   if (s.minimal) return;
   drawScaleBar(ctx, s);
   drawNorth(ctx, s);
+}
+
+function drawGuides(ctx: CanvasRenderingContext2D, s: Scene, guides: Guide[]) {
+  ctx.save();
+  ctx.strokeStyle = s.style.accent;
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([5, 4]);
+  for (const g of guides) {
+    const [a, b] = g.axis === 'x' ? [toScreen(s.view, [g.at, g.from]), toScreen(s.view, [g.at, g.to])] : [toScreen(s.view, [g.from, g.at]), toScreen(s.view, [g.to, g.at])];
+    ctx.beginPath();
+    ctx.moveTo(a[0], a[1]);
+    ctx.lineTo(b[0], b[1]);
+    ctx.stroke();
+  }
+  ctx.restore();
 }
 
 // ---------- Depth: soft shadows, lit from the top left ----------
@@ -451,6 +485,10 @@ function featureColours(f: Feature, P: PlanPalette): { fill: string; stroke: str
       return { fill: P.canopy, stroke: P.canopyStroke, dash: [6, 5] };
     case 'compost':
       return { fill: P.bedFill, stroke: P.buildingStroke };
+    case 'pot':
+      return { fill: '#b8734a', stroke: '#8a5232' };
+    case 'planter':
+      return { fill: P.bedFill, stroke: '#5f6b62' };
     default:
       return { fill: P.building, stroke: P.buildingStroke };
   }
@@ -467,7 +505,8 @@ function drawFeature(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, pats: 
   if (material) {
     // Lawns use the garden's own lawn pattern, so a drawn lawn matches the garden around it.
     ctx.fillStyle = material === 'lawn' && typeof pats.lawn !== 'string' ? placePattern(pats.lawn, v, pats.tileMm.lawn) : placePattern(materialFill(ctx, s.style, material), v, MATERIAL_TILE_MM[material]);
-  } else if (f.kind === 'bed') ctx.fillStyle = placePattern(pats.bed, v, pats.tileMm.bed);
+  } else if (f.kind === 'bed' || f.kind === 'planter') ctx.fillStyle = placePattern(pats.bed, v, pats.tileMm.bed);
+  else if (f.kind === 'pot' && f.circle) return drawPot(ctx, s, f, pats);
   else if (f.kind === 'hedge') ctx.fillStyle = placePattern(hedgeFill(ctx, s.style), v, 800);
   else ctx.fillStyle = c.fill;
   if (f.kind === 'tree' && f.circle) return drawTree(ctx, s, f, c.stroke);
@@ -484,6 +523,14 @@ function drawFeature(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, pats: 
     ctx.fill();
   }
   if (f.edging && f.kind === 'bed') drawEdging(ctx, s, f.edging, radius);
+  if (f.kind === 'planter') {
+    ctx.save();
+    ctx.clip();
+    ctx.lineWidth = Math.max(3, 50 * v.scale) * 2;
+    ctx.strokeStyle = s.style.mode === 'dark' ? '#55605a' : '#7d8a80';
+    ctx.stroke();
+    ctx.restore();
+  }
   ctx.setLineDash(c.dash ?? []);
   // A surface's edge is just a little darker than the surface itself.
   ctx.strokeStyle = f.kind === 'surface' && material ? mix(materialColour(material, s.style.plan, s.style.mode), '#000000', s.style.mode === 'dark' ? 0.35 : 0.22) : c.stroke;
@@ -513,6 +560,32 @@ function drawFeature(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, pats: 
     ctx.arc(cx, cy, Math.max(2.5, 150 * v.scale), 0, Math.PI * 2);
     ctx.fill();
   }
+}
+
+/** A pot from above: a terracotta rim round the compost. */
+function drawPot(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, pats: Patterns) {
+  const v = s.view;
+  const [cx, cy] = toScreen(v, f.circle!.centre);
+  const r = Math.max(2, f.circle!.radiusMm * v.scale);
+  const rim = Math.max(1.5, Math.min(r * 0.16, 40 * v.scale + 1));
+  const terracotta = s.style.mode === 'dark' ? '#9a5f3c' : '#b8734a';
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = terracotta;
+  ctx.fill();
+  ctx.strokeStyle = s.style.mode === 'dark' ? '#6e3f24' : '#8a5232';
+  ctx.lineWidth = s.hoverId === f.id ? 2.5 : 1.2;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy, Math.max(1, r - rim), 0, Math.PI * 2);
+  ctx.fillStyle = placePattern(pats.bed, v, pats.tileMm.bed);
+  ctx.fill();
+  // A highlight on the rim, lit from the top left.
+  ctx.beginPath();
+  ctx.arc(cx, cy, r - rim / 2, Math.PI * 1.05, Math.PI * 1.6);
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+  ctx.lineWidth = Math.max(1, rim * 0.45);
+  ctx.stroke();
 }
 
 /** A bed's rim of timber, brick or stone, drawn just inside its edge. */
@@ -739,6 +812,32 @@ function drawSelection(ctx: CanvasRenderingContext2D, s: Scene, t: Target) {
     ctx.globalAlpha = 1;
   } else for (let i = 0; i < pts.length - (closed ? 0 : 1); i++) lengthTag(ctx, s, pts[i]!, pts[(i + 1) % pts.length]!);
   pts.forEach((p, i) => handle(ctx, toScreen(v, p), sel, s.style.plan.paper, i === s.selectedVertex));
+  if (s.rotatable && f && !f.circle) {
+    const at = rotateHandleAt(s, f.footprint);
+    const top = bounds(f.footprint.map((q) => toScreen(v, q)));
+    if (at && top) {
+      ctx.beginPath();
+      ctx.moveTo(at[0], at[1] + 8);
+      ctx.lineTo(at[0], top.minY);
+      ctx.strokeStyle = sel;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(at[0], at[1], 8, 0, Math.PI * 2);
+      ctx.fillStyle = s.style.plan.paper;
+      ctx.fill();
+      ctx.stroke();
+      // A curved arrow inside the knob.
+      ctx.beginPath();
+      ctx.arc(at[0], at[1], 4, Math.PI * 0.2, Math.PI * 1.6);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(at[0] + 4 * Math.cos(Math.PI * 1.6) + 2.5, at[1] + 4 * Math.sin(Math.PI * 1.6));
+      ctx.lineTo(at[0] + 4 * Math.cos(Math.PI * 1.6), at[1] + 4 * Math.sin(Math.PI * 1.6) - 0.5);
+      ctx.lineTo(at[0] + 4 * Math.cos(Math.PI * 1.6) + 0.5, at[1] + 4 * Math.sin(Math.PI * 1.6) + 2.5);
+      ctx.stroke();
+    }
+  }
 }
 
 function handle(ctx: CanvasRenderingContext2D, [x, y]: Point, colour: string, paper: string, active: boolean) {

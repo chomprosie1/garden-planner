@@ -105,6 +105,8 @@ export const FEATURE_KINDS = [
   'compost',
   'water',
   'surface',
+  'pot',
+  'planter',
   'other',
 ] as const;
 export type FeatureKind = (typeof FEATURE_KINDS)[number];

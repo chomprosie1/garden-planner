@@ -10,12 +10,13 @@ import type { Feature, FeatureKind, Garden, Plant, Planting, Point, SpacingStyle
 export type Layout = NonNullable<Planting['layout']>;
 
 /** Features plants can go in. */
-export const CONTAINER_KINDS: FeatureKind[] = ['bed', 'greenhouse'];
+export const CONTAINER_KINDS: FeatureKind[] = ['bed', 'greenhouse', 'pot', 'planter'];
 
 /** More than this in one planting is almost always a mistake, and slow to draw. */
 export const MAX_PLANTS = 5000;
 
-export const isContainer = (f: Feature) => CONTAINER_KINDS.includes(f.kind) && !f.line && !f.circle;
+/** Beds, greenhouses and planters hold plants, and so do pots, which are round. */
+export const isContainer = (f: Feature) => CONTAINER_KINDS.includes(f.kind) && !f.line && (!f.circle || f.kind === 'pot');
 
 /** The topmost bed or greenhouse under a point. */
 export function containerAt(g: Garden, p: Point): Feature | null {

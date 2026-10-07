@@ -30,7 +30,7 @@ Your garden is saved in your browser, never on a server. Use **Download a backup
 | `src/geometry/` | Pure maths in millimetres: areas, snapping, hulls, fence outlines |
 | `src/theme/` | The five looks (light and dark), fonts, and per-device preferences |
 | `src/content/` | Seasonal lines and jobs for each month, and the photo manifest |
-| `src/ui/` | Preact screens: Home (with the journal), Plan (Layout, Planting and Sun), Plants, Month, Settings, plant checks, first run |
+| `src/ui/` | Preact screens: Home (with the journal), Plan (one canvas with a dock, an action pill, and sun and shade lenses), Plants, Month, Settings, plant checks, first run |
 | `src/planting/` | Plantings, their positions and status, and the spacing, neighbour and light rules |
 | `src/calendar/` | Each month's jobs for your own plants |
 | `src/sun/` | Sun position (UK time), shadows and sun hours |

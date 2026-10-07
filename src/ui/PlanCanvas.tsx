@@ -1,13 +1,14 @@
 // The interactive plan: drawing, selecting, dragging, zooming and panning.
 // Drags show a preview and commit once when released, so each is one undo step.
 
+import type { ComponentChildren } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 import { useApp } from './appContext';
 import { hitEdge, hitFeature, hitPlanting, hitVertex } from '../canvas/hit';
-import { northCentre, NORTH_RADIUS, plantingHandles, planStyle, renderLive, renderStatic, sketchTextPx, type Draft, type PlantDraft, type Scene, type Stroke } from '../canvas/render';
+import { northCentre, NORTH_RADIUS, plantingHandles, planStyle, renderLive, renderStatic, rotateHandleAt, sketchTextPx, type Draft, type Guide, type PlantDraft, type Scene, type Stroke } from '../canvas/render';
 import { parseLength, snapPoint, snapStepFor, type SnapKind } from '../canvas/snap';
 import { fit, pan, toScreen, toWorld, zoomAt, type Viewport } from '../canvas/viewport';
-import { bounds, distance } from '../geometry/polygon';
+import { bounds, distance, type Bounds } from '../geometry/polygon';
 import { pointAtLength } from '../geometry/snap';
 import { simplify, simplifyClosed } from '../geometry/simplify';
 import { plantOutTray } from '../lifecycle/shed';
@@ -25,7 +26,11 @@ import {
   makeFeature,
   moveFeature,
   moveVertex,
+  pivotOf,
   pointsOf,
+  rectCorners,
+  rectInfo,
+  rotateFeature,
   rectPoints,
   removeVertex,
   setPoints,
@@ -33,8 +38,10 @@ import {
   type Target,
 } from '../model/features';
 import { updateGarden, type Store } from '../model/store';
-import type { Feature, FeatureKind, Garden, Plant, Point, SketchColour, SketchKind } from '../model/types';
-import { addPlanting, blockGrid, containerAt, deletePlanting, makePlanting, MAX_PLANTS, movePlanting, rowCount, updatePlanting, type Layout } from '../planting/place';
+import { stickerById, stickerFeature, type Sticker } from '../model/stickers';
+import type { Feature, FeatureKind, Garden, Plant, Planting, Point, SketchColour, SketchKind } from '../model/types';
+import { defaultFill, fillPlanting } from '../planting/fill';
+import { addPlanting, blockGrid, containerAt, deletePlanting, makePlanting, MAX_PLANTS, movePlanting, plantCount, plantPositions, rowCount, spreadOf, updatePlanting, type Layout } from '../planting/place';
 import type { Finding } from '../planting/rules';
 import type { SunGrid } from '../sun/hours';
 import type { Sun } from '../sun/position';
@@ -56,7 +63,8 @@ export const canDrawByHand = (t: Tool) => t !== 'boundary' && (geometryForTool(t
 /** The plant being placed with the Plant tool, and how. */
 export interface Placing {
   plant: Plant;
-  layout: Layout;
+  /** "auto": dropped into a bed, it fills it the usual way for the plant (one, a row, or the whole bed). */
+  layout: Layout | 'auto';
   /** Already in the ground, rather than planned. */
   growing?: boolean;
   /** Planting out this tray from the Potting Shed: the planting takes its sowing date and stages. */
@@ -65,9 +73,12 @@ export interface Placing {
 
 /** Drag-and-drop type for a plant dragged from a list onto the plan. */
 export const PLANT_DRAG_TYPE = 'application/x-garden-plant';
+/** Drag-and-drop types for a sticker from the dock, and a tray from the Potting Shed. */
+export const STICKER_DRAG_TYPE = 'application/x-garden-sticker';
+export const TRAY_DRAG_TYPE = 'application/x-garden-tray-out';
 
 /** Tools that draw at the crosshair on a phone. Drawing by hand uses a finger instead. */
-export const usesCrosshair = (t: Tool, byHand = false) => (geometryForTool(t) !== null && !(byHand && canDrawByHand(t))) || t === 'plant';
+export const usesCrosshair = (t: Tool, byHand = false) => geometryForTool(t) !== null && !(byHand && canDrawByHand(t));
 
 /** Commands the phone's drawing bar sends to the canvas. */
 export interface CanvasApi {
@@ -85,6 +96,8 @@ export interface CanvasApi {
   placePlant(): void;
   /** Brings these garden points into view, centred. */
   show(points: Point[]): void;
+  /** Drops a sticker from the dock in the middle of the view. */
+  dropSticker(id: string): void;
   /** Zooms so these points fill the view, with a margin. */
   zoomTo(points: Point[]): void;
 }
@@ -105,7 +118,15 @@ export interface PlanCanvasProps {
    * What can be changed: the layout (features and boundary), the planting (plants; beds can be picked
    * but stay put), or nothing (just looking, as in the sun view). Defaults to the layout.
    */
-  edit?: 'layout' | 'planting' | 'view';
+  edit?: 'layout' | 'planting' | 'view' | 'all';
+  /** With edit "all": the layout can't be moved or reshaped by accident. Plants still can. */
+  locked?: boolean;
+  /** The floating action pill, kept beside whatever's selected as the plan moves. */
+  pillRef?: { current: HTMLElement | null };
+  /** A plant has just been dropped and filled the usual way: offer the other ways at this screen point. */
+  onPlaced?: (plantingId: string, at: Point, world: Point) => void;
+  /** Things laid over the plan: the action pill, pop-overs. */
+  children?: ComponentChildren;
   /** A tap or click that didn't drag, at this garden point. */
   onTap?: (p: Point) => void;
   fitSignal: number;
@@ -149,7 +170,8 @@ type Drag =
   | { kind: 'vertex'; target: Target; index: number; base: Garden }
   | { kind: 'radius'; id: string; base: Garden }
   | { kind: 'trace'; base: Garden; start: Point }
-  | { kind: 'erase'; base: Garden; ids: Set<string> };
+  | { kind: 'erase'; base: Garden; ids: Set<string> }
+  | { kind: 'rotate'; id: string; base: Garden; pivot: Point; from: number };
 
 interface Drawing {
   points: Point[];
@@ -208,6 +230,11 @@ export function PlanCanvas(props: PlanCanvasProps) {
    */
   const layer = useRef<{ canvas: HTMLCanvasElement; key: unknown[]; view: Viewport; margin: number } | null>(null);
   const zoomingUntil = useRef(0);
+  /** Alignment lines while moving something, and which ones were showing (for a haptic tick when they change). */
+  const guides = useRef<Guide[]>([]);
+  const guideKey = useRef('');
+  /** A zoom asked for just before the canvas changes size (the dock's drawer closing on a phone): it's done again at the new size. */
+  const zoomGoal = useRef<{ box: Bounds; until: number } | null>(null);
   const settle = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const zooming = () => {
     zoomingUntil.current = performance.now() + 150;
@@ -234,7 +261,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
     }
     p.onDraftChange?.(d.points.length);
     const plantDraft: PlantDraft | null =
-      p.tool === 'plant' && p.placing ? { plant: p.placing.plant, layout: p.placing.layout, points: d.points, cursor: d.cursor, typed: d.typed } : null;
+      p.tool === 'plant' && p.placing ? { plant: p.placing.plant, layout: p.placing.layout === 'auto' ? 'single' : p.placing.layout, points: d.points, cursor: d.cursor, typed: d.typed } : null;
     let draft: Draft | null = null;
     if (p.tool === 'calibrate') draft = { geometry: 'line', points: d.points, cursor: d.cursor, snap: d.snap };
     else if (geometry && (d.points.length > 0 || d.cursor))
@@ -256,6 +283,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
       stroke: strokeScene,
       sketches: p.showSketches !== false,
       depth: p.depth !== false,
+      rotatable: p.selected?.type === 'feature' && p.tool === 'select' && layoutEditable(),
+      guides: drag.current?.kind === 'move' ? guides.current : [],
       drawing: !!geometry || p.tool === 'plant' || p.tool === 'sketch',
       garden: garden(),
       view: v,
@@ -311,6 +340,70 @@ export function PlanCanvas(props: PlanCanvasProps) {
     ctx.drawImage(L!.canvas, k === 1 ? Math.round(x) : x, k === 1 ? Math.round(y) : y, L!.canvas.width * k, L!.canvas.height * k);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     renderLive(ctx, scene);
+    placePill();
+    placeAnchors();
+  };
+
+  /** Things laid over the plan at a garden point (data-world="x,y"), kept on that point as the plan moves. */
+  const placeAnchors = () => {
+    const v = view.current;
+    if (!v || !wrap.current) return;
+    for (const el of wrap.current.querySelectorAll<HTMLElement>('[data-world]')) {
+      const [x = 0, y = 0] = el.dataset.world!.split(',').map(Number);
+      const [sx, sy] = toScreen(v, [x, y]);
+      el.style.left = `${Math.round(sx)}px`;
+      el.style.top = `${Math.round(sy)}px`;
+    }
+  };
+
+  /** Whether the layout can be changed now: drawing it, or with everything editable and the layout unlocked. */
+  const layoutEditable = () => {
+    const p = P.current;
+    if (p.readOnly) return false;
+    const edit = p.edit ?? 'layout';
+    return edit === 'layout' || (edit === 'all' && !p.locked);
+  };
+
+  /** The selected thing's box on screen. */
+  const selectionBox = (): Bounds | null => {
+    const p = P.current;
+    const t = p.selected;
+    const v = view.current;
+    if (!t || !v) return null;
+    const g = garden();
+    let pts: Point[] = [];
+    if (t.type === 'boundary') pts = g.boundary;
+    else if (t.type === 'feature') pts = g.features.find((f) => f.id === t.id)?.footprint ?? [];
+    else {
+      const pl = g.plantings.find((x) => x.id === t.id);
+      if (pl) {
+        const plant = p.plantOf(pl.plantId);
+        const r = spreadOf(plant) / 2;
+        pts = plantPositions(pl, plant).flatMap(([x, y]): Point[] => [[x - r, y - r], [x + r, y + r]]);
+      }
+    }
+    return bounds(pts.map((q) => toScreen(v, q)));
+  };
+
+  /** Keeps the action pill just below the selection (or above it, near the bottom), inside the plan. */
+  const placePill = () => {
+    const pill = P.current.pillRef?.current;
+    if (!pill) return;
+    const box = P.current.tool === 'select' ? selectionBox() : null;
+    const busy = !!drag.current && drag.current.kind !== 'pan';
+    const { w, h } = size.current;
+    if (!box || busy || box.maxX < 0 || box.minX > w || box.maxY < 0 || box.minY > h) {
+      pill.style.visibility = 'hidden';
+      return;
+    }
+    const pw = pill.offsetWidth;
+    const ph = pill.offsetHeight;
+    const x = Math.max(8, Math.min(w - pw - 8, (box.minX + box.maxX) / 2 - pw / 2));
+    let y = box.maxY + 12;
+    if (y + ph > h - 8) y = box.minY - ph - 40;
+    y = Math.max(8, Math.min(h - ph - 8, y));
+    pill.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+    pill.style.visibility = 'visible';
   };
   const redraw = () => {
     if (!raf.current) raf.current = requestAnimationFrame(draw);
@@ -336,6 +429,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
       size.current = { w: r.width, h: r.height, dpr };
       c.width = Math.round(r.width * dpr);
       c.height = Math.round(r.height * dpr);
+      const goal = zoomGoal.current;
+      if (goal && performance.now() < goal.until && r.width && r.height) view.current = fit(goal.box, r.width, r.height);
       if (!view.current) fitView();
       else redraw();
     });
@@ -365,7 +460,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
   }
   useEffect(redraw, [drawKey]);
 
-  useEffect(redraw, [props.garden, props.look, props.mode, props.selected, props.selectedVertex, props.traceImage, props.findings, props.focusFinding, props.shadows, props.sunGrid, props.sun, props.showSketches, props.byHand, props.depth]);
+  useEffect(redraw, [props.garden, props.look, props.mode, props.selected, props.selectedVertex, props.traceImage, props.findings, props.focusFinding, props.shadows, props.sunGrid, props.sun, props.showSketches, props.byHand, props.depth, props.locked, props.tool]);
 
   // ---------- helpers ----------
 
@@ -538,7 +633,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const sp = plant.size.spacingMm;
     const n = layout === 'row' && end ? rowCount(start, end, sp) : layout === 'block' && end ? blockGrid(start, end, sp).cols * blockGrid(start, end, sp).rows : 1;
     if (n > MAX_PLANTS) return say(`That's ${n.toLocaleString()} plants, which is more than one planting can hold. Make it smaller.`);
-    const pl = makePlanting(plant, bed.id, layout, start, end, !!placing.growing);
+    const pl = makePlanting(plant, bed.id, layout === 'auto' ? 'single' : layout, start, end, !!placing.growing);
     if (placing.trayId) {
       const trayId = placing.trayId;
       commit((g) => plantOutTray(g, trayId, pl, todayIso()));
@@ -551,11 +646,60 @@ export function PlanCanvas(props: PlanCanvasProps) {
     say(`Planted ${n === 1 ? `a ${plant.commonName.toLowerCase()}` : `${n} ${plant.commonName.toLowerCase()} plants`} in ${featureLabel(bed)}.`);
   };
 
+/**
+   * Drops a plant into the bed, pot or planter under a point, filled the usual way for the plant: one, a row
+   * across the bed, or the whole bed. Then it's selected, and the other ways are offered beside it.
+   */
+  const placeAuto = (pt: Point) => {
+    const p = P.current;
+    const placing = p.placing;
+    drawing.current = emptyDrawing();
+    redraw();
+    if (!placing || !view.current) return;
+    const bed = containerAt(garden(), pt);
+    if (!bed) return say('Plants go in a bed, pot or planter. Drop it inside one.');
+    const shape = fillPlanting(placing.plant, bed, defaultFill(placing.plant, bed), pt);
+    const pl: Planting = { ...makePlanting(placing.plant, bed.id, 'single', [shape.x, shape.y], undefined, !!placing.growing), ...shape };
+    const n = plantCount(pl, placing.plant);
+    if (n > MAX_PLANTS) return say(`That's ${n.toLocaleString()} plants, which is more than one planting can hold.`);
+    const name = placing.plant.commonName.toLowerCase();
+    if (placing.trayId) {
+      const trayId = placing.trayId;
+      commit((g) => plantOutTray(g, trayId, pl, todayIso()));
+      A.current.notify(`Planted out ${n === 1 ? `a ${name}` : `${n} ${name} plants`} from the shed into ${featureLabel(bed)}.`, { undo: true });
+    } else {
+      commit((g) => addPlanting(g, pl));
+      say(`Planted ${n === 1 ? `a ${name}` : `${n} ${name} plants`} in ${featureLabel(bed)}.`);
+    }
+    p.setTool('select');
+    p.setSelected({ type: 'planting', id: pl.id });
+    p.onPlaced?.(pl.id, toScreen(view.current, pt), pt);
+  };
+
+  /** A sticker from the dock, dropped at a point: it's added, selected, and ready to drag into place. */
+  const dropStickerAt = (st: Sticker, pt: Point) => {
+    const p = P.current;
+    const f = stickerFeature(st, pt);
+    const first = garden().features.length === 0 && garden().boundary.length < 3;
+    commit((g) => addFeature(g, f));
+    // The first thing in an empty garden: zoom in on it, with room round it for what comes next.
+    if (first) {
+      const b = bounds(f.footprint)!;
+      const pad = Math.max(400, Math.max(b.maxX - b.minX, b.maxY - b.minY) * 0.5);
+      zoomToPoints([[b.minX - pad, b.minY - pad], [b.maxX + pad, b.maxY + pad]]);
+    }
+    p.setTool('select');
+    p.setSelected({ type: 'feature', id: f.id });
+    p.setSelectedVertex(null);
+    say(`${st.label} added. Drag it into place; pull a corner to resize it.`);
+  };
+
   /** A click, tap or crosshair press with the Plant tool. */
   const plantAt = (pt: Point, dragged: boolean) => {
     const p = P.current;
     const dr = drawing.current;
     if (!p.placing) return say('Choose a plant to place first.');
+    if (p.placing.layout === 'auto') return placeAuto(pt);
     if (p.placing.layout === 'single') return placePlanting(pt);
     const start = dr.points[0];
     if (start && (dragged || dr.points.length === 1)) {
@@ -644,6 +788,12 @@ export function PlanCanvas(props: PlanCanvasProps) {
       return;
     }
 
+    // On a touch screen, a finger dragged with the Plant tool moves the plan; a tap plants.
+    if (p.tool === 'plant' && e.pointerType !== 'mouse' && !p.readOnly) {
+      drag.current = { kind: 'pan', last: s, moved: false };
+      return;
+    }
+
     const geometry = geometryForTool(p.tool);
     if ((geometry || p.tool === 'plant') && !p.readOnly) {
       drawing.current.down = { screen: s, world };
@@ -653,8 +803,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
     // Select tool.
     const g = garden();
     const edit = p.readOnly ? 'view' : (p.edit ?? 'layout');
-    const layoutEdits = edit === 'layout';
-    const plantEdits = edit === 'planting';
+    const layoutEdits = layoutEditable();
+    const plantEdits = edit === 'planting' || edit === 'all';
     const nc = northCentre({ width: size.current.w });
     if (layoutEdits && distance(s, nc) <= NORTH_RADIUS + 4) {
       drag.current = { kind: 'north', base: g };
@@ -662,6 +812,17 @@ export function PlanCanvas(props: PlanCanvasProps) {
     }
     const touch = e.pointerType !== 'mouse';
     const tol = tolMm(touch ? 18 : 9);
+    // The rotate handle above a selected shape.
+    if (p.selected?.type === 'feature' && layoutEdits) {
+      const id = p.selected.id;
+      const f = g.features.find((x) => x.id === id);
+      const at = f && !f.circle ? rotateHandleAt({ view: view.current }, f.footprint) : null;
+      if (f && at && distance(s, at) <= (touch ? 22 : 11)) {
+        const pivot = pivotOf(f);
+        drag.current = { kind: 'rotate', id, base: g, pivot, from: Math.atan2(world[1] - pivot[1], world[0] - pivot[0]) };
+        return;
+      }
+    }
     if (p.selected && layoutEdits) {
       const f = p.selected.type === 'feature' ? g.features.find((x) => x.id === (p.selected as { id: string }).id) : null;
       if (f?.circle) {
@@ -688,8 +849,12 @@ export function PlanCanvas(props: PlanCanvasProps) {
         return;
       }
     }
-    // Plants sit on top of beds, so they're picked first, except when you're changing the layout.
-    const planting = layoutEdits ? null : hitPlanting(g, p.plantOf, world, tolMm(touch ? 6 : 3));
+    // What's already selected is what you drag, even with plants over it (a pot dropped on a row of lettuce).
+    const selectedId = p.selected?.type === 'feature' ? p.selected.id : null;
+    const selF = selectedId ? g.features.find((x) => x.id === selectedId) : undefined;
+    const onSelected = selF && hitFeature({ ...g, features: [selF] }, world, tolMm(touch ? 6 : 9)) ? selF : null;
+    // Otherwise plants sit on top of beds, so they're picked first, except when you're only drawing the layout.
+    const planting = edit === 'layout' || onSelected ? null : hitPlanting(g, p.plantOf, world, tolMm(touch ? 6 : 3));
     if (planting) {
       const wasSelected = p.selected?.type === 'planting' && p.selected.id === planting.id;
       p.setSelected({ type: 'planting', id: planting.id });
@@ -700,11 +865,12 @@ export function PlanCanvas(props: PlanCanvasProps) {
           : { kind: 'movePlanting', id: planting.id, base: g, start: world, startScreen: s, moved: false };
       return;
     }
-    const f = hitFeature(g, world, tolMm(touch ? 6 : 9));
+    const f = onSelected ?? hitFeature(g, world, tolMm(touch ? 6 : 9));
     if (f) {
       const wasSelected = p.selected?.type === 'feature' && p.selected.id === f.id;
       p.setSelected({ type: 'feature', id: f.id });
       p.setSelectedVertex(null);
+      if (wasSelected && edit === 'all' && p.locked) say('The layout is locked. Unlock it with the padlock to move or reshape beds and paths.');
       // On touch screens a first tap only selects, so panning never moves things by accident.
       drag.current =
         !layoutEdits || (touch && !wasSelected)
@@ -775,9 +941,46 @@ export function PlanCanvas(props: PlanCanvasProps) {
           if (!d.moved && distance(s, d.startScreen) < 3) return;
           d.moved = true;
           const step = e.altKey ? 1 : snapStepFor(v.scale);
-          const dx = Math.round((world[0] - d.start[0]) / step) * step;
-          const dy = Math.round((world[1] - d.start[1]) / step) * step;
+          let dx = Math.round((world[0] - d.start[0]) / step) * step;
+          let dy = Math.round((world[1] - d.start[1]) / step) * step;
+          // Line edges and middles up with other things, and show the line they share.
+          guides.current = [];
+          const f0 = d.base.features.find((x) => x.id === d.id);
+          const b0 = f0 ? bounds(f0.footprint) : null;
+          if (b0 && !e.altKey) {
+            const others = d.base.features.filter((x) => x.id !== d.id).map((x) => bounds(x.footprint)).filter((b): b is Bounds => !!b);
+            if (d.base.boundary.length >= 3) others.push(bounds(d.base.boundary)!);
+            const tol = tolMm(7);
+            const nearest = (axis: 'x' | 'y', shift: number) => {
+              const lo = (axis === 'x' ? b0.minX : b0.minY) + shift;
+              const hi = (axis === 'x' ? b0.maxX : b0.maxY) + shift;
+              let best: { diff: number; at: number; o: Bounds } | null = null;
+              for (const o of others) {
+                const olo = axis === 'x' ? o.minX : o.minY;
+                const ohi = axis === 'x' ? o.maxX : o.maxY;
+                for (const a of [lo, (lo + hi) / 2, hi])
+                  for (const b of [olo, (olo + ohi) / 2, ohi]) if (Math.abs(b - a) <= tol && (!best || Math.abs(b - a) < Math.abs(best.diff))) best = { diff: b - a, at: b, o };
+              }
+              return best;
+            };
+            const sx = nearest('x', dx);
+            if (sx) dx += sx.diff;
+            const sy = nearest('y', dy);
+            if (sy) dy += sy.diff;
+            if (sx) guides.current.push({ axis: 'x', at: sx.at, from: Math.min(b0.minY + dy, sx.o.minY), to: Math.max(b0.maxY + dy, sx.o.maxY) });
+            if (sy) guides.current.push({ axis: 'y', at: sy.at, from: Math.min(b0.minX + dx, sy.o.minX), to: Math.max(b0.maxX + dx, sy.o.maxX) });
+          }
+          const key = guides.current.map((x) => `${x.axis}${x.at}`).join();
+          if (key && key !== guideKey.current) navigator.vibrate?.(8);
+          guideKey.current = key;
           preview.current = moveFeature(d.base, d.id, dx, dy);
+          break;
+        }
+        case 'rotate': {
+          let deg = ((Math.atan2(world[1] - d.pivot[1], world[0] - d.pivot[0]) - d.from) * 180) / Math.PI;
+          // Turns in steps of 15° unless Alt is held.
+          if (!e.altKey) deg = Math.round(deg / 15) * 15;
+          preview.current = rotateFeature(d.base, d.id, deg);
           break;
         }
         case 'movePlanting': {
@@ -806,6 +1009,25 @@ export function PlanCanvas(props: PlanCanvasProps) {
           const closed = isClosed(d.base, d.target);
           const prev = closed || d.index > 0 ? pts[(d.index - 1 + n) % n] : undefined;
           const pt = snapAt(world, e, prev, [], { target: d.target, index: d.index }).point;
+          // A rectangle stays a rectangle: dragging a corner resizes it from the opposite corner, at any angle. Alt frees the corner.
+          const tid = d.target.type === 'feature' ? d.target.id : null;
+          const f = tid ? d.base.features.find((x) => x.id === tid) : undefined;
+          const r = f && !f.smooth && !f.line && !f.circle && !e.altKey ? rectInfo(f.footprint) : null;
+          if (f && r) {
+            const opp = f.footprint[(d.index + 2) % 4]!;
+            const u: Point = [Math.cos(r.angle), Math.sin(r.angle)];
+            const vv: Point = [-u[1] * r.turn, u[0] * r.turn];
+            const du = (pt[0] - opp[0]) * u[0] + (pt[1] - opp[1]) * u[1];
+            const dv = (pt[0] - opp[0]) * vv[0] + (pt[1] - opp[1]) * vv[1];
+            const w = Math.max(50, Math.abs(du));
+            const h = Math.max(50, Math.abs(dv));
+            const su = du < 0 ? -1 : 1;
+            const sv = dv < 0 ? -1 : 1;
+            const cx = opp[0] + (u[0] * su * w) / 2 + (vv[0] * sv * h) / 2;
+            const cy = opp[1] + (u[1] * su * w) / 2 + (vv[1] * sv * h) / 2;
+            preview.current = updateFeature(d.base, f.id, { footprint: rectCorners({ ...r, cx, cy, w, h }) });
+            break;
+          }
           preview.current = moveVertex(d.base, d.target, d.index, pt);
           break;
         }
@@ -888,6 +1110,15 @@ export function PlanCanvas(props: PlanCanvasProps) {
       return redraw();
     }
     const d = drag.current;
+    guides.current = [];
+    // A tap with the Plant tool on a touch screen plants; a drag only moved the plan.
+    if (d && d.kind === 'pan' && !d.moved && p.tool === 'plant' && view.current) {
+      drag.current = null;
+      // A plant dropped with "fill for me" goes exactly where you tapped: snapping could miss a small pot or window box.
+      const raw = toWorld(view.current, screenOf(e));
+      plantAt(p.placing?.layout === 'auto' ? raw : snapAt(raw, e).point, false);
+      return redraw();
+    }
     // Touch has no double-click: two quick taps in the same place add a corner to an edge.
     if (d && (d.kind === 'pan' || d.kind === 'move' || d.kind === 'movePlanting') && !d.moved && p.tool === 'select' && view.current) {
       const s = screenOf(e);
@@ -912,7 +1143,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const geometry = geometryForTool(p.tool);
     const dr = drawing.current;
     if (p.tool === 'plant' && dr.down && !p.readOnly) {
-      const pt = dr.cursor ?? snapAt(toWorld(view.current!, screenOf(e)), e).point;
+      const raw = toWorld(view.current!, screenOf(e));
+      const pt = p.placing?.layout === 'auto' ? raw : (dr.cursor ?? snapAt(raw, e).point);
       dr.down = null;
       return plantAt(pt, dr.mode === 'rect');
     }
@@ -942,7 +1174,9 @@ export function PlanCanvas(props: PlanCanvasProps) {
   const doubleTapAt = (s: Point, tolPx: number) => {
     const p = P.current;
     const edit = p.readOnly ? 'view' : (p.edit ?? 'layout');
-    if (edit === 'layout') return insertCornerAt(s, tolPx);
+    if (edit === 'layout') return void insertCornerAt(s, tolPx);
+    // With everything editable: on the edge of a selected shape, add a corner; otherwise zoom in on the bed.
+    if (edit === 'all' && layoutEditable() && p.selected && p.selected.type !== 'planting' && insertCornerAt(s, tolPx)) return;
     if (!view.current) return;
     const bed = containerAt(garden(), toWorld(view.current, s));
     if (bed) zoomToPoints(bed.footprint);
@@ -954,23 +1188,25 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const { w, h } = size.current;
     if (!b || !w || !h) return;
     const pad = 500;
-    view.current = fit({ minX: b.minX - pad, minY: b.minY - pad, maxX: b.maxX + pad, maxY: b.maxY + pad }, w, h);
+    const box = { minX: b.minX - pad, minY: b.minY - pad, maxX: b.maxX + pad, maxY: b.maxY + pad };
+    view.current = fit(box, w, h);
+    zoomGoal.current = { box, until: performance.now() + 600 };
     redraw();
   };
 
   /** Adds a corner to the selected outline where the pointer is on one of its edges. */
-  const insertCornerAt = (s: Point, tolPx: number) => {
+  const insertCornerAt = (s: Point, tolPx: number): boolean => {
     const p = P.current;
-    if (!p.selected || !view.current) return;
+    if (!p.selected || !view.current) return false;
     const g = p.garden;
     const pts = pointsOf(g, p.selected);
-    if (!pts) return;
+    if (!pts) return false;
     const edge = hitEdge(pts, isClosed(g, p.selected), toWorld(view.current, s), tolMm(tolPx));
-    if (edge) {
-      const target = p.selected;
-      commit((x) => insertVertex(x, target, edge.index, edge.point));
-      p.setSelectedVertex(edge.index + 1);
-    }
+    if (!edge) return false;
+    const target = p.selected;
+    commit((x) => insertVertex(x, target, edge.index, edge.point));
+    p.setSelectedVertex(edge.index + 1);
+    return true;
   };
 
   const onWheel = (e: WheelEvent) => {
@@ -1037,7 +1273,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
         return redraw();
       }
       if (e.ctrlKey || e.metaKey) {
-        if (key.toLowerCase() === 'd' && p.selected?.type === 'feature' && !p.readOnly && (p.edit ?? 'layout') === 'layout') {
+        if (key.toLowerCase() === 'd' && p.selected?.type === 'feature' && layoutEditable()) {
           e.preventDefault();
           const id = p.selected.id;
           const made = { id: null as string | null };
@@ -1054,7 +1290,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
       if (edit === 'view') return;
       if ((key === 'Delete' || key === 'Backspace') && p.selected) {
         const t = p.selected;
-        if ((t.type === 'planting') !== (edit === 'planting')) return;
+        if (edit === 'all' ? t.type !== 'planting' && !layoutEditable() : (t.type === 'planting') !== (edit === 'planting')) return;
         e.preventDefault();
         if (t.type === 'planting') {
           const pl = p.garden.plantings.find((x) => x.id === t.id);
@@ -1076,7 +1312,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
         }
         return;
       }
-      if (key.startsWith('Arrow') && ((p.selected?.type === 'feature' && edit === 'layout') || (p.selected?.type === 'planting' && edit === 'planting'))) {
+      if (key.startsWith('Arrow') && ((p.selected?.type === 'feature' && layoutEditable()) || (p.selected?.type === 'planting' && (edit === 'planting' || edit === 'all')))) {
         e.preventDefault();
         const step = e.shiftKey ? 100 : 10;
         const dx = key === 'ArrowLeft' ? -step : key === 'ArrowRight' ? step : 0;
@@ -1156,6 +1392,14 @@ export function PlanCanvas(props: PlanCanvasProps) {
       zoomTo(points) {
         zoomToPoints(points);
       },
+      dropSticker(id) {
+        const st = stickerById(id);
+        const v = view.current;
+        if (!st || !v) return;
+        const step = snapStepFor(v.scale);
+        const [x, y] = toWorld(v, [size.current.w / 2, size.current.h / 2]);
+        dropStickerAt(st, [Math.round(x / step) * step, Math.round(y / step) * step]);
+      },
       show(points) {
         const b = bounds(points);
         const v = view.current;
@@ -1169,23 +1413,35 @@ export function PlanCanvas(props: PlanCanvasProps) {
       },
     };
 
-  // A plant dragged from the list beside the plan lands as a single plant.
+  // Plants, trays and stickers dragged from the dock or a list land where they're dropped.
+  const DROP_TYPES = [PLANT_DRAG_TYPE, STICKER_DRAG_TYPE, TRAY_DRAG_TYPE];
   const onDragOver = (e: DragEvent) => {
-    if (!props.readOnly && e.dataTransfer?.types.includes(PLANT_DRAG_TYPE)) {
+    if (!props.readOnly && DROP_TYPES.some((t) => e.dataTransfer?.types.includes(t))) {
       e.preventDefault();
-      e.dataTransfer.dropEffect = 'copy';
+      e.dataTransfer!.dropEffect = 'copy';
     }
   };
   const onDrop = (e: DragEvent) => {
-    const id = e.dataTransfer?.getData(PLANT_DRAG_TYPE);
-    if (!id || !view.current || props.readOnly) return;
-    e.preventDefault();
-    const pt = snapAt(toWorld(view.current, screenOf(e)), { altKey: e.altKey, shiftKey: false }).point;
+    const dt = e.dataTransfer;
+    if (!dt || !view.current || props.readOnly) return;
     const p = P.current;
+    const pt = snapAt(toWorld(view.current, screenOf(e)), { altKey: e.altKey, shiftKey: false }).point;
+    const sticker = dt.getData(STICKER_DRAG_TYPE);
+    if (sticker) {
+      e.preventDefault();
+      const st = stickerById(sticker);
+      if (st) dropStickerAt(st, pt);
+      return;
+    }
+    const plantId = dt.getData(PLANT_DRAG_TYPE);
+    const trayId = dt.getData(TRAY_DRAG_TYPE);
+    const tray = trayId ? garden().trays?.find((t) => t.id === trayId) : undefined;
+    if (!plantId && !tray) return;
+    e.preventDefault();
     const placing = p.placing;
-    // Place it as a single plant, whatever layout the Plant tool is set to.
-    P.current = { ...p, placing: { plant: p.plantOf(id), layout: 'single', growing: !!placing?.growing } };
-    placePlanting(pt);
+    // Dropped plants fill the bed the usual way for the plant, whatever the Plant tool is set to.
+    P.current = { ...p, placing: { plant: p.plantOf(tray ? tray.plantId : plantId), layout: 'auto', growing: !!placing?.growing, ...(tray ? { trayId: tray.id } : {}) } };
+    placeAuto(pt);
     P.current = { ...P.current, placing };
   };
 
@@ -1210,6 +1466,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
         onDragOver={onDragOver}
         onDrop={onDrop}
       />
+      {props.children}
     </div>
   );
 }
