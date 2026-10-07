@@ -6,6 +6,7 @@
 // Drawing is pure canvas, centred on (0, 0) with a radius in pixels, so the
 // same drawing serves the plan (via cached sprites), plant cards and lists.
 
+import { seasonState } from '../lifecycle/seasons';
 import { flowers as hasFlowerStage, harvests, pathFor, sowingOf, type LifeStage } from '../lifecycle/stages';
 import type { Plant, PlantArt, Planting } from '../model/types';
 
@@ -68,6 +69,10 @@ export interface Look {
   seeds: boolean;
   flowers: boolean;
   crop: boolean;
+  /** Winter: a deciduous plant's bare twigs over a faint outline of its leaves. */
+  bare?: boolean;
+  /** Winter: a plant that dies back, down to its crown (or a bulb under the ground). */
+  dormant?: boolean;
 }
 
 export function stageLook(stage: LifeStage, plant: Plant, pl?: Planting): Look {
@@ -93,6 +98,24 @@ export function stageLook(stage: LifeStage, plant: Plant, pl?: Planting): Look {
     case 'harvesting':
       // The crop shows when there's one to draw; otherwise the plant stays in flower (cut flowers).
       return { ...base, crop: true, flowers: pathFor(plant, pl).includes('flowering') && !artFor(plant).crop };
+  }
+}
+
+/**
+ * A stage's look in a month: bare in winter for deciduous plants, down to the crown for those that die back, and
+ * small as they come up or die back. Anything flowering, cropping, or not yet growing in the ground is left as it is.
+ */
+export function seasonal(look: Look, plant: Plant, month: number): Look {
+  if (look.ghost || look.seeds || look.seedling || look.flowers || look.crop) return look;
+  switch (seasonState(plant, month)) {
+    case 'bare':
+      return { ...look, bare: true };
+    case 'dormant':
+      return { ...look, dormant: true };
+    case 'small':
+      return { ...look, grow: look.grow * 0.45 };
+    default:
+      return look;
   }
 }
 
@@ -510,6 +533,51 @@ export function drawPlant(ctx: Ctx, o: DrawOptions): void {
       ctx.beginPath();
       ctx.arc((rnd() - 0.5) * o.r * 0.3, (rnd() - 0.5) * o.r * 0.3, Math.max(0.8, o.r * 0.05), 0, TAU);
       ctx.fill();
+    }
+    ctx.restore();
+    return;
+  }
+
+  if (look.dormant) {
+    // Down to its crown: a few short stubs, faintly.
+    ctx.globalAlpha *= 0.7;
+    ctx.strokeStyle = P.style === 'outline' || P.style === 'ink' ? P.ink : shadeHex(P.soil, P.mode === 'dark' ? 0.35 : -0.35);
+    ctx.lineWidth = Math.max(0.8, o.r * 0.05);
+    ctx.beginPath();
+    const a0 = rnd() * TAU;
+    for (let i = 0; i < 5; i++) {
+      const a = a0 + (i / 5) * TAU;
+      ctx.moveTo(Math.cos(a) * o.r * 0.06, Math.sin(a) * o.r * 0.06);
+      ctx.lineTo(Math.cos(a) * o.r * 0.22, Math.sin(a) * o.r * 0.22);
+    }
+    ctx.stroke();
+    ctx.restore();
+    return;
+  }
+  if (look.bare) {
+    // Bare for the winter: the reach of its leaves, faintly, and twigs from the middle.
+    const r = o.r * look.grow;
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, TAU);
+    ctx.fillStyle = art.foliage;
+    ctx.globalAlpha *= 0.16;
+    ctx.fill();
+    ctx.globalAlpha /= 0.16;
+    ctx.strokeStyle = P.style === 'outline' || P.style === 'ink' ? P.ink : P.mode === 'dark' ? '#a08a6a' : '#6a5038';
+    const n = art.form === 'climber' ? 4 : 7;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * TAU + rnd() * 0.5;
+      const len = r * (0.6 + rnd() * 0.3);
+      const mx = Math.cos(a) * len * 0.5;
+      const my = Math.sin(a) * len * 0.5;
+      ctx.lineWidth = Math.max(0.7, r * 0.045);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(mx, my);
+      ctx.lineTo(Math.cos(a) * len, Math.sin(a) * len);
+      ctx.moveTo(mx, my);
+      ctx.lineTo(mx + Math.cos(a + 0.7) * len * 0.3, my + Math.sin(a + 0.7) * len * 0.3);
+      ctx.stroke();
     }
     ctx.restore();
     return;

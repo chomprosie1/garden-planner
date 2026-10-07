@@ -29,6 +29,7 @@ const ICON: Record<Command['kind'], IconName> = {
   fit: 'fit',
   setup: 'home',
   share: 'share',
+  '3d': 'cube',
   shortcuts: 'keyboard',
   wrapped: 'share',
 };

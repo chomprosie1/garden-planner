@@ -40,6 +40,7 @@ const PATHS = {
   build: 'M3 11 12 4l9 7M5 10v10h14V10',
   pencil: 'M4 20h4L20 8l-4-4L4 16zM14 6l4 4',
   close: 'M6 6l12 12M18 6 6 18',
+  cube: 'M12 3l8 4.5v9L12 21l-8-4.5v-9zM12 12l8-4.5M12 12v9M12 12 4 7.5',
   film: 'M4 5h16v14H4zM4 9h16M4 15h16M8 5v4M16 5v4M8 15v4M16 15v4',
 } as const;
 

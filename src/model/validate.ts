@@ -20,6 +20,7 @@ import {
   SOWING_METHODS,
   STAGES,
   WEED_SPREADS,
+  WINTER_HABITS,
   WINTERING_TYPES,
   type Garden,
   type Plant,
@@ -226,8 +227,8 @@ export function validatePlant(p: unknown): string[] {
     need(isObject(p.wintering) && oneOf(WINTERING_TYPES, p.wintering.type), 'has an unknown wintering type.');
   if (p.lifePath !== undefined)
     need(
-      isObject(p.lifePath) && Object.entries(p.lifePath).every(([k, v]) => (k === 'flowering' || k === 'perennial') && typeof v === 'boolean'),
-      'lifePath can only hold flowering and perennial, true or false.',
+      isObject(p.lifePath) && Object.entries(p.lifePath).every(([k, v]) => ((k === 'flowering' || k === 'perennial') && typeof v === 'boolean') || (k === 'winter' && oneOf(WINTER_HABITS, v))),
+      'lifePath can only hold flowering and perennial, true or false, and winter: evergreen, deciduous or dies-back.',
     );
   if (p.stageTips !== undefined)
     need(

@@ -3,7 +3,7 @@
 
 import { bounds, centroid, distance } from '../geometry/polygon';
 import { featureLabel, isClosed, pointsOf, resizesByHandles, type Target } from '../model/features';
-import { artFor, drawPlant, hashString, OVERHANG, shadeHex, stageLook, type Look } from '../art/plants';
+import { artFor, drawPlant, hashString, OVERHANG, seasonal, shadeHex, stageLook, type Look } from '../art/plants';
 import { bucketFor, paintFor, plantSprite, VARIANTS } from '../art/sprites';
 import type { Projected } from '../lifecycle/projection';
 import { currentStage, type LifeStage } from '../lifecycle/stages';
@@ -500,9 +500,9 @@ function plantShadowImage(): HTMLCanvasElement {
 
 /** Shadows under plants that stand up from the bed: not seeds, seedlings or anything still only planned. */
 function drawPlantingShadow(ctx: CanvasRenderingContext2D, s: Scene, pl: Planting, plant: Plant) {
-  const look = stageLook(stageFor(s, pl), plant, pl);
+  const look = lookOf(s, pl, plant);
   const tall = (plant.size.heightMm ?? 300) * look.grow;
-  if (look.ghost || look.seeds || look.seedling || tall < 250) return;
+  if (look.ghost || look.seeds || look.seedling || look.bare || look.dormant || tall < 250) return;
   const v = s.view;
   const r = (spreadOf(plant) / 2) * v.scale * look.grow;
   if (r < 4) return;
@@ -1345,6 +1345,9 @@ function drawPlants(ctx: CanvasRenderingContext2D, s: Scene, pts: Point[], shape
   ctx.globalAlpha = 1;
 }
 
+/** How a planting is drawn: its stage then, in that month's season (bare, or died back, in winter). */
+const lookOf = (s: Scene, pl: Planting, plant: Plant): Look => seasonal(stageLook(stageFor(s, pl), plant, pl), plant, s.month ?? new Date().getMonth() + 1);
+
 /** A planting's plant at the size it's been set to. */
 const plantFor = (s: Scene, pl: Planting) => sizedPlant(s.plantOf!(pl.plantId), pl);
 
@@ -1352,7 +1355,7 @@ function drawPlanting(ctx: CanvasRenderingContext2D, s: Scene, pl: Planting, pla
   const pts = plantPositions(pl, plant);
   const shape = plantingShape(pl, plant);
   const at = s.time?.stageOf(pl);
-  drawPlants(ctx, s, pts, shape, spreadOf(plant), plant, stageLook(at?.stage ?? currentStage(pl), plant, pl), s.hoverId === pl.id ? 1 : 0.95);
+  drawPlants(ctx, s, pts, shape, spreadOf(plant), plant, lookOf(s, pl, plant), s.hoverId === pl.id ? 1 : 0.95);
   // A stage from the plant's usual months, not one you've marked: a dotted edge says it's a guess.
   if (at?.guessed && at.stage !== 'planned') {
     shapePath(ctx, s, shape, (spreadOf(plant) / 2) * s.view.scale + 2);

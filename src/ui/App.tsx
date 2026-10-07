@@ -182,6 +182,8 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
         return toPlan({ kind: 'setup' });
       case 'share':
         return toPlan({ kind: 'share' });
+      case '3d':
+        return toPlan({ kind: '3d' });
       case 'wrapped':
         return setWrapping(true);
     }

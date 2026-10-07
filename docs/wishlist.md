@@ -9,12 +9,12 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Potting Shed shelves you can stack seedlings on | You, 6 Oct 2026 | L | Built in Stage 12 |
 | Illustrated plants that change with the stage | You, 6 Oct 2026 | L | Built in Stage 10 |
 | Grass, gravel and free drawing on the plan | You, 6 Oct 2026 | M | Built in Stage 9 |
-| 3D or angled view of the garden | You, 6 Oct 2026 | L | Planned as release 10 (an angled view to look at) |
+| 3D or angled view of the garden | You, 6 Oct 2026 | L | Built in release 10 |
 | Textured raised-bed edges (timber, brick, stone) | Plan review | M | Built in Stage 11 |
 | Recompute curves and line footprints when a file is loaded, so hand-edited files can't go stale | Build, Stage 9 | S | Footprints are saved, so this only matters for files edited outside the app |
 | Pick the sketch layer's text size | Build, Stage 9 | S | Words are 300 mm tall on the ground for now, drawn between 12 and 44 px |
 | Select and move a sketch after drawing it | Build, Stage 9 | S | For now: rub out and draw again |
-| Plants dropping their leaves in winter, and dying back after flowering | Build, Stage 10 | S | Planned in release 10 |
+| Plants dropping their leaves in winter, and dying back after flowering | Build, Stage 10 | S | Built in release 10, on the plan and in 3D |
 | Tall plants and trees drawn over the plants beneath them, by height | Build, Stage 10 | S | Built in release 6 |
 | Soft shadows that follow the real sun at the time of day | Build, Stage 11 | S | Built in Stage 14: from the sun at 1 pm in the chosen week |
 | Germination times for each plant | Build, Stage 12 | S | Built in release 9, for every plant grown from seed |
@@ -58,3 +58,6 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Logging by voice: "Picked a bowl of beans", "Sowed carrots in the veg bed" | Review, 7 Oct 2026 | S | Search already understands "sow basil"; uses the browser's speech recognition. Suggested for release 11 |
 | Sync and shared gardens (a household, allotment partners, a whole allotment site) | Review, 7 Oct 2026 | L | Parked until beta testing. Needs a server: a business decision first (see the cost ladder in the MVP plan) |
 | Ask the garden: questions and photos of a sick plant, answered with this garden's own sun, stage and weather | Review, 7 Oct 2026 | L | Parked until beta testing. Needs a server and a vision model. The natural paid tier |
+| A winter habit (evergreen, deciduous, dies back) on the plant form for your own plants | Build, release 10 | S | Your own plants go by their category for now |
+| 3D: walk round inside it, frost and a greener lawn by season, sketches, leafier tree canopies | Build, release 10 | M | The view is to look round from outside for now |
+| The year slider’s month letters overlap where the year changes, on a phone | Build, release 10 | S | Seen in the release 10 screenshots; it was already so |

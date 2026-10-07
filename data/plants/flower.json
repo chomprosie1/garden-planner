@@ -517,6 +517,7 @@
       "notes": "Lift tubers once frost blackens the leaves; store them dry and frost-free."
     },
     "lifePath": {
+      "winter": "dies-back",
       "perennial": true
     },
     "art": {"form":"shrub","leaf":"lobed","foliage":"#3f6a35","flower":"#c8203a","bloom":"big"},
@@ -807,6 +808,7 @@
       "notes": "Hates wet winter soil: add grit to heavy ground."
     },
     "lifePath": {
+      "winter": "evergreen",
       "perennial": true
     },
     "art": {"form":"shrub","leaf":"needle","foliage":"#8aa090","flower":"#8a70c0","bloom":"spike"},
@@ -1200,6 +1202,7 @@
       "type": "hardy"
     },
     "lifePath": {
+      "winter": "evergreen",
       "perennial": true
     },
     "art": {"form":"rosette","leaf":"lobed","foliage":"#3f5f3a","flower":"#e8d0e0","bloom":"cup"},
@@ -1250,6 +1253,7 @@
       "type": "hardy"
     },
     "lifePath": {
+      "winter": "dies-back",
       "perennial": true
     },
     "art": {"form":"shrub","leaf":"lobed","foliage":"#4f7f45","flower":"#f090b0","bloom":"big"},
@@ -2290,7 +2294,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
-    "lifePath": { "perennial": true },
+    "lifePath": { "winter": "evergreen", "perennial": true },
     "art": { "form": "rosette", "leaf": "round", "foliage": "#4f6a50", "flower": "#e080b0", "bloom": "cup" },
     "source": "Check against: RHS – hardy cyclamen; seed packet or nursery label",
     "verified": false,
@@ -2418,7 +2422,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
-    "lifePath": { "perennial": true },
+    "lifePath": { "winter": "evergreen", "perennial": true },
     "art": { "form": "mound", "leaf": "round", "foliage": "#7a2a3a", "flower": "#f0c0d0", "bloom": "spike" },
     "source": "Check against: RHS – heuchera; seed packet or nursery label",
     "verified": false,

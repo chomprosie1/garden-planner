@@ -283,8 +283,9 @@ export interface Plant {
   /**
    * How its life runs, where the defaults are wrong. flowering: it has a flowering stage worth marking (fruiting
    * crops, flowers); defaults to true for flowers and fruit. perennial: it comes back each year rather than being cleared.
+   * winter: what a perennial does in winter (see src/lifecycle/seasons.ts for the defaults).
    */
-  lifePath?: { flowering?: boolean; perennial?: boolean };
+  lifePath?: { flowering?: boolean; perennial?: boolean; winter?: WinterHabit };
   /** Advice for each stage, shown when a planting reaches it. Falls back to general advice. */
   stageTips?: Partial<Record<Stage, string[]>>;
   /** How it's drawn from above on the plan and on its card. Falls back to a drawing for its category. */
@@ -301,6 +302,10 @@ export interface Plant {
   verified: boolean;
   userAdded: boolean;
 }
+
+/** What a perennial does in winter: keeps its leaves, drops them, or dies back to the ground (bulbs, after flowering). */
+export const WINTER_HABITS = ['evergreen', 'deciduous', 'dies-back'] as const;
+export type WinterHabit = (typeof WINTER_HABITS)[number];
 
 export const WEED_SPREADS = ['seed', 'roots', 'both'] as const;
 

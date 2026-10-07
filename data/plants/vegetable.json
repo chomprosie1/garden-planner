@@ -2195,7 +2195,7 @@
     ],
     "companions": { "good": [], "avoid": ["broad-bean", "runner-bean", "french-bean", "pea"] },
     "wintering": { "type": "hardy" },
-    "lifePath": { "perennial": true },
+    "lifePath": { "winter": "evergreen", "perennial": true },
     "art": { "form": "clump", "leaf": "strap", "foliage": "#5f8a4a", "flower": "#f6f2e6", "bloom": "umbel" },
     "source": "Check against: RHS Grow Your Own – welsh onion; seed packet or nursery label",
     "verified": false,

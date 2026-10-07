@@ -417,6 +417,7 @@
       "notes": "Hates sitting wet in winter: add grit to heavy soil."
     },
     "lifePath": {
+      "winter": "evergreen",
       "perennial": true
     },
     "art": {"form":"shrub","leaf":"needle","foliage":"#5a7a6a","flower":"#8aa0e0","bloom":"daisy"},
@@ -482,6 +483,7 @@
       "notes": "Goes woody with age; replace every few years."
     },
     "lifePath": {
+      "winter": "evergreen",
       "perennial": true
     },
     "art": {"form":"mound","leaf":"round","foliage":"#6a8a5a","flower":"#d8a0d0","bloom":"daisy"},
@@ -546,6 +548,7 @@
       "notes": "Prune lightly in spring; replace after four or five years."
     },
     "lifePath": {
+      "winter": "evergreen",
       "perennial": true
     },
     "art": {"form":"shrub","leaf":"broad","foliage":"#8aa08a","flower":"#8a7ad0","bloom":"spike"},
@@ -868,6 +871,7 @@
       "notes": "Fleece young plants and pots in hard frosts."
     },
     "lifePath": {
+      "winter": "evergreen",
       "perennial": true
     },
     "art": {"form":"shrub","leaf":"broad","foliage":"#3f6a3a"},
@@ -1148,7 +1152,7 @@
     "germinationDays": [10, 21],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
-    "lifePath": { "perennial": true },
+    "lifePath": { "winter": "evergreen", "perennial": true },
     "art": { "form": "mound", "leaf": "needle", "foliage": "#4f6a45", "flower": "#f6f0f0", "bloom": "spike" },
     "source": "Check against: RHS – winter savory; seed packet or nursery label",
     "verified": false,
@@ -1171,7 +1175,7 @@
     "lookOutFor": ["Bees and butterflies love its blue flowers. Trim after flowering."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
-    "lifePath": { "perennial": true },
+    "lifePath": { "winter": "evergreen", "perennial": true },
     "art": { "form": "upright", "leaf": "needle", "foliage": "#4f6a45", "flower": "#4a5ad0", "bloom": "spike" },
     "source": "Check against: RHS – hyssop; seed packet or nursery label",
     "verified": false,

@@ -19,6 +19,7 @@ import { Dock, type Drawer } from '../Dock';
 import { FillPopover, type Placed } from '../FillPopover';
 import { useIsPhone } from '../hooks';
 import { Icon, type IconName } from '../icons';
+import { Garden3D } from '../Garden3D';
 import { GardenName } from '../HomeCards';
 import { Inspector } from '../Inspector';
 import { isFocusLens, LensBar, LensLegend, LensPicker, type Lens } from '../Lenses';
@@ -55,7 +56,9 @@ export type PlanIntent =
   /** Ask "Where are you growing?". */
   | { kind: 'setup' }
   /** Share a picture of the plan. */
-  | { kind: 'share' };
+  | { kind: 'share' }
+  /** See the garden in 3D. */
+  | { kind: '3d' };
 
 interface Props {
   store: Store;
@@ -126,6 +129,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const [lens, setLens] = useState<Lens>('none');
   const [settingUp, setSettingUp] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [threeD, setThreeD] = useState(false);
   const mode = prefs.planMode;
   const simple = mode === 'simple';
   // The padlock is Advanced; in Simple nothing's ever stuck.
@@ -282,6 +286,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
     else if (intent.kind === 'fit') setFitSignal((n) => n + 1);
     else if (intent.kind === 'setup') setSettingUp(true);
     else if (intent.kind === 'share') setSharing(true);
+    else if (intent.kind === '3d') setThreeD(true);
     else if (intent.kind === 'sticker') {
       const id = intent.id;
       setToolState('select');
@@ -459,7 +464,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       <Icon name={locked ? 'lock' : 'unlock'} />
     </button>
   );
-  const lensBar = phone ? <LensPicker lens={lens} setLens={chooseLens} mode={mode} /> : <LensBar lens={lens} setLens={chooseLens} mode={mode} />;
+  const lensBar = phone ? <LensPicker lens={lens} setLens={chooseLens} mode={mode} {...(!empty ? { open3d: () => setThreeD(true) } : {})} /> : <LensBar lens={lens} setLens={chooseLens} mode={mode} {...(!empty ? { open3d: () => setThreeD(true) } : {})} />;
   const modeSwitch = (
     <div class="mode-switch" role="radiogroup" aria-label="Tools">
       {(['simple', 'advanced'] as const).map((m) => (
@@ -599,6 +604,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               ...(prefs.photos === 'full' && !phone
                 ? [{ label: hidePhotos ? 'Show photos around the plan' : 'Hide photos around the plan', icon: (hidePhotos ? 'image-off' : 'image') as IconName, keys: 'H', onSelect: () => prefsStore.set({ focus: !hidePhotos }) }]
                 : []),
+              ...(!empty ? [{ label: 'See it in 3D', icon: 'cube' as const, onSelect: () => setThreeD(true) }] : []),
               { label: 'Share a picture of the plan', icon: 'share', onSelect: () => setSharing(true) },
               { label: 'Your garden: location and backups', icon: 'settings', onSelect: () => app.go('profile') },
             ]}
@@ -765,6 +771,20 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       </div>
       {phone && bottom}
       {settingUp && <SpaceDialog make={(c, kit) => makeTheSpace(c.space, c.w, c.d, kit)} close={() => setSettingUp(false)} plantOf={plants ? plantOf : null} />}
+      {threeD && plants && (
+        <Garden3D
+          garden={garden}
+          plantOf={plantOf}
+          stageAt={stageAt}
+          today={todayIso}
+          date={when}
+          setDate={setWhen}
+          look={prefs.look}
+          mode={colourMode}
+          phone={phone}
+          close={() => setThreeD(false)}
+        />
+      )}
       {sharing && timelines && <ShareDialog garden={garden} plantOf={plantOf} ideaOf={ideaOf} timelines={timelines} date={when} look={prefs.look} mode={colourMode} close={() => setSharing(false)} />}
     </div>
   );

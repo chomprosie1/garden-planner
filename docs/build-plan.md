@@ -565,7 +565,7 @@ Each idea was checked against the code and against everything still open. Stage 
 | 8. Keeping on track | "Running behind" alerts with common causes, weeds and weeding | ~1.5 wk | Built |
 | 9. A bigger library | 150 more plants in three batches of 50 (can run alongside 7 and 8) | ~3 wk of data | Built |
 | Spike | The garden from an aerial photo: research and a prototype, go or no-go | 2–3 evenings | Done: no-go |
-| 10. The garden in 3D | An angled view to look at, three.js loaded only when opened, with the sun and the year | ~2–3 wk | |
+| 10. The garden in 3D | An angled view to look at, three.js loaded only when opened, with the sun and the year | ~2–3 wk | Built |
 
 ### Release 5 — Housekeeping (as built)
 - **Testing by risk:** `CLAUDE.md` at the repo root.
@@ -723,24 +723,70 @@ The full write-up is in [aerial-spike.md](aerial-spike.md).
 - **Found on the way:** real photos are never straight down. "Straighten a photo before tracing" goes on the wishlist (S).
 - **Not tried:** a vision model on a server (servers are off the table until beta testing).
 
-### Release 10 — The garden in 3D (planned)
-- "See it in 3D" in the ⋯ menu and Show.
-- three.js is loaded only when opened (a dynamic import). With no WebGL, it says so.
-- Read-only: drag to spin, pinch to zoom, two preset angles, tap for a name.
-- Built from the plan:
-  - surfaces use the `materials.ts` textures;
-  - beds are raised to their edging;
-  - walls, fences, buildings, greenhouses and hedges stand at their heights;
-  - trees in their shape, bare in winter;
-  - plants as crossed sprites by stage and height.
-- The real sun and its shadows; the year slider moves the season.
-- `src/three/scene.ts` (pure, tested in Node) and `src/three/view.tsx` (WebGL).
-- About 30 fps on a mid-range phone with 500 plantings. Share a picture.
-- Leaves drop in winter, in 3D and on the plan (from the wishlist).
+### Release 10 — The garden in 3D (as built)
+- **Opening it:**
+  - **3D** on the plan's Show chips (on a phone, "Show: in 3D");
+  - "See it in 3D" in the ⋯ menu;
+  - "See the garden in 3D" in search.
 
-Tests: `tests/three.test.ts`.
+  It needs something on the plan.
+- **The view** (`src/ui/Garden3D.tsx`): full screen, with From above and Standing in it, the time of day (sunrise to sunset), and the year slider under it.
+  - Drag to turn, pinch or scroll to zoom; tap or click anything for its name ("Carrot in Salad bed: growing").
+  - The year slider's share button shares a picture of the view.
+  - Esc or × closes it.
+- **Loading:** three.js (0.186) is loaded only when the view opens (`import('../three/view')`), as its own 157 KB chunk (gzipped).
+  - With no WebGL, the view says so without loading it.
+  - If it can't load (offline the first time), it says so too.
+- **What's worked out** (`src/three/scene.ts`, pure, no WebGL):
+  - **Flat things:** surfaces, paths and ponds, in the order they're drawn.
+  - **Beds:** stand to their edging (300 mm), or are a 60 mm mound without it.
+  - **Containers:** pots, planters and cold frames at their heights.
+  - **Standing things:** fences, walls, hedges, compost and the rest at theirs.
+  - **Roofs:** buildings and greenhouses that are rectangles get a pitched roof along the longer side, with the walls three quarters of the way up.
+  - **Trees** take their type's shape (round, oval, columnar, conical, spreading or weeping) and are bare in winter if deciduous. Fruit trees planted as plants are trees too, with blossom when flowering and fruit when cropping.
+  - **Plants:** each planting's plants sit on the soil of their bed or pot (40 mm under a raised bed's rim), at their stage that week from the year's timeline. Seeds and anything cleared are left out; planned plants are faint.
+  - **Groups:** plants drawn the same way are one group, so each picture is made once. Past 20,000 plants a huge block is thinned.
+  - **The sun:** from the real sky at the chosen time and day.
+- **Drawing** (`src/three/view.ts`):
+  - **Textures:** the plan's own tile textures (`materials.ts`) for surfaces, soil, edging, brick and hedges, tied to real sizes.
+  - **Greenhouses:** glass with a white frame.
+  - **Plants:** three crossed cards each, from a new **side-on drawing** (`src/art/side.ts`, from the same traits as the drawings from above). Lettuces and courgettes also get their picture from above.
+    - One instanced mesh for each group.
+    - Each card is drawn front and back, with its normals facing up, so leaves are lit softly on both sides.
+  - **Shadows:** real ones from the sun, plants included.
+  - **Light:** in winter the sky does more of the work, so the garden stays as bright as in summer, with softer shadows.
+  - **Speed:** it renders only when something changes. Its shadow map is 2,048 px (1,024 on a phone).
+  - **Phones:** the camera stands further back and looks wider on a tall screen.
+- **Leaves drop in winter, on the plan too** (from the wishlist; `src/lifecycle/seasons.ts`):
+  - Plants have an optional `lifePath.winter`: evergreen, deciduous or dies-back.
+    - The default is deciduous for fruit, shrubs, trees and climbers, and dies-back for other perennials.
+    - 30 evergreens are marked, from rosemary and box to hellebores and strawberries, plus 3 that die back (rhubarb, dahlia, peony).
+  - **Deciduous plants** are bare from November to April, the trees' months, drawn as twigs over a faint outline.
+  - **Plants that die back** are cut back to their crowns from December to February, and small in March and November.
+  - **Bulbs** show from two months before they flower to the month after.
+  - **What doesn't change:** anything flowering, cropping, or not yet in the ground.
+  - On the plan, `seasonal()` in `src/art/plants.ts` changes the look, and the sprite cache key includes it. Bare and cut-back plants cast no soft shadow.
+- **Model:** no schema change. The plant data gains the optional `lifePath.winter`.
+- **Checked:** screenshots in a 390 px phone frame and on a desktop, in May, July, August and January, from above and standing in the garden, in headless Edge (SwiftShader).
+- **Not done:**
+  - Your own plants have no winter field on the plant form (they go by the defaults).
+  - No frost or a greener lawn by season in 3D.
+  - Sketches aren't shown in 3D.
+  - No walking round inside it.
+  - The canopies are smooth lumps rather than leafy.
+  - Plants on the plan still cast no sun-view shade.
+  - Already there before this release: on a phone, the year slider's month letters overlap where the year changes.
+
+Tests: `tests/three.test.ts` covers:
+- winter habits (data and defaults), runs of months round the new year, bare, cut back and small, bulbs' months, and what the season changes;
+- drawing every plant from above (bare and cut back) and from the side (every stage, every winter look), repeatably;
+- heights, edging and soil levels, flat things in order, roofs, bare trees and hedges, evergreens;
+- plants on their bed, pot or lawn, stages that day, what's left out, groups and turns, fruit trees, thinning;
+- the ground with and without a boundary, the sun by season and with north turned;
+- 500 plantings worked out in under 400 ms.
 
 ### Still open, not in this round
+- 3D extras: walking round inside it, frost and a greener lawn by season, sketches, leafier canopies.
 - Advanced-only polish: equal-spacing guides, tap a length to type it, sketch text size, move a sketch, recompute footprints on load.
 - Small extras: recent searches, searching jobs and notes, weekly jobs on the plan, joining batches, days to crop for your own plants, a warm or cold correction, perennials moved by this year's warmth, potting on, picks on shed trays, a better "best photo".
 - Push with the app closed on an iPhone or a computer (it needs a server).

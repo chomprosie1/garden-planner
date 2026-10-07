@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-07-3d',
+    date: '2026-10-07',
+    title: 'Your garden in 3D',
+    items: [
+      'See your garden in 3D: tap 3D above the plan (on a phone, choose “Show: in 3D”), or find it in the ⋯ menu.',
+      'Raised beds stand to their edging, and fences, walls, hedges, sheds and greenhouses to their heights. Trees take their own shape, and every plant is drawn at its stage that week.',
+      'Drag to look round and pinch or scroll to zoom. Choose From above or Standing in it, and tap anything for its name.',
+      'The shadows come from the real sun over your garden. Move the time of day, or drag the year slider to watch it grow through the seasons.',
+      'Share a picture of it with the share button by the year slider.',
+      'Leaves drop in winter, on the plan as well as in 3D. Fruit trees, roses and other shrubs stand bare from November to April, while evergreens like rosemary and box keep theirs. Mint, peonies and the like die back to their crowns, and bulbs only show around when they flower.',
+    ],
+    tryIt: { label: 'Open your garden', view: 'plan' },
+  },
+  {
     id: '2026-10-07-library',
     date: '2026-10-07',
     title: '150 more plants',

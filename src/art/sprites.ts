@@ -24,7 +24,7 @@ export const VARIANTS = 3;
 const LIMIT = 600;
 const cache = new Map<string, HTMLCanvasElement>();
 
-export const lookKey = (l: Look) => `${l.grow}${l.ghost ? 'g' : ''}${l.seedling ? 's' : ''}${l.seeds ? 'd' : ''}${l.flowers ? 'f' : ''}${l.crop ? 'c' : ''}`;
+export const lookKey = (l: Look) => `${l.grow}${l.ghost ? 'g' : ''}${l.seedling ? 's' : ''}${l.seeds ? 'd' : ''}${l.flowers ? 'f' : ''}${l.crop ? 'c' : ''}${l.bare ? 'b' : ''}${l.dormant ? 'z' : ''}`;
 
 /** A cached drawing of a plant, radius `bucket` px, at this pixel ratio. */
 export function plantSprite(plantId: string, art: PlantArt, look: Look, paint: Paint, styleKey: string, bucket: number, dpr: number, variant: number): HTMLCanvasElement {

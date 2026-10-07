@@ -70,6 +70,7 @@
         "Pick fruit when fully red, ideally in the warmth of the day."
       ]
     },
+    "lifePath": { "winter": "evergreen" },
     "art": {"form":"mound","leaf":"lobed","foliage":"#3f7a35","flower":"#f8f6ee","bloom":"daisy","crop":{"kind":"fruit","colour":"#d8282a"}},
     "source": "Check against: RHS – strawberries; nursery label",
     "verified": false,
@@ -470,6 +471,7 @@
       "notes": "Mulch with compost in winter."
     },
     "lifePath": {
+      "winter": "dies-back",
       "perennial": true,
       "flowering": false
     },
@@ -1123,6 +1125,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "lifePath": { "winter": "evergreen" },
     "art": { "form": "rosette", "leaf": "broad", "foliage": "#4f7a3c", "flower": "#f6f4ee", "bloom": "daisy", "crop": { "kind": "fruit", "colour": "#d02a2a" } },
     "source": "Check against: RHS Grow Your Own – alpine strawberry; seed packet or nursery label",
     "verified": false,
