@@ -3,7 +3,8 @@
 // it can be moved, resized, turned and reshaped like anything drawn.
 
 import { makeFeature, rectPoints } from './features';
-import type { Feature, FeatureKind, Material, Point } from './types';
+import { makeTree, treeSize, treeType } from './trees';
+import { PLANT_SIZES, type Feature, type FeatureKind, type Material, type PlantSize, type Point } from './types';
 
 export type StickerGroup = 'beds' | 'ground' | 'build';
 
@@ -17,6 +18,8 @@ export interface Sticker {
   shape: { rect: [number, number] } | { circle: number } | { line: number };
   material?: Material;
   edging?: Feature['edging'];
+  /** A tree of a type, at a size: see src/model/trees.ts. */
+  tree?: { type: string; size: PlantSize };
 }
 
 /** "2.4 × 1.2 m", or "100 × 40 cm" when either side is under a metre: one unit for both. */
@@ -46,15 +49,28 @@ export const STICKERS: Sticker[] = [
   { id: 'fence', group: 'build', label: 'Fence', size: '3 m', kind: 'fence', shape: { line: 3000 } },
   { id: 'wall', group: 'build', label: 'Wall', size: '3 m', kind: 'wall', shape: { line: 3000 } },
   { id: 'hedge', group: 'build', label: 'Hedge', size: '3 m', kind: 'hedge', shape: { line: 3000 } },
-  { id: 'tree', group: 'build', label: 'Tree', size: 'Ø 4 m', kind: 'tree', shape: { circle: 2000 } },
-  { id: 'small-tree', group: 'build', label: 'Small tree', size: 'Ø 2 m', kind: 'tree', shape: { circle: 1000 } },
 ];
 
-export const stickerById = (id: string) => STICKERS.find((s) => s.id === id);
+/** A tree's sticker id: "tree:silver-birch:medium". Trees aren't in STICKERS; the dock lists them from TREE_TYPES. */
+export const treeStickerId = (type: string, size: PlantSize) => `tree:${type}:${size}`;
+
+export function stickerById(id: string): Sticker | undefined {
+  const [head, typeId, size] = id.split(':');
+  if (head === 'tree' && typeId) {
+    const type = treeType(typeId);
+    const sz = (PLANT_SIZES as readonly string[]).includes(size ?? '') ? (size as PlantSize) : 'medium';
+    if (!type) return undefined;
+    const across = treeSize(type, sz).spreadMm;
+    return { id, group: 'build', label: type.name, size: `Ø ${+(across / 1000).toFixed(1)} m`, kind: 'tree', shape: { circle: across / 2 }, tree: { type: type.id, size: sz } };
+  }
+  return STICKERS.find((s) => s.id === id);
+}
 
 /** The feature a sticker makes, centred on a point. */
 export function stickerFeature(s: Sticker, at: Point): Feature {
   const [x, y] = at;
+  const type = s.tree && treeType(s.tree.type);
+  if (s.tree && type) return makeTree(type, s.tree.size, at);
   let f: Feature;
   if ('rect' in s.shape) {
     const [w, h] = s.shape.rect;

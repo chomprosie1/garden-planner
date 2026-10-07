@@ -7,7 +7,7 @@ import { distance, distanceToSegment, pointInPolygon } from '../geometry/polygon
 import { featureLabel } from '../model/features';
 import type { Garden, Plant, Planting, Point } from '../model/types';
 import { averageHours, type SunGrid } from '../sun/hours';
-import { activePlantings, plantCount, plantingShape, plantPositions, rowSpacingOf, type PlantingShape } from './place';
+import { activePlantings, canHold, plantCount, plantingShape, plantPositions, rowSpacingOf, sizedPlant, type PlantingShape } from './place';
 
 export type FindingKind = 'spacing' | 'row' | 'outside' | 'no-bed' | 'avoid' | 'good' | 'light';
 
@@ -46,6 +46,11 @@ function checkPlacement(g: Garden, active: Planting[], plantOf: PlantOf): Findin
       out.push({ id: `no-bed:${pl.id}`, kind: 'no-bed', level: 'warn', plantingIds: [pl.id], featureIds: [], message: `${describe(pl, plant)} isn't in a bed any more. Move it into one or delete it.` });
       continue;
     }
+    // A lawn since turned into a patio.
+    if (!canHold(bed)) {
+      out.push({ id: `no-bed:${pl.id}`, kind: 'no-bed', level: 'warn', plantingIds: [pl.id], featureIds: [bed.id], message: `${describe(pl, plant)} is on ${featureLabel(bed).toLowerCase()}, which plants can't grow in. Move it or delete it.` });
+      continue;
+    }
     const pts = plantPositions(pl, plant);
     const outside = pts.filter((p) => !insideBed(p, bed.footprint)).length;
     if (outside > 0) {
@@ -80,13 +85,15 @@ const EDGE_MM = 10;
 
 function checkSpacing(active: Planting[], plantOf: PlantOf): Finding[] {
   const out: Finding[] = [];
-  const shapes = active.map((pl) => plantingShape(pl, plantOf(pl.plantId)));
+  const shapes = active.map((pl) => plantingShape(pl, sizedPlant(plantOf(pl.plantId), pl)));
   for (let i = 0; i < active.length; i++) {
     for (let j = i + 1; j < active.length; j++) {
       const a = active[i]!;
       const b = active[j]!;
-      const pa = plantOf(a.plantId);
-      const pb = plantOf(b.plantId);
+      const pa = sizedPlant(plantOf(a.plantId), a);
+      const pb = sizedPlant(plantOf(b.plantId), b);
+      // Bulbs under a tree or shrub are the usual way to grow them, not a squeeze.
+      if (underplanted(pa, pb) || underplanted(pb, pa)) continue;
       const near = closest(shapes[i]!, shapes[j]!);
       const names = `${describe(a, pa)} and ${describe(b, pb, true)}`;
       const base = { kind: 'spacing' as const, level: 'warn' as const, plantingIds: [a.id, b.id], featureIds: [...new Set([a.featureId, b.featureId])] };
@@ -105,6 +112,8 @@ function checkSpacing(active: Planting[], plantOf: PlantOf): Finding[] {
   }
   return out;
 }
+
+const underplanted = (small: Plant, big: Plant) => small.art?.form === 'bulb' && (big.art?.form === 'tree' || big.art?.form === 'shrub' || big.category === 'tree' || big.category === 'shrub');
 
 /** True when a direction runs mostly along a row rather than across it. */
 function along(s: { a: Point; b: Point }, dir: Point): boolean {

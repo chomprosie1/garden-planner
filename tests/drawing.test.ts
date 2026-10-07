@@ -123,10 +123,11 @@ describe('surfaces', () => {
     expect(hitFeature(g, [1800, 1800], 0)?.id).toBe(lawn.id);
   });
 
-  it('are flat, so cast no shade, and plants don’t go in them', () => {
+  it('are flat, so cast no shade; plants go in a lawn but not on paving', () => {
     const lawn = makeFeature('surface', { area: square });
     expect(featureShadow(lawn, [0.5, 0.5], 6)).toBeNull();
-    expect(containerAt(addFeature(garden(), lawn), [1000, 1000])).toBeNull();
+    expect(containerAt(addFeature(garden(), lawn), [1000, 1000])?.id).toBe(lawn.id);
+    expect(containerAt(addFeature(garden(), { ...lawn, material: 'paving' }), [1000, 1000])).toBeNull();
   });
 });
 

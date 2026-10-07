@@ -3,7 +3,7 @@ import { featureLabel } from '../../model/features';
 import { addNote, deleteNote, makeNote, photosOf } from '../../model/notes';
 import { updateGarden, type Store } from '../../model/store';
 import type { Garden, Note, Plant } from '../../model/types';
-import { isContainer } from '../../planting/place';
+import { isContainer, isSoftGround } from '../../planting/place';
 import { useApp } from '../appContext';
 import { Icon } from '../icons';
 import { formatDate, NoteForm, NoteList, noteAbout } from '../NotesSection';
@@ -27,7 +27,7 @@ export function Notes({ store, garden, userPlants, back }: Props) {
   // Notes on a bed include notes on what grew in it.
   const bedOf = (n: Note) => n.featureId ?? garden.plantings.find((p) => p.id === n.plantingId)?.featureId;
   const shown = show === 'all' ? garden.notes : show === 'garden' ? garden.notes.filter((n) => !bedOf(n)) : garden.notes.filter((n) => bedOf(n) === show);
-  const beds = garden.features.filter(isContainer);
+  const beds = garden.features.filter((f) => isContainer(f) || (isSoftGround(f) && garden.plantings.some((p) => p.featureId === f.id)));
   const photos = photosOf(garden);
   const [grid, setGrid] = useState(false);
 

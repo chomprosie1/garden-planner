@@ -9,7 +9,7 @@ import { microclimateOf } from '../climate/microclimate';
 import { addDays, frostDates, plantOutMonthsUnder } from '../lifecycle/shed';
 import { currentStage, pathFor, setStage, sowingOf, STAGE_LABEL, stageTips, suggestedStage } from '../lifecycle/stages';
 import { shortDate } from '../lifecycle/projection';
-import { featureLabel } from '../model/features';
+import { placeLabel } from '../model/features';
 import { STAGES, type Garden, type PickSize, type Plant, type Planting, type Stage } from '../model/types';
 import { addPick } from '../planting/harvest';
 import { isActive, plantingStatus } from '../planting/place';
@@ -117,7 +117,7 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     const [plantId, featureId] = k.split('|') as [string, string];
     const plant = plantOf(plantId);
     const bed = g.features.find((f) => f.id === featureId);
-    const bedName = bed ? featureLabel(bed) : 'a bed';
+    const bedName = bed ? placeLabel(bed) : 'a bed';
     const where = `in ${bedName}${describeGroup(group)}`;
     const ids = (list: Planting[]) => list.map((p) => p.id);
     // Under a greenhouse or cold frame: in sooner, with no hardening off, and no winter protection.

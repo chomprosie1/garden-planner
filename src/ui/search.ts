@@ -3,7 +3,8 @@
 // must start a word in the result, and the result's own name counts most.
 
 import { featureLabel, KINDS, MATERIAL_LABEL, type Target } from '../model/features';
-import { STICKERS } from '../model/stickers';
+import { STICKERS, treeStickerId } from '../model/stickers';
+import { TREE_TYPES, treeSizeText } from '../model/trees';
 import type { Garden, Plant } from '../model/types';
 import type { View } from '../theme/prefs';
 import type { Lens } from './Lenses';
@@ -116,6 +117,8 @@ function actions(g: Garden, locked: boolean): Candidate[] {
     out.push({ key: 'setup', group: 'Actions', label: 'Set up your space', detail: 'Balcony, patio, garden or allotment', words: 'start where growing balcony patio yard garden allotment plot', command: { kind: 'setup' } });
   for (const s of STICKERS)
     out.push({ key: `sticker-${s.id}`, group: 'Actions', label: `Add ${withArticle(s.label)}`, detail: s.size, words: `put place new ${KINDS[s.kind].label} ${s.material ?? ''}`, command: { kind: 'sticker', id: s.id } });
+  for (const t of TREE_TYPES)
+    out.push({ key: `tree-${t.id}`, group: 'Actions', label: `Add a tree: ${t.name}`, detail: treeSizeText(t, 'medium'), words: `put place new tree ${t.latinName} ${t.evergreen ? 'evergreen conifer' : ''}`, command: { kind: 'sticker', id: treeStickerId(t.id, 'medium') } });
   return out;
 }
 

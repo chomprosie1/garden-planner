@@ -17,8 +17,8 @@ export function defaultFill(plant: Plant, bed: Feature): Fill {
   const b = bounds(bed.footprint);
   const narrow = b ? Math.min(b.maxX - b.minX, b.maxY - b.minY) : 0;
   const long = b ? Math.max(b.maxX - b.minX, b.maxY - b.minY) : 0;
-  // Big plants, and anywhere with room for only one, get one.
-  if (spread >= 600 || plant.category === 'tree' || plant.category === 'shrub' || long < s * 2) return 'one';
+  // Big plants, anywhere with room for only one, and a lawn (a few bulbs, not the whole lawn), get one.
+  if (bed.kind === 'surface' || spread >= 600 || plant.category === 'tree' || plant.category === 'shrub' || long < s * 2) return 'one';
   // A window box, trough or narrow bed: one row along it.
   if (narrow < s * 2) return 'row';
   if (bed.kind === 'pot') return 'fill';
@@ -94,6 +94,8 @@ export function fillPlanting(plant: Plant, bed: Feature, fill: Fill, at: Point):
 
 /** Which fills make sense here: a row needs room for two plants, a fill room for a few. */
 export function fillsFor(plant: Plant, bed: Feature): Fill[] {
+  // A row or a fill across a whole lawn is never what's meant; draw a row or block by hand instead.
+  if (bed.kind === 'surface') return ['one'];
   const b = bounds(bed.footprint);
   const s = plant.size.spacingMm;
   const long = b ? Math.max(b.maxX - b.minX, b.maxY - b.minY) : 0;

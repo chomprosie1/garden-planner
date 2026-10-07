@@ -5,12 +5,15 @@
 import { distance, pointInPolygon } from '../geometry/polygon';
 import { currentStage, isGrowingStage, setStage } from '../lifecycle/stages';
 import { newId } from '../model/ids';
-import type { Feature, FeatureKind, Garden, Plant, Planting, Point, SpacingStyle } from '../model/types';
+import type { Feature, FeatureKind, Garden, Material, Plant, PlantSize, Planting, Point, SpacingStyle } from '../model/types';
 
 export type Layout = NonNullable<Planting['layout']>;
 
-/** Features plants can go in. */
+/** Features made for growing in: beds and the like. */
 export const CONTAINER_KINDS: FeatureKind[] = ['bed', 'greenhouse', 'cold-frame', 'pot', 'planter'];
+
+/** Ground soft enough to plant in, as bulbs go in a lawn. Paving, decking and paths aren't. */
+export const SOFT_GROUND: Material[] = ['lawn', 'meadow', 'soil', 'bark', 'gravel'];
 
 /** More than this in one planting is almost always a mistake, and slow to draw. */
 export const MAX_PLANTS = 5000;
@@ -18,13 +21,32 @@ export const MAX_PLANTS = 5000;
 /** Beds, greenhouses, cold frames and planters hold plants, and so do pots, which are round. */
 export const isContainer = (f: Feature) => CONTAINER_KINDS.includes(f.kind) && !f.line && (!f.circle || f.kind === 'pot');
 
-/** The topmost bed or greenhouse under a point. */
+/** A lawn, meadow, gravel, bark or bare soil: somewhere plants can go that isn't a bed. */
+export const isSoftGround = (f: Feature) => f.kind === 'surface' && SOFT_GROUND.includes(f.material ?? 'lawn');
+
+/** Anywhere a plant can go: a bed, pot or planter, or soft ground. */
+export const canHold = (f: Feature) => isContainer(f) || isSoftGround(f);
+
+/** Things laid over the ground that nothing grows through: a patio on the lawn, a path across it, a shed or a pond. */
+const coversGround = (f: Feature) => (f.kind === 'surface' && !isSoftGround(f)) || f.kind === 'path' || f.kind === 'building' || f.kind === 'water';
+
+/**
+ * Where a plant dropped at a point goes: a bed, pot or planter there (they're drawn over the ground, so they win
+ * wherever they are in the list), or failing that the topmost soft ground, unless a patio, path or shed covers it.
+ * Trees, hedges and fences don't cover it: bulbs go under a tree.
+ */
 export function containerAt(g: Garden, p: Point): Feature | null {
+  let ground: Feature | null = null;
+  let covered = false;
   for (let i = g.features.length - 1; i >= 0; i--) {
     const f = g.features[i]!;
-    if (isContainer(f) && f.footprint.length >= 3 && pointInPolygon(p, f.footprint)) return f;
+    if (f.footprint.length < 3 || !pointInPolygon(p, f.footprint)) continue;
+    if (isContainer(f)) return f;
+    if (isSoftGround(f)) {
+      if (!covered) ground ??= f;
+    } else if (coversGround(f)) covered = true;
   }
-  return null;
+  return ground;
 }
 
 /** Stand-in for a plant that is no longer in the library or your own plants. */
@@ -42,6 +64,68 @@ export function unknownPlant(id: string): Plant {
 
 export const spreadOf = (p: Plant) => p.size.spreadMm ?? p.size.spacingMm;
 export const rowSpacingOf = (p: Plant) => p.size.rowSpacingMm ?? p.size.spacingMm;
+
+// ---------- Sizes: a dwarf apple or a big old one ----------
+
+/** How much smaller or bigger than the library's figures. A small apple is on a dwarf rootstock; a large one is standard. */
+export const SIZE_FACTOR: Record<PlantSize, number> = { small: 0.5, medium: 1, large: 1.6 };
+
+export const SIZE_LABEL: Record<PlantSize, string> = { small: 'Small', medium: 'Medium', large: 'Large' };
+
+/** Plants whose size varies a lot by variety, pruning and age: trees, shrubs and anything a metre or more across. */
+export const canResize = (p: Plant) => p.category === 'tree' || p.category === 'shrub' || p.art?.form === 'tree' || p.art?.form === 'shrub' || spreadOf(p) >= 1000;
+
+/**
+ * A plant at the size this planting is: its own height and spread if you've typed them, otherwise the library's scaled
+ * by small, medium or large. Only a single plant can be resized; rows and blocks keep the plant's spacing.
+ */
+export function sizedPlant(plant: Plant, pl: Planting): Plant {
+  if ((pl.layout ?? 'single') !== 'single' || (!pl.size && !pl.spreadMm && !pl.heightMm)) return plant;
+  const k = SIZE_FACTOR[pl.size ?? 'medium'];
+  const spread = pl.spreadMm ?? Math.round(spreadOf(plant) * k);
+  const height = pl.heightMm ?? (plant.size.heightMm !== undefined ? Math.round(plant.size.heightMm * k) : undefined);
+  // A single plant needs room for its own spread, so its spacing grows and shrinks with it.
+  const spacing = Math.round(plant.size.spacingMm * (spread / spreadOf(plant)));
+  return { ...plant, size: { ...plant.size, spreadMm: spread, spacingMm: Math.max(1, spacing), ...(height !== undefined ? { heightMm: height } : {}) } };
+}
+
+/** Sets a planting to small, medium or large, dropping any exact size typed before. */
+export function setPlantingSize(g: Garden, id: string, size: PlantSize): Garden {
+  if (!g.plantings.some((p) => p.id === id)) return g;
+  return {
+    ...g,
+    plantings: g.plantings.map((p) => {
+      if (p.id !== id) return p;
+      const { size: _s, spreadMm: _w, heightMm: _h, ...rest } = p;
+      return size === 'medium' ? rest : { ...rest, size };
+    }),
+  };
+}
+
+/** Sets a planting's exact spread or height; 0 or less clears it, back to its size. */
+export function setPlantingMm(g: Garden, id: string, key: 'spreadMm' | 'heightMm', mm: number): Garden {
+  if (!g.plantings.some((p) => p.id === id)) return g;
+  return {
+    ...g,
+    plantings: g.plantings.map((p) => {
+      if (p.id !== id) return p;
+      const { [key]: _old, ...rest } = p;
+      return mm > 0 ? { ...rest, [key]: Math.round(mm) } : rest;
+    }),
+  };
+}
+
+/** A plant lookup that gives each planting's plant at its own size. */
+export const sizedOf = (plantOf: (id: string) => Plant) => (pl: Planting) => sizedPlant(plantOf(pl.plantId), pl);
+
+/** Plantings shortest first, so trees and tall plants are drawn over (and picked before) what grows beneath them. Ties keep their order. */
+export function byHeight(pls: Planting[], plantOf: (id: string) => Plant): Planting[] {
+  const tall = (pl: Planting) => sizedPlant(plantOf(pl.plantId), pl).size.heightMm ?? 300;
+  return pls
+    .map((pl, i) => ({ pl, i, h: tall(pl) }))
+    .sort((a, b) => a.h - b.h || a.i - b.i)
+    .map((x) => x.pl);
+}
 
 /** Plants that fit along a row from start to end, one at each end. */
 export function rowCount(start: Point, end: Point, spacingMm: number): number {

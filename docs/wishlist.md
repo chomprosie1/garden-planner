@@ -15,7 +15,7 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Pick the sketch layer's text size | Build, Stage 9 | S | Words are 300 mm tall on the ground for now, drawn between 12 and 44 px |
 | Select and move a sketch after drawing it | Build, Stage 9 | S | For now: rub out and draw again |
 | Plants dropping their leaves in winter, and dying back after flowering | Build, Stage 10 | S | Planned in release 10 |
-| Tall plants and trees drawn over the plants beneath them, by height | Build, Stage 10 | S | Planned in release 6 |
+| Tall plants and trees drawn over the plants beneath them, by height | Build, Stage 10 | S | Built in release 6 |
 | Soft shadows that follow the real sun at the time of day | Build, Stage 11 | S | Built in Stage 14: from the sun at 1 pm in the chosen week |
 | Germination times for each plant | Build, Stage 12 | S | Planned in release 9; for now every plant uses one to three weeks |
 | Potting on: move seedlings from a module tray into pots, splitting a tray | Build, Stage 12 | S | For now: change the tray's container and count |
@@ -32,12 +32,14 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | This year’s warmth moving perennials’ seasons (an early spring brings strawberries on) | Build, Stage 17 | S | Their seasons go by the averages; crops with days use the real weather |
 | Join batches back together | Build, Stage 17 | S | For now, undo straight after splitting |
 | Simplify the planner on a phone: a Simple and an Advanced mode | You, 7 Oct 2026 | L | Planned as release 7 |
-| Plant anywhere that isn't paved (bulbs in the lawn edge) | You, 7 Oct 2026 | M | Planned in release 6 |
-| Resize fruit trees and other big plants | You, 7 Oct 2026 | S | Planned in release 6 |
-| About 50 UK tree types in Structures, small, medium or large | You, 7 Oct 2026 | M | Planned in release 6 |
+| Plant anywhere that isn't paved (bulbs in the lawn edge) | You, 7 Oct 2026 | M | Built in release 6 |
+| Resize fruit trees and other big plants | You, 7 Oct 2026 | S | Built in release 6 |
+| About 50 UK tree types in Structures, small, medium or large | You, 7 Oct 2026 | M | Built in release 6 |
 | 150 more plants | You, 7 Oct 2026 | L | Planned as release 9 |
 | Alerts when a plant hasn't moved on, with common causes | You, 7 Oct 2026 | M | Planned in release 8 |
 | Weeds to keep or remove, and weeding reminders | You, 7 Oct 2026 | M | Planned in release 8 |
-| The year slider hard to see over full photos | You, 7 Oct 2026 | S | Planned in release 6 |
+| The year slider hard to see over full photos | You, 7 Oct 2026 | S | Built in release 6 |
 | The garden as it is, from an overhead photo | You, 7 Oct 2026 | ? | A spike first; tracing over a photo by hand already works (Stage 2e) |
 | Testing by risk, not the full suite every time | You, 7 Oct 2026 | S | Built in release 5 (`CLAUDE.md`) |
+| Plants (a fruit tree, a big shrub) casting shade in the sun views | Build, release 6 | M | Only features cast shade; a fruit tree planted as a plant doesn't |
+| Small, medium and large for rows and blocks | Build, release 6 | S | Single plants only for now |

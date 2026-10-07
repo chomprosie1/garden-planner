@@ -3416,6 +3416,19 @@ kbd {
   border-width: 1px 0 0;
   box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.08);
 }
+.dock-trees {
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+.dock-subhead {
+  margin: 0 0 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
 .dock-phone .dock-drawer {
   max-height: 46vh;
 }
@@ -3873,6 +3886,10 @@ kbd {
   border-radius: var(--radius-card);
   border: 1px solid var(--border);
   background: var(--surface);
+  box-shadow: var(--shadow);
+  /* Above the photo round the plan, which is positioned and would otherwise be painted over it, as the dock is. */
+  position: relative;
+  z-index: 1;
 }
 .year-track {
   flex: 1;

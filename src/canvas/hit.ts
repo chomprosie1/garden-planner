@@ -3,7 +3,7 @@
 import { distance, distanceToSegment, pointInPolygon } from '../geometry/polygon';
 import { centreLineOf } from '../model/features';
 import type { Feature, Garden, Plant, Planting, Point } from '../model/types';
-import { isActive, plantingShape, spreadOf } from '../planting/place';
+import { byHeight, isActive, plantingShape, sizedPlant, spreadOf } from '../planting/place';
 import { closest } from '../planting/rules';
 
 function hits(f: Feature, p: Point, toleranceMm: number): boolean {
@@ -60,10 +60,11 @@ export function hitEdge(points: Point[], closed: boolean, p: Point, toleranceMm:
 
 /** The topmost growing planting under p: within half a plant's spread of any of its plants. */
 export function hitPlanting(g: Garden, plantOf: (id: string) => Plant, p: Point, toleranceMm: number): Planting | null {
-  for (let i = g.plantings.length - 1; i >= 0; i--) {
-    const pl = g.plantings[i]!;
-    if (!isActive(pl)) continue;
-    const plant = plantOf(pl.plantId);
+  // In the order they're drawn: the tallest is on top.
+  const order = byHeight(g.plantings.filter(isActive), plantOf);
+  for (let i = order.length - 1; i >= 0; i--) {
+    const pl = order[i]!;
+    const plant = sizedPlant(plantOf(pl.plantId), pl);
     if (closest(plantingShape(pl, plant), { kind: 'point', p }).d <= spreadOf(plant) / 2 + toleranceMm) return pl;
   }
   return null;

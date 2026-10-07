@@ -17,6 +17,19 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-07-anywhere',
+    date: '2026-10-07',
+    title: 'Plant in the lawn, and trees by name',
+    items: [
+      'Plants can go anywhere that isn’t paved: bulbs in the lawn edge, wildflowers in gravel, a fruit tree in the grass. Drop them on, just as you would a bed. Patios, decking and paths stay clear.',
+      'Fruit trees, shrubs and other big plants can be small, medium or large: tap one, then tap Size. Exact sizes are under “Change the details”.',
+      'About fifty trees to choose from, from a Japanese maple to an oak, at small, medium or large. They’re under Structures, with a search. Each one casts the shade it should, and evergreens keep it all winter.',
+      'Trees and tall plants are drawn over the smaller plants beneath them.',
+      'The slider for the year no longer disappears behind the photo round the plan.',
+    ],
+    tryIt: { label: 'Open your garden', view: 'plan' },
+  },
+  {
     id: '2026-10-07-delight',
     date: '2026-10-07',
     title: 'Photos, pickings and your season, wrapped',

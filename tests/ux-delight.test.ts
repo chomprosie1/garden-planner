@@ -84,9 +84,9 @@ describe('the harvest log', () => {
     expect(g.notes).toEqual([expect.objectContaining({ text: 'Sungold', photo: 'ph-cccc3333', plantingId: tomato.id })]);
   });
 
-  it('saves as schema 11', () => {
-    expect(SCHEMA_VERSION).toBe(11);
-    expect((migrateGarden({ ...newGarden(), schemaVersion: 10 }) as Garden).schemaVersion).toBe(11);
+  it('saves as schema 11 or later', () => {
+    expect(SCHEMA_VERSION).toBeGreaterThanOrEqual(11);
+    expect((migrateGarden({ ...newGarden(), schemaVersion: 10 }) as Garden).schemaVersion).toBe(SCHEMA_VERSION);
   });
 });
 

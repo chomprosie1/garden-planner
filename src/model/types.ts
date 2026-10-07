@@ -150,6 +150,9 @@ export interface Feature {
   opacityBare?: number; // 0 to 1, share of light blocked when bare
   /** How much warmer it is under a greenhouse or cold frame. Absent: the usual for its kind. */
   climate?: Climate;
+  /** A tree's type, from src/model/trees.ts, and the size it was set to. Its sizes and shade are kept on the feature. */
+  treeType?: string;
+  size?: PlantSize;
 }
 
 /** Under glass: degrees warmer than outside by day and at night, and whether it's heated (kept frost-free). */
@@ -182,7 +185,15 @@ export interface Planting {
   batch?: Batch;
   /** What's been picked, and when: the harvest log. */
   picks?: Pick[];
+  /** A single plant smaller or bigger than usual: a dwarf apple, an old shrub. Absent: medium, the library's size. */
+  size?: PlantSize;
+  /** Its spread and height, typed exactly; these win over size. */
+  spreadMm?: number;
+  heightMm?: number;
 }
+
+export const PLANT_SIZES = ['small', 'medium', 'large'] as const;
+export type PlantSize = (typeof PLANT_SIZES)[number];
 
 /** One picking: how much, as a rough size or weighed. */
 export interface Pick {

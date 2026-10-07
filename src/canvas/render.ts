@@ -7,9 +7,10 @@ import { artFor, drawPlant, hashString, OVERHANG, shadeHex, stageLook, type Look
 import { bucketFor, paintFor, plantSprite, VARIANTS } from '../art/sprites';
 import type { Projected } from '../lifecycle/projection';
 import { currentStage, type LifeStage } from '../lifecycle/stages';
+import { treeType } from '../model/trees';
 import { SKETCH_WIDTH, sketchesOf } from '../model/sketches';
 import type { Feature, Garden, Material, Plant, Planting, Point, Sketch, SketchColour, SketchKind } from '../model/types';
-import { blockGrid, isActive, MAX_PLANTS, plantCount, plantingShape, plantPositions, rowCount, spreadOf, type Layout, type PlantingShape } from '../planting/place';
+import { blockGrid, byHeight, isActive, MAX_PLANTS, plantCount, plantingShape, plantPositions, rowCount, sizedPlant, spreadOf, type Layout, type PlantingShape } from '../planting/place';
 import type { Finding } from '../planting/rules';
 import type { SunGrid } from '../sun/hours';
 import type { Sun } from '../sun/position';
@@ -372,9 +373,9 @@ export function renderStatic(ctx: CanvasRenderingContext2D, s: Scene) {
   if (s.time?.frost) drawFrost(ctx, s);
   if (s.time?.gaps.size) for (const f of g.features) if (s.time.gaps.has(f.id)) drawGap(ctx, s, f);
   // On a day, plantings cleared since are back, and ones cleared by then are left out.
-  const planted = s.plantOf ? (s.time ? g.plantings.filter((pl) => stageFor(s, pl) !== 'cleared') : g.plantings.filter(isActive)) : [];
-  if (depth) for (const pl of planted) drawPlantingShadow(ctx, s, pl, s.plantOf!(pl.plantId));
-  for (const pl of planted) drawPlanting(ctx, s, pl, s.plantOf!(pl.plantId));
+  const planted = s.plantOf ? byHeight(s.time ? g.plantings.filter((pl) => stageFor(s, pl) !== 'cleared') : g.plantings.filter(isActive), s.plantOf) : [];
+  if (depth) for (const pl of planted) drawPlantingShadow(ctx, s, pl, plantFor(s, pl));
+  for (const pl of planted) drawPlanting(ctx, s, pl, plantFor(s, pl));
   if (s.focus) drawFocus(ctx, s, s.focus, planted);
   if (s.sunGrid) drawHeatMap(ctx, s, s.sunGrid);
   if (s.shadows) drawShadows(ctx, s, s.shadows);
@@ -382,7 +383,7 @@ export function renderStatic(ctx: CanvasRenderingContext2D, s: Scene) {
   const bedsInUse = new Set(planted.map((p) => p.featureId));
   if (!s.noLabels) {
     for (const f of g.features) drawLabel(ctx, s, f, bedsInUse.has(f.id));
-    for (const pl of planted) drawPlantLabel(ctx, s, pl, s.plantOf!(pl.plantId));
+    for (const pl of planted) drawPlantLabel(ctx, s, pl, plantFor(s, pl));
   }
   if (s.sketches !== false) for (const k of sketchesOf(g)) drawSketch(ctx, s, k);
 }
@@ -699,7 +700,9 @@ function drawTree(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, stroke: s
   const r = c.radiusMm * v.scale;
   const month = s.month ?? new Date().getMonth() + 1;
   const bare = !!f.deciduous && !LEAF_MONTHS.includes(month);
-  const art = { form: 'tree' as const, leaf: 'broad' as const, foliage: s.style.mode === 'dark' ? '#4f6e42' : '#5e8a4a' };
+  // Its own leaf and colour if it's a known type: a copper beech's purple, a pine's needles.
+  const type = treeType(f.treeType);
+  const art = { form: 'tree' as const, leaf: type?.leaf ?? ('broad' as const), foliage: type?.foliage ? (s.style.mode === 'dark' ? shadeHex(type.foliage, -0.15) : type.foliage) : s.style.mode === 'dark' ? '#4f6e42' : '#5e8a4a' };
   ctx.save();
   if (r < 6) {
     ctx.beginPath();
@@ -859,7 +862,7 @@ function drawSelection(ctx: CanvasRenderingContext2D, s: Scene, t: Target) {
   if (t.type === 'planting') {
     const pl = g.plantings.find((x) => x.id === t.id);
     if (!pl || !s.plantOf) return;
-    const plant = s.plantOf(pl.plantId);
+    const plant = plantFor(s, pl);
     shapePath(ctx, s, plantingShape(pl, plant), (spreadOf(plant) / 2) * v.scale + 5);
     ctx.strokeStyle = sel;
     ctx.lineWidth = 2;
@@ -1338,6 +1341,9 @@ function drawPlants(ctx: CanvasRenderingContext2D, s: Scene, pts: Point[], shape
   ctx.globalAlpha = 1;
 }
 
+/** A planting's plant at the size it's been set to. */
+const plantFor = (s: Scene, pl: Planting) => sizedPlant(s.plantOf!(pl.plantId), pl);
+
 function drawPlanting(ctx: CanvasRenderingContext2D, s: Scene, pl: Planting, plant: Plant) {
   const pts = plantPositions(pl, plant);
   const shape = plantingShape(pl, plant);
@@ -1433,7 +1439,7 @@ function drawFocus(ctx: CanvasRenderingContext2D, s: Scene, focus: Focus, plante
   const st = FOCUS_STYLE[focus.kind];
   for (const pl of planted) {
     if (!focus.ids.has(pl.id)) continue;
-    const plant = s.plantOf!(pl.plantId);
+    const plant = plantFor(s, pl);
     drawPlanting(ctx, s, pl, plant);
     shapePath(ctx, s, plantingShape(pl, plant), (spreadOf(plant) / 2) * s.view.scale + 4);
     ctx.save();
@@ -1454,7 +1460,7 @@ function drawFindings(ctx: CanvasRenderingContext2D, s: Scene) {
   const outline = (id: string, colour: string, width: number, dash: number[]) => {
     const pl = byId.get(id);
     if (!pl || !isActive(pl)) return;
-    const plant = s.plantOf!(pl.plantId);
+    const plant = plantFor(s, pl);
     shapePath(ctx, s, plantingShape(pl, plant), (spreadOf(plant) / 2) * s.view.scale + 3 + width);
     ctx.strokeStyle = colour;
     ctx.lineWidth = width;

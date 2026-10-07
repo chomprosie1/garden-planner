@@ -7,8 +7,10 @@ import { canSowIn } from '../library/library';
 import { traysOf } from '../lifecycle/shed';
 import { newAppState } from '../model/defaults';
 import { KINDS } from '../model/features';
-import { STICKERS, stickerFeature, type Sticker, type StickerGroup } from '../model/stickers';
-import type { FeatureKind, Garden, Plant } from '../model/types';
+import { STICKERS, stickerById, stickerFeature, treeStickerId, type Sticker, type StickerGroup } from '../model/stickers';
+import { findTrees, FRUIT_TREE_PLANTS, treeSizeText } from '../model/trees';
+import { PLANT_SIZES, type FeatureKind, type Garden, type Plant, type PlantSize } from '../model/types';
+import { SIZE_LABEL } from '../planting/place';
 import { Icon, type IconName } from './icons';
 import { MiniPlan } from './MiniPlan';
 import { canDrawByHand, PLANT_DRAG_TYPE, STICKER_DRAG_TYPE, TRAY_DRAG_TYPE, type Tool } from './PlanCanvas';
@@ -28,6 +30,82 @@ const DRAWERS: { id: Drawer; label: string; icon: IconName }[] = [
 function StickerIcon({ sticker, size = 52 }: { sticker: Sticker; size?: number }) {
   const garden = useMemo<Garden>(() => ({ ...newAppState().garden, features: [stickerFeature(sticker, [0, 0])] }), [sticker.id]);
   return <MiniPlan garden={garden} width={size} class="sticker-icon" />;
+}
+
+/**
+ * Trees: about fifty kinds, favourites first, at a small, medium or large size. Fruit trees are plants, so they're
+ * dropped as plants (on a lawn or in a bed) and keep their jobs and harvests.
+ */
+function TreeList({ phone, plants, onSticker, onPlant }: { phone: boolean; plants: Plant[] | null; onSticker: (id: string) => void; onPlant: (id: string) => void }) {
+  const [query, setQuery] = useState('');
+  const [size, setSize] = useState<PlantSize>('medium');
+  const trees = findTrees(query);
+  const q = query.trim().toLowerCase();
+  const fruit = (plants ?? []).filter((p) => FRUIT_TREE_PLANTS.includes(p.id) && (!q || `${p.commonName} ${p.latinName ?? ''} fruit`.toLowerCase().includes(q)));
+  return (
+    <section class="dock-trees" aria-label="Trees">
+      <h3 class="dock-subhead">Trees</h3>
+      <div class="dock-plant-head">
+        <label class="dock-search">
+          <Icon name="search" size={16} />
+          <span class="visually-hidden">Find a tree</span>
+          <input value={query} placeholder="Find a tree" onInput={(e) => setQuery((e.currentTarget as HTMLInputElement).value)} />
+        </label>
+        <div class="dock-filters" role="radiogroup" aria-label="Size">
+          {PLANT_SIZES.map((s) => (
+            <button key={s} type="button" role="radio" class="chip" aria-checked={size === s} onClick={() => setSize(s)}>
+              {SIZE_LABEL[s]}
+            </button>
+          ))}
+        </div>
+      </div>
+      <ul class="dock-grid" aria-label="Trees">
+        {trees.map((tt) => {
+          const id = treeStickerId(tt.id, size);
+          const st = stickerById(id)!;
+          return (
+            <li key={tt.id}>
+              <button
+                type="button"
+                class="sticker"
+                draggable={!phone}
+                onDragStart={(e) => {
+                  e.dataTransfer?.setData(STICKER_DRAG_TYPE, id);
+                  if (e.dataTransfer) e.dataTransfer.effectAllowed = 'copy';
+                }}
+                onClick={() => onSticker(id)}
+                title={`${tt.name} (${tt.latinName}), ${treeSizeText(tt, size)}${tt.evergreen ? ', evergreen' : ''}: drag onto the plan, or tap to add it in the middle`}
+              >
+                <StickerIcon sticker={st} />
+                <span class="sticker-label">{tt.name}</span>
+                <span class="sticker-size">{st.size}</span>
+              </button>
+            </li>
+          );
+        })}
+        {fruit.map((p) => (
+          <li key={p.id}>
+            <button
+              type="button"
+              class="sticker"
+              draggable={!phone}
+              onDragStart={(e) => {
+                e.dataTransfer?.setData(PLANT_DRAG_TYPE, p.id);
+                if (e.dataTransfer) e.dataTransfer.effectAllowed = 'copy';
+              }}
+              onClick={() => onPlant(p.id)}
+              title={`${p.commonName}: a fruit tree, with its jobs and harvests. Drag onto a lawn or bed, or tap then tap where it goes. Choose its size once it's planted.`}
+            >
+              <PlantIcon plant={p} size={40} />
+              <span class="sticker-label">{p.commonName}</span>
+              <span class="sticker-size">Fruit tree</span>
+            </button>
+          </li>
+        ))}
+        {trees.length === 0 && fruit.length === 0 && <li class="muted small">No trees match.</li>}
+      </ul>
+    </section>
+  );
 }
 
 /** Precise drawing: click corners and type lengths, for boundaries and shapes of any size. */
@@ -186,6 +264,7 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
               ))}
             </ul>
           )}
+          {open === 'build' && <TreeList phone={phone} plants={plants} onSticker={onSticker} onPlant={onPlant} />}
           {open === 'draw' && (
             <div class="dock-draw">
               <p class="muted small">Precise drawing: click each corner, or {phone ? 'use the crosshair' : 'drag a rectangle'}, and type exact lengths as you go.</p>

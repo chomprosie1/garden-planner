@@ -19,6 +19,7 @@ import {
   kindsWithGeometry,
   MATERIAL_LABEL,
   pivotOf,
+  placeLabel,
   rectInfo,
   resizeRectAny,
   restack,
@@ -29,18 +30,25 @@ import {
 import { todayIso } from '../model/ids';
 import { photosOf } from '../model/notes';
 import { updateGarden, type Store } from '../model/store';
-import { MATERIALS, type Climate, type Feature, type FeatureKind, type Garden, type Material, type Plant, type Planting, type Point } from '../model/types';
+import { asTree, findTrees, treeSizeText, treeType } from '../model/trees';
+import { MATERIALS, PLANT_SIZES, type Climate, type Feature, type FeatureKind, type Garden, type Material, type Plant, type Planting, type Point } from '../model/types';
 import {
   clearBed,
   deletePlanting,
   harvestPlantings,
+  canHold,
   isContainer,
+  isSoftGround,
   plantCount,
   plantingStatus,
   plantPositions,
   restorePlanting,
   rowSpacingOf,
+  setPlantingMm,
+  setPlantingSize,
   setRowCount,
+  SIZE_LABEL,
+  sizedPlant,
   spreadOf,
   updatePlanting,
 } from '../planting/place';
@@ -219,7 +227,71 @@ export function Inspector(props: Props) {
 
 // ---------- Layout ----------
 
-function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, embedded = false }: Shared & { f: Feature; variant: 'layout' | 'sun'; embedded?: boolean }) {
+/** Which tree it is, and small, medium or large: sets its name, canopy, height and shade together. */
+function TreeTypePicker({ f, set }: { f: Feature; set: (patch: Partial<Feature>) => void }) {
+  const type = treeType(f.treeType);
+  const size = f.size ?? 'medium';
+  return (
+    <>
+      <label class="field">
+        Kind of tree
+        <select
+          value={type?.id ?? ''}
+          onChange={(e) => {
+            const next = treeType((e.currentTarget as HTMLSelectElement).value);
+            if (next) set(asTree(f, next, size));
+            else set({ treeType: undefined, size: undefined });
+          }}
+        >
+          <option value="">Not chosen</option>
+          {findTrees('').map((x) => (
+            <option key={x.id} value={x.id}>
+              {x.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      {type && (
+        <fieldset class="choice">
+          <legend>Size</legend>
+          <div class="happened-chips">
+            {PLANT_SIZES.map((s) => (
+              <button key={s} type="button" class="chip" aria-pressed={size === s} title={treeSizeText(type, s)} onClick={() => set(asTree(f, type, s))}>
+                {SIZE_LABEL[s]}
+              </button>
+            ))}
+          </div>
+          <p class="muted small">
+            {type.latinName}. {treeSizeText(type, size)}, {type.evergreen ? 'evergreen' : 'loses its leaves in winter'}. Type an exact size below if you know it.
+          </p>
+        </fieldset>
+      )}
+    </>
+  );
+}
+
+/** Bulbs in a lawn, wildflowers in gravel: what's planted on a stretch of ground, to pick one. */
+function GrowingOnGround({ garden, f, plantOf, setSelected }: { garden: Garden; f: Feature; plantOf: (id: string) => Plant; setSelected: (t: Target | null) => void }) {
+  const growing = garden.plantings.filter((p) => p.featureId === f.id && !p.removedOn);
+  if (!growing.length) return <p class="muted small">Plants can go here too: bulbs in a lawn, or a tree. Drop one from Plants below the plan.</p>;
+  return (
+    <Section id="growing" title={`Growing here (${growing.length})`}>
+      <ul class="layer-list">
+        {growing.map((p) => (
+          <li key={p.id}>
+            <button type="button" onClick={() => setSelected({ type: 'planting', id: p.id })}>
+              <PlantIcon plant={plantOf(p.plantId)} size={22} />
+              <span>{plantOf(p.plantId).commonName}</span>
+              <span class="muted small">{STAGE_LABEL[currentStage(p)]}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </Section>
+  );
+}
+
+function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf, embedded = false }: Shared & { f: Feature; variant: 'layout' | 'sun'; embedded?: boolean }) {
   const app = useApp();
   const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
   const geometry = geometryOf(f);
@@ -311,6 +383,7 @@ function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, embedde
       )}
 
       {(f.kind === 'surface' || f.kind === 'path') && <MaterialPicker f={f} set={set} />}
+      {!embedded && isSoftGround(f) && <GrowingOnGround garden={garden} f={f} plantOf={plantOf} setSelected={setSelected} />}
       {f.kind === 'bed' && (
         <label class="field">
           Edging
@@ -328,6 +401,8 @@ function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, embedde
           Curved edges
         </label>
       )}
+
+      {f.kind === 'tree' && <TreeTypePicker f={f} set={set} />}
 
       <Section id="size" title="Size">
         {rect && (
@@ -596,15 +671,16 @@ const findingsProps = (p: Shared) => ({ focus: p.focusFinding, setFocus: p.setFo
 /** Planting, with nothing selected: the checks, and every bed with what's in it. */
 function PlantingOverview(props: Props) {
   const { garden, findings, plantOf, setSelected, startPlanting } = props;
-  const beds = garden.features.filter(isContainer);
+  // Beds, pots and planters, and a lawn or other ground once something's planted in it.
+  const beds = garden.features.filter((f) => isContainer(f) || (isSoftGround(f) && garden.plantings.some((p) => p.featureId === f.id && !p.removedOn)));
   const growing = garden.plantings.filter((p) => !p.removedOn);
   const warnings = findings.filter((f) => f.level === 'warn').length;
   return (
     <div class="inspector-body">
       <Heading eyebrow="Your garden" title={garden.name} />
-      {beds.length === 0 ? (
+      {!garden.features.some(canHold) ? (
         <div class="next-step">
-          <p>Plants go in beds, pots and planters. Drag one in from <strong>Beds and pots</strong> below the plan.</p>
+          <p>Plants go in beds, pots and planters, or on a lawn. Drag one in from <strong>Beds and pots</strong> below the plan.</p>
         </div>
       ) : (
         <button type="button" class="btn btn-primary" onClick={startPlanting}>
@@ -832,6 +908,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
   const app = useApp();
   const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
   const plant = plantOf(pl.plantId);
+  const sized = sizedPlant(plant, pl);
   const bed = garden.features.find((f) => f.id === pl.featureId);
   const n = plantCount(pl, plant);
   const layout = pl.layout ?? 'single';
@@ -852,7 +929,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
 
   return (
     <div class="inspector-body">
-      <Heading eyebrow={`${LAYOUT_LABEL[layout]}${bed ? ` in ${featureLabel(bed)}` : ''}`} title={plant.commonName} plant={plant} />
+      <Heading eyebrow={`${LAYOUT_LABEL[layout]}${bed ? ` in ${placeLabel(bed)}` : ''}`} title={plant.commonName} plant={plant} />
       <p class="status-line">
         <span class={`status-chip status-${status}`}>
           {STAGE_LABEL[stage]}
@@ -877,6 +954,9 @@ function PlantingPanel(props: Props & { pl: Planting }) {
             body: (
               <>
                 <StageAdvice pl={pl} plant={plant} covered={!!cover} />
+                {bed && isSoftGround(bed) && (bed.material ?? 'lawn') === 'lawn' && plant.art?.form === 'bulb' && (
+                  <p class="muted small">In a lawn: leave the grass long round them until their leaves die back, about six weeks after flowering, so they flower again next year.</p>
+                )}
                 {mine.length > 0 && <FindingsList findings={mine} {...findingsProps(props)} />}
                 {canEdit && <BatchesSection key={pl.id} store={store} garden={garden} pl={pl} plant={plant} select={(id) => setSelected({ type: 'planting', id })} />}
                 <dl class="facts">
@@ -897,7 +977,13 @@ function PlantingPanel(props: Props & { pl: Planting }) {
                     </>
                   )}
                   <dt>Spread</dt>
-                  <dd>{formatLength(spreadOf(plant))}</dd>
+                  <dd>{formatLength(spreadOf(sized))}</dd>
+                  {sized.size.heightMm !== undefined && (
+                    <>
+                      <dt>Height</dt>
+                      <dd>{formatLength(sized.size.heightMm)}</dd>
+                    </>
+                  )}
                   {sun !== null && (
                     <>
                       <dt>Sun in {MONTHS[sunJune!.month - 1]}</dt>
@@ -911,6 +997,24 @@ function PlantingPanel(props: Props & { pl: Planting }) {
                   <details class="advanced">
                     <summary>Change the details</summary>
           {layout === 'row' && <NumberField label="Plants in this row" unit="plants" value={n} min={1} max={5000} onCommit={(c) => commit((g) => setRowCount(g, pl.id, c))} />}
+          {layout === 'single' && (
+            <>
+              <fieldset class="choice">
+                <legend>Size</legend>
+                <div class="happened-chips">
+                  {PLANT_SIZES.map((s) => (
+                    <button key={s} type="button" class="chip" aria-pressed={!pl.spreadMm && !pl.heightMm && (pl.size ?? 'medium') === s} onClick={() => commit((g) => setPlantingSize(g, pl.id, s))}>
+                      {SIZE_LABEL[s]}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+              <div class="field-row">
+                <NumberField label="Spread" unit="mm" value={spreadOf(sized)} min={10} max={50000} onCommit={(mm) => commit((g) => setPlantingMm(g, pl.id, 'spreadMm', mm))} />
+                <NumberField label="Height" unit="mm" value={sized.size.heightMm ?? 0} min={0} max={50000} onCommit={(mm) => commit((g) => setPlantingMm(g, pl.id, 'heightMm', mm))} />
+              </div>
+            </>
+          )}
           <label class="field">
             Sown or planted on
             <input

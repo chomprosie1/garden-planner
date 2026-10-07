@@ -19,6 +19,7 @@ import {
   deleteFeatures,
   duplicateFeature,
   featureLabel,
+  placeLabel,
   gardenBounds,
   insertVertex,
   isClosed,
@@ -41,7 +42,7 @@ import { updateGarden, type Store } from '../model/store';
 import { stickerById, stickerFeature, type Sticker } from '../model/stickers';
 import type { Feature, FeatureKind, Garden, Plant, Planting, Point, SketchColour, SketchKind } from '../model/types';
 import { defaultFill, fillPlanting } from '../planting/fill';
-import { addPlanting, blockGrid, containerAt, deletePlanting, makePlanting, MAX_PLANTS, movePlanting, plantCount, plantPositions, rowCount, spreadOf, updatePlanting, type Layout } from '../planting/place';
+import { addPlanting, blockGrid, containerAt, deletePlanting, makePlanting, MAX_PLANTS, movePlanting, plantCount, plantPositions, rowCount, sizedPlant, spreadOf, updatePlanting, type Layout } from '../planting/place';
 import type { Finding } from '../planting/rules';
 import type { SunGrid } from '../sun/hours';
 import type { Sun } from '../sun/position';
@@ -70,6 +71,9 @@ export interface Placing {
   /** Planting out this tray from the Potting Shed: the planting takes its sowing date and stages. */
   trayId?: string;
 }
+
+/** Said when a plant is dropped somewhere it can't grow. */
+export const NOWHERE_TO_PLANT = "Plants can't go on paving, decking or paths. Drop it in a bed, a pot or on the lawn.";
 
 /** Drag-and-drop type for a plant dragged from a list onto the plan. */
 export const PLANT_DRAG_TYPE = 'application/x-garden-plant';
@@ -406,7 +410,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
     else {
       const pl = g.plantings.find((x) => x.id === t.id);
       if (pl) {
-        const plant = p.plantOf(pl.plantId);
+        const plant = sizedPlant(p.plantOf(pl.plantId), pl);
         const r = spreadOf(plant) / 2;
         pts = plantPositions(pl, plant).flatMap(([x, y]): Point[] => [[x - r, y - r], [x + r, y + r]]);
       }
@@ -659,7 +663,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const { plant, layout } = placing;
     const middle: Point = end ? [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2] : start;
     const bed = containerAt(garden(), middle);
-    if (!bed) return say('Plants go in a bed or greenhouse. Start inside one.');
+    if (!bed) return say(NOWHERE_TO_PLANT);
     const sp = plant.size.spacingMm;
     const n = layout === 'row' && end ? rowCount(start, end, sp) : layout === 'block' && end ? blockGrid(start, end, sp).cols * blockGrid(start, end, sp).rows : 1;
     if (n > MAX_PLANTS) return say(`That's ${n.toLocaleString()} plants, which is more than one planting can hold. Make it smaller.`);
@@ -667,13 +671,13 @@ export function PlanCanvas(props: PlanCanvasProps) {
     if (placing.trayId) {
       const trayId = placing.trayId;
       commit((g) => plantOutTray(g, trayId, pl, todayIso()));
-      A.current.notify(`Planted out ${n === 1 ? `a ${plant.commonName.toLowerCase()}` : `${n} ${plant.commonName.toLowerCase()} plants`} from the shed into ${featureLabel(bed)}.`, { undo: true });
+      A.current.notify(`Planted out ${n === 1 ? `a ${plant.commonName.toLowerCase()}` : `${n} ${plant.commonName.toLowerCase()} plants`} from the shed into ${placeLabel(bed)}.`, { undo: true });
       say(null);
       p.setTool('select');
       return;
     }
     commit((g) => addPlanting(g, pl));
-    say(`Planted ${n === 1 ? `a ${plant.commonName.toLowerCase()}` : `${n} ${plant.commonName.toLowerCase()} plants`} in ${featureLabel(bed)}.`);
+    say(`Planted ${n === 1 ? `a ${plant.commonName.toLowerCase()}` : `${n} ${plant.commonName.toLowerCase()} plants`} in ${placeLabel(bed)}.`);
   };
 
 /**
@@ -687,7 +691,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
     redraw();
     if (!placing || !view.current) return;
     const bed = containerAt(garden(), pt);
-    if (!bed) return say('Plants go in a bed, pot or planter. Drop it inside one.');
+    if (!bed) return say(NOWHERE_TO_PLANT);
     const shape = fillPlanting(placing.plant, bed, defaultFill(placing.plant, bed), pt);
     const pl: Planting = { ...makePlanting(placing.plant, bed.id, 'single', [shape.x, shape.y], undefined, !!placing.growing), ...shape };
     const n = plantCount(pl, placing.plant);
@@ -696,10 +700,10 @@ export function PlanCanvas(props: PlanCanvasProps) {
     if (placing.trayId) {
       const trayId = placing.trayId;
       commit((g) => plantOutTray(g, trayId, pl, todayIso()));
-      A.current.notify(`Planted out ${n === 1 ? `a ${name}` : `${n} ${name} plants`} from the shed into ${featureLabel(bed)}.`, { undo: true });
+      A.current.notify(`Planted out ${n === 1 ? `a ${name}` : `${n} ${name} plants`} from the shed into ${placeLabel(bed)}.`, { undo: true });
     } else {
       commit((g) => addPlanting(g, pl));
-      say(`Planted ${n === 1 ? `a ${name}` : `${n} ${name} plants`} in ${featureLabel(bed)}.`);
+      say(`Planted ${n === 1 ? `a ${name}` : `${n} ${name} plants`} in ${placeLabel(bed)}.`);
     }
     p.setTool('select');
     p.setSelected({ type: 'planting', id: pl.id });

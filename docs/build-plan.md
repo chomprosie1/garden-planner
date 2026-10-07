@@ -560,7 +560,7 @@ Each idea was checked against the code and against everything still open. Stage 
 | Release | What | Size | Status |
 | --- | --- | --- | --- |
 | 5. Housekeeping | Testing by risk (`CLAUDE.md`), doc fixes, the mismatch log | 1 evening | Built |
-| 6. Plant anywhere, right size | Plants on soft ground, resizing big plants, 50 tree types, the year slider over photos | ~1.5 wk | |
+| 6. Plant anywhere, right size | Plants on soft ground, resizing big plants, 50 tree types, the year slider over photos | ~1.5 wk | Built |
 | 7. A simple planner | A Simple / Advanced switch on the plan, and a phone pass | ~2 wk | |
 | 8. Keeping on track | "Running behind" alerts with common causes, weeds and weeding | ~1.5 wk | |
 | 9. A bigger library | 150 more plants in three batches of 50 (can run alongside 7 and 8) | ~3 wk of data | |
@@ -580,25 +580,33 @@ Each idea was checked against the code and against everything still open. Stage 
   - The wishlist says where each idea now goes.
 - **The mismatch log:** [mismatch-log.md](mismatch-log.md) is started, for Stage 7.
 
-### Release 6 — Plant anywhere, right size (planned, schema 12)
-- **Plants on soft ground.**
-  - `canHold(f)` in `src/planting/place.ts` replaces `CONTAINER_KINDS` and `isContainer`. It allows beds, greenhouses, cold frames, pots and planters, plus lawn, meadow, soil, bark and gravel.
-  - It refuses paving, decking, paths, buildings, water and walls ("Plants can't go on paving or paths").
-  - A bed on top of a lawn still takes the plant (topmost wins).
-  - Plantings on the ground:
-    - aren't gaps;
-    - get jobs that name the place ("Lawn edge: plant crocus");
-    - if a bulb in a lawn, get "Leave the grass long until the leaves die back".
-  - The other users of the old check are reviewed: kits, Inspector, ActionPill, projection, PlanCanvas, setup and Notes.
-- **Resize plants that grow big** (fruit trees, shrubs, climbers; any plant in Advanced). `Planting.size` (small, medium or large) and `spreadMm` / `heightMm` override the library. The action pill gets "Size: S M L". Drawing, spacing rules, sun and shade all use the override. Plants are drawn by height, so trees sit over what's beneath them (from the wishlist).
-- **Tree types in Structures.**
-  - `src/model/trees.ts` has about 50 UK garden trees. Each has its Latin name, deciduous or evergreen, a shape (round, columnar, weeping, conical, spreading), small/medium/large sizes, and the light it blocks in leaf and bare.
-  - Tree in the dock opens a searchable list, popular first, then small, medium or large. Exact sizes stay in the details.
-  - `drawTree` draws the shape.
-  - Fruit trees in the list drop the fruit plant, so its jobs and harvests still work.
-- **The year slider over full photos:** a frosted, near-solid panel like the other overlays (and the sun bar), checked for contrast on every look.
+### Release 6 — Plant anywhere, right size (as built, schema 12)
+- **Plants on soft ground** (`src/planting/place.ts`).
+  - `isSoftGround(f)` is a lawn, meadow, bare soil, bark or gravel surface; `canHold(f)` is that or a bed, greenhouse, cold frame, pot or planter (`isContainer`, unchanged, still means "a bed", for gaps, kits, "Clear this bed" and the sun in each bed).
+  - `containerAt` finds a bed, pot or planter under the point first, wherever it is in the list (beds are drawn over the ground), then the topmost soft ground. A patio, decking, a path, a building or a pond laid over the lawn covers it; trees, hedges and fences don't, so bulbs go under a tree.
+  - Elsewhere it says "Plants can't go on paving, decking or paths. Drop it in a bed, a pot or on the lawn." (`NOWHERE_TO_PLANT`).
+  - On a lawn, a dropped plant is always one plant (`defaultFill`, `fillsFor`); rows and blocks can still be drawn by hand.
+  - Messages, jobs and the planting's heading say "the lawn" (`placeLabel` in `src/model/features.ts`): "Plant crocus in the lawn".
+  - A lawn's details list what's growing on it; the garden's "Beds and plants" and the journal's places include a lawn once something's planted in it.
+  - A bulb in a lawn gets "leave the grass long round them until their leaves die back, about six weeks after flowering".
+  - A planting left on ground since changed to paving gets a warning.
+- **Small, medium and large** (`Planting.size`, `spreadMm`, `heightMm`; `sizedPlant`, `setPlantingSize`, `setPlantingMm`).
+  - Small is half the library's spread and height (a dwarf apple, 1.5 m), large 1.6 times (a standard, 4.8 m). Typed sizes win.
+  - Only single plants: rows and blocks keep the plant's spacing.
+  - Offered for trees, shrubs and anything a metre or more across (`canResize`): one "Size" button on the action pill steps through small, medium and large. Any single plant has Size and exact spread and height under "Change the details".
+  - Drawing, picking, the selection box and the spacing check use the size. Bulbs under a tree or shrub aren't flagged as too close.
+  - Plants are drawn shortest first (`byHeight`), so trees and tall plants sit over what's beneath them, and a tap picks the one on top (from the wishlist).
+- **Tree types** (`src/model/trees.ts`): 52 UK garden trees, favourites first (birches, Japanese maple, rowan, amelanchier, crab apple, cherries, magnolia, olive, holly, hawthorn), then other garden trees, conifers and big trees.
+  - Each has its Latin name, evergreen or not, its shape from the side (for the 3D view), its leaf, a typical garden size (about twenty years' growth, from RHS and nursery figures) and the light it blocks in leaf and bare. Small is 0.6 times, large 1.5 times.
+  - Structures lists them under the buildings, with a search and Small / Medium / Large. A dropped tree is named, sized, and casts its shade (`asTree`, `makeTree`; sticker ids `tree:<type>:<size>`). Evergreens block the same light all year.
+  - Fruit trees (apple, pear, plum, cherry, fig) are at the end of the list, and drop the fruit plant, so its jobs and harvests work.
+  - A tree's details have "Kind of tree" and size; its action pill has the Size button. `drawTree` uses the type's leaf and colour (a copper beech is purple).
+  - Search finds them: "Add a tree: Silver birch". The two plain tree stickers are gone; "Not chosen" keeps an old tree as it was.
+- **The year slider over full photos:** the photo round the plan is positioned, so it was painted over the slider's panel, which wasn't. The slider is now positioned above it, as the dock already was, with the dock's shadow.
+- **Model:** schema 12 adds `Planting.size`, `spreadMm` and `heightMm`, and `Feature.treeType` and `size`, all optional.
+- **Not done:** plants on the plan, a fruit tree included, still cast no shade in the sun views (only features do); sizes for rows and blocks; trees' shapes from the side wait for the 3D view.
 
-Tests: `tests/anywhere.test.ts`.
+Tests: `tests/anywhere.test.ts` covers what can hold a plant, a bed on a lawn (either order), a patio or path over a lawn, a tree over a lawn, one plant on a lawn, moving onto a lawn, no gaps on a lawn, "the lawn" in jobs, the paved-over warning, which plants can be resized, sizes and typed sizes, rows keeping their spacing, the spacing check by size, bulbs under a tree, drawing by height, every tree type at every size, search, changing type, bad tree stickers, and schema 12. Three older tests that said plants never go on a lawn now say they do.
 
 ### Release 7 — A simple planner (planned)
 - **A Simple | Advanced switch** in the plan toolbar (`prefs.planMode`). It starts on Simple and is remembered.

@@ -12,6 +12,7 @@ import {
   MATERIALS,
   PICK_SIZES,
   PLANT_CATEGORIES,
+  PLANT_SIZES,
   PLANT_FORMS,
   SHED_PLACE_KINDS,
   SKETCH_COLOURS,
@@ -81,6 +82,8 @@ export function validateGarden(g: unknown): string[] {
           (isObject(f.climate) && typeof f.climate.heated === 'boolean' && isNum(f.climate.dayGainC) && isNum(f.climate.nightGainC) && f.climate.dayGainC >= 0 && f.climate.nightGainC >= 0 && f.climate.dayGainC <= 30 && f.climate.nightGainC <= 30),
         `${at}.climate needs heated, and day and night gains from 0 to 30 °C.`,
       );
+      need(f.treeType === undefined || (isStr(f.treeType) && /^[a-z0-9-]{1,40}$/.test(f.treeType)), `${at}.treeType must be a tree type's id.`);
+      need(f.size === undefined || oneOf(PLANT_SIZES, f.size), `${at}.size must be small, medium or large.`);
     });
 
   need(g.spacing === undefined || g.spacing === 'close' || g.spacing === 'rows', 'spacing must be close or rows.');
@@ -122,6 +125,11 @@ export function validateGarden(g: unknown): string[] {
           (isObject(p.batch) && isStr(p.batch.group) && Number.isInteger(p.batch.n) && Number.isInteger(p.batch.of) && (p.batch.n as number) >= 1 && (p.batch.n as number) <= (p.batch.of as number)),
         `${at}.batch needs a group and which batch it is, of how many.`,
       );
+      need(p.size === undefined || oneOf(PLANT_SIZES, p.size), `${at}.size must be small, medium or large.`);
+      for (const key of ['spreadMm', 'heightMm'] as const) {
+        const v = p[key];
+        need(v === undefined || (isNum(v) && v > 0 && v <= 50000), `${at}.${key} must be above 0 and at most 50 m.`);
+      }
     });
 
   if (g.sketches !== undefined) {

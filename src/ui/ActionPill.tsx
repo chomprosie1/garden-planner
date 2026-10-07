@@ -7,9 +7,10 @@ import { microclimateOf } from '../climate/microclimate';
 import { isNewSeason, nextStage, STAGE_ACTION } from '../lifecycle/stages';
 import { deleteFeatures, duplicateFeature, featureLabel, geometryOf, MATERIAL_LABEL, rectInfo, resizeRectAny, setSmooth, updateFeature, type Target } from '../model/features';
 import { todayIso } from '../model/ids';
+import { asTree, treeSizeText, treeType } from '../model/trees';
 import { updateGarden, type Store } from '../model/store';
-import { MATERIALS, type Feature, type Garden, type Material, type Plant } from '../model/types';
-import { deletePlanting, isContainer, plantCount, setRowCount } from '../planting/place';
+import { MATERIALS, PLANT_SIZES, type Feature, type PlantSize, type Garden, type Material, type Plant } from '../model/types';
+import { canHold, canResize, deletePlanting, plantCount, setPlantingSize, setRowCount, SIZE_FACTOR, SIZE_LABEL, spreadOf } from '../planting/place';
 import { setStage } from '../lifecycle/stages';
 import { useApp } from './appContext';
 import { Icon } from './icons';
@@ -74,6 +75,13 @@ export function ActionPill({ pillRef, target, garden, store, plantOf, locked, mo
               </button>
             </span>
           )}
+          {(pl.layout ?? 'single') === 'single' && canResize(plant) && (
+            <SizeButton
+              size={pl.spreadMm || pl.heightMm ? null : (pl.size ?? 'medium')}
+              describe={(s) => `about ${fmt(Math.round(spreadOf(plant) * SIZE_FACTOR[s]))} across`}
+              set={(s) => commit((g) => setPlantingSize(g, pl.id, s))}
+            />
+          )}
           <button type="button" class="pill-icon" aria-label={`About ${plant.commonName}`} title="About" onClick={() => app.openPlant(plant.id)}>
             <Icon name="info" size={18} />
           </button>
@@ -118,6 +126,22 @@ export function ActionPill({ pillRef, target, garden, store, plantOf, locked, mo
         </button>
       )}
     </div>
+  );
+}
+
+/** One button for small, medium and large: each tap goes to the next size. Typed sizes show as "Size" and go back to small. */
+function SizeButton({ size, describe, set }: { size: PlantSize | null; describe: (s: PlantSize) => string; set: (s: PlantSize) => void }) {
+  const next = size ? PLANT_SIZES[(PLANT_SIZES.indexOf(size) + 1) % PLANT_SIZES.length]! : 'small';
+  return (
+    <button
+      type="button"
+      class="pill-btn"
+      aria-label={`Size: ${size ? SIZE_LABEL[size].toLowerCase() : 'your own'}. Tap for ${SIZE_LABEL[next].toLowerCase()}`}
+      title={`Tap for ${SIZE_LABEL[next].toLowerCase()}: ${describe(next)}`}
+      onClick={() => set(next)}
+    >
+      Size {size ? SIZE_LABEL[size][0] : '…'}
+    </button>
   );
 }
 
@@ -167,10 +191,11 @@ function FeatureActions({ f, garden, commit, locked, sizing, setSizing, plantHer
       </form>
     );
   const sizeText = rect ? `${fmt(rect.w)} × ${fmt(rect.h)}` : circle ? `Ø ${fmt(circle.radiusMm * 2)}` : null;
+  const kindOfTree = f.kind === 'tree' ? treeType(f.treeType) : undefined;
   return (
     <>
       <span class="pill-name">{featureLabel(f)}</span>
-      {isContainer(f) && (
+      {canHold(f) && (
         <button type="button" class="pill-btn pill-primary" onClick={plantHere}>
           Plant
         </button>
@@ -181,6 +206,9 @@ function FeatureActions({ f, garden, commit, locked, sizing, setSizing, plantHer
         </button>
       ) : (
         <>
+          {kindOfTree && (
+            <SizeButton size={f.size ?? 'medium'} describe={(s) => treeSizeText(kindOfTree, s)} set={(s) => commit((g) => updateFeature(g, f.id, asTree(f, kindOfTree, s)))} />
+          )}
           {sizeText && (
             <button type="button" class="pill-btn" title="Type an exact size" onClick={() => setSizing(true)}>
               {sizeText}

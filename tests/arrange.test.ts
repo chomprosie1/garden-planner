@@ -56,14 +56,16 @@ describe('stickers', () => {
 describe('pots and planters', () => {
   it('hold plants, as beds do; trees and fences don’t', () => {
     for (const id of ['raised-bed', 'pot', 'big-pot', 'window-box', 'trough', 'grow-bag', 'greenhouse']) expect(isContainer(sticker(id)), id).toBe(true);
-    for (const id of ['tree', 'lawn', 'fence', 'shed']) expect(isContainer(sticker(id)), id).toBe(false);
+    for (const id of ['tree:rowan:medium', 'lawn', 'fence', 'shed']) expect(isContainer(sticker(id)), id).toBe(false);
   });
 
   it('are found under a point, so plants dropped on them go in them', () => {
     const pot = sticker('big-pot', [3000, 3000]);
     const g = withFeatures(sticker('lawn', [3000, 3000]), pot);
     expect(containerAt(g, [3100, 3000])?.id).toBe(pot.id);
-    expect(containerAt(g, [4000, 3000])).toBeNull();
+    // Off the pot, it's the lawn: bulbs can go in a lawn (release 6). Off the lawn, nowhere.
+    expect(containerAt(g, [4000, 3000])?.material).toBe('lawn');
+    expect(containerAt(g, [9000, 3000])).toBeNull();
   });
 });
 
