@@ -17,7 +17,7 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Plants dropping their leaves in winter, and dying back after flowering | Build, Stage 10 | S | Planned in release 10 |
 | Tall plants and trees drawn over the plants beneath them, by height | Build, Stage 10 | S | Built in release 6 |
 | Soft shadows that follow the real sun at the time of day | Build, Stage 11 | S | Built in Stage 14: from the sun at 1 pm in the chosen week |
-| Germination times for each plant | Build, Stage 12 | S | Planned in release 9; for now every plant uses one to three weeks |
+| Germination times for each plant | Build, Stage 12 | S | Built in release 9, for every plant grown from seed |
 | Potting on: move seedlings from a module tray into pots, splitting a tray | Build, Stage 12 | S | For now: change the tray's container and count |
 | Cold frames on the plan sharing their place in the shed | Build, Stage 12 | S | Built in Stage 15: "Raise seedlings in here", or link a place from the shed |
 | Equal-spacing guides, and snapping to path widths, when moving beds | Build, Stage 13 | S | Edges and middles line up for now |
@@ -35,7 +35,7 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Plant anywhere that isn't paved (bulbs in the lawn edge) | You, 7 Oct 2026 | M | Built in release 6 |
 | Resize fruit trees and other big plants | You, 7 Oct 2026 | S | Built in release 6 |
 | About 50 UK tree types in Structures, small, medium or large | You, 7 Oct 2026 | M | Built in release 6 |
-| 150 more plants | You, 7 Oct 2026 | L | Planned as release 9 |
+| 150 more plants | You, 7 Oct 2026 | L | Built in release 9 |
 | Alerts when a plant hasn't moved on, with common causes | You, 7 Oct 2026 | M | Built in release 8 |
 | Weeds to keep or remove, and weeding reminders | You, 7 Oct 2026 | M | Built in release 8 |
 | The year slider hard to see over full photos | You, 7 Oct 2026 | S | Built in release 6 |

@@ -87,7 +87,7 @@ Tests: viewport transform round trips; snapping; command undo and redo. Then com
   - **B2**: 30 more vegetables, by week 5
   - **B3**: 30 herbs and fruit, by week 7
   - **B4**: 30 flowers, by week 9
-  - **B5**: 30 shrubs, trees and gaps, after the build (now part of release 9's 150 plants)
+  - **B5**: 30 shrubs, trees and gaps, after the build: done in release 9 (25 shrubs and 10 climbers; ornamental trees are structures)
   - **Done so far (6 Oct 2026):**
     - B1: the 30 vegetables.
     - A combined B2–B4 batch of 70 more plants:
@@ -563,7 +563,7 @@ Each idea was checked against the code and against everything still open. Stage 
 | 6. Plant anywhere, right size | Plants on soft ground, resizing big plants, 50 tree types, the year slider over photos | ~1.5 wk | Built |
 | 7. A simple planner | A Simple / Advanced switch on the plan, and a phone pass | ~2 wk | Built |
 | 8. Keeping on track | "Running behind" alerts with common causes, weeds and weeding | ~1.5 wk | Built |
-| 9. A bigger library | 150 more plants in three batches of 50 (can run alongside 7 and 8) | ~3 wk of data | |
+| 9. A bigger library | 150 more plants in three batches of 50 (can run alongside 7 and 8) | ~3 wk of data | Built |
 | Spike | The garden from an aerial photo: research and a prototype, go or no-go | 2–3 evenings | |
 | 10. The garden in 3D | An angled view to look at, three.js loaded only when opened, with the sun and the year | ~2–3 wk | |
 
@@ -670,16 +670,45 @@ Tests: `tests/on-track.test.ts` covers:
 - Before a crop planned months ahead, only something done in time is offered, to sow first ("Empty until 1 May: sow radish first?"; `daysToCrop`).
 - Tests in `tests/year.test.ts`; logged in [mismatch-log.md](mismatch-log.md).
 
-### Release 9 — A bigger library (planned, data track)
-150 plants in three batches of 50. The rules are the same as the data track above, plus `germinationDays` and `growth.days` where known (from the wishlist). The mix:
-- about 40 veg and salad
-- 15 herbs
-- 15 fruit (trees and bushes)
-- 45 flowers and bulbs
-- 25 shrubs (`shrub.json`)
-- 10 climbers
+### Release 9 — A bigger library (as built, data track)
+150 plants in three batches of 50, all `verified: false` with a suggested source. The library is now 250 plants, plus 21 weeds.
 
-This finishes B5; ornamental trees are structures (release 6). The plant and art tests cover each batch.
+**Batch 1: 40 vegetables and salads, 10 herbs.**
+- Vegetables and salads:
+  - Squashes and melons: pumpkin, marrow, summer squash, melon, cucamelon.
+  - Roots and tubers: Jerusalem artichoke, sweet potato, salsify, scorzonera, daikon, Hamburg parsley.
+  - Beans and peas: edamame, mangetout, asparagus pea, borlotti bean.
+  - Leaves: watercress, land cress, endive, chicory, winter purslane, oriental greens, mibuna, perpetual spinach, New Zealand spinach, garden cress, orache, shungiku.
+  - Cabbage family: Chinese cabbage, cima di rapa, cavolo nero, savoy cabbage, romanesco.
+  - Onion family: elephant garlic, Welsh onion.
+  - Others: Florence fennel, tomatillo, cardoon, sea kale, okra, green manure.
+- Herbs: sorrel, lovage, horseradish, salad burnet, chervil, garlic chives, borage, chamomile, marjoram, summer savory.
+
+**Batch 2: 5 herbs, 15 fruit, 30 flowers and bulbs.**
+- Herbs: winter savory, hyssop, lemon verbena, lemongrass, shiso.
+- Fruit:
+  - Trees: quince, medlar, damson, greengage, apricot, peach, black mulberry, Morello cherry.
+  - Bushes and canes: tayberry, jostaberry, whitecurrant, honeyberry.
+  - Others: hardy kiwi, cape gooseberry, alpine strawberry.
+- Annuals and biennials: snapdragon, sweet alyssum, bishop's flower, larkspur, poached egg plant, petunia, California poppy, tobacco plant, honeywort, sweet scabious, stocks, wallflower, forget-me-not, pansy and viola, honesty, clarkia, strawflower, spider flower, pelargonium, lobelia.
+- Bulbs: hyacinth, grape hyacinth, English bluebell, lily, gladiolus, snake's head fritillary, dwarf iris, winter aconite, hardy cyclamen, camassia.
+
+**Batch 3: 15 perennials, 25 shrubs, 10 climbers.**
+- Perennials: woodland sage, catmint, penstemon, astrantia, geum, heuchera, hosta, ice plant, crocosmia, agapanthus, Japanese anemone, aquilegia, phlox, oriental poppy, yarrow.
+- Shrubs (new `shrub.json`, finishing data batch B5): butterfly bush, hydrangea, hardy fuchsia, hebe, camellia, rhododendron, forsythia, mock orange, lilac, laurustinus, red-barked dogwood, pittosporum, Mexican orange blossom, skimmia, mahonia, spiraea, weigela, Californian lilac, box, firethorn, photinia, Christmas box, daphne, flowering currant, St John's wort.
+- Climbers:
+  - Perennial, as shrubs: clematis, honeysuckle, wisteria, star jasmine, climbing hydrangea, passion flower, climbing rose, ivy.
+  - Annual, as flowers: morning glory, black-eyed Susan vine.
+
+**Also:**
+- New plants have `germinationDays` and `growth.days` where they're grown from seed and it's known. 68 existing seed-grown plants have been given `germinationDays` too, finishing that wishlist item.
+- The other 32 existing plants are grown from sets, tubers, crowns, bulbs or cuttings, or bought as plants.
+- The new fruit trees are in the tree list's fruit trees (`FRUIT_TREE_PLANTS`).
+- Ornamental trees stay as structures (release 6), so there's no `tree.json`.
+- The scratch generator wrote compact entries in the same layout as the existing files.
+- Pest controls are cultural only, and poisonous plants are marked "(check)".
+
+Tests: the plant and art tests cover every new plant. The "bean" search test now also finds borlotti beans and green manure (field beans).
 
 ### Spike — the garden from an aerial photo (planned)
 2–3 evenings, building on the trace image (Stage 2e). It looks at:

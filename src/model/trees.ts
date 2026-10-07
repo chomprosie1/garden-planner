@@ -93,7 +93,7 @@ export const TREE_TYPES: TreeType[] = [
 ];
 
 /** Fruit trees are plants, kept in the library: listed with the trees so they're found there too. */
-export const FRUIT_TREE_PLANTS = ['apple', 'pear', 'plum', 'cherry', 'fig'];
+export const FRUIT_TREE_PLANTS = ['apple', 'pear', 'plum', 'cherry', 'fig', 'damson', 'greengage', 'morello-cherry', 'quince', 'medlar', 'apricot', 'peach', 'mulberry'];
 
 /** How a size scales the tree's typical height and spread. */
 export const TREE_SIZE_FACTOR: Record<PlantSize, number> = { small: 0.6, medium: 1, large: 1.5 };

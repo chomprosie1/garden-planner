@@ -56,7 +56,7 @@ describe('starter library', () => {
 
 describe('search and filters', () => {
   it('finds by common or Latin name, ignoring case', () => {
-    expect(filterPlants(library, { ...emptyFilter, query: 'BEAN' }).map((p) => p.id).sort()).toEqual(['broad-bean', 'french-bean', 'runner-bean']);
+    expect(filterPlants(library, { ...emptyFilter, query: 'BEAN' }).map((p) => p.id).sort()).toEqual(['borlotti-bean', 'broad-bean', 'french-bean', 'green-manure', 'runner-bean']);
     expect(filterPlants(library, { ...emptyFilter, query: 'allium' }).length).toBeGreaterThanOrEqual(5);
   });
 

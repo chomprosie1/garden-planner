@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-07-library',
+    date: '2026-10-07',
+    title: '150 more plants',
+    items: [
+      'The plant library has grown from 100 to 250. There are 40 more vegetables and salads, from cavolo nero to cucamelons, and 15 more herbs.',
+      'Also 15 more fruit, including quince, damson, apricot and honeyberries, plus 47 more flowers and bulbs, from snapdragons to camassia.',
+      'And now 25 shrubs and 10 climbers: hydrangea, lilac, camellia, clematis, wisteria, honeysuckle and more.',
+      'The new fruit trees are in the tree list under Trees and structures too.',
+      'Most plants grown from seed now say how long they usually take to come up, so the Seedlings page and “Running behind” know when to expect them.',
+      'Every new plant is marked “not yet checked”: if you spot something wrong, report it from the plant’s page.',
+    ],
+    tryIt: { label: 'Browse the plants', view: 'plants' },
+  },
+  {
     id: '2026-10-07-on-track',
     date: '2026-10-07',
     title: 'Running behind, and weeds',

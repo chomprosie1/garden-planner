@@ -52,6 +52,7 @@
         "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
       }
     ],
+    "germinationDays": [7, 14],
     "companions": {
       "good": [
         "tomato"
@@ -131,6 +132,7 @@
         "control": "Cover with fine insect mesh."
       }
     ],
+    "germinationDays": [14, 28],
     "companions": {
       "good": [
         "tomato",
@@ -196,6 +198,7 @@
     "lookOutFor": [
       "Runs to seed quickly in hot, dry weather: a little shade and steady watering help."
     ],
+    "germinationDays": [7, 14],
     "companions": {
       "good": [],
       "avoid": [
@@ -267,6 +270,7 @@
       5,
       6
     ],
+    "germinationDays": [10, 14],
     "companions": {
       "good": [
         "carrot"
@@ -403,6 +407,7 @@
         "control": "Pick them off by hand, or shake plants over a sheet of paper."
       }
     ],
+    "germinationDays": [14, 21],
     "companions": {
       "good": [],
       "avoid": []
@@ -467,6 +472,7 @@
       6,
       7
     ],
+    "germinationDays": [10, 21],
     "companions": {
       "good": [],
       "avoid": []
@@ -530,6 +536,7 @@
       6,
       7
     ],
+    "germinationDays": [10, 21],
     "companions": {
       "good": [],
       "avoid": []
@@ -590,6 +597,7 @@
     "lookOutFor": [
       "Flowers draw hoverflies, which eat aphids."
     ],
+    "germinationDays": [7, 14],
     "companions": {
       "good": [
         "cabbage"
@@ -655,6 +663,7 @@
     "lookOutFor": [
       "Flowers are loved by bees."
     ],
+    "germinationDays": [7, 14],
     "companions": {
       "good": [],
       "avoid": []
@@ -717,6 +726,7 @@
     "lookOutFor": [
       "Tall: give it a spot at the back. Self-seeds freely."
     ],
+    "germinationDays": [7, 14],
     "companions": {
       "good": [],
       "avoid": [
@@ -784,6 +794,7 @@
     "lookOutFor": [
       "Self-seeds freely: cut it back after flowering."
     ],
+    "germinationDays": [10, 21],
     "companions": {
       "good": [],
       "avoid": []
@@ -909,6 +920,319 @@
     },
     "art": {"form":"mound","leaf":"needle","foliage":"#6a9a5a"},
     "source": "Check against: RHS – tarragon; herb nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "sorrel",
+    "commonName": "Sorrel",
+    "latinName": "Rumex acetosa",
+    "category": "herb",
+    "conditions": { "light": "part-shade", "soil": "Moisture-retentive", "moisture": "moist", "hardiness": "Hardy" },
+    "size": { "heightMm": 600, "spreadMm": 300, "spacingMm": 300 },
+    "sowing": [
+      { "method": "direct", "months": [3, 4, 5], "depthMm": 10 }
+    ],
+    "cropping": { "harvestMonths": [3, 4, 5, 6, 7, 8, 9, 10], "notes": "Pick young leaves for a sharp, lemony taste." },
+    "germinationDays": [7, 14],
+    "lookOutFor": ["Cut the flower stems off to keep the leaves coming."],
+    "pests": [
+      { "name": "Slugs and snails", "signs": "Seedlings and young plants eaten, slime trails", "control": "Check after dark, use barriers, and encourage frogs, birds and beetles." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "clump", "leaf": "strap", "foliage": "#5f8a3a" },
+    "source": "Check against: RHS – sorrel; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "lovage",
+    "commonName": "Lovage",
+    "latinName": "Levisticum officinale",
+    "category": "herb",
+    "conditions": { "light": "part-shade", "soil": "Rich, moisture-retentive", "moisture": "moist", "hardiness": "Hardy" },
+    "size": { "heightMm": 2000, "spreadMm": 900, "spacingMm": 900 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4], "depthMm": 10 }
+    ],
+    "plantOutMonths": [5],
+    "cropping": { "harvestMonths": [4, 5, 6, 7, 8, 9], "notes": "Pick young leaves; one plant is plenty." },
+    "flowerMonths": [6, 7],
+    "germinationDays": [10, 21],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "upright", "leaf": "lobed", "foliage": "#4f7a3c", "flower": "#e8e090", "bloom": "umbel" },
+    "source": "Check against: RHS – lovage; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "horseradish",
+    "commonName": "Horseradish",
+    "latinName": "Armoracia rusticana",
+    "category": "herb",
+    "conditions": { "light": "full-sun", "soil": "Deep, any", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 900, "spreadMm": 450, "spacingMm": 450 },
+    "plantOutMonths": [2, 3],
+    "cropping": { "harvestMonths": [10, 11, 12, 1, 2], "notes": "Dig roots as needed." },
+    "lookOutFor": ["Any root left behind regrows: grow it in a sunken bucket, or lift it all each year."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "rosette", "leaf": "broad", "foliage": "#5f8a45", "crop": { "kind": "root", "colour": "#e8e0c8" } },
+    "source": "Check against: RHS – horseradish; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "salad-burnet",
+    "commonName": "Salad burnet",
+    "latinName": "Sanguisorba minor",
+    "category": "herb",
+    "conditions": { "light": "full-sun", "soil": "Well-drained, chalky", "moisture": "dry", "hardiness": "Hardy" },
+    "size": { "heightMm": 400, "spreadMm": 300, "spacingMm": 300 },
+    "sowing": [
+      { "method": "direct", "months": [3, 4, 5], "depthMm": 5 }
+    ],
+    "cropping": { "harvestMonths": [3, 4, 5, 6, 7, 8, 9, 10, 11], "notes": "Pick young leaves; they taste of cucumber." },
+    "germinationDays": [10, 21],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "rosette", "leaf": "feathery", "foliage": "#6a9a5a" },
+    "source": "Check against: RHS – salad burnet; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "chervil",
+    "commonName": "Chervil",
+    "latinName": "Anthriscus cerefolium",
+    "category": "herb",
+    "conditions": { "light": "part-shade", "soil": "Moisture-retentive", "moisture": "moist", "hardiness": "Hardy" },
+    "size": { "heightMm": 450, "spreadMm": 200, "spacingMm": 200, "closeSpacingMm": 150 },
+    "sowing": [
+      { "method": "direct", "months": [3, 4, 5, 6, 7, 8, 9], "depthMm": 5 }
+    ],
+    "cropping": { "harvestMonths": [4, 5, 6, 7, 8, 9, 10, 11], "notes": "Pick leaves as needed." },
+    "germinationDays": [7, 14],
+    "lookOutFor": ["Bolts in heat: sow little and often, in some shade."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "feathery", "foliage": "#7ab060", "flower": "#f6f4ee", "bloom": "umbel" },
+    "source": "Check against: RHS – chervil; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "garlic-chives",
+    "commonName": "Garlic chives",
+    "latinName": "Allium tuberosum",
+    "category": "herb",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 450, "spreadMm": 200, "spacingMm": 200 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4], "depthMm": 10 },
+      { "method": "direct", "months": [4, 5], "depthMm": 10 }
+    ],
+    "plantOutMonths": [5],
+    "cropping": { "harvestMonths": [4, 5, 6, 7, 8, 9, 10], "notes": "Cut leaves to a few centimetres; they regrow." },
+    "flowerMonths": [8, 9],
+    "germinationDays": [10, 21],
+    "companions": { "good": [], "avoid": ["broad-bean", "pea"] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "clump", "leaf": "strap", "foliage": "#5f8a4a", "flower": "#f6f4ee", "bloom": "umbel" },
+    "source": "Check against: RHS – garlic chives; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "borage",
+    "commonName": "Borage",
+    "latinName": "Borago officinalis",
+    "category": "herb",
+    "conditions": { "light": "full-sun", "soil": "Any, well-drained", "moisture": "dry", "hardiness": "Hardy" },
+    "size": { "heightMm": 600, "spreadMm": 450, "spacingMm": 450 },
+    "sowing": [
+      { "method": "direct", "months": [4, 5, 6], "depthMm": 15 }
+    ],
+    "flowerMonths": [6, 7, 8, 9],
+    "germinationDays": [5, 14],
+    "lookOutFor": ["Bees love it, and it self-seeds freely.", "The blue flowers are edible."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "mound", "leaf": "broad", "foliage": "#6a8a6a", "flower": "#4a6ad8", "bloom": "daisy" },
+    "source": "Check against: RHS – borage; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "chamomile",
+    "commonName": "Chamomile",
+    "latinName": "Matricaria chamomilla",
+    "category": "herb",
+    "conditions": { "light": "full-sun", "soil": "Light, well-drained", "moisture": "dry", "hardiness": "Hardy" },
+    "size": { "heightMm": 450, "spreadMm": 200, "spacingMm": 200 },
+    "sowing": [
+      { "method": "direct", "months": [4, 5], "notes": "Sow on the surface: it needs light to come up." }
+    ],
+    "cropping": { "harvestMonths": [6, 7, 8], "notes": "Pick the flower heads when fully open, for tea." },
+    "flowerMonths": [6, 7, 8],
+    "germinationDays": [7, 14],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "feathery", "foliage": "#7aa060", "flower": "#f6f4ee", "bloom": "daisy" },
+    "source": "Check against: RHS – German chamomile; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "marjoram",
+    "commonName": "Marjoram",
+    "latinName": "Origanum majorana",
+    "category": "herb",
+    "conditions": { "light": "full-sun", "soil": "Light, well-drained", "moisture": "dry", "hardiness": "Half-hardy" },
+    "size": { "heightMm": 300, "spreadMm": 300, "spacingMm": 250 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4], "notes": "Sow on the surface." }
+    ],
+    "plantOutMonths": [5, 6],
+    "cropping": { "harvestMonths": [6, 7, 8, 9], "notes": "Pick sprigs as needed; best just before flowering." },
+    "flowerMonths": [7, 8],
+    "germinationDays": [7, 14],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual", "notes": "Usually grown as an annual." },
+    "art": { "form": "mound", "leaf": "round", "foliage": "#8aa070", "flower": "#f6f0f0", "bloom": "daisy" },
+    "source": "Check against: RHS – sweet marjoram; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "summer-savory",
+    "commonName": "Summer savory",
+    "latinName": "Satureja hortensis",
+    "category": "herb",
+    "conditions": { "light": "full-sun", "soil": "Light, well-drained", "moisture": "dry", "hardiness": "Hardy" },
+    "size": { "heightMm": 300, "spreadMm": 200, "spacingMm": 200 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4], "notes": "Sow on the surface." },
+      { "method": "direct", "months": [5] }
+    ],
+    "plantOutMonths": [5],
+    "cropping": { "harvestMonths": [6, 7, 8, 9], "notes": "Pick sprigs; it goes well with beans." },
+    "germinationDays": [10, 21],
+    "companions": { "good": ["broad-bean", "french-bean"], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "needle", "foliage": "#6a8a5a", "flower": "#e8d0e0", "bloom": "spike" },
+    "source": "Check against: RHS – summer savory; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "winter-savory",
+    "commonName": "Winter savory",
+    "latinName": "Satureja montana",
+    "category": "herb",
+    "conditions": { "light": "full-sun", "soil": "Light, well-drained", "moisture": "dry", "hardiness": "Hardy" },
+    "size": { "heightMm": 300, "spreadMm": 300, "spacingMm": 300 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4], "notes": "Sow on the surface." }
+    ],
+    "plantOutMonths": [5],
+    "cropping": { "harvestMonths": [4, 5, 6, 7, 8, 9, 10], "notes": "Pick sprigs as needed." },
+    "flowerMonths": [7, 8],
+    "germinationDays": [10, 21],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "mound", "leaf": "needle", "foliage": "#4f6a45", "flower": "#f6f0f0", "bloom": "spike" },
+    "source": "Check against: RHS – winter savory; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "hyssop",
+    "commonName": "Hyssop",
+    "latinName": "Hyssopus officinalis",
+    "category": "herb",
+    "conditions": { "light": "full-sun", "soil": "Light, well-drained", "moisture": "dry", "hardiness": "Hardy" },
+    "size": { "heightMm": 600, "spreadMm": 450, "spacingMm": 450 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4], "depthMm": 5 }
+    ],
+    "plantOutMonths": [5],
+    "cropping": { "harvestMonths": [5, 6, 7, 8, 9], "notes": "Pick young leaves and flowering tips." },
+    "flowerMonths": [7, 8, 9],
+    "germinationDays": [7, 14],
+    "lookOutFor": ["Bees and butterflies love its blue flowers. Trim after flowering."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "upright", "leaf": "needle", "foliage": "#4f6a45", "flower": "#4a5ad0", "bloom": "spike" },
+    "source": "Check against: RHS – hyssop; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "lemon-verbena",
+    "commonName": "Lemon verbena",
+    "latinName": "Aloysia citrodora",
+    "category": "herb",
+    "conditions": { "light": "full-sun", "soil": "Light, well-drained", "moisture": "moderate", "hardiness": "Half-hardy" },
+    "size": { "heightMm": 1500, "spreadMm": 900, "spacingMm": 900 },
+    "plantOutMonths": [5, 6],
+    "cropping": { "harvestMonths": [5, 6, 7, 8, 9], "notes": "Pick leaves for tea; strongly lemon-scented." },
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "protect", "notes": "Bring pots under cover for winter, or mulch thickly on a warm wall." },
+    "lifePath": { "perennial": true },
+    "art": { "form": "shrub", "leaf": "strap", "foliage": "#8aa050" },
+    "source": "Check against: RHS – lemon verbena; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "lemongrass",
+    "commonName": "Lemongrass",
+    "latinName": "Cymbopogon citratus",
+    "category": "herb",
+    "conditions": { "light": "full-sun", "soil": "Rich, moisture-retentive", "moisture": "moist", "hardiness": "Tender" },
+    "size": { "heightMm": 900, "spreadMm": 600, "spacingMm": 450 },
+    "sowing": [
+      { "method": "indoors", "months": [2, 3, 4], "depthMm": 5, "notes": "Needs warmth to come up." }
+    ],
+    "plantOutMonths": [6],
+    "cropping": { "harvestMonths": [7, 8, 9, 10], "notes": "Cut stems at the base." },
+    "germinationDays": [14, 28],
+    "lookOutFor": ["Grow in a pot; a stem from the supermarket roots in a glass of water."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "protect", "notes": "Keep indoors in a bright, frost-free place over winter." },
+    "lifePath": { "perennial": true },
+    "art": { "form": "grass", "leaf": "strap", "foliage": "#8aa860" },
+    "source": "Check against: RHS – lemongrass; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "shiso",
+    "commonName": "Shiso",
+    "latinName": "Perilla frutescens",
+    "category": "herb",
+    "conditions": { "light": "full-sun", "soil": "Fertile, moisture-retentive", "moisture": "moderate", "hardiness": "Tender" },
+    "size": { "heightMm": 600, "spreadMm": 300, "spacingMm": 300 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4], "notes": "Sow on the surface." }
+    ],
+    "plantOutMonths": [5, 6],
+    "cropping": { "harvestMonths": [6, 7, 8, 9], "notes": "Pick leaves as needed; pinch the tips to keep it bushy." },
+    "germinationDays": [7, 21],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "broad", "foliage": "#6a2a4a" },
+    "source": "Check against: seed packet – perilla; seed packet or nursery label",
     "verified": false,
     "userAdded": false
   }

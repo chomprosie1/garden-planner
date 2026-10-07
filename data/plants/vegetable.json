@@ -17,6 +17,7 @@
       { "name": "Black bean aphid", "signs": "Dense black aphids on the shoot tips", "control": "Pinch out the tips once the first pods have set; rub off small colonies by hand." },
       { "name": "Chocolate spot", "signs": "Brown spots on the leaves, worse in damp weather", "control": "Space plants well for airflow and avoid feeding with too much nitrogen." }
     ],
+    "germinationDays": [7, 14],
     "companions": { "good": ["potato", "sweetcorn"], "avoid": ["onion", "garlic", "leek", "shallot"] },
     "wintering": { "type": "hardy", "notes": "Autumn-sown plants overwinter; cover with fleece in hard frost." },
     "lifePath": {
@@ -51,6 +52,7 @@
       { "name": "Slugs", "signs": "Young plants grazed overnight, slime trails", "control": "Plant out sturdy plants, check after dark, and protect seedlings with barriers or cloches." },
       { "name": "Black bean aphid", "signs": "Black aphids on stems and shoot tips", "control": "Rub off by hand or spray off with water; encourage ladybirds." }
     ],
+    "germinationDays": [7, 14],
     "companions": { "good": ["sweetcorn", "winter-squash"], "avoid": ["onion", "garlic"] },
     "wintering": { "type": "annual", "notes": "Clear plants after the first frost; leave the roots to add nitrogen to the soil." },
     "lifePath": {
@@ -91,6 +93,7 @@
       { "name": "Slugs", "signs": "Seedlings eaten off at soil level", "control": "Raise plants indoors and plant out when larger; check after dark." },
       { "name": "Black bean aphid", "signs": "Clusters on shoot tips and under leaves", "control": "Rub off by hand; encourage natural predators." }
     ],
+    "germinationDays": [7, 14],
     "companions": { "good": ["sweetcorn", "potato"], "avoid": ["onion", "garlic"] },
     "wintering": { "type": "annual" },
     "lifePath": {
@@ -122,6 +125,7 @@
       { "name": "Mice", "signs": "Seeds dug up and eaten", "control": "Start seeds in guttering or modules and plant out as young plants." },
       { "name": "Powdery mildew", "signs": "White powder on leaves late in the season", "control": "Water at the roots in dry spells; clear old plants promptly." }
     ],
+    "germinationDays": [7, 14],
     "companions": { "good": ["carrot", "radish"], "avoid": ["onion", "garlic", "shallot"] },
     "wintering": { "type": "annual" },
     "lifePath": {
@@ -190,6 +194,7 @@
       { "name": "Onion white rot", "signs": "Yellowing leaves and white fluffy mould at the base", "control": "Remove affected plants and don't grow onions there again for many years." },
       { "name": "Onion fly", "signs": "Wilting, yellow leaves and maggots in the bulb", "control": "Cover with fine insect mesh; grow from sets rather than seed." }
     ],
+    "germinationDays": [10, 14],
     "companions": { "good": ["carrot", "beetroot"], "avoid": ["broad-bean", "runner-bean", "french-bean", "pea"] },
     "wintering": { "type": "lift-and-store", "notes": "Dry thoroughly in the sun, then store in nets somewhere cool and airy." },
     "stageTips": {
@@ -263,6 +268,7 @@
       { "name": "Leek moth", "signs": "White patches and holes in the leaves", "control": "Cover with fine insect mesh; remove damaged leaves." },
       { "name": "Rust", "signs": "Orange spots on the leaves", "control": "Space well for airflow; don't overfeed with nitrogen." }
     ],
+    "germinationDays": [10, 18],
     "companions": { "good": ["carrot"], "avoid": ["broad-bean", "pea"] },
     "wintering": { "type": "hardy", "notes": "Leave in the ground and lift as needed." },
     "art": {"form":"clump","leaf":"strap","foliage":"#5c8a74"},
@@ -282,6 +288,7 @@
     "growth": { "days": [56, 70], "from": "sowing" },
     "lookOutFor": ["Easy to grow in a pot or between slower crops."],
     "pests": [{ "name": "Onion white rot", "signs": "Yellowing leaves and white mould at the base", "control": "Rotate crops; avoid ground where white rot has been." }],
+    "germinationDays": [7, 14],
     "companions": { "good": ["carrot", "lettuce"], "avoid": ["pea", "broad-bean"] },
     "wintering": { "type": "annual" },
     "art": {"form":"clump","leaf":"strap","foliage":"#6fa060"},
@@ -301,6 +308,7 @@
     "growth": { "days": [70, 100], "from": "sowing" },
     "lookOutFor": ["Stony or freshly manured soil gives forked roots."],
     "pests": [{ "name": "Carrot fly", "signs": "Rusty-brown tunnels in the roots", "control": "Cover with fine insect mesh; sow thinly so you don't have to thin, as the smell attracts the fly." }],
+    "germinationDays": [14, 21],
     "companions": { "good": ["onion", "leek", "pea"], "avoid": [] },
     "wintering": { "type": "lift-and-store", "notes": "Lift by late autumn on heavy soil and store in boxes of damp sand." },
     "art": {"form":"clump","leaf":"feathery","foliage":"#5e9a3c","crop":{"kind":"root","colour":"#e07b24"}},
@@ -323,6 +331,7 @@
       { "name": "Parsnip canker", "signs": "Orange-brown rough patches on the shoulders of the root", "control": "Grow resistant varieties and sow a little later." },
       { "name": "Carrot fly", "signs": "Tunnels in the roots", "control": "Cover with fine insect mesh." }
     ],
+    "germinationDays": [14, 28],
     "companions": { "good": ["onion", "radish"], "avoid": [] },
     "wintering": { "type": "hardy", "notes": "Leave in the ground and lift as needed." },
     "art": {"form":"rosette","leaf":"lobed","foliage":"#6a9a4a","crop":{"kind":"root","colour":"#efe2c0"}},
@@ -342,6 +351,7 @@
     "growth": { "days": [60, 80], "from": "sowing" },
     "lookOutFor": ["Early sowings may bolt in cold spells; choose bolt-resistant varieties."],
     "pests": [{ "name": "Birds", "signs": "Seedlings pecked", "control": "Cover with netting or fleece until established." }],
+    "germinationDays": [10, 14],
     "companions": { "good": ["onion", "garlic", "lettuce"], "avoid": [] },
     "wintering": { "type": "lift-and-store", "notes": "Twist off the leaves and store in boxes of damp sand." },
     "art": {"form":"rosette","leaf":"broad","foliage":"#5d7a3e","crop":{"kind":"root","colour":"#8e1f3f"}},
@@ -361,6 +371,7 @@
     "growth": { "days": [25, 30], "from": "sowing" },
     "lookOutFor": ["Dry soil makes them split or run to seed."],
     "pests": [{ "name": "Flea beetle", "signs": "Lots of small round holes in the leaves", "control": "Cover with fleece and keep the soil moist." }],
+    "germinationDays": [3, 7],
     "companions": { "good": ["pea", "lettuce", "parsnip"], "avoid": [] },
     "wintering": { "type": "annual" },
     "art": {"form":"rosette","leaf":"broad","foliage":"#6aa04a","crop":{"kind":"root","colour":"#d23c5a"}},
@@ -383,6 +394,7 @@
       { "name": "Flea beetle", "signs": "Small holes in young leaves", "control": "Cover with fleece and keep watered." },
       { "name": "Clubroot", "signs": "Swollen, distorted roots and wilting plants", "control": "Rotate brassicas; lime acid soil; don't bring in soil from infected ground." }
     ],
+    "germinationDays": [5, 10],
     "companions": { "good": ["pea"], "avoid": [] },
     "wintering": { "type": "lift-and-store" },
     "art": {"form":"rosette","leaf":"lobed","foliage":"#6f9e4a","crop":{"kind":"root","colour":"#9a5aa0"}},
@@ -409,6 +421,7 @@
       { "name": "Slugs", "signs": "Ragged holes and slime trails", "control": "Check after dark, use barriers, and water in the morning rather than evening." },
       { "name": "Aphids", "signs": "Green or black insects on leaves and roots", "control": "Rinse off; encourage ladybirds and hoverflies." }
     ],
+    "germinationDays": [5, 10],
     "companions": { "good": ["radish", "carrot", "beetroot"], "avoid": [] },
     "wintering": { "type": "annual", "notes": "Hardy varieties can overwinter under cloches." },
     "stageTips": {
@@ -442,6 +455,7 @@
       { "name": "Downy mildew", "signs": "Yellow patches on top of leaves, grey mould beneath", "control": "Thin for airflow and water at the base." },
       { "name": "Slugs", "signs": "Holes in the leaves", "control": "Check after dark; use barriers." }
     ],
+    "germinationDays": [7, 14],
     "companions": { "good": ["radish", "lettuce"], "avoid": [] },
     "wintering": { "type": "hardy", "notes": "Autumn sowings overwinter better under a cloche." },
     "art": {"form":"rosette","leaf":"broad","foliage":"#3f7a35"},
@@ -461,6 +475,7 @@
     "growth": { "days": [55, 70], "from": "sowing" },
     "lookOutFor": ["One of the easiest leafy crops, and colourful in a border."],
     "pests": [{ "name": "Slugs", "signs": "Holes in young leaves", "control": "Check after dark; protect young plants." }],
+    "germinationDays": [7, 14],
     "companions": { "good": ["onion", "lettuce"], "avoid": [] },
     "wintering": { "type": "hardy", "notes": "Usually survives winter and crops again in spring." },
     "art": {"form":"rosette","leaf":"broad","foliage":"#3f6e33","crop":{"kind":"stem","colour":"#e0503a"}},
@@ -485,6 +500,7 @@
       { "name": "Cabbage white caterpillars", "signs": "Holes in leaves, green caterpillars underneath", "control": "Cover with fine mesh from spring; pick off eggs and caterpillars." },
       { "name": "Clubroot", "signs": "Swollen roots, stunted and wilting plants", "control": "Rotate brassicas; lime acid soil; raise plants in pots to give a strong start." }
     ],
+    "germinationDays": [5, 10],
     "companions": { "good": ["onion", "beetroot"], "avoid": ["tomato"] },
     "wintering": { "type": "hardy", "notes": "Crops right through winter." },
     "art": {"form":"rosette","leaf":"lobed","foliage":"#3f6a4a"},
@@ -509,6 +525,7 @@
       { "name": "Cabbage white caterpillars", "signs": "Holes in the leaves", "control": "Cover with fine mesh; check undersides for eggs." },
       { "name": "Clubroot", "signs": "Swollen roots, stunted plants", "control": "Rotate brassicas; lime acid soil." }
     ],
+    "germinationDays": [5, 10],
     "companions": { "good": ["onion", "beetroot"], "avoid": ["tomato"] },
     "wintering": { "type": "hardy", "notes": "Winter and spring cabbages stand through cold weather." },
     "art": {"form":"rosette","leaf":"broad","foliage":"#7fa37a","crop":{"kind":"head","colour":"#bcd49a"}},
@@ -531,6 +548,7 @@
       { "name": "Pigeons", "signs": "Leaves torn in winter", "control": "Net the crop." },
       { "name": "Cabbage white caterpillars", "signs": "Holes in the leaves", "control": "Cover with fine mesh in summer." }
     ],
+    "germinationDays": [5, 10],
     "companions": { "good": ["onion"], "avoid": ["tomato"] },
     "wintering": { "type": "hardy", "notes": "Stands over winter to crop in early spring." },
     "art": {"form":"rosette","leaf":"broad","foliage":"#4f7a5a","crop":{"kind":"head","colour":"#6a4a7a"}},
@@ -554,6 +572,7 @@
     "growth": { "days": [55, 75], "from": "planting" },
     "lookOutFor": ["Check often in warm weather; heads open into yellow flowers quickly."],
     "pests": [{ "name": "Cabbage white caterpillars", "signs": "Holes in leaves and heads", "control": "Cover with fine mesh." }],
+    "germinationDays": [5, 10],
     "companions": { "good": ["onion", "beetroot"], "avoid": ["tomato"] },
     "wintering": { "type": "annual" },
     "art": {"form":"rosette","leaf":"broad","foliage":"#4f7a5a","crop":{"kind":"head","colour":"#3f6a3a"}},
@@ -577,6 +596,7 @@
       { "name": "Cabbage white caterpillars", "signs": "Holes in leaves", "control": "Cover with fine mesh." },
       { "name": "Clubroot", "signs": "Swollen roots, stunted plants", "control": "Rotate brassicas; lime acid soil." }
     ],
+    "germinationDays": [5, 10],
     "companions": { "good": ["onion"], "avoid": ["tomato"] },
     "wintering": { "type": "annual", "notes": "Winter types overwinter to crop in spring." },
     "art": {"form":"rosette","leaf":"broad","foliage":"#6a9a6a","crop":{"kind":"head","colour":"#f2ecd8"}},
@@ -600,6 +620,7 @@
       { "name": "Pigeons", "signs": "Leaves torn in winter", "control": "Net the crop." },
       { "name": "Cabbage whitefly", "signs": "Tiny white insects fly up when leaves are disturbed", "control": "Usually harmless to the sprouts; remove badly affected lower leaves." }
     ],
+    "germinationDays": [5, 10],
     "companions": { "good": ["onion"], "avoid": ["tomato"] },
     "wintering": { "type": "hardy", "notes": "Crops through winter." },
     "art": {"form":"upright","leaf":"broad","foliage":"#5a8a5a","crop":{"kind":"fruit","colour":"#86b05a"}},
@@ -626,6 +647,7 @@
       { "name": "Powdery mildew", "signs": "White powder on the leaves in late summer", "control": "Water at the roots in dry weather and remove the worst leaves." },
       { "name": "Slugs", "signs": "Young plants eaten", "control": "Plant out strong plants and protect them at first." }
     ],
+    "germinationDays": [5, 10],
     "companions": { "good": ["sweetcorn", "runner-bean"], "avoid": [] },
     "wintering": { "type": "annual" },
     "lifePath": {
@@ -660,6 +682,7 @@
       { "name": "Powdery mildew", "signs": "White powder on the leaves late in the season", "control": "Water at the roots; it rarely harms the fruit this late." },
       { "name": "Slugs", "signs": "Young plants eaten", "control": "Protect young plants after planting out." }
     ],
+    "germinationDays": [5, 10],
     "companions": { "good": ["sweetcorn", "runner-bean"], "avoid": [] },
     "wintering": { "type": "lift-and-store", "notes": "Cure the fruits in the sun for a week or two, then store somewhere cool and dry." },
     "lifePath": {
@@ -691,6 +714,7 @@
       { "name": "Powdery mildew", "signs": "White powder on the leaves", "control": "Keep the roots moist and the air moving." },
       { "name": "Red spider mite", "signs": "Fine mottling on leaves and webbing, in greenhouses", "control": "Damp down the greenhouse floor to raise humidity; biological controls are available." }
     ],
+    "germinationDays": [5, 10],
     "companions": { "good": ["sweetcorn", "lettuce"], "avoid": [] },
     "wintering": { "type": "annual" },
     "lifePath": {
@@ -729,6 +753,7 @@
       { "name": "Blossom end rot", "signs": "Sunken black patch at the base of the fruit", "control": "Water regularly so the roots never dry out." },
       { "name": "Whitefly", "signs": "Tiny white insects under leaves, in greenhouses", "control": "Yellow sticky traps and good ventilation; biological controls are available." }
     ],
+    "germinationDays": [6, 14],
     "companions": { "good": ["french-bean", "lettuce"], "avoid": ["potato", "kale", "cabbage"] },
     "wintering": { "type": "annual" },
     "lifePath": {
@@ -769,6 +794,7 @@
       { "name": "Mice and birds", "signs": "Seeds dug up; cobs pecked", "control": "Raise plants indoors; net ripening cobs if needed." },
       { "name": "Frit fly", "signs": "Twisted, stunted young shoots", "control": "Raise plants in modules and plant out when larger." }
     ],
+    "germinationDays": [7, 14],
     "companions": { "good": ["runner-bean", "courgette", "winter-squash"], "avoid": [] },
     "wintering": { "type": "annual" },
     "lifePath": {
@@ -803,6 +829,7 @@
       { "name": "Aphids", "signs": "Clusters on shoot tips and under leaves", "control": "Squash or rinse off; encourage ladybirds." },
       { "name": "Whitefly", "signs": "Tiny white insects under leaves", "control": "Yellow sticky traps and good ventilation." }
     ],
+    "germinationDays": [10, 21],
     "companions": { "good": ["tomato"], "avoid": [] },
     "wintering": { "type": "protect", "notes": "Plants can be kept indoors over winter and cropped again." },
     "lifePath": {
@@ -873,6 +900,7 @@
         "control": "Cover with fine insect mesh; keep seedlings watered so they grow away quickly."
       }
     ],
+    "germinationDays": [3, 7],
     "companions": {
       "good": [],
       "avoid": []
@@ -936,6 +964,7 @@
         "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
       }
     ],
+    "germinationDays": [3, 7],
     "companions": {
       "good": [],
       "avoid": []
@@ -1000,6 +1029,7 @@
         "control": "Cover with fine insect mesh; keep seedlings watered so they grow away quickly."
       }
     ],
+    "germinationDays": [5, 10],
     "companions": {
       "good": [
         "onion"
@@ -1067,6 +1097,7 @@
         "control": "Lime acid soil and rotate crops; don’t bring in soil from elsewhere."
       }
     ],
+    "germinationDays": [5, 10],
     "companions": {
       "good": [],
       "avoid": []
@@ -1134,6 +1165,7 @@
         "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
       }
     ],
+    "germinationDays": [14, 21],
     "companions": {
       "good": [],
       "avoid": []
@@ -1202,6 +1234,7 @@
         "control": "Pick off affected leaves; cover with fine mesh."
       }
     ],
+    "germinationDays": [14, 21],
     "companions": {
       "good": [],
       "avoid": []
@@ -1268,6 +1301,7 @@
         "control": "Squash by hand or wash off with water; ladybirds and hoverflies will follow."
       }
     ],
+    "germinationDays": [10, 21],
     "companions": {
       "good": [
         "tomato"
@@ -1342,6 +1376,7 @@
         "control": "Mist plants and keep the greenhouse humid."
       }
     ],
+    "germinationDays": [10, 21],
     "companions": {
       "good": [],
       "avoid": []
@@ -1402,6 +1437,7 @@
         "control": "Pick them off by hand."
       }
     ],
+    "germinationDays": [14, 21],
     "companions": {
       "good": [
         "tomato",
@@ -1464,6 +1500,7 @@
         "control": "Squash by hand or wash off with water; ladybirds and hoverflies will follow."
       }
     ],
+    "germinationDays": [14, 21],
     "companions": {
       "good": [],
       "avoid": []
@@ -1521,6 +1558,7 @@
       "notes": "Pick a few leaves at a time through the winter."
     },
     "growth": { "days": [45, 60], "from": "sowing" },
+    "germinationDays": [7, 14],
     "companions": {
       "good": [],
       "avoid": []
@@ -1591,6 +1629,7 @@
         "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
       }
     ],
+    "germinationDays": [3, 7],
     "companions": {
       "good": [],
       "avoid": []
@@ -1600,6 +1639,939 @@
     },
     "art": {"form":"rosette","leaf":"feathery","foliage":"#5a9a3a"},
     "source": "Check against: RHS – oriental leaves; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "jerusalem-artichoke",
+    "commonName": "Jerusalem artichoke",
+    "latinName": "Helianthus tuberosus",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Any, not waterlogged", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 2500, "spreadMm": 600, "spacingMm": 300, "rowSpacingMm": 900 },
+    "plantOutMonths": [2, 3, 4],
+    "cropping": { "harvestMonths": [10, 11, 12, 1, 2], "notes": "Dig as needed through winter." },
+    "lookOutFor": ["Spreads: lift every tuber you can, or it comes back where you don’t want it.", "Tall enough to make a windbreak; stake in exposed spots."],
+    "pests": [
+      { "name": "Slugs and snails", "signs": "Seedlings and young plants eaten, slime trails", "control": "Check after dark, use barriers, and encourage frogs, birds and beetles." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy", "notes": "Tubers keep in the ground all winter." },
+    "lifePath": { "perennial": true },
+    "art": { "form": "upright", "leaf": "broad", "foliage": "#5f8a3e", "flower": "#f0c020", "bloom": "daisy", "crop": { "kind": "root", "colour": "#c8a070" } },
+    "source": "Check against: RHS Grow Your Own – jerusalem artichoke; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "sweet-potato",
+    "commonName": "Sweet potato",
+    "latinName": "Ipomoea batatas",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Light, well-drained", "moisture": "moderate", "hardiness": "Tender" },
+    "size": { "heightMm": 300, "spreadMm": 900, "spacingMm": 300, "rowSpacingMm": 750 },
+    "plantOutMonths": [6],
+    "cropping": { "harvestMonths": [9, 10], "notes": "Lift before the first frost; leave in a warm room for a week to cure." },
+    "lookOutFor": ["Grown from slips (rooted cuttings) bought in spring.", "Best under cover or in a warm, sheltered spot; black plastic over the bed helps."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "sprawl", "leaf": "broad", "foliage": "#4f7a3c", "crop": { "kind": "root", "colour": "#c86a3a" } },
+    "source": "Check against: RHS Grow Your Own – sweet potato; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "florence-fennel",
+    "commonName": "Florence fennel",
+    "latinName": "Foeniculum vulgare var. azoricum",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Rich, moisture-retentive", "moisture": "moist", "hardiness": "Hardy" },
+    "size": { "heightMm": 600, "spreadMm": 300, "spacingMm": 300, "closeSpacingMm": 250, "rowSpacingMm": 450 },
+    "sowing": [
+      { "method": "indoors", "months": [5, 6], "depthMm": 10, "notes": "Sow in modules to avoid disturbing the roots." },
+      { "method": "direct", "months": [6, 7], "depthMm": 10 }
+    ],
+    "plantOutMonths": [6, 7],
+    "cropping": { "harvestMonths": [8, 9, 10], "notes": "Cut the bulb at soil level; the stump may sprout small shoots." },
+    "growth": { "days": [80, 100], "from": "sowing" },
+    "germinationDays": [7, 14],
+    "lookOutFor": ["Bolts if checked by cold or drought: sowings after midsummer make the best bulbs.", "Earth up the swelling bulbs to whiten them."],
+    "pests": [
+      { "name": "Slugs and snails", "signs": "Seedlings and young plants eaten, slime trails", "control": "Check after dark, use barriers, and encourage frogs, birds and beetles." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "feathery", "foliage": "#7aa060", "crop": { "kind": "stem", "colour": "#e8ecd0" } },
+    "source": "Check against: RHS Grow Your Own – florence fennel; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "salsify",
+    "commonName": "Salsify",
+    "latinName": "Tragopogon porrifolius",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Deep, stone-free", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 600, "spreadMm": 150, "spacingMm": 150, "rowSpacingMm": 300 },
+    "sowing": [
+      { "method": "direct", "months": [4, 5], "depthMm": 15 }
+    ],
+    "cropping": { "harvestMonths": [10, 11, 12, 1, 2], "notes": "Lift as needed; the roots bleed if nicked." },
+    "growth": { "days": [150, 180], "from": "sowing" },
+    "germinationDays": [10, 21],
+    "lookOutFor": ["Long roots: deep soil without stones gives straight ones.", "Leave a few in: the next spring’s flower buds are good to eat."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy", "notes": "Hardy in the ground." },
+    "art": { "form": "grass", "leaf": "strap", "foliage": "#6a8a5a", "crop": { "kind": "root", "colour": "#d8c8a8" } },
+    "source": "Check against: RHS Grow Your Own – salsify; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "pumpkin",
+    "commonName": "Pumpkin",
+    "latinName": "Cucurbita maxima",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Rich, plenty of compost", "moisture": "moist", "hardiness": "Tender" },
+    "size": { "heightMm": 500, "spreadMm": 2500, "spacingMm": 1500, "rowSpacingMm": 1500 },
+    "sowing": [
+      { "method": "indoors", "months": [4, 5], "depthMm": 25, "notes": "Sow on edge, one seed a pot." }
+    ],
+    "plantOutMonths": [6],
+    "cropping": { "harvestMonths": [9, 10], "notes": "Cut when the skin is hard and the stalk cracks; leave in the sun for ten days to harden." },
+    "growth": { "days": [100, 120], "from": "sowing" },
+    "germinationDays": [5, 10],
+    "pests": [
+      { "name": "Slugs and snails", "signs": "Seedlings and young plants eaten, slime trails", "control": "Check after dark, use barriers, and encourage frogs, birds and beetles." },
+      { "name": "Powdery mildew", "signs": "White powder on leaves in late summer", "control": "Water the roots in dry spells and give plants room for air." }
+    ],
+    "companions": { "good": ["sweetcorn"], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "sprawl", "leaf": "lobed", "foliage": "#4f7d3a", "flower": "#f2a51c", "bloom": "big", "crop": { "kind": "fruit", "colour": "#e07a1f" } },
+    "source": "Check against: RHS Grow Your Own – pumpkin; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "marrow",
+    "commonName": "Marrow",
+    "latinName": "Cucurbita pepo",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Rich, plenty of compost", "moisture": "moist", "hardiness": "Tender" },
+    "size": { "heightMm": 500, "spreadMm": 1200, "spacingMm": 900, "rowSpacingMm": 1200 },
+    "sowing": [
+      { "method": "indoors", "months": [4, 5], "depthMm": 25, "notes": "Sow on edge, one seed a pot." },
+      { "method": "direct", "months": [5, 6], "depthMm": 25 }
+    ],
+    "plantOutMonths": [5, 6],
+    "cropping": { "harvestMonths": [7, 8, 9], "notes": "Cut at about 30 cm long; store ripe ones somewhere cool and dry." },
+    "growth": { "days": [55, 70], "from": "sowing" },
+    "germinationDays": [5, 10],
+    "pests": [
+      { "name": "Slugs and snails", "signs": "Seedlings and young plants eaten, slime trails", "control": "Check after dark, use barriers, and encourage frogs, birds and beetles." },
+      { "name": "Powdery mildew", "signs": "White powder on leaves in late summer", "control": "Water the roots in dry spells and give plants room for air." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "sprawl", "leaf": "lobed", "foliage": "#4f7d3a", "flower": "#f2b51c", "bloom": "big", "crop": { "kind": "fruit", "colour": "#5f8a3a" } },
+    "source": "Check against: RHS Grow Your Own – marrow; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "melon",
+    "commonName": "Melon",
+    "latinName": "Cucumis melo",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Rich, well-drained", "moisture": "moderate", "hardiness": "Tender: under glass in most of the UK" },
+    "size": { "heightMm": 300, "spreadMm": 1000, "spacingMm": 900 },
+    "sowing": [
+      { "method": "indoors", "months": [4], "depthMm": 15, "notes": "Sow on edge at 21 °C or warmer." }
+    ],
+    "plantOutMonths": [6],
+    "cropping": { "harvestMonths": [8, 9], "notes": "Ripe when it smells sweet and the stalk starts to crack." },
+    "growth": { "days": [80, 100], "from": "sowing" },
+    "germinationDays": [5, 10],
+    "lookOutFor": ["Grow under glass and help pollinate by hand; keep about four fruits a plant."],
+    "pests": [
+      { "name": "Red spider mite", "signs": "Fine pale mottling and webbing under leaves", "control": "Damp down the greenhouse in hot weather; predatory mites help." },
+      { "name": "Powdery mildew", "signs": "White powder on leaves in late summer", "control": "Water the roots in dry spells and give plants room for air." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "sprawl", "leaf": "lobed", "foliage": "#5f8f45", "flower": "#f2d23c", "bloom": "cup", "crop": { "kind": "fruit", "colour": "#d8c070" } },
+    "source": "Check against: RHS Grow Your Own – melon; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "cucamelon",
+    "commonName": "Cucamelon",
+    "latinName": "Melothria scabra",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Rich, well-drained", "moisture": "moderate", "hardiness": "Tender" },
+    "size": { "heightMm": 2000, "spreadMm": 300, "spacingMm": 450 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4], "depthMm": 10 }
+    ],
+    "plantOutMonths": [5, 6],
+    "cropping": { "harvestMonths": [7, 8, 9, 10], "notes": "Pick at grape size, crisp and lemony." },
+    "growth": { "days": [65, 75], "from": "sowing" },
+    "germinationDays": [7, 14],
+    "lookOutFor": ["Climbs: give it a trellis or canes."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "lift-and-store", "notes": "Lift the tubers in autumn and keep frost-free to replant." },
+    "art": { "form": "climber", "leaf": "lobed", "foliage": "#5f8f45", "crop": { "kind": "fruit", "colour": "#6a9a5a" } },
+    "source": "Check against: RHS Grow Your Own – cucamelon; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "tomatillo",
+    "commonName": "Tomatillo",
+    "latinName": "Physalis philadelphica",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Fertile, well-drained", "moisture": "moderate", "hardiness": "Tender" },
+    "size": { "heightMm": 1000, "spreadMm": 900, "spacingMm": 900 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4], "depthMm": 5 }
+    ],
+    "plantOutMonths": [5, 6],
+    "cropping": { "harvestMonths": [8, 9, 10], "notes": "Pick when the fruit fills its papery husk." },
+    "growth": { "days": [70, 90], "from": "planting" },
+    "germinationDays": [7, 14],
+    "lookOutFor": ["Grow two or more: a single plant sets little fruit."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "broad", "foliage": "#5f8a45", "flower": "#f2e04a", "bloom": "cup", "crop": { "kind": "fruit", "colour": "#a8c060" } },
+    "source": "Check against: RHS Grow Your Own – tomatillo; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "edamame",
+    "commonName": "Edamame",
+    "latinName": "Glycine max",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Fertile, well-drained", "moisture": "moderate", "hardiness": "Half-hardy" },
+    "size": { "heightMm": 600, "spreadMm": 300, "spacingMm": 150, "closeSpacingMm": 150, "rowSpacingMm": 450 },
+    "sowing": [
+      { "method": "indoors", "months": [4, 5], "depthMm": 25 },
+      { "method": "direct", "months": [5, 6], "depthMm": 25 }
+    ],
+    "plantOutMonths": [6],
+    "cropping": { "harvestMonths": [8, 9], "notes": "Pick when the pods are plump but still green." },
+    "growth": { "days": [80, 100], "from": "sowing" },
+    "germinationDays": [5, 14],
+    "lookOutFor": ["Choose early varieties bred for cooler summers."],
+    "pests": [
+      { "name": "Slugs and snails", "signs": "Seedlings and young plants eaten, slime trails", "control": "Check after dark, use barriers, and encourage frogs, birds and beetles." }
+    ],
+    "companions": { "good": [], "avoid": ["onion", "garlic", "leek", "shallot"] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "broad", "foliage": "#5f8a45", "crop": { "kind": "pod", "colour": "#8ab060" } },
+    "source": "Check against: RHS Grow Your Own – edamame; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "mangetout",
+    "commonName": "Mangetout",
+    "latinName": "Pisum sativum var. saccharatum",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Moisture-retentive, fertile", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 1500, "spreadMm": 200, "spacingMm": 75, "closeSpacingMm": 75, "rowSpacingMm": 600 },
+    "sowing": [
+      { "method": "indoors", "months": [2, 3], "depthMm": 40 },
+      { "method": "direct", "months": [3, 4, 5, 6], "depthMm": 40 }
+    ],
+    "plantOutMonths": [4, 5],
+    "cropping": { "harvestMonths": [6, 7, 8, 9], "notes": "Pick while the pods are flat, before the peas swell." },
+    "growth": { "days": [60, 70], "from": "sowing" },
+    "germinationDays": [7, 14],
+    "pests": [
+      { "name": "Mice", "signs": "Seeds dug up and eaten", "control": "Start in pots or guttering and plant out." },
+      { "name": "Pea moth", "signs": "Small caterpillars inside the pods", "control": "Sow early or late to miss the moth, or cover with fine mesh." }
+    ],
+    "companions": { "good": ["carrot", "turnip"], "avoid": ["onion", "garlic", "leek", "shallot"] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "climber", "leaf": "round", "foliage": "#6a9a5a", "flower": "#f6f2ea", "bloom": "cup", "crop": { "kind": "pod", "colour": "#8cc060" } },
+    "source": "Check against: RHS Grow Your Own – mangetout; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "watercress",
+    "commonName": "Watercress",
+    "latinName": "Nasturtium officinale",
+    "category": "vegetable",
+    "conditions": { "light": "part-shade", "soil": "Wet", "moisture": "moist", "hardiness": "Hardy" },
+    "size": { "heightMm": 200, "spreadMm": 200, "spacingMm": 150 },
+    "sowing": [
+      { "method": "direct", "months": [4, 5, 6, 7, 8], "depthMm": 5, "notes": "Sow on the surface of wet compost." }
+    ],
+    "cropping": { "harvestMonths": [5, 6, 7, 8, 9, 10], "notes": "Cut the tops; it regrows." },
+    "growth": { "days": [50, 60], "from": "sowing" },
+    "germinationDays": [7, 14],
+    "lookOutFor": ["Grow in a container stood in a tray of water, changing the water often."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "sprawl", "leaf": "round", "foliage": "#4f8a3e", "flower": "#f6f4ee", "bloom": "daisy" },
+    "source": "Check against: RHS Grow Your Own – watercress; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "land-cress",
+    "commonName": "Land cress",
+    "latinName": "Barbarea verna",
+    "category": "vegetable",
+    "conditions": { "light": "part-shade", "soil": "Moisture-retentive", "moisture": "moist", "hardiness": "Hardy" },
+    "size": { "heightMm": 200, "spreadMm": 200, "spacingMm": 200, "closeSpacingMm": 150 },
+    "sowing": [
+      { "method": "direct", "months": [3, 4, 5, 6, 7, 8, 9], "depthMm": 5 }
+    ],
+    "cropping": { "harvestMonths": [1, 2, 3, 4, 5, 6, 9, 10, 11, 12], "notes": "Pick leaves as needed; hardy through winter." },
+    "growth": { "days": [50, 60], "from": "sowing" },
+    "germinationDays": [5, 10],
+    "lookOutFor": ["A peppery winter salad: sow in late summer for picking until spring."],
+    "pests": [
+      { "name": "Flea beetle", "signs": "Small round holes in young leaves", "control": "Keep seedlings watered and grow under fine mesh." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "art": { "form": "rosette", "leaf": "lobed", "foliage": "#4f7a3c" },
+    "source": "Check against: RHS Grow Your Own – land cress; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "endive",
+    "commonName": "Endive",
+    "latinName": "Cichorium endivia",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Fertile, moisture-retentive", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 300, "spreadMm": 300, "spacingMm": 300, "closeSpacingMm": 250, "rowSpacingMm": 300 },
+    "sowing": [
+      { "method": "direct", "months": [4, 5, 6, 7, 8], "depthMm": 10 }
+    ],
+    "cropping": { "harvestMonths": [7, 8, 9, 10, 11], "notes": "Cut whole heads, or pick leaves." },
+    "growth": { "days": [80, 100], "from": "sowing" },
+    "germinationDays": [5, 10],
+    "lookOutFor": ["Cover the heart with a plate for a week or two before cutting: it whitens and is less bitter."],
+    "pests": [
+      { "name": "Slugs and snails", "signs": "Seedlings and young plants eaten, slime trails", "control": "Check after dark, use barriers, and encourage frogs, birds and beetles." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "rosette", "leaf": "feathery", "foliage": "#7aa050" },
+    "source": "Check against: RHS Grow Your Own – endive; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "chicory",
+    "commonName": "Chicory",
+    "latinName": "Cichorium intybus",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Fertile, well-drained", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 300, "spreadMm": 300, "spacingMm": 300, "closeSpacingMm": 250, "rowSpacingMm": 300 },
+    "sowing": [
+      { "method": "direct", "months": [5, 6, 7], "depthMm": 10 }
+    ],
+    "cropping": { "harvestMonths": [9, 10, 11, 12], "notes": "Cut the heads; red types colour up as nights cool." },
+    "growth": { "days": [90, 120], "from": "sowing" },
+    "germinationDays": [5, 10],
+    "pests": [
+      { "name": "Slugs and snails", "signs": "Seedlings and young plants eaten, slime trails", "control": "Check after dark, use barriers, and encourage frogs, birds and beetles." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "rosette", "leaf": "broad", "foliage": "#a8324a" },
+    "source": "Check against: RHS Grow Your Own – chicory and radicchio; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "winter-purslane",
+    "commonName": "Winter purslane",
+    "latinName": "Claytonia perfoliata",
+    "category": "vegetable",
+    "conditions": { "light": "part-shade", "soil": "Any", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 200, "spreadMm": 150, "spacingMm": 150 },
+    "sowing": [
+      { "method": "direct", "months": [5, 6, 7, 8, 9], "depthMm": 5, "notes": "Sow in late summer for winter picking." }
+    ],
+    "cropping": { "harvestMonths": [10, 11, 12, 1, 2, 3, 4], "notes": "Cut leaves and stems; it regrows." },
+    "growth": { "days": [40, 60], "from": "sowing" },
+    "germinationDays": [7, 14],
+    "lookOutFor": ["Self-seeds gently. Good outside or under cover all winter."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "art": { "form": "rosette", "leaf": "round", "foliage": "#6a9a50", "flower": "#f6f4ee", "bloom": "daisy" },
+    "source": "Check against: RHS Grow Your Own – winter purslane; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "oriental-greens",
+    "commonName": "Oriental greens",
+    "latinName": "Brassica juncea",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Fertile, moisture-retentive", "moisture": "moist", "hardiness": "Hardy" },
+    "size": { "heightMm": 300, "spreadMm": 200, "spacingMm": 200, "closeSpacingMm": 150, "rowSpacingMm": 300 },
+    "sowing": [
+      { "method": "direct", "months": [3, 4, 7, 8, 9], "depthMm": 10 }
+    ],
+    "cropping": { "harvestMonths": [5, 6, 9, 10, 11, 12], "notes": "Cut young leaves for salads, larger ones to cook." },
+    "growth": { "days": [30, 45], "from": "sowing" },
+    "germinationDays": [3, 7],
+    "lookOutFor": ["Mustards and mixes bolt in long summer days: sow from late July for autumn and winter."],
+    "pests": [
+      { "name": "Flea beetle", "signs": "Small round holes in young leaves", "control": "Keep seedlings watered and grow under fine mesh." },
+      { "name": "Slugs and snails", "signs": "Seedlings and young plants eaten, slime trails", "control": "Check after dark, use barriers, and encourage frogs, birds and beetles." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy", "notes": "Most are hardy, better under cover." },
+    "art": { "form": "rosette", "leaf": "lobed", "foliage": "#6a7a3a" },
+    "source": "Check against: RHS Grow Your Own – oriental greens; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "green-manure",
+    "commonName": "Green manure",
+    "latinName": "Phacelia, grazing rye or field beans",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Any", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 600, "spreadMm": 150, "spacingMm": 100, "rowSpacingMm": 200 },
+    "sowing": [
+      { "method": "direct", "months": [3, 4, 5, 6, 7, 8, 9], "depthMm": 10, "notes": "Broadcast thinly and rake in." }
+    ],
+    "flowerMonths": [6, 7, 8, 9],
+    "germinationDays": [7, 14],
+    "lookOutFor": ["Cut it down before it seeds, and dig it in or leave it as a mulch.", "Grazing rye or field beans sown in autumn cover bare soil all winter."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "clump", "leaf": "feathery", "foliage": "#6a9a50", "flower": "#8a7ad0", "bloom": "spike" },
+    "source": "Check against: RHS – green manures; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "mibuna",
+    "commonName": "Mibuna",
+    "latinName": "Brassica rapa var. japonica",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Moisture-retentive", "moisture": "moist", "hardiness": "Hardy" },
+    "size": { "heightMm": 300, "spreadMm": 200, "spacingMm": 200, "closeSpacingMm": 150, "rowSpacingMm": 300 },
+    "sowing": [
+      { "method": "direct", "months": [3, 4, 5, 7, 8, 9], "depthMm": 10 }
+    ],
+    "cropping": { "harvestMonths": [5, 6, 9, 10, 11], "notes": "Cut and come again." },
+    "growth": { "days": [35, 45], "from": "sowing" },
+    "germinationDays": [3, 7],
+    "pests": [
+      { "name": "Flea beetle", "signs": "Small round holes in young leaves", "control": "Keep seedlings watered and grow under fine mesh." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "art": { "form": "rosette", "leaf": "strap", "foliage": "#5f8a3a" },
+    "source": "Check against: RHS Grow Your Own – oriental greens; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "perpetual-spinach",
+    "commonName": "Perpetual spinach",
+    "latinName": "Beta vulgaris subsp. cicla",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Fertile, moisture-retentive", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 450, "spreadMm": 300, "spacingMm": 300, "closeSpacingMm": 250, "rowSpacingMm": 400 },
+    "sowing": [
+      { "method": "direct", "months": [3, 4, 5, 6, 7, 8], "depthMm": 25 }
+    ],
+    "cropping": { "harvestMonths": [1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12], "notes": "Pick outer leaves; it keeps going." },
+    "growth": { "days": [50, 60], "from": "sowing" },
+    "germinationDays": [7, 14],
+    "lookOutFor": ["Doesn’t bolt like true spinach, and crops for a year or more."],
+    "pests": [
+      { "name": "Slugs and snails", "signs": "Seedlings and young plants eaten, slime trails", "control": "Check after dark, use barriers, and encourage frogs, birds and beetles." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "art": { "form": "rosette", "leaf": "broad", "foliage": "#3f7a35" },
+    "source": "Check against: RHS Grow Your Own – leaf beet; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "new-zealand-spinach",
+    "commonName": "New Zealand spinach",
+    "latinName": "Tetragonia tetragonioides",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Any, well-drained", "moisture": "dry", "hardiness": "Tender" },
+    "size": { "heightMm": 300, "spreadMm": 900, "spacingMm": 600 },
+    "sowing": [
+      { "method": "indoors", "months": [4], "depthMm": 10, "notes": "Soak the seed overnight first." },
+      { "method": "direct", "months": [5, 6], "depthMm": 10 }
+    ],
+    "plantOutMonths": [5, 6],
+    "cropping": { "harvestMonths": [7, 8, 9, 10], "notes": "Pick the tips and young leaves." },
+    "growth": { "days": [50, 70], "from": "sowing" },
+    "germinationDays": [10, 21],
+    "lookOutFor": ["Copes with heat and drought, and doesn’t bolt."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "sprawl", "leaf": "broad", "foliage": "#5f8f4a" },
+    "source": "Check against: RHS Grow Your Own – new zealand spinach; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "daikon",
+    "commonName": "Daikon",
+    "latinName": "Raphanus sativus var. longipinnatus",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Deep, light", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 300, "spreadMm": 200, "spacingMm": 150, "closeSpacingMm": 150, "rowSpacingMm": 300 },
+    "sowing": [
+      { "method": "direct", "months": [7, 8], "depthMm": 15 }
+    ],
+    "cropping": { "harvestMonths": [9, 10, 11, 12], "notes": "Lift as needed; hardy roots keep in the ground for a while." },
+    "growth": { "days": [50, 70], "from": "sowing" },
+    "germinationDays": [3, 7],
+    "pests": [
+      { "name": "Flea beetle", "signs": "Small round holes in young leaves", "control": "Keep seedlings watered and grow under fine mesh." },
+      { "name": "Cabbage root fly", "signs": "Wilting plants, tunnels in the roots", "control": "Grow under fine mesh." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "rosette", "leaf": "lobed", "foliage": "#5f8a3a", "crop": { "kind": "root", "colour": "#f2f0e6" } },
+    "source": "Check against: RHS Grow Your Own – winter radish; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "elephant-garlic",
+    "commonName": "Elephant garlic",
+    "latinName": "Allium ampeloprasum",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "dry", "hardiness": "Hardy" },
+    "size": { "heightMm": 1500, "spreadMm": 300, "spacingMm": 250, "rowSpacingMm": 300 },
+    "plantOutMonths": [9, 10, 11],
+    "cropping": { "harvestMonths": [6, 7], "notes": "Lift when the lower leaves yellow; dry in the sun." },
+    "flowerMonths": [6, 7],
+    "lookOutFor": ["Plant single cloves, pointed end up. Cut the flower stem for bigger bulbs."],
+    "pests": [
+      { "name": "Allium leaf miner", "signs": "Twisted leaves and small brown pupae in the stems", "control": "Cover with fine mesh in March to May and October to November." },
+      { "name": "Rust", "signs": "Orange spots on the leaves", "control": "Space plants well and remove badly affected leaves." }
+    ],
+    "companions": { "good": [], "avoid": ["broad-bean", "runner-bean", "french-bean", "pea"] },
+    "wintering": { "type": "hardy" },
+    "art": { "form": "grass", "leaf": "strap", "foliage": "#6a8a6a", "flower": "#c8a0d0", "bloom": "umbel", "crop": { "kind": "root", "colour": "#f0ece0" } },
+    "source": "Check against: RHS Grow Your Own – elephant garlic; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "welsh-onion",
+    "commonName": "Welsh onion",
+    "latinName": "Allium fistulosum",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 600, "spreadMm": 200, "spacingMm": 200 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4], "depthMm": 10 },
+      { "method": "direct", "months": [4, 5, 6], "depthMm": 10 }
+    ],
+    "plantOutMonths": [5, 6],
+    "cropping": { "harvestMonths": [3, 4, 5, 6, 7, 8, 9, 10, 11], "notes": "Pull stems as needed; the clump grows back." },
+    "flowerMonths": [6, 7],
+    "germinationDays": [7, 14],
+    "lookOutFor": ["Perennial: lift and divide the clumps every few years."],
+    "pests": [
+      { "name": "Allium leaf miner", "signs": "Twisted leaves and small brown pupae in the stems", "control": "Cover with fine mesh in March to May and October to November." }
+    ],
+    "companions": { "good": [], "avoid": ["broad-bean", "runner-bean", "french-bean", "pea"] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "clump", "leaf": "strap", "foliage": "#5f8a4a", "flower": "#f6f2e6", "bloom": "umbel" },
+    "source": "Check against: RHS Grow Your Own – welsh onion; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "chinese-cabbage",
+    "commonName": "Chinese cabbage",
+    "latinName": "Brassica rapa subsp. pekinensis",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Fertile, moisture-retentive", "moisture": "moist", "hardiness": "Hardy" },
+    "size": { "heightMm": 450, "spreadMm": 300, "spacingMm": 300, "closeSpacingMm": 300, "rowSpacingMm": 450 },
+    "sowing": [
+      { "method": "direct", "months": [6, 7], "depthMm": 10 }
+    ],
+    "cropping": { "harvestMonths": [9, 10, 11], "notes": "Cut whole heads when firm." },
+    "growth": { "days": [70, 80], "from": "sowing" },
+    "germinationDays": [3, 7],
+    "lookOutFor": ["Sow after midsummer: earlier sowings bolt."],
+    "pests": [
+      { "name": "Slugs and snails", "signs": "Seedlings and young plants eaten, slime trails", "control": "Check after dark, use barriers, and encourage frogs, birds and beetles." },
+      { "name": "Flea beetle", "signs": "Small round holes in young leaves", "control": "Keep seedlings watered and grow under fine mesh." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "rosette", "leaf": "broad", "foliage": "#a8c870", "crop": { "kind": "head", "colour": "#e8f0c8" } },
+    "source": "Check against: RHS Grow Your Own – chinese cabbage; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "cardoon",
+    "commonName": "Cardoon",
+    "latinName": "Cynara cardunculus",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Fertile, well-drained", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 1800, "spreadMm": 1200, "spacingMm": 900 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4], "depthMm": 15 }
+    ],
+    "plantOutMonths": [5, 6],
+    "cropping": { "harvestMonths": [9, 10], "notes": "Wrap the stems to whiten them for three to four weeks, then cut." },
+    "flowerMonths": [7, 8, 9],
+    "germinationDays": [10, 21],
+    "lookOutFor": ["Big silver leaves and thistle flowers that bees love."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "clump", "leaf": "lobed", "foliage": "#8a9a9a", "flower": "#8a5ab0", "bloom": "big" },
+    "source": "Check against: RHS Grow Your Own – cardoon; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "sea-kale",
+    "commonName": "Sea kale",
+    "latinName": "Crambe maritima",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Free-draining, sandy", "moisture": "dry", "hardiness": "Hardy" },
+    "size": { "heightMm": 600, "spreadMm": 600, "spacingMm": 600 },
+    "plantOutMonths": [3, 4],
+    "cropping": { "harvestMonths": [3, 4], "notes": "Cover the crowns with a pot in late winter; cut the white shoots at 20 cm." },
+    "flowerMonths": [6],
+    "lookOutFor": ["Grown from root cuttings (thongs). Leave a plant uncut each year to build up."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "clump", "leaf": "broad", "foliage": "#8aa0a0", "flower": "#f6f4ee", "bloom": "umbel" },
+    "source": "Check against: RHS Grow Your Own – sea kale; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "summer-squash",
+    "commonName": "Summer squash",
+    "latinName": "Cucurbita pepo",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Rich, plenty of compost", "moisture": "moist", "hardiness": "Tender" },
+    "size": { "heightMm": 500, "spreadMm": 900, "spacingMm": 900, "rowSpacingMm": 900 },
+    "sowing": [
+      { "method": "indoors", "months": [4, 5], "depthMm": 25, "notes": "Sow on edge, one seed a pot." },
+      { "method": "direct", "months": [5, 6], "depthMm": 25 }
+    ],
+    "plantOutMonths": [5, 6],
+    "cropping": { "harvestMonths": [7, 8, 9], "notes": "Pick small, at 8 to 10 cm across; more come." },
+    "growth": { "days": [50, 60], "from": "sowing" },
+    "germinationDays": [5, 10],
+    "pests": [
+      { "name": "Slugs and snails", "signs": "Seedlings and young plants eaten, slime trails", "control": "Check after dark, use barriers, and encourage frogs, birds and beetles." },
+      { "name": "Powdery mildew", "signs": "White powder on leaves in late summer", "control": "Water the roots in dry spells and give plants room for air." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "sprawl", "leaf": "lobed", "foliage": "#4f7d3a", "flower": "#f2b51c", "bloom": "big", "crop": { "kind": "fruit", "colour": "#e8d070" } },
+    "source": "Check against: RHS Grow Your Own – summer squash and patty pans; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "okra",
+    "commonName": "Okra",
+    "latinName": "Abelmoschus esculentus",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Fertile, well-drained", "moisture": "moderate", "hardiness": "Tender: under glass" },
+    "size": { "heightMm": 1000, "spreadMm": 450, "spacingMm": 450 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4], "depthMm": 15, "notes": "Soak the seed overnight; it needs 20 °C to come up." }
+    ],
+    "plantOutMonths": [6],
+    "cropping": { "harvestMonths": [8, 9], "notes": "Pick the pods young, at 5 to 8 cm." },
+    "growth": { "days": [60, 70], "from": "planting" },
+    "germinationDays": [7, 14],
+    "pests": [
+      { "name": "Aphids", "signs": "Clusters of small insects on shoot tips", "control": "Squash or hose them off; encourage ladybirds and hoverflies." },
+      { "name": "Red spider mite", "signs": "Fine pale mottling and webbing under leaves", "control": "Damp down the greenhouse in hot weather; predatory mites help." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "lobed", "foliage": "#5f8a45", "flower": "#f2e090", "bloom": "cup", "crop": { "kind": "pod", "colour": "#6a9a4a" } },
+    "source": "Check against: RHS Grow Your Own – okra; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "asparagus-pea",
+    "commonName": "Asparagus pea",
+    "latinName": "Lotus tetragonolobus",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Light, well-drained", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 300, "spreadMm": 450, "spacingMm": 300 },
+    "sowing": [
+      { "method": "indoors", "months": [4], "depthMm": 15 },
+      { "method": "direct", "months": [5], "depthMm": 15 }
+    ],
+    "plantOutMonths": [5],
+    "cropping": { "harvestMonths": [7, 8], "notes": "Pick the winged pods at 2 to 3 cm, before they turn stringy." },
+    "flowerMonths": [6, 7, 8],
+    "germinationDays": [7, 14],
+    "pests": [
+      { "name": "Pigeons", "signs": "Young plants pecked", "control": "Net them." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "sprawl", "leaf": "round", "foliage": "#5f8a4a", "flower": "#a0283a", "bloom": "cup", "crop": { "kind": "pod", "colour": "#6a9a4a" } },
+    "source": "Check against: RHS Grow Your Own – asparagus pea; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "borlotti-bean",
+    "commonName": "Borlotti bean",
+    "latinName": "Phaseolus vulgaris",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Fertile, moisture-retentive", "moisture": "moderate", "hardiness": "Tender" },
+    "size": { "heightMm": 2000, "spreadMm": 300, "spacingMm": 200, "closeSpacingMm": 150, "rowSpacingMm": 600 },
+    "sowing": [
+      { "method": "indoors", "months": [4, 5], "depthMm": 50 },
+      { "method": "direct", "months": [5, 6], "depthMm": 50 }
+    ],
+    "plantOutMonths": [6],
+    "cropping": { "harvestMonths": [8, 9, 10], "notes": "Pick for fresh beans when the pods are splashed red, or leave them to dry on the plant." },
+    "growth": { "days": [80, 100], "from": "sowing" },
+    "germinationDays": [7, 14],
+    "pests": [
+      { "name": "Slugs and snails", "signs": "Seedlings and young plants eaten, slime trails", "control": "Check after dark, use barriers, and encourage frogs, birds and beetles." },
+      { "name": "Blackfly", "signs": "Black aphids on shoot tips", "control": "Pinch out the tips or rinse them off." }
+    ],
+    "companions": { "good": [], "avoid": ["onion", "garlic", "leek", "shallot"] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "climber", "leaf": "broad", "foliage": "#5f8a45", "flower": "#f2ece0", "bloom": "cup", "crop": { "kind": "pod", "colour": "#c8606a" } },
+    "source": "Check against: RHS Grow Your Own – French beans; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "scorzonera",
+    "commonName": "Scorzonera",
+    "latinName": "Scorzonera hispanica",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Deep, stone-free", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 600, "spreadMm": 150, "spacingMm": 150, "rowSpacingMm": 300 },
+    "sowing": [
+      { "method": "direct", "months": [4, 5], "depthMm": 15 }
+    ],
+    "cropping": { "harvestMonths": [10, 11, 12, 1, 2], "notes": "Lift as needed; small roots can grow on another year." },
+    "growth": { "days": [150, 180], "from": "sowing" },
+    "germinationDays": [10, 21],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "art": { "form": "grass", "leaf": "strap", "foliage": "#5f8a4a", "crop": { "kind": "root", "colour": "#3a2a20" } },
+    "source": "Check against: RHS Grow Your Own – scorzonera; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "cima-di-rapa",
+    "commonName": "Cima di rapa",
+    "latinName": "Brassica rapa var. cymosa",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Fertile", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 450, "spreadMm": 200, "spacingMm": 150, "closeSpacingMm": 150, "rowSpacingMm": 300 },
+    "sowing": [
+      { "method": "direct", "months": [3, 4, 5, 7, 8, 9], "depthMm": 10 }
+    ],
+    "cropping": { "harvestMonths": [5, 6, 9, 10, 11], "notes": "Cut the flowering shoots before the buds open." },
+    "growth": { "days": [40, 60], "from": "sowing" },
+    "germinationDays": [3, 7],
+    "pests": [
+      { "name": "Flea beetle", "signs": "Small round holes in young leaves", "control": "Keep seedlings watered and grow under fine mesh." },
+      { "name": "Pigeons", "signs": "Leaves pecked to stalks in winter", "control": "Net the plants." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "lobed", "foliage": "#5f8a3a", "crop": { "kind": "head", "colour": "#6a9a3a" } },
+    "source": "Check against: seed packet – turnip tops; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "cavolo-nero",
+    "commonName": "Cavolo nero",
+    "latinName": "Brassica oleracea (Acephala Group)",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Firm, fertile", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 900, "spreadMm": 600, "spacingMm": 600, "closeSpacingMm": 450, "rowSpacingMm": 600 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4, 5], "depthMm": 15 }
+    ],
+    "plantOutMonths": [5, 6, 7],
+    "cropping": { "harvestMonths": [8, 9, 10, 11, 12, 1, 2, 3], "notes": "Pick the lower leaves; the top keeps growing." },
+    "growth": { "days": [60, 90], "from": "planting" },
+    "germinationDays": [5, 10],
+    "pests": [
+      { "name": "Cabbage white caterpillars", "signs": "Leaves eaten to the veins", "control": "Net with fine mesh and pick caterpillars off." },
+      { "name": "Pigeons", "signs": "Leaves pecked to stalks in winter", "control": "Net the plants." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "art": { "form": "upright", "leaf": "strap", "foliage": "#2f4a3a" },
+    "source": "Check against: RHS Grow Your Own – kale; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "savoy-cabbage",
+    "commonName": "Savoy cabbage",
+    "latinName": "Brassica oleracea (Capitata Group)",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Firm, fertile", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 400, "spreadMm": 600, "spacingMm": 450, "closeSpacingMm": 450, "rowSpacingMm": 600 },
+    "sowing": [
+      { "method": "indoors", "months": [4, 5], "depthMm": 15 }
+    ],
+    "plantOutMonths": [6, 7],
+    "cropping": { "harvestMonths": [10, 11, 12, 1, 2], "notes": "Cut heads when firm; they stand well in frost." },
+    "growth": { "days": [110, 140], "from": "planting" },
+    "germinationDays": [5, 10],
+    "lookOutFor": ["Firm the soil well when planting: loose soil gives loose hearts."],
+    "pests": [
+      { "name": "Cabbage white caterpillars", "signs": "Leaves eaten to the veins", "control": "Net with fine mesh and pick caterpillars off." },
+      { "name": "Pigeons", "signs": "Leaves pecked to stalks in winter", "control": "Net the plants." },
+      { "name": "Clubroot", "signs": "Swollen, distorted roots and wilting", "control": "Raise plants in pots to plant out bigger; lime acid soil; rotate crops." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "art": { "form": "rosette", "leaf": "round", "foliage": "#4f7a3c", "crop": { "kind": "head", "colour": "#6a9a4a" } },
+    "source": "Check against: RHS Grow Your Own – cabbages; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "garden-cress",
+    "commonName": "Garden cress",
+    "latinName": "Lepidium sativum",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Any", "moisture": "moist", "hardiness": "Hardy" },
+    "size": { "heightMm": 150, "spreadMm": 100, "spacingMm": 50, "closeSpacingMm": 50, "rowSpacingMm": 150 },
+    "sowing": [
+      { "method": "direct", "months": [3, 4, 5, 6, 7, 8, 9], "depthMm": 5 }
+    ],
+    "cropping": { "harvestMonths": [3, 4, 5, 6, 7, 8, 9, 10], "notes": "Cut within a few weeks of sowing." },
+    "growth": { "days": [10, 20], "from": "sowing" },
+    "germinationDays": [2, 5],
+    "lookOutFor": ["Sow every week or two; grows on a windowsill all year too."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "rosette", "leaf": "feathery", "foliage": "#7ab050" },
+    "source": "Check against: RHS Grow Your Own – garden cress; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "hamburg-parsley",
+    "commonName": "Hamburg parsley",
+    "latinName": "Petroselinum crispum var. tuberosum",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Deep, fertile", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 300, "spreadMm": 200, "spacingMm": 200, "rowSpacingMm": 300 },
+    "sowing": [
+      { "method": "direct", "months": [3, 4, 5], "depthMm": 10 }
+    ],
+    "cropping": { "harvestMonths": [10, 11, 12, 1, 2], "notes": "Lift the roots as needed; the leaves are good too." },
+    "growth": { "days": [150, 180], "from": "sowing" },
+    "germinationDays": [14, 28],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "art": { "form": "rosette", "leaf": "feathery", "foliage": "#4f7a3c", "crop": { "kind": "root", "colour": "#f0e8d0" } },
+    "source": "Check against: RHS Grow Your Own – hamburg parsley; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "romanesco",
+    "commonName": "Romanesco",
+    "latinName": "Brassica oleracea (Botrytis Group)",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Firm, fertile", "moisture": "moist", "hardiness": "Hardy" },
+    "size": { "heightMm": 600, "spreadMm": 600, "spacingMm": 600, "closeSpacingMm": 500, "rowSpacingMm": 600 },
+    "sowing": [
+      { "method": "indoors", "months": [4, 5], "depthMm": 15 }
+    ],
+    "plantOutMonths": [5, 6],
+    "cropping": { "harvestMonths": [9, 10, 11], "notes": "Cut while the head is tight." },
+    "growth": { "days": [75, 100], "from": "planting" },
+    "germinationDays": [5, 10],
+    "pests": [
+      { "name": "Cabbage white caterpillars", "signs": "Leaves eaten to the veins", "control": "Net with fine mesh and pick caterpillars off." },
+      { "name": "Pigeons", "signs": "Leaves pecked to stalks in winter", "control": "Net the plants." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "rosette", "leaf": "broad", "foliage": "#6a8a4a", "crop": { "kind": "head", "colour": "#b8d060" } },
+    "source": "Check against: RHS Grow Your Own – cauliflowers; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "orache",
+    "commonName": "Orache",
+    "latinName": "Atriplex hortensis",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Any", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 1500, "spreadMm": 300, "spacingMm": 300, "closeSpacingMm": 250, "rowSpacingMm": 450 },
+    "sowing": [
+      { "method": "direct", "months": [3, 4, 5, 6], "depthMm": 10 }
+    ],
+    "cropping": { "harvestMonths": [5, 6, 7, 8], "notes": "Pick young leaves, as spinach." },
+    "growth": { "days": [40, 60], "from": "sowing" },
+    "germinationDays": [7, 14],
+    "lookOutFor": ["Cut the flower spikes before they seed, or it seeds everywhere."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "broad", "foliage": "#8a2a4a" },
+    "source": "Check against: seed packet – mountain spinach; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "shungiku",
+    "commonName": "Shungiku",
+    "latinName": "Glebionis coronaria",
+    "category": "vegetable",
+    "conditions": { "light": "full-sun", "soil": "Any", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 600, "spreadMm": 300, "spacingMm": 200, "closeSpacingMm": 150 },
+    "sowing": [
+      { "method": "direct", "months": [3, 4, 5, 8, 9], "depthMm": 5 }
+    ],
+    "cropping": { "harvestMonths": [5, 6, 7, 9, 10, 11], "notes": "Pick young shoots and leaves." },
+    "flowerMonths": [6, 7, 8],
+    "growth": { "days": [40, 50], "from": "sowing" },
+    "germinationDays": [5, 10],
+    "lookOutFor": ["Also called chop suey greens; the yellow flowers are edible."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "feathery", "foliage": "#5f8a45", "flower": "#f2d23c", "bloom": "daisy" },
+    "source": "Check against: seed packet – edible chrysanthemum; seed packet or nursery label",
     "verified": false,
     "userAdded": false
   }

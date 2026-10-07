@@ -57,6 +57,7 @@
         "control": "Squash by hand or wash off with water; ladybirds and hoverflies will follow."
       }
     ],
+    "germinationDays": [7, 21],
     "companions": {
       "good": [],
       "avoid": []
@@ -131,6 +132,7 @@
         "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
       }
     ],
+    "germinationDays": [7, 14],
     "companions": {
       "good": [],
       "avoid": []
@@ -192,6 +194,7 @@
         "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
       }
     ],
+    "germinationDays": [5, 10],
     "companions": {
       "good": [
         "tomato"
@@ -246,6 +249,7 @@
     "lookOutFor": [
       "Petals are edible. Self-seeds freely."
     ],
+    "germinationDays": [7, 14],
     "companions": {
       "good": [
         "tomato"
@@ -318,6 +322,7 @@
         "control": "Pick off the caterpillars and yellow eggs by hand."
       }
     ],
+    "germinationDays": [7, 14],
     "companions": {
       "good": [
         "courgette",
@@ -383,6 +388,7 @@
         "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
       }
     ],
+    "germinationDays": [7, 14],
     "companions": {
       "good": [],
       "avoid": []
@@ -446,6 +452,7 @@
         "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
       }
     ],
+    "germinationDays": [5, 10],
     "companions": {
       "good": [],
       "avoid": []
@@ -908,6 +915,7 @@
       "All parts are poisonous (check).",
       "Self-seeds freely."
     ],
+    "germinationDays": [14, 21],
     "companions": {
       "good": [],
       "avoid": []
@@ -966,6 +974,7 @@
         "control": "Remove affected leaves; grow it in an open, airy spot."
       }
     ],
+    "germinationDays": [10, 14],
     "companions": {
       "good": [],
       "avoid": []
@@ -1029,6 +1038,7 @@
         "control": "Squash them by hand or hose them off."
       }
     ],
+    "germinationDays": [14, 21],
     "companions": {
       "good": [],
       "avoid": []
@@ -1079,6 +1089,7 @@
         "control": "Protect the new shoots as they come through."
       }
     ],
+    "germinationDays": [14, 28],
     "companions": {
       "good": [],
       "avoid": []
@@ -1341,6 +1352,7 @@
         "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
       }
     ],
+    "germinationDays": [10, 21],
     "companions": {
       "good": [],
       "avoid": []
@@ -1393,6 +1405,7 @@
         "control": "Protect young plants and check for slugs after dark; encourage birds, frogs and beetles."
       }
     ],
+    "germinationDays": [7, 21],
     "companions": {
       "good": [],
       "avoid": []
@@ -1449,6 +1462,7 @@
     "lookOutFor": [
       "Tall but see-through: fine at the front of a border. Self-seeds."
     ],
+    "germinationDays": [14, 28],
     "companions": {
       "good": [],
       "avoid": []
@@ -1503,6 +1517,7 @@
     "lookOutFor": [
       "Autumn sowings flower earlier and stronger."
     ],
+    "germinationDays": [7, 14],
     "companions": {
       "good": [],
       "avoid": []
@@ -1553,6 +1568,7 @@
     "lookOutFor": [
       "Self-seeds on disturbed ground."
     ],
+    "germinationDays": [7, 14],
     "companions": {
       "good": [],
       "avoid": []
@@ -1603,6 +1619,7 @@
     "lookOutFor": [
       "Seed pods dry well for arrangements. Self-seeds."
     ],
+    "germinationDays": [10, 14],
     "companions": {
       "good": [],
       "avoid": []
@@ -1653,6 +1670,7 @@
     "lookOutFor": [
       "Sow this summer for flowers next summer."
     ],
+    "germinationDays": [7, 14],
     "companions": {
       "good": [],
       "avoid": []
@@ -1663,6 +1681,963 @@
     },
     "art": {"form":"mound","leaf":"strap","foliage":"#4f7f4a","flower":"#c8304a","bloom":"daisy"},
     "source": "Check against: RHS – sweet William; seed packet",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "snapdragon",
+    "commonName": "Snapdragon",
+    "latinName": "Antirrhinum majus",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "moderate", "hardiness": "Half-hardy annual" },
+    "size": { "heightMm": 450, "spreadMm": 300, "spacingMm": 250 },
+    "sowing": [
+      { "method": "indoors", "months": [2, 3, 4], "notes": "Sow on the surface." }
+    ],
+    "plantOutMonths": [5],
+    "flowerMonths": [6, 7, 8, 9, 10],
+    "germinationDays": [7, 21],
+    "lookOutFor": ["Pinch out the tips for bushier plants; bumblebees love them."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "strap", "foliage": "#5f8a45", "flower": "#e85a7a", "bloom": "spike" },
+    "source": "Check against: RHS – snapdragon; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "sweet-alyssum",
+    "commonName": "Sweet alyssum",
+    "latinName": "Lobularia maritima",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "dry", "hardiness": "Hardy annual" },
+    "size": { "heightMm": 150, "spreadMm": 250, "spacingMm": 200 },
+    "sowing": [
+      { "method": "indoors", "months": [3] },
+      { "method": "direct", "months": [4, 5], "depthMm": 5 }
+    ],
+    "plantOutMonths": [5],
+    "flowerMonths": [6, 7, 8, 9],
+    "germinationDays": [5, 14],
+    "lookOutFor": ["Honey-scented, and good for bees and hoverflies."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "mound", "leaf": "strap", "foliage": "#6a8a5a", "flower": "#f8f6f0", "bloom": "umbel" },
+    "source": "Check against: RHS – sweet alyssum; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "ammi",
+    "commonName": "Bishop’s flower",
+    "latinName": "Ammi majus",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Any, well-drained", "moisture": "moderate", "hardiness": "Hardy annual" },
+    "size": { "heightMm": 900, "spreadMm": 300, "spacingMm": 300 },
+    "sowing": [
+      { "method": "direct", "months": [3, 4, 5, 9], "depthMm": 5 }
+    ],
+    "flowerMonths": [6, 7, 8],
+    "germinationDays": [7, 21],
+    "lookOutFor": ["A good cut flower, and a magnet for hoverflies."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "feathery", "foliage": "#6a9a5a", "flower": "#f8f6f0", "bloom": "umbel" },
+    "source": "Check against: RHS – bishop’s flower; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "larkspur",
+    "commonName": "Larkspur",
+    "latinName": "Consolida ajacis",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "moderate", "hardiness": "Hardy annual" },
+    "size": { "heightMm": 900, "spreadMm": 300, "spacingMm": 250 },
+    "sowing": [
+      { "method": "direct", "months": [3, 4, 9], "depthMm": 5 }
+    ],
+    "flowerMonths": [6, 7, 8],
+    "germinationDays": [14, 21],
+    "lookOutFor": ["All parts are poisonous (check)."],
+    "pests": [
+      { "name": "Slugs and snails", "signs": "Seedlings and young plants eaten, slime trails", "control": "Check after dark, use barriers, and encourage frogs, birds and beetles." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "feathery", "foliage": "#5f8a45", "flower": "#6a5ad0", "bloom": "spike" },
+    "source": "Check against: RHS – larkspur; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "poached-egg-plant",
+    "commonName": "Poached egg plant",
+    "latinName": "Limnanthes douglasii",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Any", "moisture": "moderate", "hardiness": "Hardy annual" },
+    "size": { "heightMm": 150, "spreadMm": 150, "spacingMm": 150 },
+    "sowing": [
+      { "method": "direct", "months": [3, 4, 9], "depthMm": 5 }
+    ],
+    "flowerMonths": [5, 6, 7],
+    "germinationDays": [7, 21],
+    "lookOutFor": ["Hoverflies love it, and their young eat aphids. Self-seeds."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "sprawl", "leaf": "feathery", "foliage": "#7aa060", "flower": "#f6e070", "bloom": "cup" },
+    "source": "Check against: RHS – poached egg plant; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "petunia",
+    "commonName": "Petunia",
+    "latinName": "Petunia × atkinsiana",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "moderate", "hardiness": "Tender annual" },
+    "size": { "heightMm": 300, "spreadMm": 300, "spacingMm": 250 },
+    "sowing": [
+      { "method": "indoors", "months": [2, 3], "notes": "Sow on the surface; or buy plug plants." }
+    ],
+    "plantOutMonths": [5, 6],
+    "flowerMonths": [6, 7, 8, 9],
+    "germinationDays": [7, 14],
+    "pests": [
+      { "name": "Slugs and snails", "signs": "Seedlings and young plants eaten, slime trails", "control": "Check after dark, use barriers, and encourage frogs, birds and beetles." },
+      { "name": "Aphids", "signs": "Clusters of small insects on shoot tips", "control": "Squash or hose them off; encourage ladybirds and hoverflies." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "mound", "leaf": "broad", "foliage": "#5f8a45", "flower": "#a03a9a", "bloom": "cup" },
+    "source": "Check against: RHS – petunia; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "california-poppy",
+    "commonName": "California poppy",
+    "latinName": "Eschscholzia californica",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Poor, well-drained", "moisture": "dry", "hardiness": "Hardy annual" },
+    "size": { "heightMm": 300, "spreadMm": 200, "spacingMm": 150 },
+    "sowing": [
+      { "method": "direct", "months": [3, 4, 5, 9], "depthMm": 5 }
+    ],
+    "flowerMonths": [6, 7, 8, 9],
+    "germinationDays": [7, 21],
+    "lookOutFor": ["Thrives in poor, dry soil, and self-seeds."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "sprawl", "leaf": "feathery", "foliage": "#8aa8a0", "flower": "#f2902a", "bloom": "cup" },
+    "source": "Check against: RHS – california poppy; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "nicotiana",
+    "commonName": "Tobacco plant",
+    "latinName": "Nicotiana alata",
+    "category": "flower",
+    "conditions": { "light": "part-shade", "soil": "Moisture-retentive", "moisture": "moderate", "hardiness": "Half-hardy annual" },
+    "size": { "heightMm": 900, "spreadMm": 300, "spacingMm": 300 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4], "notes": "Sow on the surface." }
+    ],
+    "plantOutMonths": [5, 6],
+    "flowerMonths": [7, 8, 9],
+    "germinationDays": [10, 21],
+    "lookOutFor": ["Scented in the evening; moths love it."],
+    "pests": [
+      { "name": "Slugs and snails", "signs": "Seedlings and young plants eaten, slime trails", "control": "Check after dark, use barriers, and encourage frogs, birds and beetles." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "broad", "foliage": "#6a9a5a", "flower": "#f6f4ee", "bloom": "cup" },
+    "source": "Check against: RHS – tobacco plant; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "cerinthe",
+    "commonName": "Honeywort",
+    "latinName": "Cerinthe major 'Purpurascens'",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "dry", "hardiness": "Hardy annual" },
+    "size": { "heightMm": 450, "spreadMm": 300, "spacingMm": 300 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4], "depthMm": 10 },
+      { "method": "direct", "months": [4, 5, 9], "depthMm": 10 }
+    ],
+    "plantOutMonths": [5],
+    "flowerMonths": [5, 6, 7, 8],
+    "germinationDays": [7, 21],
+    "lookOutFor": ["Blue-grey leaves and purple bells; bees love it."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "mound", "leaf": "round", "foliage": "#8aa0a0", "flower": "#4a3a8a", "bloom": "cup" },
+    "source": "Check against: RHS – honeywort; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "annual-scabious",
+    "commonName": "Sweet scabious",
+    "latinName": "Scabiosa atropurpurea",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "moderate", "hardiness": "Hardy annual" },
+    "size": { "heightMm": 900, "spreadMm": 300, "spacingMm": 300 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4], "depthMm": 5 }
+    ],
+    "plantOutMonths": [5],
+    "flowerMonths": [7, 8, 9, 10],
+    "germinationDays": [10, 21],
+    "lookOutFor": ["Bees and butterflies love it; pick often for more flowers."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "lobed", "foliage": "#6a8a5a", "flower": "#6a2a5a", "bloom": "daisy" },
+    "source": "Check against: RHS – sweet scabious; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "stocks",
+    "commonName": "Stocks",
+    "latinName": "Matthiola incana",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Fertile, well-drained", "moisture": "moderate", "hardiness": "Half-hardy annual" },
+    "size": { "heightMm": 450, "spreadMm": 300, "spacingMm": 250 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4] }
+    ],
+    "plantOutMonths": [5],
+    "flowerMonths": [6, 7, 8],
+    "germinationDays": [7, 14],
+    "lookOutFor": ["Strongly clove-scented."],
+    "pests": [
+      { "name": "Flea beetle", "signs": "Small round holes in young leaves", "control": "Keep seedlings watered and grow under fine mesh." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "strap", "foliage": "#8aa0a0", "flower": "#d070a8", "bloom": "spike" },
+    "source": "Check against: RHS – stocks; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "wallflower",
+    "commonName": "Wallflower",
+    "latinName": "Erysimum cheiri",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained, not acid", "moisture": "moderate", "hardiness": "Hardy biennial" },
+    "size": { "heightMm": 450, "spreadMm": 300, "spacingMm": 300 },
+    "sowing": [
+      { "method": "direct", "months": [5, 6], "depthMm": 10, "notes": "Sow in a seedbed; move to where they’ll flower in autumn." }
+    ],
+    "plantOutMonths": [9, 10],
+    "flowerMonths": [3, 4, 5],
+    "germinationDays": [7, 14],
+    "lookOutFor": ["A biennial: sow in early summer for flowers the next spring."],
+    "pests": [
+      { "name": "Clubroot", "signs": "Swollen roots and stunted plants", "control": "Don’t grow them where cabbages grew." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy", "notes": "Flowers in its second spring." },
+    "art": { "form": "mound", "leaf": "strap", "foliage": "#4f7a45", "flower": "#e8802a", "bloom": "spike" },
+    "source": "Check against: RHS – wallflower; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "forget-me-not",
+    "commonName": "Forget-me-not",
+    "latinName": "Myosotis sylvatica",
+    "category": "flower",
+    "conditions": { "light": "part-shade", "soil": "Moisture-retentive", "moisture": "moist", "hardiness": "Hardy biennial" },
+    "size": { "heightMm": 300, "spreadMm": 250, "spacingMm": 200 },
+    "sowing": [
+      { "method": "direct", "months": [5, 6, 7], "depthMm": 5 }
+    ],
+    "plantOutMonths": [9, 10],
+    "flowerMonths": [4, 5, 6],
+    "germinationDays": [7, 21],
+    "lookOutFor": ["Self-seeds freely; pull plants out once they turn mildewy."],
+    "pests": [
+      { "name": "Powdery mildew", "signs": "White powder on leaves in late summer", "control": "Water the roots in dry spells and give plants room for air." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy", "notes": "Flowers in its second spring." },
+    "art": { "form": "mound", "leaf": "broad", "foliage": "#5f8a50", "flower": "#6a9ae0", "bloom": "daisy" },
+    "source": "Check against: RHS – forget-me-not; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "viola",
+    "commonName": "Pansy and viola",
+    "latinName": "Viola × wittrockiana",
+    "category": "flower",
+    "conditions": { "light": "part-shade", "soil": "Moisture-retentive", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 200, "spreadMm": 200, "spacingMm": 200 },
+    "sowing": [
+      { "method": "indoors", "months": [1, 2, 6, 7, 8], "notes": "Sow in summer for winter flowers, in late winter for summer." }
+    ],
+    "plantOutMonths": [3, 4, 9, 10],
+    "flowerMonths": [1, 2, 3, 4, 5, 10, 11, 12],
+    "germinationDays": [10, 21],
+    "lookOutFor": ["Winter pansies flower on and off right through winter; deadhead to keep them going."],
+    "pests": [
+      { "name": "Slugs and snails", "signs": "Seedlings and young plants eaten, slime trails", "control": "Check after dark, use barriers, and encourage frogs, birds and beetles." },
+      { "name": "Aphids", "signs": "Clusters of small insects on shoot tips", "control": "Squash or hose them off; encourage ladybirds and hoverflies." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "art": { "form": "mound", "leaf": "round", "foliage": "#4f7a40", "flower": "#6a4ac0", "bloom": "cup" },
+    "source": "Check against: RHS – pansy and viola; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "honesty",
+    "commonName": "Honesty",
+    "latinName": "Lunaria annua",
+    "category": "flower",
+    "conditions": { "light": "part-shade", "soil": "Any", "moisture": "moderate", "hardiness": "Hardy biennial" },
+    "size": { "heightMm": 900, "spreadMm": 300, "spacingMm": 300 },
+    "sowing": [
+      { "method": "direct", "months": [5, 6], "depthMm": 10 }
+    ],
+    "plantOutMonths": [9],
+    "flowerMonths": [4, 5],
+    "germinationDays": [10, 21],
+    "lookOutFor": ["The flat, silvery seed pods dry well.", "Early food for orange-tip butterflies."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy", "notes": "Flowers in its second spring." },
+    "art": { "form": "upright", "leaf": "broad", "foliage": "#5f8a45", "flower": "#a050c0", "bloom": "spike" },
+    "source": "Check against: RHS – honesty; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "clarkia",
+    "commonName": "Clarkia",
+    "latinName": "Clarkia unguiculata",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Light, well-drained", "moisture": "moderate", "hardiness": "Hardy annual" },
+    "size": { "heightMm": 600, "spreadMm": 250, "spacingMm": 200 },
+    "sowing": [
+      { "method": "direct", "months": [3, 4, 5], "depthMm": 5 }
+    ],
+    "flowerMonths": [6, 7, 8],
+    "germinationDays": [7, 14],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "strap", "foliage": "#6a8a5a", "flower": "#e070a0", "bloom": "spike" },
+    "source": "Check against: RHS – clarkia; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "strawflower",
+    "commonName": "Strawflower",
+    "latinName": "Xerochrysum bracteatum",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "dry", "hardiness": "Half-hardy annual" },
+    "size": { "heightMm": 900, "spreadMm": 300, "spacingMm": 300 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4], "notes": "Sow on the surface." }
+    ],
+    "plantOutMonths": [5],
+    "flowerMonths": [7, 8, 9, 10],
+    "germinationDays": [7, 14],
+    "lookOutFor": ["Papery flowers that keep their colour dried: cut just before they open."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "strap", "foliage": "#6a8a5a", "flower": "#f0a020", "bloom": "daisy" },
+    "source": "Check against: RHS – strawflower; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "cleome",
+    "commonName": "Spider flower",
+    "latinName": "Cleome hassleriana",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Fertile, well-drained", "moisture": "moderate", "hardiness": "Half-hardy annual" },
+    "size": { "heightMm": 1200, "spreadMm": 450, "spacingMm": 450 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4], "depthMm": 5 }
+    ],
+    "plantOutMonths": [6],
+    "flowerMonths": [7, 8, 9, 10],
+    "germinationDays": [10, 21],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "upright", "leaf": "lobed", "foliage": "#5f8a45", "flower": "#e8a0d0", "bloom": "spike" },
+    "source": "Check against: RHS – spider flower; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "pelargonium",
+    "commonName": "Pelargonium",
+    "latinName": "Pelargonium × hortorum",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "dry", "hardiness": "Tender" },
+    "size": { "heightMm": 450, "spreadMm": 300, "spacingMm": 300 },
+    "sowing": [
+      { "method": "indoors", "months": [1, 2, 3], "depthMm": 5, "notes": "Or buy plug plants in spring." }
+    ],
+    "plantOutMonths": [5, 6],
+    "flowerMonths": [6, 7, 8, 9, 10],
+    "germinationDays": [7, 21],
+    "lookOutFor": ["Often called geraniums. Water when the compost is dry."],
+    "pests": [
+      { "name": "Vine weevil", "signs": "Notches in leaf edges; plants in pots wilt as grubs eat the roots", "control": "Check pots for the creamy grubs and use nematodes in late summer." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "protect", "notes": "Bring indoors before the first frost; keep just moist over winter." },
+    "lifePath": { "perennial": true },
+    "art": { "form": "mound", "leaf": "round", "foliage": "#5f8a45", "flower": "#d82a3a", "bloom": "big" },
+    "source": "Check against: RHS – pelargonium; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "lobelia",
+    "commonName": "Lobelia",
+    "latinName": "Lobelia erinus",
+    "category": "flower",
+    "conditions": { "light": "part-shade", "soil": "Moisture-retentive", "moisture": "moist", "hardiness": "Half-hardy annual" },
+    "size": { "heightMm": 150, "spreadMm": 150, "spacingMm": 150 },
+    "sowing": [
+      { "method": "indoors", "months": [2, 3], "notes": "Sow on the surface, in pinches." }
+    ],
+    "plantOutMonths": [5, 6],
+    "flowerMonths": [6, 7, 8, 9],
+    "germinationDays": [14, 21],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "mound", "leaf": "strap", "foliage": "#5f8a45", "flower": "#3a4ad0", "bloom": "cup" },
+    "source": "Check against: RHS – lobelia; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "hyacinth",
+    "commonName": "Hyacinth",
+    "latinName": "Hyacinthus orientalis",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 250, "spreadMm": 100, "spacingMm": 100 },
+    "plantOutMonths": [9, 10, 11],
+    "flowerMonths": [3, 4],
+    "lookOutFor": ["Plant about 10 cm deep; strongly scented.", "The bulbs can irritate skin: wear gloves."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "bulb", "leaf": "strap", "foliage": "#5f8a5a", "flower": "#8a6ad0", "bloom": "spike" },
+    "source": "Check against: RHS – hyacinth; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "grape-hyacinth",
+    "commonName": "Grape hyacinth",
+    "latinName": "Muscari armeniacum",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 200, "spreadMm": 80, "spacingMm": 80 },
+    "plantOutMonths": [9, 10],
+    "flowerMonths": [3, 4, 5],
+    "lookOutFor": ["Spreads into clumps; early food for bees."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "bulb", "leaf": "strap", "foliage": "#5f8a5a", "flower": "#3a4ab0", "bloom": "spike" },
+    "source": "Check against: RHS – grape hyacinth; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "bluebell",
+    "commonName": "English bluebell",
+    "latinName": "Hyacinthoides non-scripta",
+    "category": "flower",
+    "conditions": { "light": "shade", "soil": "Moisture-retentive, humus-rich", "moisture": "moist", "hardiness": "Hardy" },
+    "size": { "heightMm": 300, "spreadMm": 100, "spacingMm": 100 },
+    "plantOutMonths": [9, 10, 11],
+    "flowerMonths": [4, 5],
+    "lookOutFor": ["Buy only native bluebells from cultivated stock.", "Spanish bluebells cross with the native ones: avoid them."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "bulb", "leaf": "strap", "foliage": "#4f7a50", "flower": "#4a5ad0", "bloom": "spike" },
+    "source": "Check against: RHS – english bluebell; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "lily",
+    "commonName": "Lily",
+    "latinName": "Lilium",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained, humus-rich", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 1200, "spreadMm": 300, "spacingMm": 300 },
+    "plantOutMonths": [10, 11, 12, 1, 2, 3, 4],
+    "flowerMonths": [6, 7, 8],
+    "lookOutFor": ["Lilies are deadly to cats, even the pollen (check).", "Plant two to three times the bulb’s depth; good in pots."],
+    "pests": [
+      { "name": "Lily beetle", "signs": "Bright red beetles and their grubs eating leaves", "control": "Pick off the beetles and grubs by hand from spring." },
+      { "name": "Vine weevil", "signs": "Notches in leaf edges; plants in pots wilt as grubs eat the roots", "control": "Check pots for the creamy grubs and use nematodes in late summer." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "bulb", "leaf": "strap", "foliage": "#4f7a45", "flower": "#f6f4ee", "bloom": "big" },
+    "source": "Check against: RHS – lily; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "gladiolus",
+    "commonName": "Gladiolus",
+    "latinName": "Gladiolus",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "moderate", "hardiness": "Half-hardy" },
+    "size": { "heightMm": 1200, "spreadMm": 150, "spacingMm": 150 },
+    "plantOutMonths": [3, 4, 5],
+    "flowerMonths": [7, 8, 9],
+    "lookOutFor": ["Plant corms 10 to 15 cm deep, a few weeks apart for flowers all summer."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "lift-and-store", "notes": "Lift the corms in autumn and store dry and frost-free." },
+    "lifePath": { "perennial": true },
+    "art": { "form": "bulb", "leaf": "strap", "foliage": "#5f8a5a", "flower": "#e84a5a", "bloom": "spike" },
+    "source": "Check against: RHS – gladiolus; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "snakes-head-fritillary",
+    "commonName": "Snake’s head fritillary",
+    "latinName": "Fritillaria meleagris",
+    "category": "flower",
+    "conditions": { "light": "part-shade", "soil": "Moisture-retentive", "moisture": "moist", "hardiness": "Hardy" },
+    "size": { "heightMm": 300, "spreadMm": 80, "spacingMm": 80 },
+    "plantOutMonths": [9, 10],
+    "flowerMonths": [4, 5],
+    "lookOutFor": ["Happiest in damp grass, where it spreads."],
+    "pests": [
+      { "name": "Lily beetle", "signs": "Bright red beetles and their grubs eating leaves", "control": "Pick off the beetles and grubs by hand from spring." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "bulb", "leaf": "strap", "foliage": "#6a8a6a", "flower": "#8a3a6a", "bloom": "cup" },
+    "source": "Check against: RHS – snake’s head fritillary; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "iris-reticulata",
+    "commonName": "Dwarf iris",
+    "latinName": "Iris reticulata",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Free-draining", "moisture": "dry", "hardiness": "Hardy" },
+    "size": { "heightMm": 150, "spreadMm": 80, "spacingMm": 80 },
+    "plantOutMonths": [9, 10],
+    "flowerMonths": [2, 3],
+    "lookOutFor": ["Good in pots and at the front of borders; one of the first flowers of the year."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "bulb", "leaf": "strap", "foliage": "#5f8a6a", "flower": "#4a3ab0", "bloom": "cup" },
+    "source": "Check against: RHS – dwarf iris; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "winter-aconite",
+    "commonName": "Winter aconite",
+    "latinName": "Eranthis hyemalis",
+    "category": "flower",
+    "conditions": { "light": "part-shade", "soil": "Moisture-retentive, humus-rich", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 100, "spreadMm": 80, "spacingMm": 80 },
+    "plantOutMonths": [3, 9, 10],
+    "flowerMonths": [1, 2, 3],
+    "lookOutFor": ["Best planted ‘in the green’, just after flowering. All parts are poisonous (check)."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "bulb", "leaf": "lobed", "foliage": "#5f8a45", "flower": "#f2d02a", "bloom": "cup" },
+    "source": "Check against: RHS – winter aconite; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "hardy-cyclamen",
+    "commonName": "Hardy cyclamen",
+    "latinName": "Cyclamen hederifolium",
+    "category": "flower",
+    "conditions": { "light": "shade", "soil": "Well-drained, humus-rich", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 100, "spreadMm": 200, "spacingMm": 150 },
+    "plantOutMonths": [7, 8, 9],
+    "flowerMonths": [8, 9, 10],
+    "lookOutFor": ["Plant the tubers just under the surface; it flowers before the leaves, in autumn."],
+    "pests": [
+      { "name": "Vine weevil", "signs": "Notches in leaf edges; plants in pots wilt as grubs eat the roots", "control": "Check pots for the creamy grubs and use nematodes in late summer." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "rosette", "leaf": "round", "foliage": "#4f6a50", "flower": "#e080b0", "bloom": "cup" },
+    "source": "Check against: RHS – hardy cyclamen; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "camassia",
+    "commonName": "Camassia",
+    "latinName": "Camassia leichtlinii",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Moisture-retentive", "moisture": "moist", "hardiness": "Hardy" },
+    "size": { "heightMm": 900, "spreadMm": 150, "spacingMm": 150 },
+    "plantOutMonths": [9, 10],
+    "flowerMonths": [5, 6],
+    "lookOutFor": ["Happy in damp grass and heavy soil."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "bulb", "leaf": "strap", "foliage": "#5f8a5a", "flower": "#6a7ad8", "bloom": "spike" },
+    "source": "Check against: RHS – camassia; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "salvia-nemorosa",
+    "commonName": "Woodland sage",
+    "latinName": "Salvia nemorosa",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "dry", "hardiness": "Hardy" },
+    "size": { "heightMm": 600, "spreadMm": 450, "spacingMm": 450 },
+    "plantOutMonths": [3, 4, 5, 9, 10],
+    "flowerMonths": [6, 7, 8, 9],
+    "lookOutFor": ["Cut back after the first flush for more flowers; bees love it."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "upright", "leaf": "strap", "foliage": "#5f7a5a", "flower": "#5a3ab0", "bloom": "spike" },
+    "source": "Check against: RHS – woodland sage; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "catmint",
+    "commonName": "Catmint",
+    "latinName": "Nepeta × faassenii",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "dry", "hardiness": "Hardy" },
+    "size": { "heightMm": 450, "spreadMm": 600, "spacingMm": 450 },
+    "plantOutMonths": [3, 4, 5, 9, 10],
+    "flowerMonths": [5, 6, 7, 8, 9],
+    "lookOutFor": ["Cats roll in it. Shear it after the first flush for a second."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "mound", "leaf": "strap", "foliage": "#8aa0a0", "flower": "#8a8ae0", "bloom": "spike" },
+    "source": "Check against: RHS – catmint; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "penstemon",
+    "commonName": "Penstemon",
+    "latinName": "Penstemon",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "moderate", "hardiness": "Hardy in most areas" },
+    "size": { "heightMm": 900, "spreadMm": 450, "spacingMm": 450 },
+    "plantOutMonths": [3, 4, 5, 9, 10],
+    "flowerMonths": [6, 7, 8, 9, 10],
+    "lookOutFor": ["Leave the old stems on over winter and cut back in spring."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "upright", "leaf": "strap", "foliage": "#4f7a45", "flower": "#c8305a", "bloom": "spike" },
+    "source": "Check against: RHS – penstemon; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "astrantia",
+    "commonName": "Astrantia",
+    "latinName": "Astrantia major",
+    "category": "flower",
+    "conditions": { "light": "part-shade", "soil": "Moisture-retentive", "moisture": "moist", "hardiness": "Hardy" },
+    "size": { "heightMm": 600, "spreadMm": 450, "spacingMm": 450 },
+    "plantOutMonths": [3, 4, 5, 9, 10],
+    "flowerMonths": [6, 7, 8],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "clump", "leaf": "lobed", "foliage": "#4f7a45", "flower": "#e8d0e0", "bloom": "umbel" },
+    "source": "Check against: RHS – astrantia; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "geum",
+    "commonName": "Geum",
+    "latinName": "Geum",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Moisture-retentive, well-drained", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 450, "spreadMm": 300, "spacingMm": 300 },
+    "plantOutMonths": [3, 4, 5, 9, 10],
+    "flowerMonths": [5, 6, 7, 8],
+    "lookOutFor": ["Divide every few years to keep it flowering well."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "rosette", "leaf": "lobed", "foliage": "#4f7a3c", "flower": "#f0602a", "bloom": "cup" },
+    "source": "Check against: RHS – geum; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "heuchera",
+    "commonName": "Heuchera",
+    "latinName": "Heuchera",
+    "category": "flower",
+    "conditions": { "light": "part-shade", "soil": "Humus-rich, well-drained", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 300, "spreadMm": 400, "spacingMm": 400 },
+    "plantOutMonths": [3, 4, 5, 9, 10],
+    "flowerMonths": [6, 7, 8],
+    "lookOutFor": ["Grown mostly for its leaves, from lime green to near black."],
+    "pests": [
+      { "name": "Vine weevil", "signs": "Notches in leaf edges; plants in pots wilt as grubs eat the roots", "control": "Check pots for the creamy grubs and use nematodes in late summer." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "mound", "leaf": "round", "foliage": "#7a2a3a", "flower": "#f0c0d0", "bloom": "spike" },
+    "source": "Check against: RHS – heuchera; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "hosta",
+    "commonName": "Hosta",
+    "latinName": "Hosta",
+    "category": "flower",
+    "conditions": { "light": "shade", "soil": "Moisture-retentive, humus-rich", "moisture": "moist", "hardiness": "Hardy" },
+    "size": { "heightMm": 500, "spreadMm": 750, "spacingMm": 750 },
+    "plantOutMonths": [3, 4, 5, 9, 10],
+    "flowerMonths": [7, 8],
+    "lookOutFor": ["Grown for its leaves; blue-leaved types resist slugs best."],
+    "pests": [
+      { "name": "Slugs and snails", "signs": "Seedlings and young plants eaten, slime trails", "control": "Check after dark, use barriers, and encourage frogs, birds and beetles." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "clump", "leaf": "broad", "foliage": "#5f8a6a", "flower": "#e8e0f0", "bloom": "spike" },
+    "source": "Check against: RHS – hosta; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "sedum",
+    "commonName": "Ice plant",
+    "latinName": "Hylotelephium spectabile",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "dry", "hardiness": "Hardy" },
+    "size": { "heightMm": 450, "spreadMm": 450, "spacingMm": 450 },
+    "plantOutMonths": [3, 4, 5, 9, 10],
+    "flowerMonths": [8, 9, 10],
+    "lookOutFor": ["Butterflies and late bees love it. Leave the heads on for winter."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "mound", "leaf": "round", "foliage": "#8aa890", "flower": "#e080a0", "bloom": "umbel" },
+    "source": "Check against: RHS – ice plant; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "crocosmia",
+    "commonName": "Crocosmia",
+    "latinName": "Crocosmia",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Moisture-retentive, well-drained", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 900, "spreadMm": 300, "spacingMm": 300 },
+    "plantOutMonths": [3, 4],
+    "flowerMonths": [7, 8, 9],
+    "lookOutFor": ["Spreads into big clumps: divide every few years."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "grass", "leaf": "strap", "foliage": "#5f8a4a", "flower": "#e8401a", "bloom": "spike" },
+    "source": "Check against: RHS – crocosmia; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "agapanthus",
+    "commonName": "Agapanthus",
+    "latinName": "Agapanthus",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "moderate", "hardiness": "Hardy in most areas; mulch the crowns in cold gardens" },
+    "size": { "heightMm": 900, "spreadMm": 600, "spacingMm": 600 },
+    "plantOutMonths": [4, 5],
+    "flowerMonths": [7, 8, 9],
+    "lookOutFor": ["Flowers best when crowded, so good in pots."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "clump", "leaf": "strap", "foliage": "#4f7a45", "flower": "#4a6ad8", "bloom": "umbel" },
+    "source": "Check against: RHS – agapanthus; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "japanese-anemone",
+    "commonName": "Japanese anemone",
+    "latinName": "Anemone × hybrida",
+    "category": "flower",
+    "conditions": { "light": "part-shade", "soil": "Moisture-retentive", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 1200, "spreadMm": 600, "spacingMm": 600 },
+    "plantOutMonths": [3, 4, 5, 9, 10],
+    "flowerMonths": [8, 9, 10],
+    "lookOutFor": ["Slow to settle, then spreads freely."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "clump", "leaf": "lobed", "foliage": "#4f7a45", "flower": "#f0c8d8", "bloom": "cup" },
+    "source": "Check against: RHS – japanese anemone; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "aquilegia",
+    "commonName": "Aquilegia",
+    "latinName": "Aquilegia vulgaris",
+    "category": "flower",
+    "conditions": { "light": "part-shade", "soil": "Any, moisture-retentive", "moisture": "moderate", "hardiness": "Hardy" },
+    "size": { "heightMm": 600, "spreadMm": 450, "spacingMm": 450 },
+    "sowing": [
+      { "method": "direct", "months": [6, 7], "notes": "Sow on the surface; it needs a cold spell to come up." }
+    ],
+    "plantOutMonths": [3, 4, 5, 9, 10],
+    "flowerMonths": [5, 6],
+    "germinationDays": [21, 42],
+    "lookOutFor": ["Self-seeds freely, and crosses into new colours."],
+    "pests": [
+      { "name": "Powdery mildew", "signs": "White powder on leaves in late summer", "control": "Water the roots in dry spells and give plants room for air." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "clump", "leaf": "lobed", "foliage": "#7a9a9a", "flower": "#6a4ab0", "bloom": "cup" },
+    "source": "Check against: RHS – columbines; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "phlox",
+    "commonName": "Phlox",
+    "latinName": "Phlox paniculata",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Fertile, moisture-retentive", "moisture": "moist", "hardiness": "Hardy" },
+    "size": { "heightMm": 1000, "spreadMm": 600, "spacingMm": 600 },
+    "plantOutMonths": [3, 4, 5, 9, 10],
+    "flowerMonths": [7, 8, 9],
+    "lookOutFor": ["Scented. Thin the stems in spring to keep mildew down."],
+    "pests": [
+      { "name": "Powdery mildew", "signs": "White powder on leaves in late summer", "control": "Water the roots in dry spells and give plants room for air." }
+    ],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "upright", "leaf": "broad", "foliage": "#4f7a45", "flower": "#e070b0", "bloom": "umbel" },
+    "source": "Check against: RHS – phlox; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "oriental-poppy",
+    "commonName": "Oriental poppy",
+    "latinName": "Papaver orientale",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "dry", "hardiness": "Hardy" },
+    "size": { "heightMm": 900, "spreadMm": 600, "spacingMm": 600 },
+    "plantOutMonths": [3, 4, 5, 9, 10],
+    "flowerMonths": [5, 6],
+    "lookOutFor": ["Cut the leaves back after flowering; the gap fills by late summer."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "clump", "leaf": "lobed", "foliage": "#6a8a6a", "flower": "#e83a2a", "bloom": "big" },
+    "source": "Check against: RHS – oriental poppy; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "achillea",
+    "commonName": "Yarrow",
+    "latinName": "Achillea millefolium",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "dry", "hardiness": "Hardy" },
+    "size": { "heightMm": 600, "spreadMm": 450, "spacingMm": 450 },
+    "plantOutMonths": [3, 4, 5, 9, 10],
+    "flowerMonths": [6, 7, 8, 9],
+    "lookOutFor": ["Flat flower heads for hoverflies; cut back after flowering."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "hardy" },
+    "lifePath": { "perennial": true },
+    "art": { "form": "upright", "leaf": "feathery", "foliage": "#6a8a6a", "flower": "#f0d040", "bloom": "umbel" },
+    "source": "Check against: RHS – yarrow; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "morning-glory",
+    "commonName": "Morning glory",
+    "latinName": "Ipomoea purpurea",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "moderate", "hardiness": "Tender annual" },
+    "size": { "heightMm": 2500, "spreadMm": 300, "spacingMm": 300 },
+    "sowing": [
+      { "method": "indoors", "months": [4, 5], "depthMm": 10, "notes": "Soak or nick the seed first." }
+    ],
+    "plantOutMonths": [6],
+    "flowerMonths": [7, 8, 9],
+    "germinationDays": [5, 21],
+    "lookOutFor": ["The seeds are poisonous (check)."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "climber", "leaf": "broad", "foliage": "#5f8a45", "flower": "#6a5ad8", "bloom": "cup" },
+    "source": "Check against: RHS – morning glory; seed packet or nursery label",
+    "verified": false,
+    "userAdded": false
+  },
+  {
+    "id": "black-eyed-susan-vine",
+    "commonName": "Black-eyed Susan vine",
+    "latinName": "Thunbergia alata",
+    "category": "flower",
+    "conditions": { "light": "full-sun", "soil": "Fertile, well-drained", "moisture": "moderate", "hardiness": "Tender annual" },
+    "size": { "heightMm": 1800, "spreadMm": 300, "spacingMm": 300 },
+    "sowing": [
+      { "method": "indoors", "months": [3, 4], "depthMm": 5 }
+    ],
+    "plantOutMonths": [6],
+    "flowerMonths": [7, 8, 9],
+    "germinationDays": [10, 21],
+    "lookOutFor": ["Good in a pot on a sunny patio, up a wigwam."],
+    "companions": { "good": [], "avoid": [] },
+    "wintering": { "type": "annual" },
+    "art": { "form": "climber", "leaf": "broad", "foliage": "#5f8a45", "flower": "#f2a020", "bloom": "cup" },
+    "source": "Check against: RHS – black-eyed susan vine; seed packet or nursery label",
     "verified": false,
     "userAdded": false
   }
