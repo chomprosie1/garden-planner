@@ -10,6 +10,7 @@ import {
   setSowing,
   setStage,
   STAGE_ACTION,
+  STAGE_EXPLAIN,
   STAGE_LABEL,
   stageDate,
   stageTips,
@@ -80,6 +81,7 @@ export function StageStrip({ store, garden, pl, plant, canEdit, covered = false 
         </p>
       )}
 
+      {canEdit && next && STAGE_EXPLAIN[next] && !canChooseSowing && <p class="muted small stage-explain">{STAGE_EXPLAIN[next]}</p>}
       {canEdit && now !== 'cleared' && (
         <div class="button-row stage-actions">
           {canChooseSowing ? (

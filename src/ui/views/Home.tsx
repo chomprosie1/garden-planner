@@ -7,7 +7,7 @@ import { usePlants } from '../usePlants';
 import { spacingStyle } from '../../planting/place';
 import { LOOKS } from '../../theme/looks';
 import type { Prefs, PrefsStore, View } from '../../theme/prefs';
-import { BackupCard, GardenCard, JournalCard, SaveIndicator, SetupCard, WhatsNewCard } from '../HomeCards';
+import { BackupCard, GardenCard, GardenName, JournalCard, SaveIndicator, SetupCard, WhatsNewCard } from '../HomeCards';
 import { FrostCard } from '../WeatherCards';
 import { Icon } from '../icons';
 import { doneOf, JobList, jobsDoneCount, PlantJobs } from '../Jobs';
@@ -58,7 +58,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
         <header class="home-hero">
           <SeasonPhoto month={photoMonth} sizes="(max-width: 700px) 100vw, 900px" class="home-hero-photo" />
           <div class="home-top on-photo">
-            <span class="garden-label">{garden.name}</span>
+            <GardenName name={garden.name} class="garden-label" />
             {settingsButton}
           </div>
           <div class="home-hero-text on-photo">{monthTitle}</div>
@@ -66,7 +66,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
       ) : layout === 'framed' ? (
         <header class="home-framed">
           <div class="home-top">
-            <span class="masthead">{garden.name}</span>
+            <GardenName name={garden.name} class="masthead" />
             {settingsButton}
           </div>
           {photo && (
@@ -88,7 +88,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
         <header class="home-packet">
           <SeasonPhoto month={photoMonth} sizes="(max-width: 700px) 100vw, 900px" class="packet-photo" credit={false} />
           <div class="home-top on-photo">
-            <span class="sign">{garden.name}</span>
+            <GardenName name={garden.name} class="sign" />
             {settingsButton}
           </div>
           <div class="packet">
@@ -109,7 +109,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
       ) : (
         <header class="home-band">
           <div class="home-top">
-            <span class="garden-label">{garden.name}</span>
+            <GardenName name={garden.name} class="garden-label" />
             {settingsButton}
           </div>
           <h1 class="title month-title">{season.name}</h1>

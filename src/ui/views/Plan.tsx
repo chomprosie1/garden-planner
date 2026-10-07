@@ -18,9 +18,11 @@ import { ActionPill } from '../ActionPill';
 import { Dock, type Drawer } from '../Dock';
 import { FillPopover, type Placed } from '../FillPopover';
 import { useIsPhone } from '../hooks';
-import { Icon } from '../icons';
+import { Icon, type IconName } from '../icons';
+import { GardenName } from '../HomeCards';
 import { Inspector } from '../Inspector';
-import { isFocusLens, LensBar, LensLegend, type Lens } from '../Lenses';
+import { isFocusLens, LensBar, LensLegend, LensPicker, type Lens } from '../Lenses';
+import { MoreMenu } from '../MoreMenu';
 import { PhoneDrawBar, PhoneHandBar, PhoneSheet, PlantingBar } from '../PhonePlanControls';
 import { canDrawByHand, geometryForTool, PlanCanvas, type CanvasApi, type Placing, type SketchPen, type Tool } from '../PlanCanvas';
 import { SeasonPhoto } from '../SeasonPhoto';
@@ -259,7 +261,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       const t = garden.trays?.find((x) => x.id === intent.trayId);
       if (t) {
         startPlanting(t.plantId, t.id);
-        setMessage(`Planting out ${t.count} ${plantOf(t.plantId).commonName.toLowerCase()} ${t.count === 1 ? 'plant' : 'plants'} from the Potting Shed: ${phone ? 'tap' : 'click'} the bed they go in.`);
+        setMessage(`Planting out ${t.count} ${plantOf(t.plantId).commonName.toLowerCase()} ${t.count === 1 ? 'plant' : 'plants'} from the shed: ${phone ? 'tap' : 'click'} the bed they go in.`);
       }
     } else {
       const t = intent.target;
@@ -422,7 +424,13 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       <Icon name={locked ? 'lock' : 'unlock'} />
     </button>
   );
-  const lensBar = <LensBar lens={lens} setLens={setLens} phone={phone} warnings={warnings} />;
+  const lensBar = phone ? <LensPicker lens={lens} setLens={setLens} /> : <LensBar lens={lens} setLens={setLens} />;
+  /** The plant checks, in the details for the whole garden. */
+  const showChecks = () => {
+    setSelected(null);
+    if (phone) setSheetOpen(true);
+    else document.querySelector<HTMLElement>('.inspector')?.focus();
+  };
 
   const dock = (
     <Dock
@@ -511,44 +519,39 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   return (
     <div class={`plan ${hidePhotos ? 'plan-focus' : ''} ${locked ? 'plan-locked' : ''}`}>
       <header class="toolbar">
-        <h1 class="toolbar-title">{garden.name}</h1>
-        {!phone && lensBar}
+        <h1 class="toolbar-title">
+          <GardenName name={garden.name} />
+        </h1>
+        {lensBar}
         <div class="toolbar-actions">
+          {warnings > 0 && (
+            <button type="button" class="chip checks-chip" title="Things to check in your planting" onClick={showChecks}>
+              <Icon name="warn" size={15} />
+              {warnings}
+              <span class="visually-hidden"> {warnings === 1 ? 'thing' : 'things'} to check</span>
+            </button>
+          )}
           <button type="button" class="icon-btn" aria-label="Search everything" title="Search everything (Ctrl+K)" onClick={() => app.openSearch()}>
             <Icon name="search" />
           </button>
           {lockButton}
-          {!phone && (
-            <button type="button" class="icon-btn" aria-label="Fit the garden to the screen" title="Fit (0)" onClick={() => setFitSignal((n) => n + 1)}>
-              <Icon name="fit" />
-            </button>
-          )}
           <button type="button" class="icon-btn" aria-label="Undo" title="Undo (Ctrl+Z)" disabled={!store.canUndo()} onClick={() => store.undo()}>
             <Icon name="undo" />
           </button>
-          <button type="button" class="icon-btn" aria-label="Redo" title="Redo (Ctrl+Y)" disabled={!store.canRedo()} onClick={() => store.redo()}>
-            <Icon name="redo" />
-          </button>
-          {phone && (
-            <button type="button" class="icon-btn" aria-label="Garden details" title="Details" onClick={() => setSheetOpen(true)}>
-              <Icon name="info" />
-            </button>
-          )}
-          {prefs.photos === 'full' && !phone && (
-            <button
-              type="button"
-              class="icon-btn"
-              aria-pressed={hidePhotos}
-              aria-label={hidePhotos ? 'Show photos around the plan' : 'Hide photos around the plan'}
-              title={hidePhotos ? 'Show photos (H)' : 'Hide photos (H)'}
-              onClick={() => prefsStore.set({ focus: !hidePhotos })}
-            >
-              <Icon name={hidePhotos ? 'image-off' : 'image'} />
-            </button>
-          )}
+          <MoreMenu
+            items={[
+              { label: 'Redo', icon: 'redo', keys: 'Ctrl+Y', disabled: !store.canRedo(), onSelect: () => store.redo() },
+              ...(!phone ? [{ label: 'Fit the garden to the screen', icon: 'fit' as const, keys: '0', onSelect: () => setFitSignal((n) => n + 1) }] : []),
+              ...(phone ? [{ label: 'Details of the whole garden', icon: 'info' as const, onSelect: () => (setSelected(null), setSheetOpen(true)) }] : []),
+              ...(prefs.photos === 'full' && !phone
+                ? [{ label: hidePhotos ? 'Show photos around the plan' : 'Hide photos around the plan', icon: (hidePhotos ? 'image-off' : 'image') as IconName, keys: 'H', onSelect: () => prefsStore.set({ focus: !hidePhotos }) }]
+                : []),
+              { label: 'Share a picture of the plan', icon: 'share', onSelect: () => setSharing(true) },
+              { label: 'Your garden: location and backups', icon: 'settings', onSelect: () => app.go('profile') },
+            ]}
+          />
         </div>
       </header>
-      {phone && <div class="lens-row">{lensBar}</div>}
 
       {sunOn && (
         <SunBar

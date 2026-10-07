@@ -76,11 +76,12 @@ export function scoreOf(words: string[], label: string, extra: string): number |
 }
 
 const VIEWS: { view: View; label: string; words: string }[] = [
-  { view: 'home', label: 'Go to Home', words: 'open page today jobs' },
-  { view: 'plan', label: 'Go to the plan', words: 'open page map layout' },
+  { view: 'home', label: 'Go to Today', words: 'open page home jobs week' },
+  { view: 'plan', label: 'Go to your garden', words: 'open page plan map layout' },
   { view: 'plants', label: 'Go to Plants', words: 'open page library list' },
-  { view: 'month', label: 'Go to Month', words: 'open page jobs calendar sowing list' },
-  { view: 'shed', label: 'Go to the Potting Shed', words: 'open page seedlings trays sow indoors propagator windowsill' },
+  { view: 'month', label: 'This month’s jobs', words: 'open page month jobs calendar sowing list' },
+  { view: 'shed', label: 'Go to Seedlings', words: 'open page potting shed trays sow indoors propagator windowsill' },
+  { view: 'profile', label: 'Your garden: location, frosts and backups', words: 'open page where location north frost climate weather backup restore spacing name' },
   { view: 'notes', label: 'Go to the journal', words: 'open page notes diary' },
   { view: 'settings', label: 'Go to Settings', words: 'open page backup location look theme dark frost weather forecast climate' },
   { view: 'new', label: 'What’s new', words: 'open page news changes updates latest release' },
@@ -150,7 +151,7 @@ function plantVerb(words: string[]): { kind: 'plant' | 'about' | 'sow'; rest: st
   return { kind: 'plant', rest: words };
 }
 
-const PLANT_DETAIL = { plant: 'Add to the plan', about: 'About it', sow: 'Sow in the Potting Shed' } as const;
+const PLANT_DETAIL = { plant: 'Add to the plan', about: 'About it', sow: 'Sow in a tray' } as const;
 
 const LIMIT: Record<Group, number> = { Actions: 6, 'On your plan': 6, Plants: 8 };
 

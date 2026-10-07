@@ -7,7 +7,7 @@ import { LOOKS } from '../theme/looks';
 import type { PrefsStore, View } from '../theme/prefs';
 import { AppContext, type AppActions } from './appContext';
 import { CommandSearch } from './CommandSearch';
-import { usePrefs, useView } from './hooks';
+import { hashFor, usePrefs, useView } from './hooks';
 import { Icon, type IconName } from './icons';
 import { Onboarding } from './Onboarding';
 import type { Command } from './search';
@@ -23,16 +23,21 @@ import { Plants } from './views/Plants';
 import { Settings } from './views/Settings';
 import { Shed } from './views/Shed';
 import { WhatsNew } from './views/WhatsNew';
+import { Profile } from './views/Profile';
 
+/** The four tabs: what's to do, the garden itself, seedlings in the shed, and plants to grow. */
 const NAV: { view: View; label: string; icon: IconName }[] = [
-  { view: 'home', label: 'Home', icon: 'home' },
-  { view: 'plan', label: 'Plan', icon: 'plan' },
+  { view: 'home', label: 'Today', icon: 'home' },
+  { view: 'plan', label: 'Garden', icon: 'plan' },
+  { view: 'shed', label: 'Seedlings', icon: 'shed' },
   { view: 'plants', label: 'Plants', icon: 'plants' },
-  { view: 'month', label: 'Month', icon: 'month' },
 ];
 
 /** Pages that sit under a tab rather than being one: they highlight their parent. */
-const PARENT: Partial<Record<View, View>> = { notes: 'home', check: 'plants', shed: 'month', new: 'home' };
+const PARENT: Partial<Record<View, View>> = { notes: 'home', check: 'plants', month: 'home', new: 'home', profile: 'home' };
+
+/** Pages you go into and come back from. */
+const SUB_PAGES: View[] = ['settings', 'check', 'notes', 'month', 'new', 'profile'];
 
 const isTyping = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
@@ -59,7 +64,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   const weather = useWeatherFeed(garden, prefs.weather && prefs.onboarded);
 
   const navigate = (v: View) => {
-    if ((v === 'settings' || v === 'check' || v === 'notes' || v === 'shed' || v === 'new') && view !== v) setPrevious(view);
+    if (SUB_PAGES.includes(v) && view !== v) setPrevious(view);
     go(v);
   };
 
@@ -190,7 +195,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
           />
         );
       case 'month':
-        return <Month store={store} garden={garden} userPlants={userPlants} prefs={prefs} go={navigate} />;
+        return <Month store={store} garden={garden} userPlants={userPlants} prefs={prefs} go={navigate} back={back} />;
       case 'plants':
         return (
           <Plants
@@ -200,6 +205,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
             go={navigate}
             openId={plantCard}
             clearOpen={() => setPlantCard(null)}
+            editor={prefs.plantEditor}
             checkPlant={(id) => {
               setCheckFrom(id);
               navigate('check');
@@ -209,11 +215,13 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
       case 'notes':
         return <Notes store={store} garden={garden} userPlants={userPlants} back={back} />;
       case 'shed':
-        return <Shed store={store} garden={garden} userPlants={userPlants} back={back} sowPlantId={shedSow} clearSow={() => setShedSow(null)} />;
+        return <Shed store={store} garden={garden} userPlants={userPlants} sowPlantId={shedSow} clearSow={() => setShedSow(null)} />;
       case 'check':
         return <CheckPlants store={store} userPlants={userPlants} startAt={checkFrom} back={back} />;
       case 'new':
         return <WhatsNew prefs={prefs} prefsStore={prefsStore} back={back} go={navigate} />;
+      case 'profile':
+        return <Profile store={store} garden={garden} prefsStore={prefsStore} back={back} />;
       case 'settings':
         return (
           <Settings
@@ -240,7 +248,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
           {NAV.map((n) => (
             <a
               key={n.view}
-              href={`#/${n.view}`}
+              href={hashFor(n.view)}
               class="nav-item"
               aria-current={current === n.view ? 'page' : undefined}
               onClick={(e) => {
@@ -255,7 +263,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
             </a>
           ))}
           <a
-            href="#/settings"
+            href={hashFor('settings')}
             class="nav-item nav-settings"
             aria-current={view === 'settings' ? 'page' : undefined}
             onClick={(e) => {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
-import { VIEWS, type Prefs, type PrefsStore, type View } from '../theme/prefs';
+import { VIEW_HASH, viewForHash, type Prefs, type PrefsStore, type View } from '../theme/prefs';
 
 export function usePrefs(prefs: PrefsStore): Prefs {
   const [value, setValue] = useState(prefs.get());
@@ -23,10 +23,10 @@ export function useIsPhone(): boolean {
   return phone;
 }
 
-const viewFromHash = (): View | null => {
-  const v = location.hash.replace(/^#\/?/, '');
-  return (VIEWS as readonly string[]).includes(v) ? (v as View) : null;
-};
+const viewFromHash = (): View | null => viewForHash(location.hash.replace(/^#\/?/, ''));
+
+/** "#/today" for Home. */
+export const hashFor = (v: View) => `#/${VIEW_HASH[v]}`;
 
 /** The current screen, kept in the URL hash so reloads and the back button work. */
 export function useView(prefs: PrefsStore): [View, (v: View) => void] {
@@ -45,7 +45,7 @@ export function useView(prefs: PrefsStore): [View, (v: View) => void] {
     return () => removeEventListener('hashchange', on);
   }, []);
   const go = (v: View) => {
-    if (location.hash !== `#/${v}`) location.hash = `/${v}`;
+    if (location.hash !== hashFor(v)) location.hash = `/${VIEW_HASH[v]}`;
     setView(v);
     if (v !== 'settings') prefs.set({ lastView: v });
   };

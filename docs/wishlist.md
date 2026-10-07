@@ -31,4 +31,3 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Frost warnings as notifications, when the app is closed | Build, Stage 17 | M | Needs a service worker and push; for now, the card on Home |
 | This year’s warmth moving perennials’ seasons (an early spring brings strawberries on) | Build, Stage 17 | S | Their seasons go by the averages; crops with days use the real weather |
 | Join batches back together | Build, Stage 17 | S | For now, undo straight after splitting |
-| Cards cut off at the right on a narrow phone (about 420 px) | Build, Stage 17 | S | Seen in headless Edge screenshots of Home, Settings and What’s new; there before Stage 17 |

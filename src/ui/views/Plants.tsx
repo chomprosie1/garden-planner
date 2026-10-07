@@ -26,12 +26,14 @@ interface Props {
   clearOpen?: () => void;
   /** Opens the plant check at this plant. */
   checkPlant?: (id: string) => void;
+  /** Show the tools for checking plant notes: whether each is checked, and a filter for checked ones. */
+  editor?: boolean;
   now?: Date;
 }
 
 type Panel = { kind: 'card'; id: string } | { kind: 'form'; plant: Plant } | null;
 
-export function Plants({ store, garden, userPlants, go, openId = null, clearOpen, checkPlant, now = new Date() }: Props) {
+export function Plants({ store, garden, userPlants, go, openId = null, clearOpen, checkPlant, editor = false, now = new Date() }: Props) {
   const app = useApp();
   const phone = useIsPhone();
   const month = now.getMonth() + 1;
@@ -106,10 +108,12 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
           <input type="checkbox" checked={filter.sowMonth !== null} onChange={(e) => setFilter({ ...filter, sowMonth: (e.currentTarget as HTMLInputElement).checked ? month : null })} />
           Sow or plant this month
         </label>
-        <label class="check">
-          <input type="checkbox" checked={filter.checkedOnly} onChange={(e) => setFilter({ ...filter, checkedOnly: (e.currentTarget as HTMLInputElement).checked })} />
-          Checked plants only
-        </label>
+        {editor && (
+          <label class="check">
+            <input type="checkbox" checked={filter.checkedOnly} onChange={(e) => setFilter({ ...filter, checkedOnly: (e.currentTarget as HTMLInputElement).checked })} />
+            Checked plants only
+          </label>
+        )}
       </div>
       <button type="button" class="btn btn-primary" onClick={() => setPanel({ kind: 'form', plant: blankPlant() })}>
         Add your own plant
@@ -134,7 +138,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
               <span class="plant-row-meta small muted">
                 {LIGHT_LABEL[p.conditions.light]} · {formatLength(p.size.spacingMm)}
               </span>
-              {p.userAdded ? <span class="badge badge-own">Yours</span> : !p.verified && <span class="dot-warn" title="Not yet checked" aria-label="Not yet checked" />}
+              {p.userAdded ? <span class="badge badge-own">Yours</span> : editor && !p.verified && <span class="dot-warn" title="Not yet checked" aria-label="Not yet checked" />}
             </button>
           </li>
         ))}
@@ -156,7 +160,8 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
         onPlant={() => app.plantIt(current.id)}
         where={whereGrowing(current.id)}
         onShow={(plantingId) => app.showOnPlan({ type: 'planting', id: plantingId })}
-        {...(checkPlant && !current.userAdded && !current.verified ? { onCheck: () => checkPlant(current.id) } : {})}
+        editor={editor}
+        {...(editor && checkPlant && !current.userAdded && !current.verified ? { onCheck: () => checkPlant(current.id) } : {})}
         sowing={{ listed: onWishlist(garden, current.id), toggle: () => store.apply(updateGarden((g) => toggleWishlist(g, current.id))) }}
         {...(current.userAdded
           ? { onEdit: () => setPanel({ kind: 'form', plant: current }), onDelete: () => remove(current) }

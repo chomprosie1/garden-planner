@@ -26,7 +26,7 @@ export function backUp(store: Store, prefsStore?: PrefsStore) {
 
 type Message = { kind: 'ok' | 'error'; lines: string[] } | null;
 
-/** Name, location and north, plus export and import. */
+/** Your garden: its name and place, north, spacing, frosts and climate, and backups. Facts about the garden, not this device. */
 export function GardenSettings({ store, garden, prefsStore }: Props) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<Message>(null);
@@ -55,25 +55,32 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
 
   return (
     <>
-      <section class="card" aria-labelledby="your-garden">
-        <h2 id="your-garden">Your garden</h2>
+      <section class="card" aria-labelledby="about-garden">
+        <h2 id="about-garden">About it</h2>
         <GardenNameField store={store} garden={garden} />
-        <div class="field-row">
-          <label class="field">
-            Latitude
-            <input type="number" step="0.0001" min={-90} max={90} value={garden.latitude} onChange={setNumber('latitude', -90, 90)} />
-          </label>
-          <label class="field">
-            Longitude
-            <input type="number" step="0.0001" min={-180} max={180} value={garden.longitude} onChange={setNumber('longitude', -180, 180)} />
-          </label>
-        </div>
+        <h3>Where it is</h3>
+        <p>{placeText(garden)}</p>
         <UseLocationButton store={store} onMessage={setMessage} />
+        <p class="muted small">Its place times the sun and shade, the frosts and the seasons.</p>
+        <details class="advanced">
+          <summary>Exact location</summary>
+          <div class="field-row">
+            <label class="field">
+              Latitude
+              <input type="number" step="0.0001" min={-90} max={90} value={garden.latitude} onChange={setNumber('latitude', -90, 90)} />
+            </label>
+            <label class="field">
+              Longitude
+              <input type="number" step="0.0001" min={-180} max={180} value={garden.longitude} onChange={setNumber('longitude', -180, 180)} />
+            </label>
+          </div>
+        </details>
+        <h3>Which way is north</h3>
         <label class="field">
-          North: degrees clockwise from the top of the plan
+          Degrees clockwise from the top of your plan to north
           <input type="number" step="1" min={-360} max={360} value={garden.northRotationDeg} onChange={setNumber('northRotationDeg', -360, 360)} />
         </label>
-        <p class="muted small">Find true north from a map, not a compass: a compass points to magnetic north.</p>
+        <p class="muted small">0 if the top of your plan faces north. Check against a map: a compass points a little off true north.</p>
         <fieldset class="choice">
           <legend>How you space plants</legend>
           <div class="choice-row">
@@ -99,6 +106,10 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
             between rows. Spacing checks and the number of plants in a row or block follow your choice.
           </p>
         </fieldset>
+      </section>
+
+      <section class="card" aria-labelledby="seasons">
+        <h2 id="seasons">Seasons and weather</h2>
         <FrostDates store={store} garden={garden} />
         <Warmth garden={garden} prefsStore={prefsStore} />
       </section>
@@ -214,7 +225,7 @@ function FrostDates({ store, garden }: { store: Store; garden: Garden }) {
         {f.estimated
           ? 'Estimated from your location. Local weather records or neighbours will know better: frost pockets and coastal gardens can be weeks either side.'
           : 'Your own dates.'}{' '}
-        They decide when the Potting Shed suggests hardening off and planting out tender plants, and when to protect plants for winter.
+        They decide when Seedlings suggests hardening off and planting out tender plants, and when to protect plants for winter.
         {!f.estimated && (
           <>
             {' '}
@@ -248,7 +259,7 @@ function Warmth({ garden, prefsStore }: { garden: Garden; prefsStore?: PrefsStor
   const dd = yearDegreeDays(av);
   const ref = yearDegreeDays(referenceAverages());
   const diff = Math.round(((dd - ref) / ref) * 100);
-  const compared = Math.abs(diff) < 3 ? 'about the same as' : `about ${Math.abs(diff)}% ${diff > 0 ? 'more than' : 'less than'}`;
+  const compared = Math.abs(diff) < 3 ? 'About as warm as the middle of England' : `About ${Math.abs(diff)}% ${diff > 0 ? 'warmer' : 'cooler'} for growing than the middle of England`;
   return (
     <div class="warmth">
       <h3>Your climate</h3>
@@ -259,10 +270,8 @@ function Warmth({ garden, prefsStore }: { garden: Garden; prefsStore?: PrefsStor
         <dd>{one(av.tmin[0]!)}</dd>
         <dt>Growing season</dt>
         <dd>{seasonDays(av)} days above 5 °C</dd>
-        <dt>Warmth for growing</dt>
-        <dd>
-          {dd.toLocaleString('en-GB')} degree days a year, {compared} the middle of England
-        </dd>
+        <dt>Compared</dt>
+        <dd>{compared}</dd>
       </dl>
       <p class="muted small">
         Averages for 1991–2020 from the weather stations nearest you: {listed(stationNames(av))}
@@ -291,7 +300,7 @@ function WeatherSwitch({ garden, prefsStore }: { garden: Garden; prefsStore: Pre
         <span>Use this year’s weather and the forecast</span>
       </label>
       <p class="muted small">
-        Crops are timed by the real weather so far and the next fortnight’s forecast, Home warns you of frost, and the Water lens knows when it’s rained. The
+        Crops are timed by the real weather so far and the next fortnight’s forecast, Home warns you of frost, and Show: water on the plan knows when it’s rained. The
         weather comes from Open-Meteo, free for personal use. Only your garden’s location, rounded to about a kilometre, is sent, and the weather is kept on
         this device.
       </p>
@@ -315,4 +324,12 @@ function WeatherSwitch({ garden, prefsStore }: { garden: Garden; prefsStore: Pre
       )}
     </div>
   );
+}
+
+/** "Near Leeds", from the nearest weather station; or a prompt, if it's still the middle of England a new garden starts at. */
+export function placeText(g: Garden): string {
+  if (g.latitude === 52.5 && g.longitude === -1.5) return 'Not set yet: for now, the middle of England.';
+  const av = averagesAt(g.latitude, g.longitude);
+  if (av.nearestKm > 150) return 'Set from your location.';
+  return `Near ${av.stations[0]!.name.replace(/ (.*)$/, '')}.`;
 }

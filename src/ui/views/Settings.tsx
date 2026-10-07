@@ -4,7 +4,6 @@ import type { Store } from '../../model/store';
 import type { Garden } from '../../model/types';
 import { FONT_CREDITS } from '../../theme/fonts';
 import type { Prefs, PrefsStore, View } from '../../theme/prefs';
-import { GardenSettings } from '../GardenSettings';
 import { usePlants } from '../usePlants';
 import { Icon } from '../icons';
 import { Choice, LookPicker } from '../LookPicker';
@@ -47,6 +46,8 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
           ]}
           onChange={(mode) => prefsStore.set({ mode })}
         />
+        <details class="advanced more-display">
+          <summary>More display options</summary>
         <Choice
           legend="Seasonal photos"
           name="photos"
@@ -95,19 +96,18 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
           ]}
           onChange={(v) => prefsStore.set({ depth: v === 'on' })}
         />
+        </details>
       </section>
 
-      <GardenSettings store={store} garden={garden} prefsStore={prefsStore} />
-
-      <section class="card" aria-labelledby="plant-notes">
-        <h2 id="plant-notes">Plant notes</h2>
-        <p class="muted small">
-          The starter plants are drafts until checked against a trusted source. {library ? `${checked} of ${starters.length} checked on this device.` : ''}
-        </p>
-        <button type="button" class="btn" onClick={() => go('check')}>
-          Check the plants
+      <section class="card" aria-labelledby="garden-link">
+        <h2 id="garden-link">{garden.name}</h2>
+        <p class="muted small">Where your garden is, which way is north, its frosts and climate, this year’s weather, and backups.</p>
+        <button type="button" class="btn" onClick={() => go('profile')}>
+          Your garden
         </button>
       </section>
+
+
 
       <section class="card" aria-labelledby="news">
         <h2 id="news">What’s new</h2>
@@ -125,8 +125,8 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
         </button>
       </section>
 
-      <section class="card" aria-labelledby="credits">
-        <h2 id="credits">Credits</h2>
+      <details class="card advanced credits-card">
+        <summary>Credits: photos, fonts and software</summary>
         <h3>Photos</h3>
         <ul class="plain-list credits-list">
           {PHOTOS.map((p) => (
@@ -171,11 +171,30 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
             </details>
           </li>
         </ul>
-      </section>
+      </details>
 
-      <button type="button" class="btn btn-quiet" onClick={() => prefsStore.set({ onboarded: false })}>
-        Show the welcome again
-      </button>
+      <details class="card advanced">
+        <summary>Advanced</summary>
+        <label class="check-row">
+          <input type="checkbox" checked={prefs.plantEditor} onChange={(e) => prefsStore.set({ plantEditor: (e.currentTarget as HTMLInputElement).checked })} />
+          <span>Plant editor: show the tools for checking plant notes against their sources</span>
+        </label>
+        {prefs.plantEditor && (
+          <>
+            <p class="muted small">
+              The starter plants are drafts until checked against a trusted source. {library ? `${checked} of ${starters.length} checked on this device.` : ''}
+            </p>
+            <button type="button" class="btn" onClick={() => go('check')}>
+              Check the plants
+            </button>
+          </>
+        )}
+        <p>
+          <button type="button" class="btn btn-quiet" onClick={() => prefsStore.set({ onboarded: false })}>
+            Show the welcome again
+          </button>
+        </p>
+      </details>
     </div>
   );
 }

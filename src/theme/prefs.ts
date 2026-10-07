@@ -3,8 +3,29 @@
 
 import { LOOK_IDS, type LookId } from './looks';
 
-export const VIEWS = ['home', 'plan', 'plants', 'month', 'notes', 'settings', 'check', 'shed', 'new'] as const;
+export const VIEWS = ['home', 'plan', 'plants', 'month', 'notes', 'settings', 'check', 'shed', 'new', 'profile'] as const;
 export type View = (typeof VIEWS)[number];
+
+/** What each screen is called in the address bar: Today, Garden and Seedlings are the tabs' names. Old names still work. */
+export const VIEW_HASH: Record<View, string> = {
+  home: 'today',
+  plan: 'garden',
+  plants: 'plants',
+  month: 'month',
+  notes: 'journal',
+  settings: 'settings',
+  check: 'check',
+  shed: 'seedlings',
+  new: 'new',
+  profile: 'your-garden',
+};
+
+/** The screen an address names, by its name now or its old one. */
+export function viewForHash(name: string): View | null {
+  const found = (Object.entries(VIEW_HASH) as [View, string][]).find(([, h]) => h === name);
+  if (found) return found[0];
+  return (VIEWS as readonly string[]).includes(name) ? (name as View) : null;
+}
 
 export interface Prefs {
   look: LookId;
@@ -34,6 +55,8 @@ export interface Prefs {
   weather: boolean;
   /** The newest "What's new" entry you've seen, by id. null: never looked. */
   seenNews: string | null;
+  /** Show the tools for checking the plant library against its sources. For whoever keeps the plant data. */
+  plantEditor: boolean;
 }
 
 
@@ -61,6 +84,7 @@ export function defaultPrefs(): Prefs {
     depth: null,
     weather: false,
     seenNews: null,
+    plantEditor: false,
   };
 }
 
@@ -95,6 +119,7 @@ export function sanitisePrefs(raw: unknown): Prefs {
     depth: typeof r.depth === 'boolean' ? r.depth : null,
     weather: r.weather === true,
     seenNews: typeof r.seenNews === 'string' ? r.seenNews : null,
+    plantEditor: r.plantEditor === true,
   };
 }
 

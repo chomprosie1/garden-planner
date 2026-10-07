@@ -41,7 +41,6 @@ import { updateGarden, type Store } from '../../model/store';
 import { CONTAINERS, SHED_PLACE_KINDS, type Container, type Garden, type Plant, type ShedPlace, type ShedPlaceKind, type Tray, type TrayStage } from '../../model/types';
 import { useApp } from '../appContext';
 import { useIsPhone } from '../hooks';
-import { Icon } from '../icons';
 import { PlantIcon } from '../PlantIcon';
 import { TrayArt } from '../TrayArt';
 import { usePlants } from '../usePlants';
@@ -54,7 +53,6 @@ interface Props {
   store: Store;
   garden: Garden;
   userPlants: Plant[];
-  back: () => void;
   /** Open the sowing form with this plant chosen. */
   sowPlantId?: string | null;
   clearSow?: () => void;
@@ -63,7 +61,7 @@ interface Props {
 /** Plants sown indoors or under cover: the ones the shed is for. */
 const sownUnderCover = (p: Plant) => !!p.sowing?.some((s) => s.method !== 'direct');
 
-export function Shed({ store, garden, userPlants, back, sowPlantId = null, clearSow }: Props) {
+export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }: Props) {
   const app = useApp();
   const phone = useIsPhone();
   const { plants, plantOf } = usePlants(userPlants);
@@ -96,10 +94,7 @@ export function Shed({ store, garden, userPlants, back, sowPlantId = null, clear
   return (
     <div class="page shed-page">
       <header class="page-head">
-        <button type="button" class="icon-btn" aria-label="Back" onClick={back}>
-          <Icon name="back" />
-        </button>
-        <h1 class="title">Potting Shed</h1>
+        <h1 class="title">Seedlings</h1>
         <button type="button" class="btn btn-primary shed-sow-btn" onClick={() => setSowing('')}>
           Sow seeds
         </button>
@@ -108,10 +103,10 @@ export function Shed({ store, garden, userPlants, back, sowPlantId = null, clear
         Last frost about {short(inYear(frost.lastFrost, 2027))}, first frost about {short(inYear(frost.firstFrost, 2027))}
         {frost.estimated ? ', estimated from your location' : ''}.{' '}
         <a
-          href="#/settings"
+          href="#/your-garden"
           onClick={(e) => {
             e.preventDefault();
-            app.go('settings');
+            app.go('profile');
           }}
         >
           Change

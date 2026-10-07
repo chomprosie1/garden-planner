@@ -38,6 +38,19 @@ export function SaveIndicator() {
   );
 }
 
+// ---------- The garden's name ----------
+
+/** The garden's name, which opens Your garden: its place, seasons and backups. */
+export function GardenName({ name, class: cls = '' }: { name: string; class?: string }) {
+  const app = useApp();
+  return (
+    <button type="button" class={`garden-name-btn ${cls}`} title="Your garden: location, frosts and backups" onClick={() => app.go('profile')}>
+      {name}
+      <Icon name="chevron" size={14} />
+    </button>
+  );
+}
+
 // ---------- Getting started ----------
 
 export function SetupCard({ store, garden, prefs, prefsStore }: { store: Store; garden: Garden; prefs: Prefs; prefsStore: PrefsStore }) {

@@ -19,22 +19,34 @@ const LENSES: { id: Lens; label: string; short: string; hint: string; icon?: Ico
 
 export const isFocusLens = (l: Lens): l is FocusKind => l === 'flower' || l === 'harvest' || l === 'water';
 
-export function LensBar({ lens, setLens, phone, warnings }: { lens: Lens; setLens: (l: Lens) => void; phone: boolean; warnings: number }) {
+/** On a wide screen: a chip for each way of looking at the plan. Tap the one that's on to go back to the plan on its own. */
+export function LensBar({ lens, setLens }: { lens: Lens; setLens: (l: Lens) => void }) {
   return (
-    <div class="lens-bar" role="radiogroup" aria-label="Show on the plan">
-      {LENSES.map((l) => (
-        <button key={l.id} type="button" role="radio" class="chip lens-chip" aria-checked={lens === l.id} title={l.hint} onClick={() => setLens(l.id)}>
+    <div class="lens-bar" role="group" aria-label="Show on the plan">
+      {LENSES.filter((l) => l.id !== 'none').map((l) => (
+        <button key={l.id} type="button" class="chip lens-chip" aria-pressed={lens === l.id} title={l.hint} onClick={() => setLens(lens === l.id ? 'none' : l.id)}>
           {l.icon && <Icon name={l.icon} size={15} />}
           {isFocusLens(l.id) && <Ring kind={l.id} />}
-          {phone ? l.short : l.label}
-          {l.id === 'none' && warnings > 0 && (
-            <span class="chip-count chip-warn" aria-label={`${warnings} ${warnings === 1 ? 'thing' : 'things'} to check`}>
-              {warnings}
-            </span>
-          )}
+          {l.label}
         </button>
       ))}
     </div>
+  );
+}
+
+/** On a phone: one "Show" picker, so the plan keeps the room. */
+export function LensPicker({ lens, setLens }: { lens: Lens; setLens: (l: Lens) => void }) {
+  return (
+    <label class="lens-picker">
+      <span class="visually-hidden">Show on the plan</span>
+      <select value={lens} onChange={(e) => setLens((e.currentTarget as HTMLSelectElement).value as Lens)}>
+        {LENSES.map((l) => (
+          <option key={l.id} value={l.id}>
+            {l.id === 'none' ? 'Show: the plan' : `Show: ${l.label.toLowerCase()}`}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 

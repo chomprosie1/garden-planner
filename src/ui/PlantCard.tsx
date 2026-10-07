@@ -5,11 +5,17 @@ import { formatLength } from '../canvas/viewport';
 import { PlantIcon } from './PlantIcon';
 import { useApp } from './appContext';
 
+/** A new issue on the app's GitHub page, about this plant. */
+export const reportUrl = (p: Plant) =>
+  `https://github.com/chomprosie1/garden-planner/issues/new?title=${encodeURIComponent(`Plant notes: ${p.commonName}`)}&body=${encodeURIComponent(`What's wrong in the notes for ${p.commonName} (${p.id})?
+
+`)}`;
+
 export const LIGHT_LABEL: Record<Light, string> = { 'full-sun': 'Full sun', 'part-shade': 'Part shade', shade: 'Shade' };
 export const METHOD_LABEL: Record<Sowing['method'], string> = {
   indoors: 'Sow indoors',
   direct: 'Sow outside',
-  'cold-frame': 'Sow to transplant',
+  'cold-frame': 'Sow to plant out later',
 };
 export const WINTER_LABEL: Record<NonNullable<Plant['wintering']>['type'], string> = {
   hardy: 'Hardy: can stay out over winter',
@@ -62,10 +68,12 @@ interface Props {
   onShow?: (plantingId: string) => void;
   /** Opens the one-at-a-time plant check at this plant. */
   onCheck?: () => void;
+  /** Show whether the notes are checked, the draft warning and the source: for whoever keeps the plant data. */
+  editor?: boolean;
   month: number;
 }
 
-export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPlant, sowing, where, onShow, onCheck, month }: Props) {
+export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPlant, sowing, where, onShow, onCheck, month, editor = false }: Props) {
   const app = useApp();
   const c = p.conditions;
   const s = p.size;
@@ -89,7 +97,7 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
           <span class="badge">{CATEGORY_LABEL[p.category]}</span>
           {p.userAdded ? (
             <span class="badge badge-own">Your plant</span>
-          ) : p.verified ? (
+          ) : !editor ? null : p.verified ? (
             <span class="badge badge-ok">Checked{p.lastChecked ? ` ${p.lastChecked}` : ''}</span>
           ) : (
             <span class="badge badge-warn">Not yet checked</span>
@@ -97,7 +105,7 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
         </div>
       </header>
 
-      {!p.userAdded && !p.verified && (
+      {editor && !p.userAdded && !p.verified && (
         <p class="message">
           These notes are a draft. Check them against the source at the bottom before relying on them.{' '}
           {onCheck && (
@@ -319,10 +327,21 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
         </section>
       )}
 
-      <section class="plant-section">
-        <h2>Where this comes from</h2>
-        <p class="small">{p.source || (p.userAdded ? 'Added by you.' : 'No source recorded.')}</p>
-      </section>
+      {editor ? (
+        <section class="plant-section">
+          <h2>Where this comes from</h2>
+          <p class="small">{p.source || (p.userAdded ? 'Added by you.' : 'No source recorded.')}</p>
+        </section>
+      ) : (
+        !p.userAdded && (
+          <p class="small muted report-mistake">
+            Spotted something wrong?{' '}
+            <a href={reportUrl(p)} target="_blank" rel="noopener">
+              Report a mistake
+            </a>
+          </p>
+        )
+      )}
 
     </article>
   );

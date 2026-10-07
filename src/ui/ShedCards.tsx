@@ -19,7 +19,7 @@ export function ShedSummary({ garden, plantOf }: { garden: Garden; plantOf: (id:
   return (
     <section class="card shed-summary" aria-labelledby="shed-summary-head">
       <div class="card-head">
-        <h2 id="shed-summary-head">Potting Shed</h2>
+        <h2 id="shed-summary-head">Seedlings</h2>
         {trays.length + indoors.length > 0 && (
           <span class="muted small">
             {trays.length} {trays.length === 1 ? 'tray' : 'trays'}
@@ -56,7 +56,7 @@ export function ShedSummary({ garden, plantOf }: { garden: Garden; plantOf: (id:
       )}
       <div class="button-row">
         <button type="button" class="btn" onClick={() => app.go('shed')}>
-          Go to the Potting Shed
+          Go to Seedlings
         </button>
         <button type="button" class="btn" onClick={() => app.sowInShed()}>
           Sow seeds

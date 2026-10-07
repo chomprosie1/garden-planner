@@ -25,6 +25,11 @@ export const STAGE_LABEL: Record<LifeStage, string> = {
   cleared: 'Cleared',
 };
 
+/** A line on what a stage means, for the ones that aren't obvious. */
+export const STAGE_EXPLAIN: Partial<Record<Stage, string>> = {
+  hardening: 'Hardening off gets seedlings used to the outdoors: outside by day and in at night for a week or two, before they’re planted out.',
+};
+
 /** What "move on" says for each stage: "Mark as up", "Start hardening off". */
 export const STAGE_ACTION: Record<Stage, string> = {
   sown: 'Mark as sown',

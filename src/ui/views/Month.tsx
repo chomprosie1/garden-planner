@@ -16,10 +16,11 @@ interface Props {
   userPlants: Plant[];
   prefs: Prefs;
   go: (v: View) => void;
+  back: () => void;
   now?: Date;
 }
 
-export function Month({ store, garden, userPlants, prefs, go, now = new Date() }: Props) {
+export function Month({ store, garden, userPlants, prefs, go, back, now = new Date() }: Props) {
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
   const next = (month % 12) + 1;
@@ -35,10 +36,10 @@ export function Month({ store, garden, userPlants, prefs, go, now = new Date() }
     <div class="page month-page">
       {prefs.photos !== 'off' && <SeasonPhoto month={photoMonth} sizes="(max-width: 700px) 100vw, 900px" class="page-band" />}
       <header class="page-head">
-        <h1 class="title">{season.name}</h1>
-        <button type="button" class="icon-btn phone-only" aria-label="Settings" onClick={() => go('settings')}>
-          <Icon name="settings" />
+        <button type="button" class="icon-btn" aria-label="Back" onClick={back}>
+          <Icon name="back" />
         </button>
+        <h1 class="title">{season.name}</h1>
       </header>
       <p class="month-line">{season.line}</p>
 
@@ -61,7 +62,7 @@ export function Month({ store, garden, userPlants, prefs, go, now = new Date() }
           <p class="muted">
             Put plants in your beds on the{' '}
             <a
-              href="#/plan"
+              href="#/garden"
               onClick={(e) => {
                 e.preventDefault();
                 go('plan');

@@ -463,6 +463,35 @@ Tests: `tests/warmth.test.ts` covers the stations, blending and distance, the ye
 
 Tests: `tests/weather.test.ts` covers reading a real Open-Meteo reply, joining the archive and forecast, the request (rounded place, dates), fetching with either failing, freshness and place, rain totals, keeping and forgetting it, off by default, degree days from real days, hot and cold spells, the year's projections, the year so far, cold nights and gains, who's at risk outside, under glass, hardening off and on a bench, the words for when, the Water lens after soaking, light rain and a dry spell, splitting rows and blocks, batch dates and ids, projections and jobs per batch (late, ticked), ideas from your sowing list, schema 9, and What's new (order, ids, plain words, what's unseen).
 
+## The UX plan: twenty changes in four releases (added 7 Oct 2026)
+A product designer's pass for the people this is for: Gen Z, millennials and tech-confident older gardeners. Fewer places to look, one clear next thing to do, more one tap deeper, and more delight. The twenty changes and why are in [ux-plan.md](ux-plan.md).
+
+| Release | Changes | Status |
+| --- | --- | --- |
+| 1. Foundations | Four tabs (1), Your garden page (3), plant editor switch (5), calmer plan toolbar (10), fewer display settings (19), plain words (20) | Built |
+| 2. The first minute | Place search (6), onboarding from your plants (7), starter kits (8), north from the compass (9) | |
+| 3. Daily use | Today as a weekly feed (2), Want to grow (4), one timeline (11), planting panel (12), "What's happened?" (13), first-visit tips (14) | |
+| 4. Delight | Photo diary (15), harvest log (16), season wrapped (17), install, offline and reminders (18) | |
+
+### UX release 1 — Foundations (as built)
+- **Four tabs: Today · Garden · Seedlings · Plants.** Today is Home; Garden is the plan; Seedlings is the Potting Shed, promoted from under Month (its page is now "Seedlings", with no back button); Month is a page under Today ("All October jobs"). Addresses use the new names (`#/today`, `#/garden`, `#/seedlings`, `#/journal`, `#/your-garden`), and the old ones (`#/home`, `#/plan`, `#/shed`, `#/notes`) still work (`VIEW_HASH` and `viewForHash` in `src/theme/prefs.ts`). Search says "Go to Today", "Go to your garden", "Go to Seedlings", "This month's jobs" and "Your garden: location, frosts and backups".
+- **Your garden** (`#/your-garden`, `src/ui/views/Profile.tsx`): opened by tapping the garden's name on Today or Garden (`GardenName` in `src/ui/HomeCards.tsx`), from Settings, the plan's ⋯ menu and search. It holds what's about the garden, not the device:
+  - **About it:** its name; where it is in words ("Near Leeds.", from the nearest weather station; `placeText`), Use this device's location, and the numbers under "Exact location"; which way is north; how you space plants.
+  - **Seasons and weather:** frosts, your climate (the degree days figure became "About as warm as the middle of England"), and this year's weather.
+  - **Backups.**
+  Settings keeps the look, light or dark, More display options, What's new, keyboard, Credits (folded away) and Advanced.
+- **Plant editor** (Settings → Advanced, `prefs.plantEditor`, off): the Checked and Not yet checked badges, the draft warning, the plant's source, the "Checked plants only" filter, the dots in the plant list and "Check the plants" only show when it's on. Everyone else sees "Spotted something wrong? Report a mistake", which opens a new issue on the app's GitHub page about that plant (`reportUrl`).
+- **A calmer plan toolbar:** the garden's name, then what to show, then a plant checks chip (when there's something to check), search, the lock, undo and ⋯ (`src/ui/MoreMenu.tsx`): redo, fit, photos around the plan, the whole garden's details (phone), share a picture, and Your garden. On a phone, the six lens chips are one "Show: …" picker in the toolbar, so the plan gets the row back; on a wide screen, five chips, and tapping the one that's on goes back to the plan.
+- **Fewer display settings:** the look as one row you scroll sideways, and light or dark; photos, photo month, text size and shadows under "More display options". Text follows the browser's text size (`font-size: 100%` rather than 16 px).
+- **Plain words:**
+  - "Sow to transplant" became "Sow to plant out later"; "the shade lens" in the shortcuts became "Show shade"; What's new no longer says "lens".
+  - When hardening off is next, a line explains it (`STAGE_EXPLAIN` in `src/lifecycle/stages.ts`).
+  - `tests/words.test.ts` scans the words on screen in `src/` (JSX text, and quoted text with a space in it, leaving out comments, class names and search's hidden keywords) for "degree days", "lens", "vegetative", "transplanted", "sticker", "footprint", "schema", "latitude" and "longitude" (allowed only for the exact location's two fields).
+- **Screenshots:** headless Edge on Windows won't make a window narrower than 492 px, so earlier phone screenshots were cut off on the right. That was the screenshot, not the app (now off the wishlist). Phone screenshots now load the app in a 390 px frame.
+- **Not done in this release:** the rest of the plan, in releases 2 to 4.
+
+Tests: `tests/ux.test.ts` covers the addresses (new and old), the place in words, the plant editor setting and the report link; `tests/words.test.ts` covers plain words in every source file.
+
 ---
 
 ## Repo layout

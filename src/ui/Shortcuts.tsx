@@ -22,7 +22,7 @@ const GROUPS: { title: string; keys: [string, string][] }[] = [
       ['U', 'Draw a surface: lawn, gravel, paving and more'],
       ['G', 'Plants to drop in'],
       ['K', 'Sketch on the plan'],
-      ['S', 'The shade lens, and back'],
+      ['S', 'Show shade, and back'],
       ['H', 'Hide or show the photos'],
       ['0', 'Fit the garden to the screen'],
       ['+ / −', 'Zoom in or out'],
