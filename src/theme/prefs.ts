@@ -59,6 +59,12 @@ export interface Prefs {
   plantEditor: boolean;
   /** The first-visit tips on the garden plan have been seen. */
   seenTips: boolean;
+  /** Warn of frost while the app's closed, where the browser allows (it checks the forecast in the background). */
+  reminders: boolean;
+  /** Once a week, a reminder of the jobs for the week, where the browser allows. */
+  weeklyNudge: boolean;
+  /** The "Install the app" card on Today has been put away. */
+  installHidden: boolean;
 }
 
 
@@ -88,6 +94,9 @@ export function defaultPrefs(): Prefs {
     seenNews: null,
     plantEditor: false,
     seenTips: false,
+    reminders: false,
+    weeklyNudge: false,
+    installHidden: false,
   };
 }
 
@@ -124,6 +133,9 @@ export function sanitisePrefs(raw: unknown): Prefs {
     seenNews: typeof r.seenNews === 'string' ? r.seenNews : null,
     plantEditor: r.plantEditor === true,
     seenTips: r.seenTips === true,
+    reminders: r.reminders === true,
+    weeklyNudge: r.weeklyNudge === true,
+    installHidden: r.installHidden === true,
   };
 }
 

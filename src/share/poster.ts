@@ -31,7 +31,7 @@ export interface Poster {
 }
 
 /** The page's own colours and fonts, so the picture matches the look you're using. */
-function theme() {
+export function theme() {
   const css = getComputedStyle(document.documentElement);
   const v = (name: string, fallback: string) => css.getPropertyValue(name).trim() || fallback;
   return {
@@ -46,7 +46,7 @@ function theme() {
 }
 
 /** A font size that fits the text in a width, from the size wanted down. */
-function fitFont(ctx: CanvasRenderingContext2D, text: string, family: string, weight: string, size: number, width: number): number {
+export function fitFont(ctx: CanvasRenderingContext2D, text: string, family: string, weight: string, size: number, width: number): number {
   for (let s = size; s > 18; s -= 2) {
     ctx.font = `${weight} ${s}px ${family}`;
     if (ctx.measureText(text).width <= width) return s;

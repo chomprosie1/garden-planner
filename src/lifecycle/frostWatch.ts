@@ -97,3 +97,33 @@ export function frostAdvice(f: FrostWarning): string {
     .filter(Boolean)
     .join(' ');
 }
+
+export interface Watched {
+  /** "Tomato in Veg bed". */
+  name: string;
+  /** How much warmer it is at night where it is: 0 outside or hardening off. */
+  nightGain: number;
+}
+
+/**
+ * Everything a frost could hurt, with how much warmer it is at night where it is: for the reminders the app checks in
+ * the background, which only know the forecast. Heated greenhouses are left out; they never frost.
+ */
+export function frostWatchList(g: Garden, plantOf: (id: string) => Plant): Watched[] {
+  // A night cold enough to catch everything, under any glass.
+  const any = atRiskOn(g, plantOf, { date: '', min: -50, level: 'frost' });
+  const places = new Map(placesOf(g).map((p) => [p.id, p]));
+  const trays = new Map(traysOf(g).map((t) => [t.id, t]));
+  return any.map((a) => {
+    let gain = 0;
+    if (a.kind === 'planting' && a.where.startsWith('in ')) {
+      const pl = g.plantings.find((p) => p.id === a.id);
+      gain = pl ? (microclimateOf(g, pl)?.climate.nightGainC ?? 0) : 0;
+    } else if (a.kind === 'tray' && a.where !== 'hardening off') {
+      const t = trays.get(a.id);
+      const place = t && places.get(t.placeId);
+      gain = place ? (placeClimate(g, place)?.nightGainC ?? 0) : 0;
+    }
+    return { name: `${plantOf(a.plantId).commonName} ${a.where}`, nightGain: gain };
+  });
+}

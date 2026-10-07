@@ -103,10 +103,10 @@ describe('finding your garden', () => {
   it('says where the garden is by the place you chose, and keeps it in the file (schema 10)', () => {
     const g: Garden = { ...newGarden(), latitude: 53.82, longitude: -1.58, placeName: 'Headingley, Leeds' };
     expect(placeText(g)).toBe('Headingley, Leeds.');
-    expect(SCHEMA_VERSION).toBe(10);
+    expect(SCHEMA_VERSION).toBeGreaterThanOrEqual(10);
     expect(validateGarden(g)).toEqual([]);
     expect(validateGarden({ ...g, placeName: 42 as unknown as string })).toHaveLength(1);
-    expect((migrateGarden({ ...newGarden(), schemaVersion: 9 }) as Garden).schemaVersion).toBe(10);
+    expect((migrateGarden({ ...newGarden(), schemaVersion: 9 }) as Garden).schemaVersion).toBe(SCHEMA_VERSION);
   });
 });
 

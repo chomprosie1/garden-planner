@@ -272,6 +272,8 @@ button:disabled {
   border-right: 1px solid var(--border);
 }
 .screen {
+  /* Positioned, so hidden labels inside stay inside it rather than stretching the page past the tab bar. */
+  position: relative;
   grid-column: 2;
   min-width: 0;
   min-height: 0;
@@ -2441,6 +2443,10 @@ button:disabled {
   flex: none;
   padding: 0.4rem;
 }
+.job-pick {
+  padding: 0.4rem 0 0.2rem 2rem;
+  margin-bottom: 0;
+}
 
 /* ---------- Plant card ---------- */
 .where-growing {
@@ -4546,4 +4552,141 @@ button.plan-chip:hover {
   .tip-target {
     animation: none;
   }
+}
+
+/* ---------- Photos ---------- */
+.photo {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: var(--surface2);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: zoom-in;
+}
+.photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photo-loading {
+  min-height: 120px;
+}
+.photo-missing {
+  padding: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  cursor: default;
+}
+.note-photo {
+  width: 100%;
+  max-height: 260px;
+  margin: 0.3rem 0;
+}
+.photo-thumb {
+  width: 96px;
+  height: 96px;
+}
+.photo-chosen {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+}
+.photo-input {
+  margin: 0.4rem 0;
+}
+.photo-input .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.photo-strip {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.3rem;
+}
+.photo-strip figure,
+.photo-grid figure {
+  margin: 0;
+}
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+.photo-tile {
+  width: 100%;
+  aspect-ratio: 1;
+}
+.photo-grid figcaption {
+  margin-top: 0.25rem;
+}
+.photo-big {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  max-width: 96vw;
+  max-height: 92vh;
+}
+.photo-big::backdrop {
+  background: rgb(0 0 0 / 0.8);
+}
+.photo-big img {
+  display: block;
+  max-width: 96vw;
+  max-height: 92vh;
+  object-fit: contain;
+  border-radius: var(--radius);
+}
+.journal-view {
+  margin: 0.8rem 0 0.2rem;
+}
+.pick-amount {
+  border: 0;
+  padding: 0;
+  margin: 0.4rem 0;
+}
+.pick-amount legend {
+  font-size: 0.9rem;
+  margin-bottom: 0.3rem;
+}
+.pick-grams input {
+  width: 7rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+/* ---------- Your season, wrapped ---------- */
+.wrapped-card {
+  display: block;
+  width: min(100%, 300px);
+  height: auto;
+  aspect-ratio: 9 / 16;
+  margin: 0.4rem auto;
+  border-radius: var(--radius-card);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+.wrapped-nav {
+  justify-content: center;
+  align-items: center;
+}
+.season-top {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.2rem 0 0.7rem;
+}
+.season-top li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.season-top li span:nth-child(2) {
+  flex: 1;
 }

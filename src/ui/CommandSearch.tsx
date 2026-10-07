@@ -30,6 +30,7 @@ const ICON: Record<Command['kind'], IconName> = {
   setup: 'home',
   share: 'share',
   shortcuts: 'keyboard',
+  wrapped: 'share',
 };
 
 export function CommandSearch({ garden, userPlants, locked, run, close }: Props) {

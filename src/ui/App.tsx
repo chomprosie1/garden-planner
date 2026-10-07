@@ -24,6 +24,8 @@ import { Settings } from './views/Settings';
 import { Shed } from './views/Shed';
 import { WhatsNew } from './views/WhatsNew';
 import { Profile } from './views/Profile';
+import { WrappedHost } from './WrappedHost';
+import { ReminderKeeper } from './ReminderKeeper';
 
 /** The four tabs: what's to do, the garden itself, seedlings in the shed, and plants to grow. */
 const NAV: { view: View; label: string; icon: IconName }[] = [
@@ -61,6 +63,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   const [shortcuts, setShortcuts] = useState(false);
   const [searching, setSearching] = useState(false);
   const [shedSow, setShedSow] = useState<string | null>(null);
+  const [wrapping, setWrapping] = useState(false);
   const weather = useWeatherFeed(garden, prefs.weather && prefs.onboarded);
 
   const navigate = (v: View) => {
@@ -98,6 +101,9 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
       },
       openSearch() {
         setSearching(true);
+      },
+      openWrapped() {
+        setWrapping(true);
       },
     }),
     [store, view],
@@ -176,6 +182,8 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
         return toPlan({ kind: 'setup' });
       case 'share':
         return toPlan({ kind: 'share' });
+      case 'wrapped':
+        return setWrapping(true);
     }
   };
   const screen = (() => {
@@ -299,6 +307,8 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
           </div>
         )}
         {shortcuts && <Shortcuts close={() => setShortcuts(false)} />}
+        {prefs.onboarded && <ReminderKeeper garden={garden} userPlants={userPlants} frost={prefs.reminders} weekly={prefs.weeklyNudge} />}
+        {wrapping && <WrappedHost garden={garden} userPlants={userPlants} close={() => setWrapping(false)} />}
         {searching && <CommandSearch garden={garden} userPlants={userPlants} locked={prefs.layoutLocked} run={run} close={() => setSearching(false)} />}
       </div>
       </WeatherContext.Provider>

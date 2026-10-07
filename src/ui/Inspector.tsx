@@ -27,6 +27,7 @@ import {
   type Target,
 } from '../model/features';
 import { todayIso } from '../model/ids';
+import { photosOf } from '../model/notes';
 import { updateGarden, type Store } from '../model/store';
 import { MATERIALS, type Climate, type Feature, type FeatureKind, type Garden, type Material, type Plant, type Planting, type Point } from '../model/types';
 import {
@@ -937,7 +938,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
             label: 'Timeline',
             body: (
               <>
-                <StageRail pl={pl} plant={plant} covered={!!cover} steps={steps} />
+                <StageRail pl={pl} plant={plant} covered={!!cover} steps={steps} photos={photosOf(garden, pl.id)} />
                 {canEdit && <StageCorrect store={store} pl={pl} plant={plant} covered={!!cover} />}
               </>
             ),

@@ -10,6 +10,7 @@ import {
   LEAF_SHAPES,
   LIGHT_LEVELS,
   MATERIALS,
+  PICK_SIZES,
   PLANT_CATEGORIES,
   PLANT_FORMS,
   SHED_PLACE_KINDS,
@@ -112,6 +113,11 @@ export function validateGarden(g: unknown): string[] {
       );
       need(p.sowBy === undefined || (isStr(p.sowBy) && /^\d{4}-\d{2}-\d{2}$/.test(p.sowBy)), `${at}.sowBy must be a date.`);
       need(
+        p.picks === undefined ||
+          (Array.isArray(p.picks) && p.picks.every((k) => isObject(k) && isStr(k.date) && isNum(k.grams) && (k.grams as number) >= 0 && (k.size === undefined || oneOf(PICK_SIZES, k.size)))),
+        `${at}.picks must each have a date and grams.`,
+      );
+      need(
         p.batch === undefined ||
           (isObject(p.batch) && isStr(p.batch.group) && Number.isInteger(p.batch.n) && Number.isInteger(p.batch.of) && (p.batch.n as number) >= 1 && (p.batch.n as number) <= (p.batch.of as number)),
         `${at}.batch needs a group and which batch it is, of how many.`,
@@ -164,6 +170,7 @@ export function validateGarden(g: unknown): string[] {
         errors.push(`notes[${i}] needs an id, a date and text.`);
       else if ((n.featureId !== undefined && !isStr(n.featureId)) || (n.plantingId !== undefined && !isStr(n.plantingId)))
         errors.push(`notes[${i}] can only be attached by id.`);
+      else if (n.photo !== undefined && !(isStr(n.photo) && /^[\w-]{1,40}$/.test(n.photo))) errors.push(`notes[${i}].photo must be a photo's id.`);
     });
 
   return errors;

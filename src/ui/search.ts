@@ -25,7 +25,9 @@ export type Command =
   | { kind: 'setup' }
   /** A picture of the plan, or a timelapse of the year. */
   | { kind: 'share' }
-  | { kind: 'shortcuts' };
+  | { kind: 'shortcuts' }
+  /** "Your season, wrapped". */
+  | { kind: 'wrapped' };
 
 export type Group = 'Actions' | 'On your plan' | 'Plants';
 export const GROUPS: Group[] = ['Actions', 'On your plan', 'Plants'];
@@ -108,6 +110,7 @@ function actions(g: Garden, locked: boolean): Candidate[] {
     { key: 'tool-bed', group: 'Actions', label: 'Draw a bed by its corners', words: 'shape precise exact', command: { kind: 'tool', tool: 'bed' } },
     { key: 'tool-sketch', group: 'Actions', label: 'Sketch on the plan', words: 'draw pen notes idea', command: { kind: 'tool', tool: 'sketch' } },
     { key: 'shortcuts', group: 'Actions', label: 'Keyboard shortcuts', words: 'keys help', command: { kind: 'shortcuts' } },
+    { key: 'wrapped', group: 'Actions', label: 'Your season, wrapped', words: 'year review look back story share summary harvest picked', command: { kind: 'wrapped' } },
   );
   if (g.boundary.length < 3 && g.features.length === 0)
     out.push({ key: 'setup', group: 'Actions', label: 'Set up your space', detail: 'Balcony, patio, garden or allotment', words: 'start where growing balcony patio yard garden allotment plot', command: { kind: 'setup' } });

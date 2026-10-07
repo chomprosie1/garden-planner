@@ -1,12 +1,13 @@
 import { useState } from 'preact/hooks';
 import { featureLabel } from '../../model/features';
-import { addNote, deleteNote, makeNote } from '../../model/notes';
+import { addNote, deleteNote, makeNote, photosOf } from '../../model/notes';
 import { updateGarden, type Store } from '../../model/store';
 import type { Garden, Note, Plant } from '../../model/types';
 import { isContainer } from '../../planting/place';
 import { useApp } from '../appContext';
 import { Icon } from '../icons';
-import { NoteForm, NoteList, noteAbout } from '../NotesSection';
+import { formatDate, NoteForm, NoteList, noteAbout } from '../NotesSection';
+import { Photo } from '../Photo';
 import { usePlants } from '../usePlants';
 
 interface Props {
@@ -27,6 +28,8 @@ export function Notes({ store, garden, userPlants, back }: Props) {
   const bedOf = (n: Note) => n.featureId ?? garden.plantings.find((p) => p.id === n.plantingId)?.featureId;
   const shown = show === 'all' ? garden.notes : show === 'garden' ? garden.notes.filter((n) => !bedOf(n)) : garden.notes.filter((n) => bedOf(n) === show);
   const beds = garden.features.filter(isContainer);
+  const photos = photosOf(garden);
+  const [grid, setGrid] = useState(false);
 
   return (
     <div class="page notes-page">
@@ -48,11 +51,34 @@ export function Notes({ store, garden, userPlants, back }: Props) {
             ))}
           </select>
         </label>
-        <NoteForm label="Note" onAdd={(text, date) => store.apply(updateGarden((g) => addNote(g, makeNote(text, date, about ? { featureId: about } : {}))))} />
+        <NoteForm label="Note" onAdd={(text, date, photo) => store.apply(updateGarden((g) => addNote(g, makeNote(text, date, about ? { featureId: about } : {}, photo))))} />
         <p class="muted small">You can also add notes to a bed or a planting from the plan.</p>
       </section>
 
-      {garden.notes.length === 0 ? (
+      {photos.length > 0 && (
+        <div class="choice-row journal-view" role="radiogroup" aria-label="Show">
+          <button type="button" role="radio" class="chip" aria-checked={!grid} onClick={() => setGrid(false)}>
+            Notes ({garden.notes.length})
+          </button>
+          <button type="button" role="radio" class="chip" aria-checked={grid} onClick={() => setGrid(true)}>
+            Photos ({photos.length})
+          </button>
+        </div>
+      )}
+      {grid && photos.length > 0 ? (
+        <section class="photo-grid" aria-label="Photos">
+          {photos.map((n) => (
+            <figure key={n.id}>
+              <Photo id={n.photo!} alt={n.text || `A photo from ${formatDate(n.date)}`} class="photo-tile" />
+              <figcaption class="small">
+                <span class="muted">{formatDate(n.date)}</span>
+                {describe(n) && <span> · {describe(n)}</span>}
+                {n.text && <span class="photo-caption"> {n.text}</span>}
+              </figcaption>
+            </figure>
+          ))}
+        </section>
+      ) : garden.notes.length === 0 ? (
         <p class="muted">No notes yet. Jot down what you sowed, what worked and what didn't, so next year is easier.</p>
       ) : (
         <section class="notes-all">

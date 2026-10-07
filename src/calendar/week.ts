@@ -98,3 +98,35 @@ export function upcomingText(u: Upcoming, g: Garden, plantOf: (id: string) => Pl
 export function weekWindows(today: string): { thisWeek: [string, string]; nextWeek: [string, string] } {
   return { thisWeek: [addDays(today, -1), addDays(today, 6)], nextWeek: [addDays(today, 6), addDays(today, 13)] };
 }
+
+export interface WeekNudge {
+  /** The Monday the week starts, ISO. */
+  week: string;
+  title: string;
+  body: string;
+}
+
+/** The Monday of the week a date is in. */
+export const mondayOf = (iso: string): string => addDays(iso, -((dayNumber(iso) + 3) % 7));
+
+/**
+ * The weekly reminder for each of the next few weeks: the things to do that week, from this week's Monday on. Worked
+ * out while the app's open and kept for the service worker, which shows the one for the week it's in (and only when
+ * there's something to do).
+ */
+export function weekNudges(g: Garden, plantOf: (id: string) => Plant, today: string, weeks = 5, weather: Weather | null = null): WeekNudge[] {
+  const out: WeekNudge[] = [];
+  for (let i = 0; i < weeks; i++) {
+    const monday = addDays(mondayOf(today), 7 * i);
+    // Steps due before today were never projected; the week's left are.
+    const todo = upcoming(g, plantOf, today, addDays(monday, -1), addDays(monday, 6), weather).filter((u) => u.todo);
+    if (!todo.length) continue;
+    const lines = todo.slice(0, 3).map((u) => {
+      const bed = g.features.find((f) => f.id === u.featureId);
+      return `${upcomingVerb(u)}: ${plantOf(u.plantId).commonName.toLowerCase()}${u.batch ? ` (${u.batch})` : ''}${bed ? ` in ${featureLabel(bed)}` : ''}`;
+    });
+    const more = todo.length - lines.length;
+    out.push({ week: monday, title: `${todo.length} ${todo.length === 1 ? 'job' : 'jobs'} this week`, body: `${lines.join('. ')}.${more ? ` And ${more} more.` : ''}` });
+  }
+  return out;
+}

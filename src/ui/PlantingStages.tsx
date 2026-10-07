@@ -3,15 +3,17 @@
 // stages with their dates and what's likely next, and a way to correct a mistake.
 
 import { useState } from 'preact/hooks';
-import { happenings, likelyNext, recordHappening, type HappeningId } from '../lifecycle/happened';
+import { happenings, isPicking, likelyNext, recordHappening, type HappeningId } from '../lifecycle/happened';
+import { formatWeight, PICK_LABEL } from '../planting/harvest';
 import { probableStage, shortDate, type Step } from '../lifecycle/projection';
 import { currentStage, pathFor, setStage, STAGE_EXPLAIN, STAGE_LABEL, stageDate, stageTips, sowingOf, type LifeStage } from '../lifecycle/stages';
 import { todayIso } from '../model/ids';
 import { updateGarden, type Store } from '../model/store';
-import { STAGES, type Garden, type Plant, type Planting, type Stage } from '../model/types';
+import { PICK_SIZES, STAGES, type Garden, type Note, type PickSize, type Plant, type Planting, type Stage } from '../model/types';
 import { useApp } from './appContext';
 import { formatDate } from './NotesSection';
 import { useWeatherNow } from './useWeather';
+import { Photo, PhotoInput } from './Photo';
 
 const order = (s: LifeStage) => (s === 'planned' ? -1 : s === 'cleared' ? 99 : STAGES.indexOf(s));
 
@@ -33,6 +35,9 @@ export function WhatsHappened({ store, garden, pl, plant, covered = false }: Pro
   const [chosen, setChosen] = useState<HappeningId | null>(null);
   const [date, setDate] = useState(today);
   const [note, setNote] = useState('');
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [size, setSize] = useState<PickSize | null>(null);
+  const [grams, setGrams] = useState('');
   const options = happenings(plant, pl, covered);
   if (!options.length) return null;
   // What it's probably at by now, from the warmth it's had, or simply what comes next.
@@ -42,11 +47,17 @@ export function WhatsHappened({ store, garden, pl, plant, covered = false }: Pro
   const save = () => {
     if (!chosen) return;
     const label = options.find((o) => o.id === chosen)!.label;
-    store.apply(updateGarden((g) => recordHappening(g, pl, plant, chosen, date, note)));
-    app.notify(`${plant.commonName}: ${label.toLowerCase()}${note.trim() ? ', with your note' : ''}.`, { undo: true });
+    const weighed = Number(grams);
+    const pick = isPicking(chosen) && (size || weighed > 0) ? (weighed > 0 ? { grams: weighed } : { size: size! }) : undefined;
+    store.apply(updateGarden((g) => recordHappening(g, pl, plant, chosen, date, note, { ...(photo ? { photo } : {}), ...(pick ? { pick } : {}) })));
+    const extras = [pick && 'how much', note.trim() && 'your note', photo && 'the photo'].filter(Boolean);
+    app.notify(`${plant.commonName}: ${label.toLowerCase()}${extras.length ? `, with ${extras.join(' and ')}` : ''}.`, { undo: true });
     setOpen(false);
     setChosen(null);
     setNote('');
+    setPhoto(null);
+    setSize(null);
+    setGrams('');
     setDate(today);
   };
 
@@ -76,6 +87,22 @@ export function WhatsHappened({ store, garden, pl, plant, covered = false }: Pro
         ))}
       </div>
       {explain && <p class="muted small">{explain}</p>}
+      {isPicking(chosen) && (
+        <fieldset class="pick-amount">
+          <legend>How much? (if you like)</legend>
+          <div class="happened-chips">
+            {PICK_SIZES.map((s) => (
+              <button key={s} type="button" class="chip" aria-pressed={size === s && !grams} onClick={() => (setSize(size === s ? null : s), setGrams(''))}>
+                {PICK_LABEL[s]}
+              </button>
+            ))}
+            <label class="pick-grams">
+              <span class="visually-hidden">Weighed, in grams</span>
+              <input type="number" inputMode="numeric" min={1} max={100000} placeholder="or grams" value={grams} onInput={(e) => setGrams((e.currentTarget as HTMLInputElement).value)} />
+            </label>
+          </div>
+        </fieldset>
+      )}
       <div class="field-row">
         <label class="field">
           When
@@ -86,11 +113,12 @@ export function WhatsHappened({ store, garden, pl, plant, covered = false }: Pro
         Note (if you like)
         <textarea rows={2} value={note} placeholder="How it looks, the variety, anything to remember" onInput={(e) => setNote((e.currentTarget as HTMLTextAreaElement).value)} />
       </label>
+      <PhotoInput value={photo} onChange={setPhoto} />
       <div class="button-row">
         <button type="button" class="btn btn-primary" disabled={!chosen} onClick={save}>
           Save
         </button>
-        <button type="button" class="btn" onClick={() => (setOpen(false), setChosen(null))}>
+        <button type="button" class="btn" onClick={() => (setOpen(false), setChosen(null), setPhoto(null))}>
           Cancel
         </button>
       </div>
@@ -119,8 +147,10 @@ export function StageAdvice({ pl, plant, covered = false }: Omit<Props, 'store' 
   );
 }
 
-/** The stages it goes through, with the dates it reached them; then what's likely next and when. */
-export function StageRail({ pl, plant, covered = false, steps = [] }: Omit<Props, 'store' | 'garden'> & { steps?: Step[] }) {
+/** The stages it goes through, with the dates it reached them; what's likely next and when; its photos; and what it's given. */
+export function StageRail({ pl, plant, covered = false, steps = [], photos = [] }: Omit<Props, 'store' | 'garden'> & { steps?: Step[]; photos?: Note[] }) {
+  const picks = [...(pl.picks ?? [])].sort((a, b) => (a.date < b.date ? 1 : -1));
+  const total = picks.reduce((a, k) => a + k.grams, 0);
   const now = currentStage(pl);
   const path = pathFor(plant, pl, covered);
   const today = todayIso();
@@ -152,6 +182,32 @@ export function StageRail({ pl, plant, covered = false, steps = [] }: Omit<Props
               <li key={`${s.stage}${s.date}`}>
                 <span>{s.stage === 'cleared' ? 'Finished' : STAGE_LABEL[s.stage]}</span>
                 <span class="muted">about {shortDate(s.date!)}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {photos.length > 0 && (
+        <>
+          <h4 class="stage-ahead-title">Photos</h4>
+          <div class="photo-strip">
+            {photos.map((n) => (
+              <figure key={n.id}>
+                <Photo id={n.photo!} alt={n.text || `${plant.commonName}, ${formatDate(n.date)}`} class="photo-thumb" />
+                <figcaption class="small muted">{shortDate(n.date)}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </>
+      )}
+      {picks.length > 0 && (
+        <>
+          <h4 class="stage-ahead-title">Picked: {formatWeight(total)} in all</h4>
+          <ul class="plain-list stage-ahead">
+            {picks.slice(0, 8).map((k, i) => (
+              <li key={`${k.date}${i}`}>
+                <span>{k.size ? PICK_LABEL[k.size] : formatWeight(k.grams)}</span>
+                <span class="muted">{shortDate(k.date)}</span>
               </li>
             ))}
           </ul>

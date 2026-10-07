@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-07-delight',
+    date: '2026-10-07',
+    title: 'Photos, pickings and your season, wrapped',
+    items: [
+      'Add a photo to any note, or when you log what’s happened to a planting. Its photos show in its Timeline, and the journal has a Photos view.',
+      'Log what you pick: a handful, a bowl, a basket or the weight, from “What’s happened?” or “Picked some?” on a harvest job. Today adds up what you’ve picked this year.',
+      'Your season, wrapped: your year in the garden as cards to flip through and share. On Today from September, or search for it.',
+      'Put the app on your home screen: it opens like an app and works without a signal.',
+      'Reminders, if you’d like them: a warning when a frost could hurt your plants, and this week’s jobs on Mondays. Turn them on in Your garden.',
+      'Backups can carry your photos too.',
+    ],
+    tryIt: { label: 'See Today', view: 'home' },
+  },
+  {
     id: '2026-10-07-daily',
     date: '2026-10-07',
     title: 'Your week on Today, and logging in a tap',

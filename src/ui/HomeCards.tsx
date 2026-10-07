@@ -249,15 +249,15 @@ export function JournalCard({ store, garden, plantOf }: { store: Store; garden: 
       {adding ? (
         <NoteForm
           label="Note about the whole garden"
-          onAdd={(text, date) => {
-            store.apply(updateGarden((g) => addNote(g, makeNote(text, date))));
+          onAdd={(text, date, photo) => {
+            store.apply(updateGarden((g) => addNote(g, makeNote(text, date, {}, photo))));
             setAdding(false);
             app.notify('Note added to your journal.');
           }}
         />
       ) : (
         <button type="button" class="btn" onClick={() => setAdding(true)}>
-          Add a note
+          Add a note or photo
         </button>
       )}
     </section>

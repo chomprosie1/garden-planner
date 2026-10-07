@@ -180,7 +180,20 @@ export interface Planting {
   sowBy?: string;
   /** One of a row or block split into batches, sown a few weeks apart. */
   batch?: Batch;
+  /** What's been picked, and when: the harvest log. */
+  picks?: Pick[];
 }
+
+/** One picking: how much, as a rough size or weighed. */
+export interface Pick {
+  date: string; // ISO date
+  /** Grams, weighed or from the size. */
+  grams: number;
+  size?: PickSize;
+}
+
+export const PICK_SIZES = ['handful', 'bowl', 'basket'] as const;
+export type PickSize = (typeof PICK_SIZES)[number];
 
 /** Sowing little and often: which batch this is, of how many, in a group sown together. */
 export interface Batch {
@@ -197,7 +210,10 @@ export type Stage = (typeof STAGES)[number];
 export interface Note {
   id: string;
   date: string; // ISO date
+  /** Can be empty when there's a photo. */
   text: string;
+  /** A photo, by id: the picture itself stays in this browser (IndexedDB), and goes in a backup only if you ask. */
+  photo?: string;
   featureId?: string;
   plantingId?: string;
 }

@@ -10,6 +10,8 @@ import type { Prefs, PrefsStore, View } from '../../theme/prefs';
 import { BackupCard, GardenCard, GardenName, JournalCard, SaveIndicator, SetupCard, WhatsNewCard } from '../HomeCards';
 import { FrostCard } from '../WeatherCards';
 import { WeekCard } from '../WeekCard';
+import { SeasonCard } from '../Wrapped';
+import { InstallCard } from '../Install';
 import { Icon } from '../icons';
 import { doneOf, JobList, jobsDoneCount, PlantJobs } from '../Jobs';
 import { PhotoCredit, SeasonPhoto } from '../SeasonPhoto';
@@ -156,8 +158,10 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
         </section>
 
         {plants && <WeekCard garden={garden} plantOf={plantOf} />}
+        {plants && <SeasonCard garden={garden} plantOf={plantOf} />}
         <JournalCard store={store} garden={garden} plantOf={plantOf} />
         <WhatsNewCard prefs={prefs} prefsStore={prefsStore} />
+        <InstallCard hidden={prefs.installHidden} prefsStore={prefsStore} />
         <GardenCard garden={garden} prefs={prefs} plants={plants} plantOf={plantOf} />
         <BackupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} now={now} />
         <SaveIndicator />

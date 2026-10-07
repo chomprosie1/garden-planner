@@ -5,6 +5,7 @@ import { updateGarden, type Store } from '../model/store';
 import type { Garden, Note } from '../model/types';
 import { featureLabel } from '../model/features';
 import { useApp } from './appContext';
+import { Photo, PhotoInput } from './Photo';
 
 /** "6 Oct 2026" from "2026-10-06". */
 export function formatDate(iso: string): string {
@@ -13,18 +14,21 @@ export function formatDate(iso: string): string {
   return new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-/** A small form for a dated note. */
-export function NoteForm({ onAdd, label = 'Add a note' }: { onAdd: (text: string, date: string) => void; label?: string }) {
+/** A small form for a dated note, with words, a photo or both. */
+export function NoteForm({ onAdd, label = 'Add a note' }: { onAdd: (text: string, date: string, photo?: string) => void; label?: string }) {
   const [text, setText] = useState('');
   const [date, setDate] = useState(todayIso());
+  const [photo, setPhoto] = useState<string | null>(null);
+  const ready = !!text.trim() || !!photo;
   return (
     <form
       class="note-form"
       onSubmit={(e) => {
         e.preventDefault();
-        if (!text.trim()) return;
-        onAdd(text, date || todayIso());
+        if (!ready) return;
+        onAdd(text, date || todayIso(), photo ?? undefined);
         setText('');
+        setPhoto(null);
       }}
     >
       <label class="field">
@@ -36,10 +40,11 @@ export function NoteForm({ onAdd, label = 'Add a note' }: { onAdd: (text: string
           Date
           <input type="date" value={date} onInput={(e) => setDate((e.currentTarget as HTMLInputElement).value)} />
         </label>
-        <button type="submit" class="btn" disabled={!text.trim()}>
+        <button type="submit" class="btn" disabled={!ready}>
           Add note
         </button>
       </div>
+      <PhotoInput value={photo} onChange={setPhoto} />
     </form>
   );
 }
@@ -56,7 +61,8 @@ export function NoteList({ notes, onDelete, about, readOnly = false }: { notes: 
               <time dateTime={n.date}>{formatDate(n.date)}</time>
               {what && <span> · {what}</span>}
             </p>
-            <p class="note-text">{n.text}</p>
+            {n.photo && <Photo id={n.photo} alt={n.text || `A photo from ${formatDate(n.date)}`} class="note-photo" />}
+            {n.text && <p class="note-text">{n.text}</p>}
             {!readOnly && (
               <button type="button" class="link-btn small" onClick={() => onDelete(n.id)}>
                 Delete note
@@ -83,7 +89,7 @@ export function NotesSection({ store, garden, on }: { store: Store; garden: Gard
           app.notify('Note deleted.', { undo: true });
         }}
       />
-      <NoteForm onAdd={(text, date) => store.apply(updateGarden((g) => addNote(g, makeNote(text, date, on))))} />
+      <NoteForm onAdd={(text, date, photo) => store.apply(updateGarden((g) => addNote(g, makeNote(text, date, on, photo))))} />
     </section>
   );
 }

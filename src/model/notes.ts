@@ -3,14 +3,19 @@
 import { newId } from './ids';
 import type { Garden, Note } from './types';
 
-export function makeNote(text: string, date: string, on: { featureId?: string; plantingId?: string } = {}): Note {
+export function makeNote(text: string, date: string, on: { featureId?: string; plantingId?: string } = {}, photo?: string): Note {
   const n: Note = { id: newId('n'), date, text: text.trim() };
   if (on.featureId) n.featureId = on.featureId;
   if (on.plantingId) n.plantingId = on.plantingId;
+  if (photo) n.photo = photo;
   return n;
 }
 
-export const addNote = (g: Garden, n: Note): Garden => (n.text ? { ...g, notes: [...g.notes, n] } : g);
+/** Adds a note with some words or a photo; an empty one is left out. */
+export const addNote = (g: Garden, n: Note): Garden => (n.text || n.photo ? { ...g, notes: [...g.notes, n] } : g);
+
+/** Photos in the garden's notes, newest first. */
+export const photosOf = (g: Garden, plantingId?: string): Note[] => newestFirst(g.notes.filter((n) => n.photo && (!plantingId || n.plantingId === plantingId)));
 
 export function updateNote(g: Garden, id: string, patch: Partial<Pick<Note, 'text' | 'date'>>): Garden {
   if (!g.notes.some((n) => n.id === id)) return g;

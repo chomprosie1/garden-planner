@@ -3,11 +3,12 @@
 // stage rail and "Change stage…" are still there for correcting a mistake.
 
 import { addNote, makeNote } from '../model/notes';
-import type { Garden, Plant, Planting, Stage } from '../model/types';
+import type { Garden, PickSize, Plant, Planting, Stage } from '../model/types';
+import { addPick } from '../planting/harvest';
 import { harvestPlantings } from '../planting/place';
 import { currentStage, isNewSeason, markFailed, nextStage, pathFor, setSowing, setStage } from './stages';
 
-export type HappeningId = 'sown-indoors' | 'sown-direct' | 'planted' | Stage | 'new-season' | 'finished' | 'failed';
+export type HappeningId = 'sown-indoors' | 'sown-direct' | 'planted' | Stage | 'picked' | 'new-season' | 'finished' | 'failed';
 
 export interface Happening {
   id: HappeningId;
@@ -25,6 +26,7 @@ const LABEL: Partial<Record<HappeningId, string>> = {
   vegetative: 'Growing well',
   flowering: 'Flowering',
   harvesting: 'First pick',
+  picked: 'Picked some',
   'new-season': 'Growing again',
   finished: 'Finished',
   failed: 'Didn’t come up',
@@ -43,6 +45,8 @@ export function happenings(plant: Plant, pl: Planting, covered = false): Happeni
     if (!pl.sowing && methods.size > 1) out.push('sown-indoors', 'sown-direct');
     else out.push(path[0] === 'sown' ? 'sown' : 'planted');
   } else {
+    // Cropping already: log each picking.
+    if (now === 'harvesting') out.push('picked');
     for (const s of path) if (order(s) > order(now)) out.push(s);
     if (isNewSeason(plant, pl)) out.push('new-season');
     if (now === 'sown' || now === 'germinated' || now === 'hardening') out.push('failed');
@@ -53,13 +57,25 @@ export function happenings(plant: Plant, pl: Planting, covered = false): Happeni
 
 /** The one it's probably ready for: the next stage on its path. */
 export const likelyNext = (plant: Plant, pl: Planting, covered = false): HappeningId | null => {
-  if (currentStage(pl) === 'planned') return null;
+  const now = currentStage(pl);
+  if (now === 'planned') return null;
+  if (now === 'harvesting' && !isNewSeason(plant, pl)) return 'picked';
   const n = nextStage(plant, pl, covered);
   return n && isNewSeason(plant, pl) ? 'new-season' : n;
 };
 
-/** Records what happened on a date, with a note if there is one, as one edit. */
-export function recordHappening(g: Garden, pl: Planting, plant: Plant, id: HappeningId, date: string, note = ''): Garden {
+/** A first pick, or a picking since: they can say how much. */
+export const isPicking = (id: HappeningId | null) => id === 'harvesting' || id === 'picked';
+
+export interface Extra {
+  /** A photo, by id, on the note. */
+  photo?: string;
+  /** How much was picked. */
+  pick?: { size?: PickSize; grams?: number };
+}
+
+/** Records what happened on a date, with a note, a photo and how much was picked if there are any, as one edit. */
+export function recordHappening(g: Garden, pl: Planting, plant: Plant, id: HappeningId, date: string, note = '', extra: Extra = {}): Garden {
   const ids = [pl.id];
   let next: Garden;
   switch (id) {
@@ -73,6 +89,9 @@ export function recordHappening(g: Garden, pl: Planting, plant: Plant, id: Happe
     case 'new-season':
       next = setStage(g, ids, 'vegetative', date, { newSeason: true });
       break;
+    case 'picked':
+      next = g;
+      break;
     case 'finished':
       next = harvestPlantings(g, ids, date);
       break;
@@ -82,5 +101,6 @@ export function recordHappening(g: Garden, pl: Planting, plant: Plant, id: Happe
     default:
       next = setStage(g, ids, id, date);
   }
-  return note.trim() ? addNote(next, makeNote(note, date, { plantingId: pl.id })) : next;
+  if (isPicking(id) && extra.pick) next = addPick(next, pl.id, date, extra.pick);
+  return note.trim() || extra.photo ? addNote(next, makeNote(note, date, { plantingId: pl.id }, extra.photo)) : next;
 }

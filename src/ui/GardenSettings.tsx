@@ -4,6 +4,7 @@ import type { Garden } from '../model/types';
 import { todayIso } from '../model/ids';
 import type { PrefsStore } from '../theme/prefs';
 import { downloadFile, parseFileText } from '../storage/file';
+import { fromDataUrl, loadPhoto, photoIds, putPhoto, toDataUrl } from '../storage/photos';
 import { Icon } from './icons';
 import { estimateFrost, frostDates, inYear, short } from '../lifecycle/shed';
 import { averagesAt, referenceAverages, seasonDays, stationNames, yearDegreeDays, yearSoFar } from '../climate/warmth';
@@ -11,6 +12,7 @@ import { ATTRIBUTION } from '../weather/openMeteo';
 import { lastDay } from '../weather/weather';
 import { usePrefs } from './hooks';
 import { useWeatherNow } from './useWeather';
+import { disableReminders, enableReminders, type ReminderStatus } from '../storage/reminders';
 import { CompassNorth } from './CompassNorth';
 import { PlaceSearch } from './PlaceSearch';
 
@@ -20,9 +22,17 @@ interface Props {
   prefsStore?: PrefsStore;
 }
 
-/** Downloads a backup file and remembers when, for the reminder on Home. */
-export function backUp(store: Store, prefsStore?: PrefsStore) {
-  downloadFile(store.get());
+/** Downloads a backup file and remembers when, for the reminder on Home. With photos, it carries every photo on a note too. */
+export async function backUp(store: Store, prefsStore?: PrefsStore, withPhotos = false) {
+  let photos: Record<string, string> | undefined;
+  if (withPhotos) {
+    photos = {};
+    for (const id of photoIds(store.get().garden)) {
+      const blob = await loadPhoto(id).catch(() => undefined);
+      if (blob) photos[id] = await toDataUrl(blob);
+    }
+  }
+  downloadFile(store.get(), photos);
   prefsStore?.set({ lastBackup: todayIso() });
 }
 
@@ -32,6 +42,7 @@ type Message = { kind: 'ok' | 'error'; lines: string[] } | null;
 export function GardenSettings({ store, garden, prefsStore }: Props) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<Message>(null);
+  const photoCount = photoIds(garden).size;
 
   const setNumber = (key: 'latitude' | 'longitude' | 'northRotationDeg', min: number, max: number) => (e: Event) => {
     const value = Number((e.currentTarget as HTMLInputElement).value);
@@ -60,7 +71,17 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
     if (!confirm(`Replace "${garden.name}" with "${result.state.garden.name}" from the file? Download a backup first if you want to keep the current one.`))
       return;
     store.replace(result.state);
-    setMessage({ kind: 'ok', lines: [`Restored "${result.state.garden.name}" from the backup.`] });
+    // Photos in the backup go back on this device.
+    let restored = 0;
+    for (const [id, url] of Object.entries(result.photos ?? {})) {
+      try {
+        await putPhoto(id, await fromDataUrl(url));
+        restored++;
+      } catch {
+        // a damaged photo is left out
+      }
+    }
+    setMessage({ kind: 'ok', lines: [`Restored "${result.state.garden.name}" from the backup${restored ? `, with ${restored} ${restored === 1 ? 'photo' : 'photos'}` : ''}.`] });
   };
 
   return (
@@ -124,18 +145,24 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
         <h2 id="seasons">Seasons and weather</h2>
         <FrostDates store={store} garden={garden} />
         <Warmth garden={garden} prefsStore={prefsStore} />
+        {prefsStore && <Reminders prefsStore={prefsStore} />}
       </section>
 
       <section class="card" aria-labelledby="backup">
         <h2 id="backup">Backups</h2>
         <p class="muted small">
           Your garden is saved automatically, but only in this browser on this device. Clearing your browsing data would delete it. Download a backup now and then
-          to keep it safe, or to move it to another device.
+          to keep it safe, or to move it to another device.{photoCount > 0 ? ' Photos make a backup much bigger, so they’re only in one made with photos.' : ''}
         </p>
         <div class="button-row">
           <button type="button" class="btn btn-primary" onClick={() => backUp(store, prefsStore)}>
             Download a backup
           </button>
+          {photoCount > 0 && (
+            <button type="button" class="btn" onClick={() => backUp(store, prefsStore, true)}>
+              With photos ({photoCount})
+            </button>
+          )}
           <button type="button" class="btn" onClick={() => fileInput.current?.click()}>
             Restore from a backup…
           </button>
@@ -350,4 +377,55 @@ export function placeText(g: Garden): string {
   const av = averagesAt(g.latitude, g.longitude);
   if (av.nearestKm > 150) return 'Set from your location.';
   return `Near ${av.stations[0]!.name.replace(/ (.*)$/, '')}.`;
+}
+
+const REMINDER_TEXT: Record<ReminderStatus, string> = {
+  background: 'On: this device will remind you, even with the app closed.',
+  'open-only': 'On, but this browser only lets the app check when it’s open, and Today shows frost and this week’s jobs then. For reminders with the app closed, install it on an Android phone.',
+  blocked: 'Notifications are blocked for this site. Allow them in the browser’s settings, then try again.',
+  unsupported: 'This browser can’t show notifications. Today shows frost and this week’s jobs when you open the app.',
+};
+
+type ReminderKey = 'reminders' | 'weeklyNudge';
+
+/** Frost warnings and the week's jobs with the app closed, where the browser allows: it checks now and then in the background. */
+function Reminders({ prefsStore }: { prefsStore: PrefsStore }) {
+  const prefs = usePrefs(prefsStore);
+  const [status, setStatus] = useState<ReminderStatus | null>(null);
+  const toggle = (key: ReminderKey) => async (e: Event) => {
+    const on = (e.currentTarget as HTMLInputElement).checked;
+    if (!on) {
+      prefsStore.set({ [key]: false });
+      setStatus(null);
+      // Stop checking once neither is wanted.
+      if (!prefs[key === 'reminders' ? 'weeklyNudge' : 'reminders']) await disableReminders().catch(() => undefined);
+      return;
+    }
+    const result = await enableReminders().catch((): ReminderStatus => 'unsupported');
+    setStatus(result);
+    prefsStore.set({ [key]: result === 'background' || result === 'open-only' });
+  };
+  return (
+    <div class="weather-switch">
+      <h3>Reminders</h3>
+      <label class="check-row">
+        <input type="checkbox" checked={prefs.reminders} onChange={toggle('reminders')} />
+        <span>Frost warnings</span>
+      </label>
+      <p class="muted small">
+        When a frost could hurt your tender plants or seedlings. To check, the app sends your garden’s location, rounded to about a kilometre, to Open-Meteo now
+        and then.
+      </p>
+      <label class="check-row">
+        <input type="checkbox" checked={prefs.weeklyNudge} onChange={toggle('weeklyNudge')} />
+        <span>This week’s jobs, on Mondays</span>
+      </label>
+      <p class="muted small">What there is to sow, harden off or plant out that week. Nothing is sent anywhere for this.</p>
+      {status && (
+        <p class="small" role="status">
+          {REMINDER_TEXT[status]}
+        </p>
+      )}
+    </div>
+  );
 }

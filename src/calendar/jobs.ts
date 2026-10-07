@@ -10,7 +10,8 @@ import { addDays, frostDates, plantOutMonthsUnder } from '../lifecycle/shed';
 import { currentStage, pathFor, setStage, sowingOf, STAGE_LABEL, stageTips, suggestedStage } from '../lifecycle/stages';
 import { shortDate } from '../lifecycle/projection';
 import { featureLabel } from '../model/features';
-import { STAGES, type Garden, type Plant, type Planting, type Stage } from '../model/types';
+import { STAGES, type Garden, type PickSize, type Plant, type Planting, type Stage } from '../model/types';
+import { addPick } from '../planting/harvest';
 import { isActive, plantingStatus } from '../planting/place';
 
 export const JOB_KINDS = ['sow-indoors', 'sow-direct', 'plant-out', 'check', 'harvest', 'protect', 'lift', 'tidy'] as const;
@@ -226,6 +227,14 @@ export function toggleJob(g: Garden, job: Job, date: string, plantOf?: (id: stri
     return setStage(ticked, before('harvesting').filter((id) => harvestable.has(id)), 'harvesting', date);
   }
   return ticked;
+}
+
+/** A picking from a harvest job: how much, on the job's first planting (totals are by crop), with the job ticked. */
+export function logPick(g: Garden, job: Job, date: string, size: PickSize, plantOf?: (id: string) => Plant): Garden {
+  const first = job.plantingIds[0];
+  if (job.kind !== 'harvest' || !first) return g;
+  const ticked = g.jobsDone.some((j) => j.key === job.key) ? g : toggleJob(g, job, date, plantOf);
+  return addPick(ticked, first, date, { size });
 }
 
 // ---------- Sowing list ----------

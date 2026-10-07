@@ -29,3 +29,6 @@ async function run<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRe
 export const saveBlob = (key: string, blob: Blob) => run('readwrite', (s) => s.put(blob, key)).then(() => undefined);
 export const loadBlob = (key: string) => run<Blob | undefined>('readonly', (s) => s.get(key));
 export const deleteBlob = (key: string) => run('readwrite', (s) => s.delete(key)).then(() => undefined);
+
+/** Every key kept, for tidying up. */
+export const blobKeys = () => run<IDBValidKey[]>('readonly', (s) => s.getAllKeys()).then((keys) => keys.map(String));

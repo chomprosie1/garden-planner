@@ -22,9 +22,11 @@ export interface AppActions {
   sowInShed(plantId?: string): void;
   /** Search everything (Ctrl+K). */
   openSearch(): void;
+  /** "Your season, wrapped". */
+  openWrapped(): void;
 }
 
 const noop = () => undefined;
-export const AppContext = createContext<AppActions>({ notify: noop, go: noop, openPlant: noop, showOnPlan: noop, plantIt: noop, plantOutTray: noop, sowInShed: noop, openSearch: noop });
+export const AppContext = createContext<AppActions>({ notify: noop, go: noop, openPlant: noop, showOnPlan: noop, plantIt: noop, plantOutTray: noop, sowInShed: noop, openSearch: noop, openWrapped: noop });
 
 export const useApp = () => useContext(AppContext);

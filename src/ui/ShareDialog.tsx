@@ -25,7 +25,7 @@ interface Props {
 /** Weeks in the timelapse: a year from the week shown. */
 const YEAR = 52;
 
-function download(file: File) {
+export function download(file: File) {
   const url = URL.createObjectURL(file);
   const a = document.createElement('a');
   a.href = url;
@@ -37,7 +37,7 @@ function download(file: File) {
 }
 
 /** The phone's own share sheet, where it can take files. */
-const canShareFiles = (type: string) => {
+export const canShareFiles = (type: string) => {
   try {
     return !!navigator.canShare?.({ files: [new File([''], type === 'image/png' ? 'x.png' : 'x.mp4', { type })] });
   } catch {
