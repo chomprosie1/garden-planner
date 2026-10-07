@@ -5,6 +5,7 @@
 
 import { FOCUS_STYLE, type FocusKind } from '../canvas/render';
 import { Icon, type IconName } from './icons';
+import { LENSES_IN, type PlanMode } from './planMode';
 
 export type Lens = 'none' | 'sun' | 'shade' | FocusKind;
 
@@ -20,10 +21,10 @@ const LENSES: { id: Lens; label: string; short: string; hint: string; icon?: Ico
 export const isFocusLens = (l: Lens): l is FocusKind => l === 'flower' || l === 'harvest' || l === 'water';
 
 /** On a wide screen: a chip for each way of looking at the plan. Tap the one that's on to go back to the plan on its own. */
-export function LensBar({ lens, setLens }: { lens: Lens; setLens: (l: Lens) => void }) {
+export function LensBar({ lens, setLens, mode = 'advanced' }: { lens: Lens; setLens: (l: Lens) => void; mode?: PlanMode }) {
   return (
     <div class="lens-bar" role="group" aria-label="Show on the plan">
-      {LENSES.filter((l) => l.id !== 'none').map((l) => (
+      {LENSES.filter((l) => l.id !== 'none' && LENSES_IN[mode].includes(l.id)).map((l) => (
         <button key={l.id} type="button" class="chip lens-chip" aria-pressed={lens === l.id} title={l.hint} onClick={() => setLens(lens === l.id ? 'none' : l.id)}>
           {l.icon && <Icon name={l.icon} size={15} />}
           {isFocusLens(l.id) && <Ring kind={l.id} />}
@@ -35,12 +36,12 @@ export function LensBar({ lens, setLens }: { lens: Lens; setLens: (l: Lens) => v
 }
 
 /** On a phone: one "Show" picker, so the plan keeps the room. */
-export function LensPicker({ lens, setLens }: { lens: Lens; setLens: (l: Lens) => void }) {
+export function LensPicker({ lens, setLens, mode = 'advanced' }: { lens: Lens; setLens: (l: Lens) => void; mode?: PlanMode }) {
   return (
     <label class="lens-picker">
       <span class="visually-hidden">Show on the plan</span>
       <select value={lens} onChange={(e) => setLens((e.currentTarget as HTMLSelectElement).value as Lens)}>
-        {LENSES.map((l) => (
+        {LENSES.filter((l) => LENSES_IN[mode].includes(l.id)).map((l) => (
           <option key={l.id} value={l.id}>
             {l.id === 'none' ? 'Show: the plan' : `Show: ${l.label.toLowerCase()}`}
           </option>

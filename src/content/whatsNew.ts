@@ -17,6 +17,19 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-07-simple',
+    date: '2026-10-07',
+    title: 'A simpler plan, with Advanced when you want it',
+    items: [
+      'The plan starts in Simple: drop beds, pots, plants and trees from below, drag them about, and pull a corner to resize. Fewer buttons, more room for your garden.',
+      'Tap Advanced at the top for everything else: drawing by corners or by hand, reshaping and turning, exact sizes, sketching, tracing a photo, the lock, and sun and shade. It remembers which you chose.',
+      'Nothing on your plan changes when you switch, and asking for a drawing tool or the shade from search switches to Advanced for you.',
+      'Bigger buttons on a phone, and the year slider steps aside while the drawer below the plan is open.',
+      'Structures is now “Trees and structures”.',
+    ],
+    tryIt: { label: 'Open your garden', view: 'plan' },
+  },
+  {
     id: '2026-10-07-anywhere',
     date: '2026-10-07',
     title: 'Plant in the lawn, and trees by name',

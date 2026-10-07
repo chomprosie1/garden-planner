@@ -40,6 +40,7 @@ import { useSunHours } from '../useSunHours';
 import { useWeatherNow } from '../useWeather';
 import { yearScene } from '../yearScene';
 import { YearScrubber } from '../YearScrubber';
+import { isAdvancedLens, isAdvancedTool, isLocked, MODE_LABEL, type PlanMode } from '../planMode';
 
 /** Something another screen (or search) asked the plan to do. */
 export type PlanIntent =
@@ -125,7 +126,10 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const [lens, setLens] = useState<Lens>('none');
   const [settingUp, setSettingUp] = useState(false);
   const [sharing, setSharing] = useState(false);
-  const locked = prefs.layoutLocked;
+  const mode = prefs.planMode;
+  const simple = mode === 'simple';
+  // The padlock is Advanced; in Simple nothing's ever stuck.
+  const locked = isLocked(prefs);
   const app = useApp();
 
   // Sun and shade.
@@ -157,6 +161,31 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
     if (t === 'plant') setSelected(null);
     // Drawing and sketching need the plan clear, so the dock's drawer closes on a phone.
     if (phone && t !== 'select') setDrawer(null);
+    // Asked for a drawing tool in Simple (from search, or "Redraw the boundary"): switch rather than refuse.
+    if (simple && isAdvancedTool(t)) {
+      prefsStore.set({ planMode: 'advanced' });
+      setMessage('Switched to Advanced, for drawing. Switch back to Simple at the top whenever you like.');
+    }
+  };
+
+  /** Shows a way of looking at the plan; sun and shade switch to Advanced. */
+  const chooseLens = (l: Lens) => {
+    if (simple && isAdvancedLens(l)) prefsStore.set({ planMode: 'advanced' });
+    setLens(l);
+  };
+
+  /** Simple or Advanced. Going back to Simple puts away the Advanced tools and views; nothing on the plan changes. */
+  const switchMode = (m: PlanMode) => {
+    if (m === mode) return;
+    prefsStore.set({ planMode: m });
+    if (m === 'simple') {
+      if (isAdvancedTool(tool)) setToolState('select');
+      if (isAdvancedLens(lens)) setLens('none');
+      if (drawer === 'draw') setDrawer(null);
+      setByHand(false);
+      setSelectedVertex(null);
+    }
+    setMessage(m === 'simple' ? 'Simple: drop beds, pots, plants and trees from below, and drag them about.' : 'Advanced: drawing by corners or by hand, reshaping, exact sizes, sketching, the lock, and sun and shade.');
   };
 
   const { plants, plantOf } = usePlants(userPlants, spacingStyle(garden));
@@ -248,7 +277,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
     if (!intent) return;
     // Plants wait for the library; the rest can happen straight away.
     if ((intent.kind === 'plant' || intent.kind === 'tray') && !plants) return;
-    if (intent.kind === 'lens') setLens(intent.lens);
+    if (intent.kind === 'lens') chooseLens(intent.lens);
     else if (intent.kind === 'tool') setTool(intent.tool);
     else if (intent.kind === 'fit') setFitSignal((n) => n + 1);
     else if (intent.kind === 'setup') setSettingUp(true);
@@ -298,7 +327,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       const t = e.target as HTMLElement | null;
       if (e.ctrlKey || e.metaKey || e.altKey || e.key.toLowerCase() !== 's') return;
       if (t && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName))) return;
-      setLens(lens === 'shade' ? 'none' : 'shade');
+      chooseLens(lens === 'shade' ? 'none' : 'shade');
     };
     addEventListener('keydown', onKey);
     return () => removeEventListener('keydown', onKey);
@@ -430,7 +459,23 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       <Icon name={locked ? 'lock' : 'unlock'} />
     </button>
   );
-  const lensBar = phone ? <LensPicker lens={lens} setLens={setLens} /> : <LensBar lens={lens} setLens={setLens} />;
+  const lensBar = phone ? <LensPicker lens={lens} setLens={chooseLens} mode={mode} /> : <LensBar lens={lens} setLens={chooseLens} mode={mode} />;
+  const modeSwitch = (
+    <div class="mode-switch" role="radiogroup" aria-label="Tools">
+      {(['simple', 'advanced'] as const).map((m) => (
+        <button
+          key={m}
+          type="button"
+          role="radio"
+          aria-checked={mode === m}
+          title={m === 'simple' ? 'Drop and drag beds, pots, plants and trees' : 'Draw by corners or by hand, reshape, type sizes, sketch, sun and shade'}
+          onClick={() => switchMode(m)}
+        >
+          {MODE_LABEL[m]}
+        </button>
+      ))}
+    </div>
+  );
   /** The plant checks, in the details for the whole garden. */
   const showChecks = () => {
     setSelected(null);
@@ -467,6 +512,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       byHand={byHand}
       setByHand={setByHand}
       phone={phone}
+      mode={mode}
     />
   );
   const plantingBar = placing && (
@@ -540,7 +586,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
           <button type="button" class="icon-btn" aria-label="Search everything" title="Search everything (Ctrl+K)" onClick={() => app.openSearch()}>
             <Icon name="search" />
           </button>
-          {lockButton}
+          {modeSwitch}
+          {!simple && lockButton}
           <button type="button" class="icon-btn" aria-label="Undo" title="Undo (Ctrl+Z)" disabled={!store.canUndo()} onClick={() => store.undo()}>
             <Icon name="undo" />
           </button>
@@ -604,6 +651,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               sketchPen={sketchPen}
               showSketches={prefs.sketches || tool === 'sketch'}
               depth={prefs.depth ?? prefs.look !== 'minimal'}
+              simple={simple}
               apiRef={canvasApi}
               onDraftChange={setCorners}
               fitSignal={fitSignal}
@@ -638,6 +686,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
                 select={select}
                 unlock={toggleLock}
                 redrawBoundary={() => setTool('boundary')}
+                mode={mode}
               />
               {placed && <FillPopover placed={placed} garden={garden} store={store} plantOf={plantOf} close={() => setPlaced(null)} />}
               {tool === 'select' && lens === 'none' && plants && (
@@ -662,7 +711,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
             {empty && tool === 'select' && (
               <div class="plan-empty">
                 <p class="plan-empty-title">Start your plan</p>
-                <p>Say where you’re growing and it’s laid out for you. Or drag a raised bed, a pot or a lawn in from below, or draw your garden’s boundary to scale.</p>
+                <p>Say where you’re growing and it’s laid out for you. Or drag a raised bed, a pot or a lawn in from below{simple ? '.' : ', or draw your garden’s boundary to scale.'}</p>
                 <div class="button-row">
                   <button type="button" class="btn btn-primary" onClick={() => setSettingUp(true)}>
                     Where are you growing?
@@ -670,9 +719,11 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
                   <button type="button" class="btn" onClick={() => setDrawer('beds')}>
                     Beds and pots
                   </button>
-                  <button type="button" class="btn" onClick={() => setTool('boundary')}>
-                    Draw the boundary
-                  </button>
+                  {!simple && (
+                    <button type="button" class="btn" onClick={() => setTool('boundary')}>
+                      Draw the boundary
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -689,7 +740,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               </p>
             )}
           </div>
-          {(tool === 'select' || tool === 'plant') && !empty && (
+          {/* On a phone, one bar at a time under the plan: the year slider steps aside while a drawer is open. */}
+          {(tool === 'select' || tool === 'plant') && !empty && !(phone && drawer) && (
             <YearScrubber
               today={todayIso}
               date={when}

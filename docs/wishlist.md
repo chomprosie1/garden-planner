@@ -31,7 +31,7 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Frost warnings as notifications, when the app is closed | Build, Stage 17 | M | Partly built in UX release 4 (installed, on Android); an iPhone or a computer needs a server |
 | This year’s warmth moving perennials’ seasons (an early spring brings strawberries on) | Build, Stage 17 | S | Their seasons go by the averages; crops with days use the real weather |
 | Join batches back together | Build, Stage 17 | S | For now, undo straight after splitting |
-| Simplify the planner on a phone: a Simple and an Advanced mode | You, 7 Oct 2026 | L | Planned as release 7 |
+| Simplify the planner on a phone: a Simple and an Advanced mode | You, 7 Oct 2026 | L | Built in release 7 |
 | Plant anywhere that isn't paved (bulbs in the lawn edge) | You, 7 Oct 2026 | M | Built in release 6 |
 | Resize fruit trees and other big plants | You, 7 Oct 2026 | S | Built in release 6 |
 | About 50 UK tree types in Structures, small, medium or large | You, 7 Oct 2026 | M | Built in release 6 |
@@ -43,3 +43,4 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Testing by risk, not the full suite every time | You, 7 Oct 2026 | S | Built in release 5 (`CLAUDE.md`) |
 | Plants (a fruit tree, a big shrub) casting shade in the sun views | Build, release 6 | M | Only features cast shade; a fruit tree planted as a plant doesn't |
 | Small, medium and large for rows and blocks | Build, release 6 | S | Single plants only for now |
+| A simpler details panel in Simple | Build, release 7 | S | More shows the full details in both modes |

@@ -65,6 +65,8 @@ export interface Prefs {
   weeklyNudge: boolean;
   /** The "Install the app" card on Today has been put away. */
   installHidden: boolean;
+  /** The plan's tools: Simple (beds, pots, plants and trees, dropped and dragged) or Advanced (drawing, reshaping, sun and shade). */
+  planMode: 'simple' | 'advanced';
 }
 
 
@@ -97,6 +99,7 @@ export function defaultPrefs(): Prefs {
     reminders: false,
     weeklyNudge: false,
     installHidden: false,
+    planMode: 'simple',
   };
 }
 
@@ -136,6 +139,7 @@ export function sanitisePrefs(raw: unknown): Prefs {
     reminders: r.reminders === true,
     weeklyNudge: r.weeklyNudge === true,
     installHidden: r.installHidden === true,
+    planMode: oneOf(['simple', 'advanced'] as const, r.planMode, d.planMode),
   };
 }
 

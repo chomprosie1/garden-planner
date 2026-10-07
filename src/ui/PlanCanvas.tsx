@@ -28,6 +28,7 @@ import {
   moveFeature,
   moveVertex,
   pivotOf,
+  resizesByHandles,
   pointsOf,
   rectCorners,
   rectInfo,
@@ -169,6 +170,8 @@ export interface PlanCanvasProps {
   showSketches?: boolean;
   /** Soft shadows under things with height. */
   depth?: boolean;
+  /** Simple: things are moved and resized, not reshaped or turned; the boundary and north stay put. */
+  simple?: boolean;
 }
 
 type Drag =
@@ -299,7 +302,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
       stroke: strokeScene,
       sketches: p.showSketches !== false,
       depth: p.depth !== false,
-      rotatable: p.selected?.type === 'feature' && p.tool === 'select' && layoutEditable(),
+      rotatable: p.selected?.type === 'feature' && p.tool === 'select' && layoutEditable() && !p.simple,
+      reshape: !p.simple,
       guides: drag.current?.kind === 'move' ? guides.current : [],
       drawing: !!geometry || p.tool === 'plant' || p.tool === 'sketch',
       garden: garden(),
@@ -494,7 +498,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
   }
   useEffect(redraw, [drawKey]);
 
-  useEffect(redraw, [props.garden, props.look, props.mode, props.selected, props.selectedVertex, props.traceImage, props.findings, props.focusFinding, props.shadows, props.sunGrid, props.sun, props.showSketches, props.byHand, props.depth, props.locked, props.tool, props.time, props.focus, props.month]);
+  useEffect(redraw, [props.garden, props.look, props.mode, props.selected, props.selectedVertex, props.traceImage, props.findings, props.focusFinding, props.shadows, props.sunGrid, props.sun, props.showSketches, props.byHand, props.depth, props.locked, props.simple, props.tool, props.time, props.focus, props.month]);
 
   // ---------- helpers ----------
 
@@ -840,14 +844,14 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const layoutEdits = layoutEditable();
     const plantEdits = edit === 'planting' || edit === 'all';
     const nc = northCentre({ width: size.current.w });
-    if (layoutEdits && distance(s, nc) <= NORTH_RADIUS + 4) {
+    if (layoutEdits && !p.simple && distance(s, nc) <= NORTH_RADIUS + 4) {
       drag.current = { kind: 'north', base: g };
       return;
     }
     const touch = e.pointerType !== 'mouse';
     const tol = tolMm(touch ? 18 : 9);
     // The rotate handle above a selected shape.
-    if (p.selected?.type === 'feature' && layoutEdits) {
+    if (p.selected?.type === 'feature' && layoutEdits && !p.simple) {
       const id = p.selected.id;
       const f = g.features.find((x) => x.id === id);
       const at = f && !f.circle ? rotateHandleAt({ view: view.current }, f.footprint) : null;
@@ -866,7 +870,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
           return;
         }
       }
-      const pts = pointsOf(g, p.selected);
+      // In Simple, a rectangle's corners resize it; other shapes show no corners, so a drag there moves the shape.
+      const pts = p.simple && !(f && resizesByHandles(f)) ? null : pointsOf(g, p.selected);
       const vi = pts ? hitVertex(pts, world, tol) : null;
       if (vi !== null) {
         p.setSelectedVertex(vi);
@@ -918,7 +923,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
       if (vi !== null || edge) {
         p.setSelected({ type: 'boundary' });
         p.setSelectedVertex(vi);
-        drag.current = vi !== null && layoutEdits ? { kind: 'vertex', target: { type: 'boundary' }, index: vi, base: g } : { kind: 'pan', last: s, moved: false };
+        drag.current = vi !== null && layoutEdits && !p.simple ? { kind: 'vertex', target: { type: 'boundary' }, index: vi, base: g } : { kind: 'pan', last: s, moved: false };
         return;
       }
     }
@@ -1210,7 +1215,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const edit = p.readOnly ? 'view' : (p.edit ?? 'layout');
     if (edit === 'layout') return void insertCornerAt(s, tolPx);
     // With everything editable: on the edge of a selected shape, add a corner; otherwise zoom in on the bed.
-    if (edit === 'all' && layoutEditable() && p.selected && p.selected.type !== 'planting' && insertCornerAt(s, tolPx)) return;
+    if (edit === 'all' && layoutEditable() && !p.simple && p.selected && p.selected.type !== 'planting' && insertCornerAt(s, tolPx)) return;
     if (!view.current) return;
     const bed = containerAt(garden(), toWorld(view.current, s));
     if (bed) zoomToPoints(bed.footprint);

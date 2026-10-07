@@ -11,6 +11,7 @@ import { STICKERS, stickerById, stickerFeature, treeStickerId, type Sticker, typ
 import { findTrees, FRUIT_TREE_PLANTS, treeSizeText } from '../model/trees';
 import { PLANT_SIZES, type FeatureKind, type Garden, type Plant, type PlantSize } from '../model/types';
 import { SIZE_LABEL } from '../planting/place';
+import { DRAWERS_IN, showsSticker, type PlanMode } from './planMode';
 import { Icon, type IconName } from './icons';
 import { MiniPlan } from './MiniPlan';
 import { canDrawByHand, PLANT_DRAG_TYPE, STICKER_DRAG_TYPE, TRAY_DRAG_TYPE, type Tool } from './PlanCanvas';
@@ -22,7 +23,7 @@ const DRAWERS: { id: Drawer; label: string; icon: IconName }[] = [
   { id: 'plants', label: 'Plants', icon: 'plants' },
   { id: 'beds', label: 'Beds and pots', icon: 'pot' },
   { id: 'ground', label: 'Ground', icon: 'ground' },
-  { id: 'build', label: 'Structures', icon: 'build' },
+  { id: 'build', label: 'Trees and structures', icon: 'build' },
   { id: 'draw', label: 'Draw', icon: 'pencil' },
 ];
 
@@ -147,9 +148,11 @@ interface Props {
   byHand: boolean;
   setByHand: (b: boolean) => void;
   phone: boolean;
+  /** Simple: no Draw drawer, and the usual things in the others. */
+  mode: PlanMode;
 }
 
-export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, onTray, onSticker, tool, setTool, byHand, setByHand, phone }: Props) {
+export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, onTray, onSticker, tool, setTool, byHand, setByHand, phone, mode }: Props) {
   const trays = traysOf(garden);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<PlantFilter>('now');
@@ -243,7 +246,7 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
           )}
           {(open === 'beds' || open === 'ground' || open === 'build') && (
             <ul class="dock-grid" aria-label="Things to add">
-              {STICKERS.filter((s) => s.group === open).map((s) => (
+              {STICKERS.filter((s) => s.group === open && showsSticker(mode, s.id)).map((s) => (
                 <li key={s.id}>
                   <button
                     type="button"
@@ -289,7 +292,7 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
         </div>
       )}
       <nav class="dock-tabs" aria-label="Add to the plan">
-        {DRAWERS.map((d) => (
+        {DRAWERS.filter((d) => DRAWERS_IN[mode].includes(d.id)).map((d) => (
           <button key={d.id} type="button" class="dock-tab" aria-expanded={open === d.id} onClick={() => setOpen(open === d.id ? null : d.id)}>
             <Icon name={d.icon} size={20} />
             <span>{d.label}</span>

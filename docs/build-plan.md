@@ -561,7 +561,7 @@ Each idea was checked against the code and against everything still open. Stage 
 | --- | --- | --- | --- |
 | 5. Housekeeping | Testing by risk (`CLAUDE.md`), doc fixes, the mismatch log | 1 evening | Built |
 | 6. Plant anywhere, right size | Plants on soft ground, resizing big plants, 50 tree types, the year slider over photos | ~1.5 wk | Built |
-| 7. A simple planner | A Simple / Advanced switch on the plan, and a phone pass | ~2 wk | |
+| 7. A simple planner | A Simple / Advanced switch on the plan, and a phone pass | ~2 wk | Built |
 | 8. Keeping on track | "Running behind" alerts with common causes, weeds and weeding | ~1.5 wk | |
 | 9. A bigger library | 150 more plants in three batches of 50 (can run alongside 7 and 8) | ~3 wk of data | |
 | Spike | The garden from an aerial photo: research and a prototype, go or no-go | 2–3 evenings | |
@@ -608,18 +608,28 @@ Each idea was checked against the code and against everything still open. Stage 
 
 Tests: `tests/anywhere.test.ts` covers what can hold a plant, a bed on a lawn (either order), a patio or path over a lawn, a tree over a lawn, one plant on a lawn, moving onto a lawn, no gaps on a lawn, "the lawn" in jobs, the paved-over warning, which plants can be resized, sizes and typed sizes, rows keeping their spacing, the spacing check by size, bulbs under a tree, drawing by height, every tree type at every size, search, changing type, bad tree stickers, and schema 12. Three older tests that said plants never go on a lawn now say they do.
 
-### Release 7 — A simple planner (planned)
-- **A Simple | Advanced switch** in the plan toolbar (`prefs.planMode`). It starts on Simple and is remembered.
+### Release 7 — A simple planner (as built)
+- **Simple | Advanced** in the plan's toolbar (`prefs.planMode`, starting on Simple and remembered). What each offers is in `src/ui/planMode.ts`.
 - **Simple:**
-  - The dock is Plants · Beds and pots · Ground · Trees and structures, with short lists.
-  - Show offers Plan, In flower and Harvest.
-  - The action pill offers Size, Duplicate, Delete and About.
-  - Hidden: the Draw tab, by hand, sketch, trace, calibrate, typed sizes, curved edges, the boundary, lock, and sun and shade.
-- **Advanced** is everything there today.
-- **Nothing disappears:** in Simple, sketches and drawn shapes stay on the plan. Tapping one says "Switch to Advanced to edit this."
-- **A phone pass:** 44 px touch targets, one bottom bar at a time, and the first plant in five taps or fewer.
+  - The dock has four drawers: Plants · Beds and pots · Ground · Trees and structures (renamed from Structures in both modes). Each has the usual things (`SIMPLE_STICKERS`): beds, pots, a window box and a greenhouse; lawn, patio, decking, gravel, a path and a pond; the shed, compost, fences, walls and hedges, and all the trees.
+  - Show offers the plan, In flower, Harvest and Water.
+  - The action pill keeps the plant's next step, Size, the row's −/+, About, Delete, Duplicate, a surface's material, and More. Typed sizes, curved edges and edging are Advanced (`pillHasExtras`).
+  - On the plan, things move and resize but don't reshape or turn: a rectangle's corners resize it (it stays a rectangle) and a round thing's edge handle resizes it (`resizesByHandles` in `src/model/features.ts`). Other shapes, curves, lines and the boundary show no corner handles, and a drag there moves the shape. No rotate knob, no double-tap to add a corner, and the north arrow stays put (the canvas's `simple` prop, and `reshape: false` in the scene).
+  - No padlock, and the layout's never locked in Simple (`isLocked`), so nothing's stuck with no way to unlock it.
+  - The empty plan offers "Where are you growing?" and "Beds and pots", not "Draw the boundary".
+- **Advanced** is everything there was before, plus the switch.
+- **No dead ends:** asking for a drawing tool (from search, a keyboard shortcut, or "Redraw the boundary") or for sun or shade in Simple switches to Advanced and says so. Going back to Simple puts away the Advanced tools, views and the Draw drawer. Nothing on the plan changes either way: sketches and drawn shapes stay on it.
+- **Phone pass:**
+  - On touch screens, toolbar buttons, chips and the action pill's buttons are 44 px.
+  - The year slider steps aside while a drawer is open, so there's one bar under the plan at a time.
+  - First plant on a garden with a bed: Plants, the plant, the bed: three taps.
+- **Not done:**
+  - The details panel (More) is the same in both modes, including exact sizes and curved edges: it's one tap deeper.
+  - Keyboard shortcuts for drawing tools still work in Simple, switching to Advanced.
+  - In Advanced on a phone, a bed's action pill can wrap to two rows at 44 px.
+- **Fixed on the way:** the canvas didn't redraw when the mode changed (the rotate knob only showed after the next change).
 
-Tests: `tests/planmode.test.ts`.
+Tests: `tests/planmode.test.ts` covers the setting and its fallback, the lock only in Advanced, the drawers, the short lists (every one real, something in each drawer), the lenses, which tools ask for Advanced, the pill's extras, and what resizes in Simple (rectangles at any angle and round things; not drawn shapes, curves or lines).
 
 ### Release 8 — Keeping on track (planned, schema 13)
 - **Running behind** (`src/lifecycle/behind.ts`).

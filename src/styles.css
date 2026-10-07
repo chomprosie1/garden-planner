@@ -826,6 +826,33 @@ button:disabled {
   width: 40px;
   height: 40px;
 }
+
+/* Simple | Advanced, in the plan's toolbar. */
+.mode-switch {
+  display: inline-flex;
+  flex: none;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+}
+.mode-switch button {
+  min-height: 34px;
+  padding: 0 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.mode-switch button[aria-checked='true'] {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
 .plan-body {
   flex: 1;
   min-height: 0;
@@ -4706,4 +4733,23 @@ button.plan-chip:hover {
 }
 .season-top li span:nth-child(2) {
   flex: 1;
+}
+
+/* Fingers, not a mouse: 44 px to tap, the usual minimum. */
+@media (pointer: coarse) {
+  .toolbar .icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+  .mode-switch button {
+    min-height: 38px;
+  }
+  .chip,
+  .pill-btn,
+  .pill-icon {
+    min-height: 44px;
+  }
+  .pill-icon {
+    width: 44px;
+  }
 }

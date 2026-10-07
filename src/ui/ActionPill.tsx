@@ -15,6 +15,7 @@ import { setStage } from '../lifecycle/stages';
 import { useApp } from './appContext';
 import { Icon } from './icons';
 import { deletedMessage } from './PlanCanvas';
+import { pillHasExtras, type PlanMode } from './planMode';
 import { PlantIcon } from './PlantIcon';
 
 interface Props {
@@ -31,11 +32,13 @@ interface Props {
   select: (t: Target | null) => void;
   unlock: () => void;
   redrawBoundary: () => void;
+  /** Simple leaves out typed sizes, curved edges and edging. */
+  mode?: PlanMode;
 }
 
 const fmt = (mm: number) => (mm >= 1000 ? `${+(mm / 1000).toFixed(2)} m` : `${Math.round(mm / 10)} cm`);
 
-export function ActionPill({ pillRef, target, garden, store, plantOf, locked, more, plantHere, select, unlock, redrawBoundary }: Props) {
+export function ActionPill({ pillRef, target, garden, store, plantOf, locked, more, plantHere, select, unlock, redrawBoundary, mode = 'advanced' }: Props) {
   const app = useApp();
   const [sizing, setSizing] = useState(false);
   const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
@@ -103,7 +106,7 @@ export function ActionPill({ pillRef, target, garden, store, plantOf, locked, mo
     }
   } else if (target?.type === 'feature') {
     const f = garden.features.find((x) => x.id === target.id);
-    if (f) content = <FeatureActions f={f} garden={garden} commit={commit} locked={locked} sizing={sizing} setSizing={setSizing} plantHere={plantHere} select={select} unlock={unlock} />;
+    if (f) content = <FeatureActions f={f} garden={garden} commit={commit} locked={locked} sizing={sizing} setSizing={setSizing} plantHere={plantHere} select={select} unlock={unlock} extras={pillHasExtras(mode)} />;
   } else if (target?.type === 'boundary') {
     content = (
       <>
@@ -145,7 +148,7 @@ function SizeButton({ size, describe, set }: { size: PlantSize | null; describe:
   );
 }
 
-function FeatureActions({ f, garden, commit, locked, sizing, setSizing, plantHere, select, unlock }: { f: Feature; garden: Garden; commit: (fn: (g: Garden) => Garden) => void; locked: boolean; sizing: boolean; setSizing: (b: boolean) => void; plantHere: () => void; select: (t: Target | null) => void; unlock: () => void }) {
+function FeatureActions({ f, garden, commit, locked, sizing, setSizing, plantHere, select, unlock, extras }: { f: Feature; garden: Garden; commit: (fn: (g: Garden) => Garden) => void; locked: boolean; sizing: boolean; setSizing: (b: boolean) => void; plantHere: () => void; select: (t: Target | null) => void; unlock: () => void; extras: boolean }) {
   const app = useApp();
   const rect = !f.smooth && geometryOf(f) === 'area' ? rectInfo(f.footprint) : null;
   const circle = f.circle;
@@ -209,12 +212,12 @@ function FeatureActions({ f, garden, commit, locked, sizing, setSizing, plantHer
           {kindOfTree && (
             <SizeButton size={f.size ?? 'medium'} describe={(s) => treeSizeText(kindOfTree, s)} set={(s) => commit((g) => updateFeature(g, f.id, asTree(f, kindOfTree, s)))} />
           )}
-          {sizeText && (
+          {extras && sizeText && (
             <button type="button" class="pill-btn" title="Type an exact size" onClick={() => setSizing(true)}>
               {sizeText}
             </button>
           )}
-          {!circle && (
+          {extras && !circle && (
             <button type="button" class="pill-icon" aria-pressed={!!f.smooth} aria-label="Curved edges" title="Curved edges" onClick={() => commit((g) => setSmooth(g, f.id, !f.smooth))}>
               <Icon name="curve" size={18} />
             </button>
@@ -232,7 +235,7 @@ function FeatureActions({ f, garden, commit, locked, sizing, setSizing, plantHer
               </select>
             </label>
           )}
-          {f.kind === 'bed' && (
+          {extras && f.kind === 'bed' && (
             <label class="pill-select">
               <span class="visually-hidden">Edging</span>
               <select value={f.edging ?? ''} onChange={(e) => commit((g) => updateFeature(g, f.id, { edging: ((e.currentTarget as HTMLSelectElement).value || undefined) as Feature['edging'] }))}>

@@ -2,7 +2,7 @@
 // look; nothing here changes state.
 
 import { bounds, centroid, distance } from '../geometry/polygon';
-import { featureLabel, isClosed, pointsOf, type Target } from '../model/features';
+import { featureLabel, isClosed, pointsOf, resizesByHandles, type Target } from '../model/features';
 import { artFor, drawPlant, hashString, OVERHANG, shadeHex, stageLook, type Look } from '../art/plants';
 import { bucketFor, paintFor, plantSprite, VARIANTS } from '../art/sprites';
 import type { Projected } from '../lifecycle/projection';
@@ -98,6 +98,8 @@ export interface Scene {
   month?: number;
   /** Show the selected thing's rotate handle. */
   rotatable?: boolean;
+  /** false in Simple: only rectangles and round things show handles, to resize; nothing shows corners to reshape. */
+  reshape?: boolean;
   /** Leave out names and labels (small previews). */
   noLabels?: boolean;
   /** Alignment lines while moving something, garden mm. */
@@ -892,6 +894,8 @@ function drawSelection(ctx: CanvasRenderingContext2D, s: Scene, t: Target) {
     return;
   }
 
+  // In Simple, only a rectangle shows its corners (to resize it); other shapes and the boundary are reshaped in Advanced.
+  if (s.reshape === false && (!f || !resizesByHandles(f))) return;
   const pts = pointsOf(g, t) ?? [];
   const closed = isClosed(g, t);
   if (f?.smooth) {

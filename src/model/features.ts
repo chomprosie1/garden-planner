@@ -289,6 +289,16 @@ export function rectCorners(r: RectInfo): Point[] {
   return pts.map(roundPoint);
 }
 
+/**
+ * Resized by its handles without being reshaped: a rectangle (dragging a corner keeps it a rectangle) or a round
+ * thing. Shapes drawn by corners or by hand, curves and lines are reshaped instead.
+ */
+export function resizesByHandles(f: Feature): boolean {
+  if (f.circle) return true;
+  if (f.line || f.smooth) return false;
+  return rectInfo(f.footprint) !== null;
+}
+
 /** Width (the longer side, or the first if square) and depth of a rectangle at any angle. */
 export const rectSize = (r: RectInfo) => ({ w: Math.round(r.w), h: Math.round(r.h) });
 
