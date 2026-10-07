@@ -470,7 +470,7 @@ A product designer's pass for the people this is for: Gen Z, millennials and tec
 | --- | --- | --- |
 | 1. Foundations | Four tabs (1), Your garden page (3), plant editor switch (5), calmer plan toolbar (10), fewer display settings (19), plain words (20) | Built |
 | 2. The first minute | Place search (6), onboarding from your plants (7), starter kits (8), north from the compass (9) | Built |
-| 3. Daily use | Today as a weekly feed (2), Want to grow (4), one timeline (11), planting panel (12), "What's happened?" (13), first-visit tips (14) | |
+| 3. Daily use | Today as a weekly feed (2), Want to grow (4), one timeline (11), planting panel (12), "What's happened?" (13), first-visit tips (14) | Built |
 | 4. Delight | Photo diary (15), harvest log (16), season wrapped (17), install, offline and reminders (18) | |
 
 ### UX release 1 — Foundations (as built)
@@ -513,6 +513,22 @@ Tests: `tests/ux.test.ts` covers the addresses (new and old), the place in words
 - **Screenshots:** a small script drives headless Edge over the DevTools protocol at a true 390 × 844 phone size, clicking through onboarding and a place search.
 
 Tests: `tests/ux-first-minute.test.ts` covers kits for every space, each kit planted inside its beds and pots and listed to grow, salads in batches, unknown plants left out, the favourites, postcode and place requests, each service's reply, no match and failure, the place name and schema 10, north from a heading, reading a heading, and averaging round the circle.
+
+### UX release 3 — Daily use (as built)
+- **This week on Today** (`src/calendar/week.ts`, `src/ui/WeekCard.tsx`): from each planting's projected timeline (the plant's months and the warmth it gets, or this year's weather), the steps likely in the next seven days, with next week folded underneath. Things to do come first (sow, harden off, plant out, clear), then things to look out for (seedlings up, flowering, ready to pick). Rows of a plant in the same bed are one line; batches stay apart ("Lettuce (batch 2 of 3) in Veg bed: sow outside on Thursday"). Each line has Show, to see it on the plan. The card sits after the month's jobs, with the journal after it, then What's new and the garden.
+- **Want to grow** (`src/ui/Heart.tsx`): the sowing list is now a heart, on plant cards ("Want to grow it?" / "Want to grow") and on each row in Plants, with a "Want to grow (n)" filter there, and a Want to grow drawer in the dock. Jobs say "on your Want to grow list". The list's card on the Month page went (Plants and the hearts do its job). `Icon` can be drawn filled.
+- **One timeline:** the sun bar's own date picker and its presets went; sun and shade follow the timeline under the plan, as the other views do. The bar says the day and offers Midsummer, Midwinter and Today, which move the timeline.
+- **The planting panel, headline first** (`src/ui/PlantingStages.tsx`, `src/ui/PanelTabs.tsx`): the plant, its stage, what's next by the months, "Ready to harvest from about …" in bold, and "What's happened?". Then three tabs (the last chosen is remembered):
+  - **Care:** advice for its stage, a line on hardening off when that's next, the checks, sowing in batches, the facts, "Change the details", and About.
+  - **Timeline:** the rail of stages with their dates, "Likely next" with dates, and "Correct a mistake" (the old "Change stage…").
+  - **Notes.**
+
+  Show the bed stays as a button; Mark as cleared (or Put back) and Delete are in the panel's ⋯ menu. `StageStrip.tsx` was split up and removed.
+- **"What's happened?"** (`src/lifecycle/happened.ts`): one button ("Sown or planted it?" before sowing), then chips for what could come next on the plant's path: Sown (or Sown indoors and Sown outside, when it could be either), Planted, It's up, Hardening off, Planted out, Growing well, Flowering, First pick, Growing again (a perennial's new season), Didn't come up, and Finished. The likely one is marked and chosen to start with (from the warmth it's had, or simply the next stage). A date (today unless you change it) and an optional note, saved as one change: the stage, the sowing method, clearing or a failed sowing, and the note in the journal against the planting.
+- **First-visit tips** (`src/ui/PlanTips.tsx`, `prefs.seenTips`): three tips over the plan the first time it's opened with something on it: pick and move, the lock, and the timeline. Each lights up what it's about (a pulsing outline, still with reduced motion). The long hint under the plan on a wide screen became "Scroll to zoom, and 0 fits the garden. Pull a corner to resize. Press ? for all the shortcuts."
+- **Not done:** a heart in the dock's plant drawer itself (it has the Want to grow filter); photos in the Timeline tab (release 4).
+
+Tests: `tests/ux-daily.test.ts` covers this week and next (batches, to do first, what to look out for), rows on one line, days in words, Want to grow in the jobs, what could happen next (by path, under glass, cleared), recording a step with a note, sowing outside, finishing, a failed sowing, and the tips setting.
 
 ---
 

@@ -34,7 +34,7 @@ export interface Job {
   plantId: string;
   /** "Carrot". */
   plant: string;
-  /** "in Veg bed (2 rows)", or "on your sowing list". */
+  /** "in Veg bed (2 rows)", or "on your Want to grow list". */
   where: string;
   /** Extra advice from the plant's notes, if any. */
   detail?: string;
@@ -181,8 +181,8 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     if (planned.has(id)) continue;
     const plant = plantOf(id);
     // Sowing-list keys have no bed: "sow-indoors:tomato:2026-03". The "2" starts the year, so bed jobs don't match.
-    for (const s of sowingKinds(plant, month)) if (!doneBefore(g, `${s.kind}:${plant.id}:2`, year, month)) add(s.kind, plant, 'on your sowing list', '', [], s.detail);
-    if (plant.plantOutMonths?.includes(month) && !doneBefore(g, `plant-out:${plant.id}:2`, year, month)) add('plant-out', plant, 'on your sowing list', '', []);
+    for (const s of sowingKinds(plant, month)) if (!doneBefore(g, `${s.kind}:${plant.id}:2`, year, month)) add(s.kind, plant, 'on your Want to grow list', '', [], s.detail);
+    if (plant.plantOutMonths?.includes(month) && !doneBefore(g, `plant-out:${plant.id}:2`, year, month)) add('plant-out', plant, 'on your Want to grow list', '', []);
   }
 
   const order = (k: JobKind) => JOB_KINDS.indexOf(k);

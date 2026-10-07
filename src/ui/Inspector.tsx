@@ -55,7 +55,9 @@ import { UseLocationButton } from './GardenSettings';
 import { formatDate, NotesSection } from './NotesSection';
 import { deletedMessage, type Tool } from './PlanCanvas';
 import { PlantIcon } from './PlantIcon';
-import { StageStrip } from './StageStrip';
+import { StageAdvice, StageCorrect, StageRail, WhatsHappened } from './PlantingStages';
+import { MoreMenu } from './MoreMenu';
+import { PanelTabs } from './PanelTabs';
 import { useWeatherNow } from './useWeather';
 
 interface Props {
@@ -845,6 +847,8 @@ function PlantingPanel(props: Props & { pl: Planting }) {
   const expected = status !== 'planned' ? expectedText(timeline(plant, pl, garden, today, weather), plant, today) : null;
   const canEdit = true;
 
+  const steps = timeline(plant, pl, garden, today, weather);
+
   return (
     <div class="inspector-body">
       <Heading eyebrow={`${LAYOUT_LABEL[layout]}${bed ? ` in ${featureLabel(bed)}` : ''}`} title={plant.commonName} plant={plant} />
@@ -855,55 +859,56 @@ function PlantingPanel(props: Props & { pl: Planting }) {
         </span>
         {step && <span class="muted small">{step}</span>}
       </p>
-      {expected && <p class="muted small expect-line">{expected}, {weather ? 'by this year’s weather and the forecast' : 'by the usual warmth here'}.</p>}
+      {expected && <p class="expect-line">{expected}<span class="muted small">, {weather ? 'by this year’s weather and the forecast' : 'by the usual warmth here'}</span></p>}
       {cover && (
         <p class="cover-fact">
           Under cover in {featureLabel(cover.feature)}: {climateText(cover.climate)}.
         </p>
       )}
-      <StageStrip store={store} garden={garden} pl={pl} plant={plant} canEdit={canEdit} covered={!!cover} />
-      <button type="button" class="link-btn about-plant" onClick={() => app.openPlant(plant.id)}>
-        About {plant.commonName.toLowerCase()}: when to sow, pests, neighbours
-      </button>
+      {canEdit && <WhatsHappened key={pl.id} store={store} garden={garden} pl={pl} plant={plant} covered={!!cover} />}
 
-      <dl class="facts">
-        <dt>Plants</dt>
-        <dd>{n}</dd>
-        {layout === 'row' && (
-          <>
-            <dt>Row length</dt>
-            <dd>{formatLength(Math.round(length))}</dd>
-          </>
-        )}
-        <dt>Spacing</dt>
-        <dd>{formatLength(plant.size.spacingMm)}</dd>
-        {layout === 'row' && (
-          <>
-            <dt>Between rows</dt>
-            <dd>{formatLength(rowSpacingOf(plant))}</dd>
-          </>
-        )}
-        <dt>Spread</dt>
-        <dd>{formatLength(spreadOf(plant))}</dd>
-        {sun !== null && (
-          <>
-            <dt>Sun in {MONTHS[sunJune!.month - 1]}</dt>
-            <dd>
-              {formatHours(sun)} a day <span class="muted">(wants {formatHours(sunNeeded(plant))})</span>
-            </dd>
-          </>
-        )}
-      </dl>
-      {mine.length > 0 && (
-        <Section id="planting-checks" title="Checks">
-          <FindingsList findings={mine} {...findingsProps(props)} />
-        </Section>
-      )}
-
-      {canEdit && <BatchesSection key={pl.id} store={store} garden={garden} pl={pl} plant={plant} select={(id) => setSelected({ type: 'planting', id })} />}
-
-      {canEdit && (
-        <Section id="planting-details" title="Details" open={false}>
+      <PanelTabs
+        id="planting"
+        tabs={[
+          {
+            id: 'care',
+            label: mine.length ? `Care (${mine.length})` : 'Care',
+            body: (
+              <>
+                <StageAdvice pl={pl} plant={plant} covered={!!cover} />
+                {mine.length > 0 && <FindingsList findings={mine} {...findingsProps(props)} />}
+                {canEdit && <BatchesSection key={pl.id} store={store} garden={garden} pl={pl} plant={plant} select={(id) => setSelected({ type: 'planting', id })} />}
+                <dl class="facts">
+                  <dt>Plants</dt>
+                  <dd>{n}</dd>
+                  {layout === 'row' && (
+                    <>
+                      <dt>Row length</dt>
+                      <dd>{formatLength(Math.round(length))}</dd>
+                    </>
+                  )}
+                  <dt>Spacing</dt>
+                  <dd>{formatLength(plant.size.spacingMm)}</dd>
+                  {layout === 'row' && (
+                    <>
+                      <dt>Between rows</dt>
+                      <dd>{formatLength(rowSpacingOf(plant))}</dd>
+                    </>
+                  )}
+                  <dt>Spread</dt>
+                  <dd>{formatLength(spreadOf(plant))}</dd>
+                  {sun !== null && (
+                    <>
+                      <dt>Sun in {MONTHS[sunJune!.month - 1]}</dt>
+                      <dd>
+                        {formatHours(sun)} a day <span class="muted">(wants {formatHours(sunNeeded(plant))})</span>
+                      </dd>
+                    </>
+                  )}
+                </dl>
+                {canEdit && (
+                  <details class="advanced">
+                    <summary>Change the details</summary>
           {layout === 'row' && <NumberField label="Plants in this row" unit="plants" value={n} min={1} max={5000} onCommit={(c) => commit((g) => setRowCount(g, pl.id, c))} />}
           <label class="field">
             Sown or planted on
@@ -919,48 +924,69 @@ function PlantingPanel(props: Props & { pl: Planting }) {
           <p class="muted small">
             Drag to move{layout !== 'single' ? '; drag the square handles to change its size' : ''}. Arrow keys nudge by 10 mm.
           </p>
-        </Section>
-      )}
+                  </details>
+                )}
+                <button type="button" class="link-btn about-plant" onClick={() => app.openPlant(plant.id)}>
+                  About {plant.commonName.toLowerCase()}: when to sow, pests, neighbours
+                </button>
+              </>
+            ),
+          },
+          {
+            id: 'timeline',
+            label: 'Timeline',
+            body: (
+              <>
+                <StageRail pl={pl} plant={plant} covered={!!cover} steps={steps} />
+                {canEdit && <StageCorrect store={store} pl={pl} plant={plant} covered={!!cover} />}
+              </>
+            ),
+          },
+          {
+            id: 'notes',
+            label: (() => {
+              const count = garden.notes.filter((x) => x.plantingId === pl.id).length;
+              return count ? `Notes (${count})` : 'Notes';
+            })(),
+            body: <NotesSection store={store} garden={garden} on={{ plantingId: pl.id }} />,
+          },
+        ]}
+      />
 
-      <div class="button-row">
+      <div class="button-row panel-foot">
         {bed && (
           <button type="button" class="btn" onClick={() => setSelected({ type: 'feature', id: bed.id })}>
             Show {featureLabel(bed)}
           </button>
         )}
-        {canEdit &&
-          (status !== 'cleared' ? (
-            <button
-              type="button"
-              class="btn"
-              onClick={() => {
-                commit((g) => harvestPlantings(g, [pl.id], todayIso()));
-                setSelected(bed ? { type: 'feature', id: bed.id } : null);
-                app.notify(`${plant.commonName} marked as cleared.`, { undo: true });
-              }}
-            >
-              Mark as cleared
-            </button>
-          ) : (
-            <button type="button" class="btn" onClick={() => commit((g) => restorePlanting(g, pl.id))}>
-              Put back
-            </button>
-          ))}
         {canEdit && (
-          <button
-            type="button"
-            class="btn btn-danger"
-            onClick={() => {
-              commit((g) => deletePlanting(g, pl.id));
-              setSelected(null);
-              app.notify(`${plant.commonName} deleted.`, { undo: true });
-            }}
-          >
-            Delete
-          </button>
+          <MoreMenu
+            label="More for this planting"
+            items={[
+              status !== 'cleared'
+                ? {
+                    label: 'Mark as cleared',
+                    icon: 'check',
+                    onSelect: () => {
+                      commit((g) => harvestPlantings(g, [pl.id], todayIso()));
+                      setSelected(bed ? { type: 'feature', id: bed.id } : null);
+                      app.notify(`${plant.commonName} marked as cleared.`, { undo: true });
+                    },
+                  }
+                : { label: 'Put back on the plan', icon: 'undo', onSelect: () => commit((g) => restorePlanting(g, pl.id)) },
+              {
+                label: 'Delete',
+                icon: 'trash',
+                onSelect: () => {
+                  commit((g) => deletePlanting(g, pl.id));
+                  setSelected(null);
+                  app.notify(`${plant.commonName} deleted.`, { undo: true });
+                },
+              },
+            ]}
+          />
         )}
       </div>
-      <NotesSection store={store} garden={garden} on={{ plantingId: pl.id }} />
     </div>
   );
 }

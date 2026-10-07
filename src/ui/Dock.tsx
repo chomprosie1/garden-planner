@@ -88,7 +88,7 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
   const filters: [PlantFilter, string, number][] = [
     ['now', 'Sow or plant now', plants ? plants.filter((p) => canSowIn(p, month)).length : 0],
     ['shed', 'In the shed', trays.length],
-    ['list', 'Sowing list', garden.wishlist.length],
+    ['list', 'Want to grow', garden.wishlist.length],
     ['mine', 'Your plants', plants ? plants.filter((p) => p.userAdded).length : 0],
     ['all', 'All plants', plants?.length ?? 0],
   ];
@@ -158,7 +158,7 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
                       </li>
                     ))}
                 {!plants && <li class="muted small">Loading plants…</li>}
-                {plants && !query && filter === 'list' && garden.wishlist.length === 0 && <li class="muted small">Your sowing list is empty. Add plants on the Month page or from a plant’s card.</li>}
+                {plants && !query && filter === 'list' && garden.wishlist.length === 0 && <li class="muted small">Nothing here yet. Tap the heart on a plant you want to grow.</li>}
                 {plants && query && shown.length === 0 && <li class="muted small">No plants match.</li>}
               </ul>
             </>

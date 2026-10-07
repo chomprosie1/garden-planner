@@ -79,7 +79,7 @@ const VIEWS: { view: View; label: string; words: string }[] = [
   { view: 'home', label: 'Go to Today', words: 'open page home jobs week' },
   { view: 'plan', label: 'Go to your garden', words: 'open page plan map layout' },
   { view: 'plants', label: 'Go to Plants', words: 'open page library list' },
-  { view: 'month', label: 'This month’s jobs', words: 'open page month jobs calendar sowing list' },
+  { view: 'month', label: 'This month’s jobs', words: 'open page month jobs calendar' },
   { view: 'shed', label: 'Go to Seedlings', words: 'open page potting shed trays sow indoors propagator windowsill' },
   { view: 'profile', label: 'Your garden: location, frosts and backups', words: 'open page where location north frost climate weather backup restore spacing name' },
   { view: 'notes', label: 'Go to the journal', words: 'open page notes diary' },

@@ -1,6 +1,7 @@
 // Line icons, drawn in currentColor so every look can colour them.
 
 const PATHS = {
+  heart: 'M12 20.5s-7.5-4.6-9.4-9.1C1.2 8 3.1 4.5 6.6 4.5c2.1 0 3.4 1.2 4.1 2.4l1.3 2 1.3-2c.7-1.2 2-2.4 4.1-2.4 3.5 0 5.4 3.5 4 6.9-1.9 4.5-9.4 9.1-9.4 9.1z',
   home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
   plan: 'M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 9h18M9 9v12',
   plants: 'M5 20c0-8 6-15 15-15 0 9-6 15-14 15M5 20l8-8',
@@ -44,7 +45,8 @@ const PATHS = {
 
 export type IconName = keyof typeof PATHS;
 
-export function Icon({ name, size = 22 }: { name: IconName; size?: number }) {
+/** filled: drawn solid, as a heart that's on. */
+export function Icon({ name, size = 22, filled = false }: { name: IconName; size?: number; filled?: boolean }) {
   return (
     <svg
       class="icon"
@@ -52,7 +54,7 @@ export function Icon({ name, size = 22 }: { name: IconName; size?: number }) {
       width={size}
       height={size}
       aria-hidden="true"
-      fill="none"
+      fill={filled ? 'currentColor' : 'none'}
       stroke="currentColor"
       stroke-width="1.8"
       stroke-linecap="round"

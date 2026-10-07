@@ -57,6 +57,8 @@ export interface Prefs {
   seenNews: string | null;
   /** Show the tools for checking the plant library against its sources. For whoever keeps the plant data. */
   plantEditor: boolean;
+  /** The first-visit tips on the garden plan have been seen. */
+  seenTips: boolean;
 }
 
 
@@ -85,6 +87,7 @@ export function defaultPrefs(): Prefs {
     weather: false,
     seenNews: null,
     plantEditor: false,
+    seenTips: false,
   };
 }
 
@@ -120,6 +123,7 @@ export function sanitisePrefs(raw: unknown): Prefs {
     weather: r.weather === true,
     seenNews: typeof r.seenNews === 'string' ? r.seenNews : null,
     plantEditor: r.plantEditor === true,
+    seenTips: r.seenTips === true,
   };
 }
 

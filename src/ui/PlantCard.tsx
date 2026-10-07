@@ -2,6 +2,7 @@ import { monthRanges } from '../library/library';
 import { growthText } from '../lifecycle/growth';
 import type { Light, Plant, Sowing } from '../model/types';
 import { formatLength } from '../canvas/viewport';
+import { Icon } from './icons';
 import { PlantIcon } from './PlantIcon';
 import { useApp } from './appContext';
 
@@ -61,7 +62,7 @@ interface Props {
   onDelete?: () => void;
   /** Opens the plan to put this plant in a bed. */
   onPlant?: () => void;
-  /** Whether it's on your sowing list, and a way to change that. */
+  /** Whether it's on your Want to grow list, and a way to change that. */
   sowing?: { listed: boolean; toggle: () => void };
   /** Plantings of this plant on the plan, to jump to. */
   where?: { id: string; label: string }[];
@@ -122,8 +123,9 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
           </button>
         )}
         {sowing && (
-          <button type="button" class="btn" aria-pressed={sowing.listed} onClick={sowing.toggle}>
-            {sowing.listed ? 'On your sowing list ✓' : 'Add to sowing list'}
+          <button type="button" class={`btn heart${sowing.listed ? ' heart-on' : ''}`} aria-pressed={sowing.listed} title={sowing.listed ? 'On your Want to grow list' : 'Want to grow'} onClick={sowing.toggle}>
+            <Icon name="heart" size={18} filled={sowing.listed} />
+            {sowing.listed ? 'Want to grow' : 'Want to grow it?'}
           </button>
         )}
         {p.sowing?.some((s) => s.method !== 'direct') && (

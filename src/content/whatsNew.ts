@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-07-daily',
+    date: '2026-10-07',
+    title: 'Your week on Today, and logging in a tap',
+    items: [
+      'Today shows this week in your garden: what to sow, harden off or plant out, and what’s likely to come up, flower or be ready to pick. Next week is folded underneath.',
+      'Tap a planting and press “What’s happened?” to log that it’s up, planted out, flowering or giving its first pick, with a note if you like, all in one go.',
+      'A planting’s details are in three tabs: Care, Timeline (with what’s likely next, and when) and Notes.',
+      'Tap the heart on any plant you’d like to grow. Find them under Want to grow in Plants.',
+      'Sun and shade follow the timeline under the plan, with quick jumps to midsummer and midwinter.',
+      'Three quick tips the first time you open your garden.',
+    ],
+    tryIt: { label: 'See your week', view: 'home' },
+  },
+  {
     id: '2026-10-07-first-minute',
     date: '2026-10-07',
     title: 'Get started in a minute',
@@ -51,7 +65,7 @@ export const WHATS_NEW: NewsEntry[] = [
       'Harvest dates now use the real weather so far this year and the next fortnight’s forecast, not just the usual for your area.',
       'Show: water on the plan knows when it’s rained, so it won’t tell you to water beds after a downpour.',
       'Sow little and often: split a row or block of lettuce, radishes or carrots into batches sown a few weeks apart. Tap the row, then More, then Sow in batches. Each batch gets its own sowing job.',
-      'Ideas for an empty bed now start with plants from your sowing list.',
+      'Ideas for an empty bed now start with plants you want to grow.',
       'And this page: what’s new in the app, whenever it changes.',
     ],
     tryIt: { label: 'Turn on the weather', view: 'profile' },

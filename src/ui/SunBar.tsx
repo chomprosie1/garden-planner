@@ -24,15 +24,12 @@ const toMinutes = (at: Date | null, fallback: number) => {
 };
 export const clockText = (min: number) => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
 
-/** Days worth looking at: the longest and shortest, and the two in between. */
-function presets(today: CalendarDate): { label: string; date: CalendarDate }[] {
-  const y = today.year;
+/** Days worth jumping to: the longest and the shortest, the next of each from today. */
+function jumps(today: CalendarDate): { label: string; date: CalendarDate }[] {
+  const next = (month: number, day: number) => ({ year: iso(today) <= iso({ year: today.year, month, day }) ? today.year : today.year + 1, month, day });
   return [
-    { label: 'Today', date: today },
-    { label: 'Midsummer (21 June)', date: { year: y, month: 6, day: 21 } },
-    { label: 'Autumn equinox (22 Sept)', date: { year: y, month: 9, day: 22 } },
-    { label: 'Midwinter (21 Dec)', date: { year: y, month: 12, day: 21 } },
-    { label: 'Spring equinox (20 March)', date: { year: y, month: 3, day: 20 } },
+    { label: 'Midsummer', date: next(6, 21) },
+    { label: 'Midwinter', date: next(12, 21) },
   ];
 }
 
@@ -55,45 +52,28 @@ interface Props {
   defaultLocation: boolean;
 }
 
-/** Date and time controls for the sun and shade lenses. */
+/** The time of day for shade, or the key for sun hours. The day is the timeline's, under the plan. */
 export function SunBar({ view, today, date, setDate, minutes, setMinutes, playing, setPlaying, day, sun, grid, spot, defaultLocation }: Props) {
   // Whole five-minute steps on the clock, from just before sunrise.
   const rise = Math.floor(toMinutes(day.sunrise, 0) / 5) * 5;
   const set = toMinutes(day.sunset, 24 * 60 - 1);
-  const list = presets(today);
-  const preset = list.findIndex((p) => iso(p.date) === iso(date));
+  const list = jumps(today);
   const legendMax = HOURS_STOPS[HOURS_STOPS.length - 1]![0];
 
   return (
     <section class="sun-bar" aria-label="Sun and shade">
-      <div class="sun-row">
-        <select
-          class="sun-preset"
-          aria-label="Day"
-          value={preset >= 0 ? String(preset) : ''}
-          onChange={(e) => {
-            const i = Number((e.currentTarget as HTMLSelectElement).value);
-            const p = list[i];
-            if (p) setDate(p.date);
-          }}
-        >
-          {preset < 0 && <option value="">Chosen day</option>}
-          {list.map((p, i) => (
-            <option key={p.label} value={String(i)}>
-              {p.label}
-            </option>
-          ))}
-        </select>
-        <input
-          type="date"
-          class="sun-date"
-          aria-label="Date"
-          value={iso(date)}
-          onChange={(e) => {
-            const [y, m, d] = (e.currentTarget as HTMLInputElement).value.split('-').map(Number);
-            if (y && m && d) setDate({ year: y, month: m, day: d });
-          }}
-        />
+      <div class="sun-row sun-jumps">
+        <span class="muted small">{date.day} {MONTHS[date.month - 1]}, on the timeline below. Jump to</span>
+        {list.map((p) => (
+          <button key={p.label} type="button" class="chip" aria-pressed={iso(p.date) === iso(date)} onClick={() => setDate(p.date)}>
+            {p.label}
+          </button>
+        ))}
+        {iso(date) !== iso(today) && (
+          <button type="button" class="chip" onClick={() => setDate(today)}>
+            Today
+          </button>
+        )}
       </div>
 
       {view === 'shadows' ? (
@@ -143,7 +123,7 @@ export function SunBar({ view, today, date, setDate, minutes, setMinutes, playin
       )}
       <p class="sun-note small muted">
         {day.sunrise && day.sunset ? `Sunrise ${formatClock(day.sunrise)}, sunset ${formatClock(day.sunset)} (UK time). ` : ''}
-        {defaultLocation ? 'Using the middle of England: set your location in Settings for exact times. ' : ''}
+        {defaultLocation ? 'Using the middle of England: tap your garden’s name to say where it is, for exact times. ' : ''}
         Assumes flat ground.
       </p>
     </section>

@@ -27,6 +27,7 @@ import { PhoneDrawBar, PhoneHandBar, PhoneSheet, PlantingBar } from '../PhonePla
 import { canDrawByHand, geometryForTool, PlanCanvas, type CanvasApi, type Placing, type SketchPen, type Tool } from '../PlanCanvas';
 import { SeasonPhoto } from '../SeasonPhoto';
 import { PlanChips } from '../PlanChips';
+import { PlanTips } from '../PlanTips';
 import { ShareDialog } from '../ShareDialog';
 import { SketchBar } from '../SketchBar';
 import { SpaceDialog } from '../SpacePicker';
@@ -78,7 +79,7 @@ function hintFor(tool: Tool, phone: boolean, byHand = false, pen?: SketchPen): s
   if (tool === 'select')
     return phone
       ? 'Tap anything to pick it; drag it to move it. Add beds, pots and plants from below.'
-      : 'Click anything to pick it, and drag it to move it; pull a corner to resize. Drag beds, pots and plants in from below. Scroll to zoom; 0 fits the garden.';
+      : 'Scroll to zoom, and 0 fits the garden. Pull a corner to resize. Press ? for all the shortcuts.';
   if (tool === 'calibrate') return 'Click two points on the photo that you know the real distance between, such as the ends of a fence.';
   if (tool === 'trace') return 'Drag to move the photo under the plan. Press Esc when done.';
   if (tool === 'plant') return 'Click a bed, pot or planter to plant it. Esc when done.';
@@ -425,7 +426,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const spotText = tapHours !== null ? `About ${formatHours(tapHours)} of direct sun where you tapped, on 15 ${MONTH_NAMES[sunDate.month - 1]}.` : null;
 
   const lockButton = (
-    <button type="button" class="icon-btn" aria-pressed={locked} aria-label={locked ? 'Unlock the layout' : 'Lock the layout'} title={locked ? 'Layout locked: click to unlock' : 'Lock the layout, so beds and paths stay put'} onClick={toggleLock}>
+    <button type="button" class="icon-btn lock-btn" aria-pressed={locked} aria-label={locked ? 'Unlock the layout' : 'Lock the layout'} title={locked ? 'Layout locked: click to unlock' : 'Lock the layout, so beds and paths stay put'} onClick={toggleLock}>
       <Icon name={locked ? 'lock' : 'unlock'} />
     </button>
   );
@@ -657,6 +658,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
                 <LensLegend kind={focus.kind} count={focus.ids.size} guessed={focusGuessed} live={!!weather} rain={focus.kind === 'water' ? (wetness(weather, when)?.rain3 ?? null) : null} />
               </div>
             )}
+            {!empty && tool === 'select' && !prefs.seenTips && plants && <PlanTips phone={phone} done={() => prefsStore.set({ seenTips: true })} />}
             {empty && tool === 'select' && (
               <div class="plan-empty">
                 <p class="plan-empty-title">Start your plan</p>

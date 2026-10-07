@@ -36,7 +36,7 @@ Your garden is saved in your browser, never on a server. If you turn on this yea
 | `src/weather/` | This year's weather and the forecast from Open-Meteo (opt-in), and finding a place by postcode or name |
 | `src/lifecycle/` | Life stages, the Potting Shed, growing degree days, and each planting's stage on any day of the year |
 | `src/share/` | A picture of the plan, and a timelapse of the year, made on the device |
-| `src/calendar/` | Each month's jobs for your own plants |
+| `src/calendar/` | Each month's jobs for your own plants, and what's coming up this week |
 | `src/sun/` | Sun position (UK time), shadows and sun hours |
 | `src/library/` | Loading the plant library, your own plants and your plant checks |
 | `public/seasons/` | Seasonal photos, added only with `npm run add-photo` |

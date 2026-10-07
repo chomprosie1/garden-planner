@@ -104,7 +104,7 @@ describe('sowing list', () => {
   it('gives sowing jobs for plants not yet on the plan, and stops once one is', () => {
     const { g: g0, bed } = garden();
     let g = toggleWishlist(g0, 'tomato');
-    expect(summary(jobsFor(g, plantOf, 3, 2027))).toEqual(['sow-indoors tomato on your sowing list']);
+    expect(summary(jobsFor(g, plantOf, 3, 2027))).toEqual(['sow-indoors tomato on your Want to grow list']);
     expect(jobsFor(g, plantOf, 3, 2027)[0]!.key).toBe('sow-indoors:tomato:2027-03');
     [g] = plant(g, bed, 'tomato', undefined, 'single');
     expect(summary(jobsFor(g, plantOf, 3, 2027))).toEqual(['sow-indoors tomato for Veg bed']);
@@ -117,7 +117,7 @@ describe('sowing list', () => {
     g = toggleJob(g, jobsFor(g, plantOf, 2, 2027)[0]!, '2027-02-20');
     expect(jobsFor(g, plantOf, 3, 2027)).toEqual([]);
     // A year later it's due again.
-    expect(summary(jobsFor(g, plantOf, 3, 2028))).toEqual(['sow-indoors tomato on your sowing list']);
+    expect(summary(jobsFor(g, plantOf, 3, 2028))).toEqual(['sow-indoors tomato on your Want to grow list']);
   });
 
   it('cold-frame sowings say to transplant later', () => {

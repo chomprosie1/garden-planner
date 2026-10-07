@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
+import { Heart } from '../Heart';
 import { blankPlant, copyAsUserPlant, deleteUserPlant, emptyFilter, filterPlants, saveUserPlant, type PlantFilter } from '../../library/library';
 import { featureLabel } from '../../model/features';
 import { currentStage, STAGE_LABEL } from '../../lifecycle/stages';
@@ -51,7 +52,11 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
     clearOpen?.();
   }, [openId]);
   const byId = useMemo(() => new Map(plants.map((p) => [p.id, p])), [plants]);
-  const results = useMemo(() => filterPlants(plants, filter), [plants, filter]);
+  const [wantOnly, setWantOnly] = useState(false);
+  const results = useMemo(() => {
+    const found = filterPlants(plants, filter);
+    return wantOnly ? found.filter((p) => garden.wishlist.includes(p.id)) : found;
+  }, [plants, filter, wantOnly, garden.wishlist]);
 
   // On a wide screen, show the first result rather than an empty pane.
   const shown = panel ?? (!phone && results[0] ? { kind: 'card' as const, id: results[0].id } : null);
@@ -104,6 +109,10 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
             </option>
           ))}
         </select>
+        <button type="button" class="chip want-chip" aria-pressed={wantOnly} onClick={() => setWantOnly(!wantOnly)}>
+          <Icon name="heart" size={15} filled={wantOnly} />
+          Want to grow ({new Set(garden.wishlist).size})
+        </button>
         <label class="check">
           <input type="checkbox" checked={filter.sowMonth !== null} onChange={(e) => setFilter({ ...filter, sowMonth: (e.currentTarget as HTMLInputElement).checked ? month : null })} />
           Sow or plant this month
@@ -140,10 +149,13 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
               </span>
               {p.userAdded ? <span class="badge badge-own">Yours</span> : editor && !p.verified && <span class="dot-warn" title="Not yet checked" aria-label="Not yet checked" />}
             </button>
+            <Heart store={store} garden={garden} plant={p} />
           </li>
         ))}
       </ul>
-      {library && results.length === 0 && <p class="muted">No plants match. Try fewer words or clear a filter.</p>}
+      {library && results.length === 0 && (
+        <p class="muted">{wantOnly && !garden.wishlist.length ? 'Nothing on your list yet. Tap the heart on a plant you’d like to grow.' : 'No plants match. Try fewer words or clear a filter.'}</p>
+      )}
     </div>
   );
 

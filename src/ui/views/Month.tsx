@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'preact/hooks';
-import { jobsFor, toggleWishlist } from '../../calendar/jobs';
+import { useMemo } from 'preact/hooks';
+import { jobsFor } from '../../calendar/jobs';
 import { seasonFor } from '../../content/seasons';
-import { updateGarden, type Store } from '../../model/store';
+import type { Store } from '../../model/store';
 import type { Garden, Plant } from '../../model/types';
 import type { Prefs, View } from '../../theme/prefs';
 import { Icon } from '../icons';
@@ -70,7 +70,7 @@ export function Month({ store, garden, userPlants, prefs, go, back, now = new Da
             >
               plan
             </a>
-            , or add them to your sowing list below, and their sowing, planting and harvest jobs appear here.
+            , or tap the heart on plants you want to grow, and their sowing, planting and harvest jobs appear here.
           </p>
         )}
         {hasPlants && <p class="muted small">Harvest and winter jobs start once a planting has a sowing date. Ticking its sowing job sets the date, or you can set it on the plan.</p>}
@@ -94,58 +94,8 @@ export function Month({ store, garden, userPlants, prefs, go, back, now = new Da
         </ul>
       </section>
 
-      <SowingList store={store} garden={garden} plants={plants} plantOf={plantOf} />
 
       <p class="assumption">Dates are UK averages; adjust for your area. A cold spring or a sheltered plot can shift them by weeks.</p>
     </div>
-  );
-}
-
-/** Plants you mean to grow but haven't put on the plan yet. */
-function SowingList({ store, garden, plants, plantOf }: { store: Store; garden: Garden; plants: Plant[] | null; plantOf: (id: string) => Plant }) {
-  const [pick, setPick] = useState('');
-  const toggle = (id: string) => store.apply(updateGarden((g) => toggleWishlist(g, id)));
-  const listed = [...new Set(garden.wishlist)].map(plantOf).sort((a, b) => a.commonName.localeCompare(b.commonName));
-  const options = (plants ?? []).filter((p) => !garden.wishlist.includes(p.id));
-  return (
-    <section class="card">
-      <h2>Your sowing list</h2>
-      <p class="muted small">Plants you mean to grow this year but haven't put in a bed yet. Their sowing jobs show above.</p>
-      {listed.length > 0 && (
-        <ul class="sowing-list">
-          {listed.map((p) => (
-            <li key={p.id}>
-              <span>{p.commonName}</span>
-              <button type="button" class="link-btn small" onClick={() => toggle(p.id)}>
-                Remove<span class="visually-hidden"> {p.commonName}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      <form
-        class="sowing-add"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (pick) toggle(pick);
-          setPick('');
-        }}
-      >
-        <label class="field">
-          Add a plant
-          <select value={pick} onChange={(e) => setPick((e.currentTarget as HTMLSelectElement).value)}>
-            <option value="">Choose…</option>
-            {options.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.commonName}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button type="submit" class="btn" disabled={!pick}>
-          Add
-        </button>
-      </form>
-    </section>
   );
 }
