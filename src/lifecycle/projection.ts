@@ -9,6 +9,7 @@
 import { isCover, microclimateOf, type Cover } from '../climate/microclimate';
 import { coverKey } from '../climate/warmth';
 import { rainOver, weatherOn, type Weather } from '../weather/weather';
+import { daysBetween } from '../model/dates';
 import { featureLabel } from '../model/features';
 import { STAGES, type Feature, type Garden, type Plant, type Planting, type Stage } from '../model/types';
 import { isContainer } from '../planting/place';
@@ -413,6 +414,8 @@ export interface Gap {
   bed: Feature;
   /** When the last planting came out, if any did before this day. */
   emptyFrom: string | null;
+  /** When something planned for it goes in, if anything is: ideas must be done by then. */
+  until: string | null;
   /** Plants that could go in this month: quick crops for a gap. */
   ideas: string[];
 }
@@ -420,15 +423,50 @@ export interface Gap {
 /** Quick crops, in order of preference, for filling a bed that's standing empty. */
 const FILLERS = ['lettuce', 'radish', 'spinach', 'rocket', 'spring-onion', 'oriental-greens', 'mizuna', 'pak-choi', 'winter-purslane', 'corn-salad', 'garlic', 'broad-bean', 'onion', 'pea', 'beetroot', 'chard', 'kale', 'green-manure'];
 
+/** A bed that's empty for less than this before something planned goes in isn't a gap: it's waiting. */
+export const GAP_MIN_DAYS = 56;
+
+/**
+ * About how long a crop sown in a month takes until it's done: its days to crop if it has them, otherwise to the end of
+ * its first harvest (or flowering) run after sowing. null when there's no telling.
+ */
+export function daysToCrop(p: Plant, month: number): number | null {
+  if (p.growth?.days) return p.growth.days[1];
+  const months = p.cropping?.harvestMonths?.length ? p.cropping.harvestMonths : p.flowerMonths;
+  if (!months?.length) return null;
+  // Months from sowing to the start of the first run, then that run's length.
+  const ahead = (m: number) => (m - month + 12) % 12;
+  const start = months.reduce((best, m) => (ahead(m) < ahead(best) ? m : best));
+  let len = 1;
+  while (len < 12 && months.includes(((start + len - 1) % 12) + 1)) len++;
+  return Math.round((ahead(start) + len) * 30.4);
+}
+
+export interface FillerOptions {
+  /** Plants already growing or planned in the bed: ideas they're usually kept apart from are left out. */
+  neighbours?: Plant[];
+  /** The days until something planned goes in: ideas must be done by then. */
+  withinDays?: number | null;
+}
+
+const badNeighbours = (a: Plant, b: Plant) => !!a.companions?.avoid.includes(b.id) || !!b.companions?.avoid.includes(a.id);
+
 /**
  * Plants that can be sown outside or planted out in a month: from your sowing list first, then quick crops, quickest
- * first. Two at most.
+ * first. Two at most. Never one that's usually kept apart from what's in the bed, or one that won't be done before
+ * what's planned for it goes in.
  */
-export function fillersFor(month: number, plantOf: (id: string) => Plant | null, sowingList: string[] = []): string[] {
+export function fillersFor(month: number, plantOf: (id: string) => Plant | null, sowingList: string[] = [], opts: FillerOptions = {}): string[] {
   const out: string[] = [];
+  const neighbours = opts.neighbours ?? [];
   for (const id of [...new Set([...sowingList, ...FILLERS])]) {
     const p = plantOf(id);
     if (!p || perennial(p)) continue;
+    if (neighbours.some((n) => n.id === p.id || badNeighbours(p, n))) continue;
+    if (opts.withinDays != null) {
+      const days = daysToCrop(p, month);
+      if (days === null || days > opts.withinDays) continue;
+    }
     const sow = (p.sowing ?? []).some((s) => s.method === 'direct' && s.months.includes(month));
     if (sow || p.plantOutMonths?.includes(month)) out.push(p.id);
     if (out.length === 2) break;
@@ -438,7 +476,8 @@ export function fillersFor(month: number, plantOf: (id: string) => Plant | null,
 
 /**
  * Beds, pots and planters standing empty on a day: nothing in the ground, though something grew there before or
- * is planned for it. Beds that have never had anything are left alone.
+ * is planned for it. Beds that have never had anything are left alone, and so is a bed whose planned crop goes in
+ * within eight weeks: it's waiting, not empty.
  */
 export function gapsOn(g: Garden, plantOf: (id: string) => Plant, timelines: Map<string, Step[]>, date: string, ideaOf: (id: string) => Plant | null = plantOf): Gap[] {
   const gaps: Gap[] = [];
@@ -448,6 +487,8 @@ export function gapsOn(g: Garden, plantOf: (id: string) => Plant, timelines: Map
     if (!here.length) continue;
     let used = false;
     let emptyFrom: string | null = null;
+    let until: string | null = null;
+    const neighbours: Plant[] = [];
     for (const pl of here) {
       const plant = plantOf(pl.plantId);
       const steps = timelines.get(pl.id) ?? [];
@@ -461,17 +502,26 @@ export function gapsOn(g: Garden, plantOf: (id: string) => Plant, timelines: Map
         if (s.date === null || s.date > date) break;
         if (!inGround(s.stage, plant, pl) && inGround(steps[i - 1]!.stage, plant, pl) && (!emptyFrom || s.date > emptyFrom)) emptyFrom = s.date;
       }
+      // When it goes in, if that's still to come: it's a neighbour for whatever fills the gap first.
+      const next = steps.find((s) => s.date !== null && s.date > date && inGround(s.stage, plant, pl));
+      if (next?.date) {
+        neighbours.push(plant);
+        if (!until || next.date < until) until = next.date;
+      }
     }
-    if (!used) gaps.push({ bed, emptyFrom, ideas: fillersFor(monthOf(date), ideaOf, g.wishlist) });
+    if (used) continue;
+    const window = until ? daysBetween(date, until) : null;
+    if (window !== null && window < GAP_MIN_DAYS) continue;
+    gaps.push({ bed, emptyFrom, until, ideas: fillersFor(monthOf(date), ideaOf, g.wishlist, { neighbours, withinDays: window }) });
   }
   return gaps;
 }
 
-/** "Empty from 12 Aug: sow lettuce or radish?" */
+/** "Empty from 12 Aug: sow lettuce or radish?", or "Empty until 1 Mar: sow radish first?" */
 export function gapText(gap: Gap, plantOf: (id: string) => Plant, today: string): string {
-  const when = gap.emptyFrom && gap.emptyFrom > today ? `Empty from ${shortDate(gap.emptyFrom)}` : `${featureLabel(gap.bed)} is empty`;
+  const when = gap.emptyFrom && gap.emptyFrom > today ? `Empty from ${shortDate(gap.emptyFrom)}` : gap.until ? `Empty until ${shortDate(gap.until)}` : `${featureLabel(gap.bed)} is empty`;
   const names = gap.ideas.map((id) => plantOf(id).commonName.toLowerCase());
-  return names.length ? `${when}: sow ${names.join(' or ')}?` : when;
+  return names.length ? `${when}: sow ${names.join(' or ')}${gap.until ? ' first' : ''}?` : when;
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

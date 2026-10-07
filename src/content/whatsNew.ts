@@ -26,6 +26,7 @@ export const WHATS_NEW: NewsEntry[] = [
       'Nothing on your plan changes when you switch, and asking for a drawing tool or the shade from search switches to Advanced for you.',
       'Bigger buttons on a phone, and the year slider steps aside while the drawer below the plan is open.',
       'Structures is now “Trees and structures”.',
+      'Fixed: a bed you’ve just planned something for no longer says it’s empty, and ideas for an empty bed never include something that’s usually kept apart from what’s planned there. Before a crop planned months ahead, it only suggests something that’ll be done in time.',
     ],
     tryIt: { label: 'Open your garden', view: 'plan' },
   },

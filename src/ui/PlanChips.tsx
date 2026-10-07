@@ -93,7 +93,7 @@ export function PlanChips({ garden, store, plantOf, jobs, canTick, gaps, today, 
       {gaps.map((gap) => {
         const a = anchor(gap.bed);
         if (!a) return null;
-        const from = gap.emptyFrom && gap.emptyFrom > today ? `Empty from ${shortDate(gap.emptyFrom)}` : 'Empty';
+        const from = gap.emptyFrom && gap.emptyFrom > today ? `Empty from ${shortDate(gap.emptyFrom)}` : gap.until ? `Empty until ${shortDate(gap.until)}` : 'Empty';
         return (
           <div key={`gap-${gap.bed.id}`} class="plan-chips" data-world={a.world} data-world-w={a.w}>
             <span class="plan-chip plan-gap">
@@ -109,7 +109,7 @@ export function PlanChips({ garden, store, plantOf, jobs, canTick, gaps, today, 
                       </button>
                     </span>
                   ))}
-                  ?
+                  {gap.until ? ' first?' : '?'}
                 </>
               )}
             </span>

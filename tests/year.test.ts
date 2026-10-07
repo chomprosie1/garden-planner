@@ -132,6 +132,31 @@ describe('beds standing empty', () => {
     expect(fillersFor(5, maybe)).toEqual(['lettuce', 'radish']);
     expect(fillersFor(1, maybe)).toEqual([]);
   });
+
+  // Reported 7 Oct 2026: broad beans planned in an empty bed in October, and the bed was called empty, with
+  // "sow foxglove or garlic?"; then garlic beside broad beans was warned against.
+  it('a bed with broad beans just planned is waiting, not empty, and never offers garlic beside them', () => {
+    const empty = { ...makeFeature('bed', { area: rectPoints({ x: 0, y: 3000, w: 2400, h: 1200 }) }), name: 'Bean bed' };
+    const beans = makePlanting(plant('broad-bean'), empty.id, 'row', [200, 3500], [2200, 3500]);
+    const withBeans = addPlanting({ ...addFeature(g, empty), wishlist: ['foxglove', 'garlic'] }, beans);
+    const beanLines = new Map(withBeans.plantings.map((p) => [p.id, timeline(plant(p.plantId), p, withBeans, TODAY)]));
+    expect(gapsOn(withBeans, plant, beanLines, TODAY, maybe)).toEqual([]);
+    // Whatever's suggested beside them, garlic and onions never are.
+    expect(fillersFor(10, maybe, ['garlic', 'onion'], { neighbours: [plant('broad-bean')] })).not.toContain('garlic');
+    expect(fillersFor(10, maybe, ['garlic', 'onion'], { neighbours: [plant('broad-bean')] })).not.toContain('onion');
+  });
+
+  it('before a crop planned months ahead, only something done in time is suggested, to sow first', () => {
+    const empty = makeFeature('bed', { area: rectPoints({ x: 0, y: 3000, w: 2400, h: 1200 }) });
+    const tomato = { ...makePlanting(plant('tomato'), empty.id, 'single', [500, 3500]), sowing: 'indoors' as const };
+    const later = addPlanting({ ...addFeature(g, empty), wishlist: ['garlic'] }, tomato);
+    const lines2 = new Map(later.plantings.map((p) => [p.id, timeline(plant(p.plantId), p, later, TODAY)]));
+    const gap = gapsOn(later, plant, lines2, TODAY, maybe)[0];
+    expect(gap?.until).toBeTruthy();
+    // Garlic planted now isn't up until summer: no use before tomatoes in May.
+    expect(gap!.ideas).not.toContain('garlic');
+    if (gap!.ideas.length) expect(gapText(gap!, plant, TODAY)).toMatch(/^Empty until \d+ \w{3}: sow .+ first\?$/);
+  });
 });
 
 describe('lenses through the year', () => {
