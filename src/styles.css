@@ -1038,7 +1038,8 @@ button:disabled {
   background: var(--plan-canopy-stroke);
   border-radius: 50%;
 }
-.swatch-greenhouse {
+.swatch-greenhouse,
+.swatch-cold-frame {
   background: var(--plan-glass);
 }
 .swatch-water {
@@ -2173,11 +2174,21 @@ button:disabled {
 .sun-note {
   margin: 0;
 }
-.sun-fact {
+.sun-fact,
+.cover-fact {
   padding: 0.5rem 0.7rem;
   border-radius: var(--radius);
   background: var(--surface2);
   font-size: 0.92rem;
+}
+.shed-climate {
+  margin: 0;
+  padding: 0.4rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+}
+.cover-fact {
+  margin: 0.25rem 0 0.5rem;
+  border-left: 3px solid var(--plan-glass-stroke, var(--accent));
 }
 @media (max-width: 700px) {
   .sun-bar {

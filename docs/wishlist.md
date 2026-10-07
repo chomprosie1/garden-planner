@@ -19,7 +19,7 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Soft shadows that follow the real sun at the time of day | Build, Stage 11 | S | Built in Stage 14: from the sun at 1 pm in the chosen week |
 | Germination times for each plant | Build, Stage 12 | S | For now every plant uses one to three weeks; `germinationDays` is ready for the data |
 | Potting on: move seedlings from a module tray into pots, splitting a tray | Build, Stage 12 | S | For now: change the tray's container and count |
-| Cold frames on the plan sharing their place in the shed | Build, Stage 12 | S | Comes with Stage 15's cold-frame feature |
+| Cold frames on the plan sharing their place in the shed | Build, Stage 12 | S | Built in Stage 15: "Raise seedlings in here", or link a place from the shed |
 | Equal-spacing guides, and snapping to path widths, when moving beds | Build, Stage 13 | S | Edges and middles line up for now |
 | Tap a length on the plan to type it | Build, Stage 13 | S | For now: the size button on the action pill |
 | Recent searches, and searching jobs and journal notes | Build, Stage 13c | S | Search finds plants, things on the plan and actions |

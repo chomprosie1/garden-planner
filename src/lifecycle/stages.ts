@@ -50,10 +50,11 @@ export function sowingOf(plant: Plant, pl?: Planting): 'indoors' | 'direct' | 'n
   return methods[0] === 'direct' ? 'direct' : 'indoors';
 }
 
-/** The stages this planting goes through, in order. */
-export function pathFor(plant: Plant, pl?: Planting): Stage[] {
+/** The stages this planting goes through, in order. Under a greenhouse or cold frame (covered), seedlings go in without hardening off. */
+export function pathFor(plant: Plant, pl?: Planting, covered = false): Stage[] {
   const sowing = sowingOf(plant, pl);
-  const start: Stage[] = sowing === 'indoors' ? ['sown', 'germinated', 'hardening', 'transplanted'] : sowing === 'direct' ? ['sown', 'germinated'] : ['transplanted'];
+  const indoors: Stage[] = covered ? ['sown', 'germinated', 'transplanted'] : ['sown', 'germinated', 'hardening', 'transplanted'];
+  const start: Stage[] = sowing === 'indoors' ? indoors : sowing === 'direct' ? ['sown', 'germinated'] : ['transplanted'];
   return [...start, 'vegetative', ...(flowers(plant) ? (['flowering'] as const) : []), ...(harvests(plant) ? (['harvesting'] as const) : [])];
 }
 
@@ -75,10 +76,10 @@ export function stageDate(pl: Planting, s: LifeStage): string | undefined {
 export const isGrowingStage = (s: LifeStage) => s === 'transplanted' || s === 'vegetative' || s === 'flowering' || s === 'harvesting';
 
 /** The stage after this one, or for a perennial at the end of its year, "vegetative" again (a new season). Null when there's nothing next. */
-export function nextStage(plant: Plant, pl: Planting): Stage | null {
+export function nextStage(plant: Plant, pl: Planting, covered = false): Stage | null {
   const now = currentStage(pl);
   if (now === 'cleared') return null;
-  const path = pathFor(plant, pl);
+  const path = pathFor(plant, pl, covered);
   if (now === 'planned') return path[0]!;
   const later = path.filter((s) => order(s) > order(now));
   if (later.length) return later[0]!;

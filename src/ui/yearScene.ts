@@ -4,8 +4,9 @@
 
 import type { TimeScene } from '../canvas/render';
 import { gapsOn, stageIn, type Gap, type Step } from '../lifecycle/projection';
-import { frostDates } from '../lifecycle/shed';
-import type { Garden, Plant, Planting, Point } from '../model/types';
+import { climateOf } from '../climate/microclimate';
+import { frostDatesUnder } from '../lifecycle/shed';
+import type { Climate, Garden, Plant, Planting, Point } from '../model/types';
 import { fromUkClock, shadowOffset, sunAt } from '../sun/position';
 
 /** The lawn through the year: greener in spring, paler in a dry late summer, dull in winter. */
@@ -33,11 +34,23 @@ export function halfMonth(date: string): string {
   return m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`;
 }
 
-/** Between the first autumn frost and the last spring frost. */
-export function frostyOn(g: Garden, date: string): boolean {
-  const { lastFrost, firstFrost } = frostDates(g);
+/** Between the first autumn frost and the last spring frost: outside, or under a greenhouse or cold frame (never, if it's heated). */
+export function frostyOn(g: Garden, date: string, under: Climate | null = null): boolean {
+  const f = frostDatesUnder(g, under);
+  if (!f) return false;
   const md = date.slice(5);
-  return md >= firstFrost || md <= lastFrost;
+  return md >= f.firstFrost || md <= f.lastFrost;
+}
+
+/** Greenhouses and cold frames still clear of frost on a frosty day: early and late in the frosts, or heated. */
+export function thawedOn(g: Garden, date: string): Set<string> {
+  const out = new Set<string>();
+  if (!frostyOn(g, date)) return out;
+  for (const f of g.features) {
+    const c = climateOf(f);
+    if (c && !frostyOn(g, date, c)) out.add(f.id);
+  }
+  return out;
 }
 
 export interface YearScene {
@@ -52,7 +65,7 @@ export function yearScene(g: Garden, plantOf: (id: string) => Plant, timelines: 
   const gaps = gapsOn(g, plantOf, timelines, date, ideaOf);
   const month = Number(date.slice(5, 7));
   return {
-    time: { stageOf: stageAt, light: lightOn(g, halfMonth(date)), lawn: LAWN_BY_MONTH[month - 1]!, frost: frostyOn(g, date), gaps: new Set(gaps.map((x) => x.bed.id)) },
+    time: { stageOf: stageAt, light: lightOn(g, halfMonth(date)), lawn: LAWN_BY_MONTH[month - 1]!, frost: frostyOn(g, date), thawed: thawedOn(g, date), gaps: new Set(gaps.map((x) => x.bed.id)) },
     gaps,
     stageAt,
     month,

@@ -265,7 +265,7 @@ Brought forward from "parked": the plant life cycle, frost and Growing Degree Da
 | 13b | The dock and stickers, the fill pop-over, pots and planters, dropping trays from the shed | Built |
 | 13c | First run ("Where are you growing?") and search everything | Built |
 | 14 | The garden through the year: scrubber, projected stages, gaps, job chips, lenses, share and timelapse | Built |
-| 15 | Greenhouses and cold frames as microclimates | |
+| 15 | Greenhouses and cold frames as microclimates | Built |
 | 16 | Growing Degree Days from UK climate averages (capped at 2 weeks) | |
 | 17 | Live weather (opt-in Open-Meteo) and succession sowing | |
 | 18 | 3D garden view (three.js, loaded only when opened) | |
@@ -400,6 +400,24 @@ Tests: `tests/start.test.ts` covers each space at its usual and smallest sizes, 
 - **Not done:** jobs for the week rather than the month, gap ideas from your own sowing list, and sharper projections from growing degree days (Stage 16).
 
 Tests: `tests/year.test.ts` covers months and runs, stages up to and after today, planned plantings, quick crops, perennials, cleared plantings, what's in the ground, gaps and ideas, the three lenses, the light by season, frost, and the picture's name.
+
+### Stage 15 — Greenhouses and cold frames as microclimates (as built)
+- **Cold frames:** a new kind, from **Beds and pots** in the dock (1.2 × 0.6 m) or drawn with the Cold frame tool. It holds plants like a bed, and is drawn as a timber box with soil seen through a glass lid in two halves.
+- **A climate for each:** `Feature.climate` (`heated`, `dayGainC`, `nightGainC`), defaulting by kind: an unheated greenhouse about +8 °C by day and +2 °C at night, a cold frame +4 °C and +1 °C. A greenhouse can be marked heated (kept frost-free).
+- **What's under cover** (`src/climate/microclimate.ts`): `microclimateAt` finds the warmest greenhouse or cold frame over a point; `microclimateOf` gives a planting's, so a planting in a greenhouse, or in a bed drawn inside one, counts.
+- **Frost under cover:** the last spring frost comes sooner and the first autumn frost later, by about a week for each degree warmer at night (how fast nights warm in a UK spring): two weeks in a greenhouse, one in a cold frame, six in a heated greenhouse, which never frosts. On the year scrubber, frost stays off a greenhouse early and late in the frosts, and never settles in a heated one.
+- **Growing under cover:**
+  - No hardening off: indoor sowings go Sown → Up → Planted out. Seedlings go in after about four weeks to grow on, and tender ones not before the last frost under the glass. The stage strip, the action pill and the Potting Shed's "Sown for the plan" list all skip hardening off ("Ready to go into the Greenhouse. No need to harden off.").
+  - Plant-out jobs start sooner: a month counts once there's at least a week of it, so a greenhouse adds the month before (tomatoes in April as well as May and June), a heated one two months, and a cold frame's week doesn't change the month. The job says there's no need to harden off. The planting panel's "Next: plant out" uses the same months.
+  - No "Protect for winter" job.
+  - The **Water** lens picks out everything under glass, which gets no rain (March to October).
+  - Projected stages on the year scrubber follow all of this.
+- **On screen:** a greenhouse or cold frame's panel has an **Under cover** section: how much warmer it is, what that changes, a Heated tick (greenhouses), the day and night gains to type, and "Back to the usual". Plantings and beds under cover say "Under cover in Greenhouse: about +8 °C by day and +2 °C at night."
+- **The Potting Shed:** "Raise seedlings in here" on a greenhouse or cold frame adds a matching place to the shed, linked to it (`ShedPlace.featureId`); a greenhouse bench or cold frame in the shed can be linked from its Change menu. A linked place shares its climate, and an unlinked bench or cold frame has the usual one. Tender seedlings on an unheated bench are told to come indoors on cold nights until the last frost under the glass, and hardening off in a cold frame is "open it by day, close it at night". Deleting the feature unlinks the place, which stays.
+- **Model:** schema 8: the `cold-frame` kind, `Feature.climate` and `ShedPlace.featureId`, all optional.
+- **Not done:** faster growth under glass (Stage 16's growing degree days use the same gains), and earlier harvests and later crops in autumn.
+
+Tests: `tests/microclimate.test.ts` covers climates by kind, the cover over a point and a planting (overlapping, heated, a bed inside a greenhouse), the dock sticker, frost dates under cover, frost on the plan, the path without hardening off, planting-in dates, planting-out months, the year's projection, jobs, the water lens, shed places and their advice, unlinking, and schema 8.
 
 ---
 

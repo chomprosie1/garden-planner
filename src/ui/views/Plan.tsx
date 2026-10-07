@@ -197,7 +197,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const time = useMemo(() => {
     if (!year) return null;
     const t = year.time;
-    const key = [year.month, t.frost, t.light?.map((n) => n.toFixed(3)).join(':'), [...t.gaps].sort().join('.'), garden.plantings.map((pl) => `${t.stageOf(pl).stage}${t.stageOf(pl).guessed ? '?' : ''}`).join(',')].join('|');
+    const key = [year.month, t.frost, [...(t.thawed ?? [])].sort().join('.'), t.light?.map((n) => n.toFixed(3)).join(':'), [...t.gaps].sort().join('.'), garden.plantings.map((pl) => `${t.stageOf(pl).stage}${t.stageOf(pl).guessed ? '?' : ''}`).join(',')].join('|');
     const prev = lastScene.current;
     if (prev && prev.key === key && prev.garden === garden) return prev.time;
     lastScene.current = { key, garden, time: t };

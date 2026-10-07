@@ -41,6 +41,7 @@ const DRAW_TOOLS: { tool: Tool; label: string }[] = [
   { tool: 'hedge', label: 'Hedge' },
   { tool: 'building', label: 'Building' },
   { tool: 'greenhouse', label: 'Greenhouse' },
+  { tool: 'cold-frame', label: 'Cold frame' },
   { tool: 'planter', label: 'Planter' },
   { tool: 'pot', label: 'Pot' },
   { tool: 'tree', label: 'Tree' },

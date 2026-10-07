@@ -74,6 +74,11 @@ export function validateGarden(g: unknown): string[] {
       need(f.edging === undefined || oneOf(EDGINGS, f.edging), `${at}.edging must be timber, brick or stone.`);
       need(f.smooth === undefined || typeof f.smooth === 'boolean', `${at}.smooth must be true or false.`);
       need(f.controls === undefined || (Array.isArray(f.controls) && f.controls.length >= 3 && f.controls.every(isPoint)), `${at}.controls needs three or more points.`);
+      need(
+        f.climate === undefined ||
+          (isObject(f.climate) && typeof f.climate.heated === 'boolean' && isNum(f.climate.dayGainC) && isNum(f.climate.nightGainC) && f.climate.dayGainC >= 0 && f.climate.nightGainC >= 0 && f.climate.dayGainC <= 30 && f.climate.nightGainC <= 30),
+        `${at}.climate needs heated, and day and night gains from 0 to 30 °C.`,
+      );
     });
 
   need(g.spacing === undefined || g.spacing === 'close' || g.spacing === 'rows', 'spacing must be close or rows.');
@@ -128,6 +133,7 @@ export function validateGarden(g: unknown): string[] {
       g.shedPlaces.forEach((pl, i) => {
         const ok = isObject(pl) && isStr(pl.id) && oneOf(SHED_PLACE_KINDS, pl.kind) && isStr(pl.name) && Number.isInteger(pl.shelves) && (pl.shelves as number) >= 1 && Number.isInteger(pl.slots) && (pl.slots as number) >= 1;
         need(ok, `shedPlaces[${i}] needs an id, a kind, a name, and shelves and slots of 1 or more.`);
+        need(!isObject(pl) || pl.featureId === undefined || isStr(pl.featureId), `shedPlaces[${i}].featureId must be text.`);
         if (ok) placeIds.add(pl.id as string);
       });
   }

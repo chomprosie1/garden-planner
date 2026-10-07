@@ -25,12 +25,13 @@ import { formatDate } from './NotesSection';
 
 const order = (s: LifeStage) => (s === 'planned' ? -1 : s === 'cleared' ? 99 : STAGES.indexOf(s));
 
-export function StageStrip({ store, pl, plant, canEdit }: { store: Store; pl: Planting; plant: Plant; canEdit: boolean }) {
+/** covered: under a greenhouse or cold frame, so there's no hardening off. */
+export function StageStrip({ store, pl, plant, canEdit, covered = false }: { store: Store; pl: Planting; plant: Plant; canEdit: boolean; covered?: boolean }) {
   const app = useApp();
   const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
   const now = currentStage(pl);
-  const path = pathFor(plant, pl);
-  const next = nextStage(plant, pl);
+  const path = pathFor(plant, pl, covered);
+  const next = nextStage(plant, pl, covered);
   const tips = stageTips(plant, now, pl);
   const guess = suggestedStage(plant, pl, new Date().getMonth() + 1);
   const today = todayIso();

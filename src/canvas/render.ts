@@ -116,6 +116,8 @@ export interface TimeScene {
   lawn: number;
   /** Frost on the ground. */
   frost: boolean;
+  /** Greenhouses and cold frames clear of the frost. */
+  thawed?: Set<string>;
   /** Beds standing empty, which glow faintly. */
   gaps: Set<string>;
 }
@@ -430,7 +432,7 @@ function drawFeatureShadow(ctx: CanvasRenderingContext2D, s: Scene, f: Feature) 
   const [lx, ly] = lightOf(s);
   const pts = f.footprint.map((p) => toScreen(v, p));
   const blur = Math.max(1, d * 0.5);
-  const alpha = shadowAlpha(s) * (f.kind === 'greenhouse' ? 0.5 : 1);
+  const alpha = shadowAlpha(s) * (f.kind === 'greenhouse' || f.kind === 'cold-frame' ? 0.5 : 1);
   const b = bounds(pts)!;
   const pad = Math.ceil(blur * 3);
   const x0 = b.minX - pad + d * lx;
@@ -555,6 +557,7 @@ function featureColours(f: Feature, P: PlanPalette): { fill: string; stroke: str
     case 'hedge':
       return { fill: P.canopy, stroke: P.canopyStroke };
     case 'greenhouse':
+    case 'cold-frame':
       return { fill: P.glass, stroke: P.glassStroke };
     case 'water':
       return { fill: P.water, stroke: P.buildingStroke };
@@ -582,14 +585,22 @@ function drawFeature(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, pats: 
   if (material) {
     // Lawns use the garden's own lawn pattern, so a drawn lawn matches the garden around it.
     ctx.fillStyle = material === 'lawn' && typeof pats.lawn !== 'string' ? placePattern(pats.lawn, v, pats.tileMm.lawn) : placePattern(materialFill(ctx, s.style, material), v, MATERIAL_TILE_MM[material]);
-  } else if (f.kind === 'bed' || f.kind === 'planter') ctx.fillStyle = placePattern(pats.bed, v, pats.tileMm.bed);
+  } else if (f.kind === 'bed' || f.kind === 'planter' || f.kind === 'cold-frame') ctx.fillStyle = placePattern(pats.bed, v, pats.tileMm.bed);
   else if (f.kind === 'pot' && f.circle) return drawPot(ctx, s, f, pats);
   else if (f.kind === 'hedge') ctx.fillStyle = placePattern(hedgeFill(ctx, s.style), v, 800);
   else ctx.fillStyle = c.fill;
   if (f.kind === 'tree' && f.circle) return drawTree(ctx, s, f, c.stroke);
   ctx.fill();
   if (material === 'lawn' && s.time?.lawn) tintLawn(ctx, s, s.time.lawn);
-  if (f.kind === 'greenhouse') {
+  if (f.kind === 'cold-frame') {
+    // A timber box, with soil seen through the glass lid.
+    drawEdging(ctx, s, 'timber', 0);
+    ctx.globalAlpha = 0.45;
+    ctx.fillStyle = c.fill;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  if (f.kind === 'greenhouse' || f.kind === 'cold-frame') {
     // A sheen across the glass.
     const bx = bounds(pts)!;
     const grad = ctx.createLinearGradient(bx.minX, bx.minY, bx.maxX, bx.maxY);
@@ -616,15 +627,16 @@ function drawFeature(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, pats: 
   ctx.stroke();
   ctx.setLineDash([]);
 
-  if (f.kind === 'greenhouse' && pts.length === 4) {
-    // Glazing bars across the short side.
+  if ((f.kind === 'greenhouse' || f.kind === 'cold-frame') && pts.length === 4) {
+    // Glazing bars across the short side: four panes for a greenhouse, two lids for a cold frame.
+    const panes = f.kind === 'greenhouse' ? 4 : 2;
     ctx.strokeStyle = c.stroke;
-    ctx.globalAlpha = 0.5;
-    ctx.lineWidth = 1;
+    ctx.globalAlpha = f.kind === 'greenhouse' ? 0.5 : 0.8;
+    ctx.lineWidth = f.kind === 'greenhouse' ? 1 : Math.max(1, 40 * v.scale);
     ctx.beginPath();
     const [a, b, , d] = pts as [Point, Point, Point, Point];
-    for (let i = 1; i < 4; i++) {
-      const t = i / 4;
+    for (let i = 1; i < panes; i++) {
+      const t = i / panes;
       ctx.moveTo(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t);
       ctx.lineTo(d[0] + (b[0] - a[0]) * t, d[1] + (b[1] - a[1]) * t);
     }
@@ -1361,7 +1373,15 @@ function drawFrost(ctx: CanvasRenderingContext2D, s: Scene) {
   if (g.boundary.length < 3) return;
   ctx.save();
   polyPath(ctx, g.boundary.map((p) => toScreen(s.view, p)));
-  ctx.clip();
+  // Greenhouses and cold frames clear of frost are cut out of it.
+  for (const f of g.features)
+    if (s.time?.thawed?.has(f.id) && f.footprint.length >= 3) {
+      const pts = f.footprint.map((p) => toScreen(s.view, p));
+      ctx.moveTo(pts[0]![0], pts[0]![1]);
+      for (const [x, y] of pts.slice(1)) ctx.lineTo(x, y);
+      ctx.closePath();
+    }
+  ctx.clip('evenodd');
   ctx.fillStyle = s.style.mode === 'dark' ? 'rgba(200,220,255,0.10)' : 'rgba(255,255,255,0.28)';
   ctx.fillRect(0, 0, s.width, s.height);
   // Crystals on a grid in garden mm, so they don't shimmer when the plan moves.

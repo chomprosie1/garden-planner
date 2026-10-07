@@ -4,10 +4,11 @@
 // flowering, harvest), so a projected stage is a guess, and says so. Growing
 // degree days will sharpen it later. Pure functions.
 
+import { isCover, microclimateOf, type Cover } from '../climate/microclimate';
 import { featureLabel } from '../model/features';
 import { STAGES, type Feature, type Garden, type Plant, type Planting, type Stage } from '../model/types';
 import { isContainer } from '../planting/place';
-import { addDays, germination, hardenFrom, plantOutFrom } from './shed';
+import { addDays, germination, hardenFrom, plantInFrom, plantOutFrom } from './shed';
 import { currentStage, flowerMonthsOf, pathFor, perennial, sowingOf, type LifeStage } from './stages';
 
 export interface Step {
@@ -74,8 +75,8 @@ function marked(pl: Planting): Step[] {
 const MAX_STEPS = 16;
 
 /** The next step after a stage reached on a date, from the plant's usual months; null when nothing more is expected. */
-function after(plant: Plant, pl: Planting, g: Garden, stage: LifeStage, date: string): Step | null {
-  const path = pathFor(plant, pl);
+function after(plant: Plant, pl: Planting, g: Garden, stage: LifeStage, date: string, cover: Cover | null): Step | null {
+  const path = pathFor(plant, pl, !!cover);
   const later = (s: Stage) => path.includes(s) && order(s) > order(stage);
   const step = (s: LifeStage, d: string | null): Step | null => (d ? { stage: s, date: d, guessed: true } : null);
   const flowerMonths = flowerMonthsOf(plant);
@@ -96,6 +97,8 @@ function after(plant: Plant, pl: Planting, g: Garden, stage: LifeStage, date: st
         const usual = hardenFrom(plant, g, yearOf(ready));
         return step('hardening', usual >= ready ? usual : monthOf(ready) <= 7 ? ready : hardenFrom(plant, g, yearOf(ready) + 1));
       }
+      // Going under glass: straight in once grown on, with no hardening off.
+      if (cover && later('transplanted')) return step('transplanted', plantInFrom(plant, g, date, cover.climate));
       return step('vegetative', addDays(date, 21));
     }
     case 'hardening':
@@ -144,12 +147,13 @@ export function timeline(plant: Plant, pl: Planting, g: Garden, today: string): 
   const steps = marked(pl);
   if (pl.removedOn) return steps;
   const now = currentStage(pl);
+  const cover = microclimateOf(g, pl);
   let last: Step | null;
   if (now === 'planned') last = firstStep(plant, pl, today);
   else {
     // Carry on from the latest stage, measured from when it was reached (or today, if that's not known).
     const latest = steps[steps.length - 1]!;
-    last = after(plant, pl, g, latest.stage, latest.date ?? today);
+    last = after(plant, pl, g, latest.stage, latest.date ?? today, cover);
   }
   const horizon = addDays(today, 800);
   const tomorrow = addDays(today, 1);
@@ -157,7 +161,7 @@ export function timeline(plant: Plant, pl: Planting, g: Garden, today: string): 
     // Each step follows from when the last was due. Nothing guessed shows on or before today: steps that are
     // overdue all land tomorrow, so it's shown at the latest of them.
     steps.push(last.date! <= today ? { ...last, date: tomorrow } : last);
-    last = after(plant, pl, g, last.stage, last.date!);
+    last = after(plant, pl, g, last.stage, last.date!, cover);
   }
   return steps;
 }
@@ -184,12 +188,14 @@ export type YearLens = 'flower' | 'harvest' | 'water';
  * - flower: flowering (for bees), or a plant grown for its flowers in its flower months;
  * - harvest: ready to harvest;
  * - water: thirsty, from April to September: plants that like it moist, anything young or just planted, and
- *   everything in pots and planters, which dry out fastest (in March and October too). Live weather will sharpen this.
+ *   everything in pots and planters, which dry out fastest, and under glass, where no rain falls (in March and October
+ *   too). Live weather will sharpen this.
  */
 export function pickedBy(lens: YearLens, g: Garden, plantOf: (id: string) => Plant, at: (pl: Planting) => Projected, date: string): Set<string> {
   const month = monthOf(date);
   const ids = new Set<string>();
   const kindOf = new Map(g.features.map((f) => [f.id, f.kind]));
+  const anyCover = lens === 'water' && g.features.some(isCover);
   for (const pl of g.plantings) {
     const plant = plantOf(pl.plantId);
     const { stage } = at(pl);
@@ -200,7 +206,7 @@ export function pickedBy(lens: YearLens, g: Garden, plantOf: (id: string) => Pla
     else if (lens === 'harvest') picked = stage === 'harvesting';
     else {
       const kind = kindOf.get(pl.featureId);
-      const potted = kind === 'pot' || kind === 'planter';
+      const potted = kind === 'pot' || kind === 'planter' || (anyCover && !!microclimateOf(g, pl));
       const summer = month >= 4 && month <= 9;
       const young = stage === 'sown' || stage === 'germinated' || stage === 'transplanted';
       picked = (summer && (potted || young || plant.conditions.moisture === 'moist')) || (potted && (month === 3 || month === 10));

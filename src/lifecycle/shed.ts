@@ -5,9 +5,11 @@
 //
 // Pure functions: garden in, garden out, so each edit is one undo step.
 
+import { frostShiftDays, microclimateOf, placeClimate, type Cover } from '../climate/microclimate';
+import { featureLabel } from '../model/features';
 import { newId } from '../model/ids';
 import { addNote, makeNote } from '../model/notes';
-import type { Container, Garden, Plant, Planting, ShedPlace, ShedPlaceKind, Tray, TrayStage } from '../model/types';
+import type { Climate, Container, Garden, Plant, Planting, ShedPlace, ShedPlaceKind, Tray, TrayStage } from '../model/types';
 import { currentStage, setStage } from './stages';
 
 // ---------- Dates ----------
@@ -35,6 +37,20 @@ export function estimateFrost(latitude: number): { lastFrost: string; firstFrost
 export function frostDates(g: Garden): { lastFrost: string; firstFrost: string; estimated: boolean } {
   const est = estimateFrost(g.latitude);
   return { lastFrost: g.lastFrost ?? est.lastFrost, firstFrost: g.firstFrost ?? est.firstFrost, estimated: !g.lastFrost && !g.firstFrost };
+}
+
+/**
+ * Frost dates under a greenhouse or cold frame: the last spring frost comes sooner and the first autumn frost later, by
+ * about a week for each degree warmer at night. Null under a heated greenhouse, which is kept frost-free.
+ */
+export function frostDatesUnder(g: Garden, c: Climate | null): { lastFrost: string; firstFrost: string } | null {
+  const f = frostDates(g);
+  if (!c) return f;
+  if (c.heated) return null;
+  const shift = frostShiftDays(c);
+  const last = addDays(`2027-${f.lastFrost}`, -shift);
+  const first = addDays(`2027-${f.firstFrost}`, shift);
+  return { lastFrost: last < '2027-01-01' ? '01-01' : last.slice(5), firstFrost: first > '2027-12-31' ? '12-31' : first.slice(5) };
 }
 
 /** A "MM-DD" date in a year, as ISO. */
@@ -77,8 +93,8 @@ export function addPlace(g: Garden, place: ShedPlace): Garden {
   return { ...g, shedPlaces: [...placesOf(g), place] };
 }
 
-/** Changes a place's name or size. Trays that no longer fit move to the first free spaces. */
-export function updatePlace(g: Garden, id: string, patch: Partial<Pick<ShedPlace, 'name' | 'shelves' | 'slots'>>): Garden {
+/** Changes a place's name, size, or the greenhouse or cold frame it's in. Trays that no longer fit move to the first free spaces. */
+export function updatePlace(g: Garden, id: string, patch: Partial<Pick<ShedPlace, 'name' | 'shelves' | 'slots' | 'featureId'>>): Garden {
   const shedPlaces = placesOf(g).map((p) => (p.id === id ? { ...p, ...patch, shelves: Math.max(1, Math.min(8, patch.shelves ?? p.shelves)), slots: Math.max(1, Math.min(12, patch.slots ?? p.slots)) } : p));
   let next: Garden = { ...g, shedPlaces };
   const place = shedPlaces.find((p) => p.id === id);
@@ -226,6 +242,41 @@ export function plantOutFrom(p: Plant, g: Garden, hardenedFrom: string): string 
   return week > frost ? week : frost;
 }
 
+/**
+ * Under cover there's no hardening off: seedlings go in once they've had about four weeks to grow on, and tender ones
+ * not before the last frost under the glass. A heated greenhouse takes them whenever they're ready.
+ */
+export function plantInFrom(p: Plant, g: Garden, upOn: string, c: Climate): string {
+  const ready = addDays(upOn, 28);
+  const frost = frostDatesUnder(g, c);
+  if (!frost || !isTender(p)) return ready;
+  const last = inYear(frost.lastFrost, Number(ready.slice(0, 4)));
+  return ready > last ? ready : last;
+}
+
+const monthStart = (m: number) => `2027-${String(m).padStart(2, '0')}-01`;
+
+/**
+ * The months a plant can go out, under cover: its usual months, starting sooner by the cover's head start. A month
+ * counts once there's at least a week of it, so a greenhouse adds the month before and a cold frame's week doesn't.
+ */
+export function plantOutMonthsUnder(p: Plant, c: Climate | null): number[] {
+  const months = p.plantOutMonths ?? [];
+  if (!c || !months.length) return months;
+  const shift = frostShiftDays(c);
+  const set = new Set(months);
+  for (const m of months) {
+    if (set.size === 12 || months.includes(m === 1 ? 12 : m - 1)) continue; // not the start of a run
+    // From the earliest day it can go in (plus the week that makes a month count) up to the run's first month.
+    let k = Number(addDays(monthStart(m), 7 - shift).slice(5, 7));
+    while (k !== m) {
+      set.add(k);
+      k = (k % 12) + 1;
+    }
+  }
+  return [...set].sort((a, b) => a - b);
+}
+
 export interface Next {
   /** What to do or expect, in a sentence. */
   text: string;
@@ -235,8 +286,17 @@ export interface Next {
   due: boolean;
 }
 
+/** Where seedlings are, and where they're going: the climate of their place in the shed, and the cover they'll be planted under. */
+export interface Under {
+  place?: Climate | null;
+  into?: Cover | null;
+}
+
+/** A cold frame's usual gain by day: unheated places this warm or cooler are where seedlings harden off. */
+const COLD_FRAME_DAY = 4;
+
 /** What's next for seedlings at a stage, sown on a date. Shared by trays and plantings still indoors. */
-export function nextFor(p: Plant, g: Garden, stage: TrayStage, sownOn: string, stageDates: Partial<Record<'germinated' | 'hardening', string>>, today: string): Next {
+export function nextFor(p: Plant, g: Garden, stage: TrayStage, sownOn: string, stageDates: Partial<Record<'germinated' | 'hardening', string>>, today: string, under: Under = {}): Next {
   const [min, max] = germination(p);
   if (stage === 'sown') {
     const age = daysBetween(sownOn, today);
@@ -245,22 +305,43 @@ export function nextFor(p: Plant, g: Garden, stage: TrayStage, sownOn: string, s
     return { text: `Not up after ${Math.round(age / 7)} weeks? If nothing shows soon, the sowing may have failed.`, ready: false, due: true };
   }
   const year = Number(today.slice(0, 4));
+  const coldFrame = !!under.place && !under.place.heated && under.place.dayGainC <= COLD_FRAME_DAY;
   if (stage === 'germinated') {
+    if (under.into) {
+      // Going under glass: no hardening off, just time to grow on (and for tender plants, frost-free nights in there).
+      const from = plantInFrom(p, g, stageDates.germinated ?? addDays(sownOn, min), under.into.climate);
+      const where = featureLabel(under.into.feature);
+      if (today >= from) return { text: `Ready to go into the ${where}. No need to harden off.`, ready: true, due: true };
+      return { text: `Pot on when roots show at the bottom. It can go into the ${where} from ${short(from)}, with no hardening off.`, ready: false, due: false };
+    }
     const from = hardenFrom(p, g, year);
-    if (today >= from) return { text: 'Time to start hardening off: outside by day, in at night.', ready: false, due: true };
-    return { text: `Pot on when roots show at the bottom. Start hardening off from ${short(from)}.`, ready: false, due: false };
+    if (today >= from) return { text: coldFrame ? 'Time to start hardening off: open the cold frame by day and close it at night.' : 'Time to start hardening off: outside by day, in at night.', ready: false, due: true };
+    return { text: `Pot on when roots show at the bottom. Start hardening off from ${short(from)}.${coldNights(p, g, under.place ?? null, today)}`, ready: false, due: false };
   }
   const hardened = stageDates.hardening ?? today;
   const outFrom = plantOutFrom(p, g, hardened);
   if (today >= outFrom) return { text: 'Ready for the garden.', ready: true, due: true };
-  return { text: `Hardening off. Ready to plant out from ${short(outFrom)}${isTender(p) ? ', after the last frost' : ''}.`, ready: false, due: false };
+  const how = coldFrame ? 'Hardening off in the cold frame: open it by day, close it at night.' : 'Hardening off.';
+  return { text: `${how} Ready to plant out from ${short(outFrom)}${isTender(p) ? ', after the last frost' : ''}.`, ready: false, due: false };
+}
+
+/** For tender seedlings in an unheated greenhouse or cold frame before its last frost: bring them in on cold nights. */
+function coldNights(p: Plant, g: Garden, c: Climate | null, today: string): string {
+  if (!c || c.heated || !isTender(p)) return '';
+  const last = inYear(frostDatesUnder(g, c)!.lastFrost, Number(today.slice(0, 4)));
+  if (today >= last) return '';
+  return ` It's only about +${c.nightGainC} °C warmer at night in here: bring them indoors on cold nights until about ${short(last)}.`;
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 /** "12 May". */
 export const short = (iso: string) => `${Number(iso.slice(8, 10))} ${MONTHS[Number(iso.slice(5, 7)) - 1]}`;
 
-export const trayNext = (t: Tray, p: Plant, g: Garden, today: string): Next => nextFor(p, g, trayStage(t), t.sownOn, t.stageDates ?? {}, today);
+/** What's next for a tray, in its place: a greenhouse bench or cold frame has its own climate. */
+export function trayNext(t: Tray, p: Plant, g: Garden, today: string): Next {
+  const place = placesOf(g).find((x) => x.id === t.placeId);
+  return nextFor(p, g, trayStage(t), t.sownOn, t.stageDates ?? {}, today, { place: place ? placeClimate(g, place) : null });
+}
 
 /** Plantings on the plan that were sown indoors and haven't gone out yet: they're in the shed too. */
 export function plantingsIndoors(g: Garden, plantOf: (id: string) => Plant): Planting[] {
@@ -274,8 +355,17 @@ export function plantingsIndoors(g: Garden, plantOf: (id: string) => Plant): Pla
   });
 }
 
+/** What's next for a planting still indoors. One going into a greenhouse or cold frame skips hardening off. */
 export const plantingNext = (pl: Planting, p: Plant, g: Garden, today: string): Next =>
-  nextFor(p, g, currentStage(pl) as TrayStage, pl.sownOn!, { ...(pl.stageDates?.germinated ? { germinated: pl.stageDates.germinated } : {}), ...(pl.stageDates?.hardening ? { hardening: pl.stageDates.hardening } : {}) }, today);
+  nextFor(
+    p,
+    g,
+    currentStage(pl) as TrayStage,
+    pl.sownOn!,
+    { ...(pl.stageDates?.germinated ? { germinated: pl.stageDates.germinated } : {}), ...(pl.stageDates?.hardening ? { hardening: pl.stageDates.hardening } : {}) },
+    today,
+    { into: microclimateOf(g, pl) },
+  );
 
 /** Moves a planting that's still indoors on a stage (up, hardening off) or out into its bed. */
 export const setIndoorStage = (g: Garden, id: string, stage: TrayStage | 'transplanted', date: string): Garden => setStage(g, [id], stage, date);

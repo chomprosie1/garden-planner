@@ -29,6 +29,7 @@ export const KINDS: Record<FeatureKind, KindInfo> = {
   hedge: { kind: 'hedge', label: 'Hedge', geometry: 'line', heightMm: 1500, widthMm: 600, deciduous: false, opacityInLeaf: 0.85, opacityBare: 0.85 },
   building: { kind: 'building', label: 'Building', geometry: 'area', heightMm: 2400, opacityInLeaf: 1, opacityBare: 1 },
   greenhouse: { kind: 'greenhouse', label: 'Greenhouse', geometry: 'area', heightMm: 2200, opacityInLeaf: 0.3, opacityBare: 0.3 },
+  'cold-frame': { kind: 'cold-frame', label: 'Cold frame', geometry: 'area', heightMm: 400, opacityInLeaf: 0.3, opacityBare: 0.3 },
   tree: { kind: 'tree', label: 'Tree', geometry: 'circle', heightMm: 5000, radiusMm: 2000, deciduous: true, opacityInLeaf: 0.7, opacityBare: 0.2 },
   compost: { kind: 'compost', label: 'Compost', geometry: 'area', heightMm: 1000 },
   water: { kind: 'water', label: 'Water', geometry: 'area', heightMm: 0 },
@@ -134,7 +135,7 @@ export function setSmooth(g: Garden, id: string, on: boolean): Garden {
   return { ...g, features: g.features.map((x) => (x.id === id ? next : x)) };
 }
 
-/** Deletes features, with the plantings in them and the notes on either. Undo brings them all back. */
+/** Deletes features, with the plantings in them and the notes on either. Shed places in them stay, unlinked. Undo brings them all back. */
 export function deleteFeatures(g: Garden, ids: string[]): Garden {
   const set = new Set(ids);
   const features = g.features.filter((f) => !set.has(f.id));
@@ -145,6 +146,9 @@ export function deleteFeatures(g: Garden, ids: string[]): Garden {
     features,
     plantings: g.plantings.filter((p) => !gone.has(p.id)),
     notes: g.notes.filter((n) => !(n.featureId && set.has(n.featureId)) && !(n.plantingId && gone.has(n.plantingId))),
+    ...(g.shedPlaces?.some((p) => p.featureId && set.has(p.featureId))
+      ? { shedPlaces: g.shedPlaces.map(({ featureId, ...p }) => (featureId && !set.has(featureId) ? { ...p, featureId } : p)) }
+      : {}),
   };
 }
 

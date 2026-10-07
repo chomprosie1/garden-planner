@@ -4,6 +4,8 @@
 import type { ComponentChildren } from 'preact';
 import { useState } from 'preact/hooks';
 import { parseLength } from '../canvas/snap';
+import { climateOf, climateText, coverEffects, DEFAULT_CLIMATE, isCover, microclimateAt, microclimateOf, placeFor, type CoverKind } from '../climate/microclimate';
+import { addPlace, makePlace, plantOutMonthsUnder } from '../lifecycle/shed';
 import { formatArea, formatLength } from '../canvas/viewport';
 import { lineLength, perimeter, polygonArea } from '../geometry/polygon';
 import { monthRanges } from '../library/library';
@@ -16,6 +18,7 @@ import {
   KINDS,
   kindsWithGeometry,
   MATERIAL_LABEL,
+  pivotOf,
   rectInfo,
   resizeRectAny,
   restack,
@@ -25,7 +28,7 @@ import {
 } from '../model/features';
 import { todayIso } from '../model/ids';
 import { updateGarden, type Store } from '../model/store';
-import { MATERIALS, type Feature, type FeatureKind, type Garden, type Material, type Plant, type Planting, type Point } from '../model/types';
+import { MATERIALS, type Climate, type Feature, type FeatureKind, type Garden, type Material, type Plant, type Planting, type Point } from '../model/types';
 import {
   clearBed,
   deletePlanting,
@@ -656,10 +659,17 @@ function BedPanel(props: Shared & { bed: Feature }) {
   const past = here.filter((p) => p.removedOn).sort((a, b) => b.removedOn!.localeCompare(a.removedOn!));
   const mine = findings.filter((f) => f.featureIds.includes(bed.id));
   const sun = sunJune ? areaHours(sunJune, bed.footprint) : null;
+  // A bed inside a greenhouse is under cover too.
+  const over = isCover(bed) ? null : microclimateAt(garden, pivotOf(bed));
   return (
     <div class="inspector-body">
       <Heading eyebrow={KINDS[bed.kind].label} title={featureLabel(bed)} />
       {sun !== null && <SunFact hours={sun} month={sunJune!.month} />}
+      {over && (
+        <p class="cover-fact">
+          Under cover in {featureLabel(over.feature)}: {climateText(over.climate)}.
+        </p>
+      )}
       <div class="button-row">
         <button type="button" class="btn btn-primary" onClick={startPlanting}>
           Add plants
@@ -709,6 +719,8 @@ function BedPanel(props: Shared & { bed: Feature }) {
         )}
       </Section>
 
+      {isCover(bed) && <CoverSection store={store} garden={garden} f={bed} locked={props.locked} />}
+
       {past.length > 0 && (
         <Section id="history" title={`Grown here before (${past.length})`} open={false}>
           <ul class="history-list">
@@ -734,11 +746,68 @@ function BedPanel(props: Shared & { bed: Feature }) {
   );
 }
 
-/** "Next: sow outside Mar–Jul", from where the planting is in its life. */
-export function nextStep(pl: Planting, plant: Plant): string | null {
+/** A greenhouse or cold frame: how much warmer it is, what that changes, and its place in the Potting Shed. */
+function CoverSection({ store, garden, f, locked }: { store: Store; garden: Garden; f: Feature; locked: boolean }) {
+  const app = useApp();
+  const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
+  const c = climateOf(f)!;
+  const set = (patch: Partial<Climate>) => commit((g) => updateFeature(g, f.id, { climate: { ...c, ...patch } }));
+  const usual = DEFAULT_CLIMATE[f.kind as CoverKind];
+  const isUsual = c.heated === usual.heated && c.dayGainC === usual.dayGainC && c.nightGainC === usual.nightGainC;
+  const place = placeFor(garden, f.id);
+  return (
+    <Section id="cover" title="Under cover">
+      <p class="cover-fact">Warmer than outside: {climateText(c)}.</p>
+      <p class="muted small">{coverEffects(c)}</p>
+      {!locked && (
+        <>
+          {f.kind === 'greenhouse' && (
+            <label class="check">
+              <input type="checkbox" checked={c.heated} onChange={(e) => set({ heated: (e.currentTarget as HTMLInputElement).checked })} />
+              Heated, kept frost-free
+            </label>
+          )}
+          <div class="field-row">
+            <NumberField label="Warmer by day" unit="°C" value={c.dayGainC} max={20} onCommit={(dayGainC) => set({ dayGainC })} />
+            {!c.heated && <NumberField label="At night" unit="°C" value={c.nightGainC} max={10} onCommit={(nightGainC) => set({ nightGainC })} />}
+          </div>
+          {!isUsual && (
+            <button type="button" class="link-btn small" onClick={() => commit((g) => updateFeature(g, f.id, { climate: undefined }))}>
+              Back to the usual for a {KINDS[f.kind].label.toLowerCase()}
+            </button>
+          )}
+        </>
+      )}
+      {place ? (
+        <p class="small">
+          Seedlings raised in here are on <strong>{place.name}</strong> in the Potting Shed.{' '}
+          <button type="button" class="link-btn" onClick={() => app.go('shed')}>
+            Open the shed
+          </button>
+        </p>
+      ) : (
+        <button
+          type="button"
+          class="btn"
+          onClick={() => {
+            commit((g) => addPlace(g, { ...makePlace(f.kind === 'greenhouse' ? 'greenhouse-bench' : 'cold-frame', featureLabel(f)), featureId: f.id }));
+            app.notify(`${featureLabel(f)} added to the Potting Shed, for trays raised in here.`, { undo: true });
+          }}
+        >
+          Raise seedlings in here
+        </button>
+      )}
+      <p class="assumption">Rough averages for a sunny day and a clear night in spring. Shade it and open the vents on hot days.</p>
+    </Section>
+  );
+}
+
+/** "Next: sow outside Mar–Jul", from where the planting is in its life. Under a greenhouse or cold frame, planting out starts sooner. */
+export function nextStep(pl: Planting, plant: Plant, under: Climate | null = null): string | null {
   const status = plantingStatus(pl);
   const harvest = plant.cropping?.harvestMonths.length ? `Harvest ${monthRanges(plant.cropping.harvestMonths)}` : null;
-  const plantOut = plant.plantOutMonths?.length ? `Next: plant out ${monthRanges(plant.plantOutMonths)}` : null;
+  const outMonths = plantOutMonthsUnder(plant, under);
+  const plantOut = outMonths.length ? `Next: plant out ${monthRanges(outMonths)}` : null;
   if (status === 'planned') {
     const s = plant.sowing?.[0];
     if (s) return `Next: ${s.method === 'direct' ? 'sow outside' : 'sow indoors or under cover'} ${monthRanges(s.months)}`;
@@ -765,7 +834,8 @@ function PlantingPanel(props: Props & { pl: Planting }) {
   const sun = sunJune ? averageHours(sunJune, plantPositions(pl, plant)) : null;
   const status = plantingStatus(pl);
   const stage = currentStage(pl);
-  const step = nextStep(pl, plant);
+  const cover = microclimateOf(garden, pl);
+  const step = nextStep(pl, plant, cover?.climate ?? null);
   const canEdit = true;
 
   return (
@@ -778,7 +848,12 @@ function PlantingPanel(props: Props & { pl: Planting }) {
         </span>
         {step && <span class="muted small">{step}</span>}
       </p>
-      <StageStrip store={store} pl={pl} plant={plant} canEdit={canEdit} />
+      {cover && (
+        <p class="cover-fact">
+          Under cover in {featureLabel(cover.feature)}: {climateText(cover.climate)}.
+        </p>
+      )}
+      <StageStrip store={store} pl={pl} plant={plant} canEdit={canEdit} covered={!!cover} />
       <button type="button" class="link-btn about-plant" onClick={() => app.openPlant(plant.id)}>
         About {plant.commonName.toLowerCase()}: when to sow, pests, neighbours
       </button>

@@ -32,6 +32,7 @@ Your garden is saved in your browser, never on a server. Use **Download a backup
 | `src/content/` | Seasonal lines and jobs for each month, and the photo manifest |
 | `src/ui/` | Preact screens: Home (with the journal), Plan (one canvas with a dock, an action pill, and sun and shade lenses), Plants, Month, Settings, plant checks, first run |
 | `src/planting/` | Plantings, their positions and status, filling a bed, and the spacing, neighbour and light rules |
+| `src/climate/` | Greenhouses and cold frames as microclimates: what's under cover, and how much warmer it is |
 | `src/lifecycle/` | Life stages, the Potting Shed, and each planting's stage on any day of the year |
 | `src/share/` | A picture of the plan, and a timelapse of the year, made on the device |
 | `src/calendar/` | Each month's jobs for your own plants |

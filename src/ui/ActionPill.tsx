@@ -3,6 +3,7 @@
 // plan moves (PlanCanvas, pillRef).
 
 import { useEffect, useState } from 'preact/hooks';
+import { microclimateOf } from '../climate/microclimate';
 import { isNewSeason, nextStage, STAGE_ACTION } from '../lifecycle/stages';
 import { deleteFeatures, duplicateFeature, featureLabel, geometryOf, MATERIAL_LABEL, rectInfo, resizeRectAny, setSmooth, updateFeature, type Target } from '../model/features';
 import { todayIso } from '../model/ids';
@@ -45,7 +46,7 @@ export function ActionPill({ pillRef, target, garden, store, plantOf, locked, mo
     const pl = garden.plantings.find((p) => p.id === target.id);
     if (pl) {
       const plant = plantOf(pl.plantId);
-      const next = nextStage(plant, pl);
+      const next = nextStage(plant, pl, !!microclimateOf(garden, pl));
       const n = plantCount(pl, plant);
       content = (
         <>

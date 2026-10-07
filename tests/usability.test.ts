@@ -68,7 +68,7 @@ describe('planting status (U3)', () => {
   });
 
   it('saves as the current schema, and older gardens load', () => {
-    expect(SCHEMA_VERSION).toBe(7);
+    expect(SCHEMA_VERSION).toBe(8);
     const { g: g0, bed } = withBed();
     const g = addPlanting(g0, makePlanting(plantOf('tomato'), bed, 'single', [0, 0], undefined, true));
     expect(validateGarden(JSON.parse(JSON.stringify(g)))).toEqual([]);

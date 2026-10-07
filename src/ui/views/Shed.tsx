@@ -3,6 +3,7 @@
 // to move it, or pick it and tap where it should go.
 
 import { useEffect, useMemo, useState } from 'preact/hooks';
+import { climateOf, climateText, isCover, microclimateOf, placeClimate } from '../../climate/microclimate';
 import { canSowIn } from '../../library/library';
 import {
   addPlace,
@@ -221,7 +222,9 @@ export function Shed({ store, garden, userPlants, back, sowPlantId = null, clear
               const stage = currentStage(pl) as TrayStage;
               const next = plantingNext(pl, p, garden, today);
               const bed = garden.features.find((f) => f.id === pl.featureId);
-              const forward = stage === 'sown' ? 'germinated' : stage === 'germinated' ? 'hardening' : 'transplanted';
+              // Going into a greenhouse or cold frame: straight in, with no hardening off.
+              const covered = !!microclimateOf(garden, pl);
+              const forward = stage === 'sown' ? 'germinated' : stage === 'germinated' && !covered ? 'hardening' : 'transplanted';
               return (
                 <li key={pl.id} class="shed-indoor-row">
                   <PlantIcon plant={p} size={30} stage={stage} />
@@ -261,6 +264,8 @@ interface PlaceProps {
 function PlaceScene({ place, garden, plantOf, selected, select, move, commit, today }: PlaceProps) {
   const [over, setOver] = useState<string | null>(null);
   const count = traysOf(garden).filter((t) => t.placeId === place.id).length;
+  const climate = placeClimate(garden, place);
+  const linked = place.featureId ? garden.features.find((f) => f.id === place.featureId && climateOf(f)) : undefined;
   return (
     <section class={`shed-place shed-${place.kind}`} aria-label={place.name}>
       <header class="shed-place-head">
@@ -268,8 +273,14 @@ function PlaceScene({ place, garden, plantOf, selected, select, move, commit, to
         <span class="muted small">
           {count} of {place.shelves * place.slots}
         </span>
-        <PlaceMenu place={place} empty={count === 0} commit={commit} />
+        <PlaceMenu place={place} empty={count === 0} commit={commit} garden={garden} />
       </header>
+      {climate && (
+        <p class="muted small shed-climate">
+          {linked ? `In ${featureLabel(linked)} on the plan: ` : 'Warmer than outside: '}
+          {climateText(climate)}.
+        </p>
+      )}
       <div class="shed-scene">
         {Array.from({ length: place.shelves }, (_, shelf) => (
           <div key={shelf} class="shed-shelf" style={{ '--slots': place.slots } as Record<string, number>}>
@@ -338,7 +349,9 @@ function PlaceScene({ place, garden, plantOf, selected, select, move, commit, to
   );
 }
 
-function PlaceMenu({ place, empty, commit }: { place: ShedPlace; empty: boolean; commit: (fn: (g: Garden) => Garden) => void }) {
+function PlaceMenu({ place, empty, commit, garden }: { place: ShedPlace; empty: boolean; commit: (fn: (g: Garden) => Garden) => void; garden: Garden }) {
+  // A greenhouse bench or cold frame can be one on the plan, and share its climate.
+  const covers = place.kind === 'greenhouse-bench' || place.kind === 'cold-frame' ? garden.features.filter(isCover) : [];
   return (
     <details class="shed-place-menu">
       <summary aria-label={`Change ${place.name}`}>Change</summary>
@@ -357,6 +370,19 @@ function PlaceMenu({ place, empty, commit }: { place: ShedPlace; empty: boolean;
             <input type="number" min={1} max={12} value={place.slots} onChange={(e) => commit((g) => updatePlace(g, place.id, { slots: Number((e.currentTarget as HTMLInputElement).value) || 1 }))} />
           </label>
         </div>
+        {covers.length > 0 && (
+          <label class="field">
+            On the plan
+            <select value={place.featureId ?? ''} onChange={(e) => commit((g) => updatePlace(g, place.id, { featureId: (e.currentTarget as HTMLSelectElement).value || undefined }))}>
+              <option value="">Not on the plan</option>
+              {covers.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {featureLabel(f)}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <button type="button" class="btn btn-danger" disabled={!empty} onClick={() => commit((g) => removePlace(g, place.id))}>
           Remove {empty ? '' : '(move its trays first)'}
         </button>

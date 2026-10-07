@@ -5,7 +5,8 @@
 // Once a planting has a sowing date, it gets harvest, winter and tidy jobs.
 // When a planting has probably reached flowering, a "check progress" job asks you to confirm it.
 
-import { addDays, frostDates } from '../lifecycle/shed';
+import { microclimateOf } from '../climate/microclimate';
+import { addDays, frostDates, plantOutMonthsUnder } from '../lifecycle/shed';
 import { currentStage, pathFor, setStage, STAGE_LABEL, stageTips, suggestedStage } from '../lifecycle/stages';
 import { featureLabel } from '../model/features';
 import { STAGES, type Garden, type Plant, type Planting, type Stage } from '../model/types';
@@ -116,6 +117,9 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     const bed = g.features.find((f) => f.id === featureId);
     const where = `in ${bed ? featureLabel(bed) : 'a bed'}${describeGroup(group)}`;
     const ids = (list: Planting[]) => list.map((p) => p.id);
+    // Under a greenhouse or cold frame: in sooner, with no hardening off, and no winter protection.
+    const cover = microclimateOf(g, group[0]!);
+    const outMonths = plantOutMonthsUnder(plant, cover?.climate ?? null);
 
     // Not sown yet, or sown this month (so a ticked job stays in this month's list).
     // Plants already growing skip sowing and planting out.
@@ -124,11 +128,12 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     const toSow = notGrowing.filter((p) => !p.sownOn || sownThisMonth(p, year, month));
     if (toSow.length)
       for (const s of sowingKinds(plant, month)) add(s.kind, plant, s.kind === 'sow-indoors' ? `for ${where.slice(3)}` : where, featureId, ids(toSow), s.detail, featureId);
-    if (plant.plantOutMonths?.includes(month)) {
+    if (outMonths.includes(month)) {
       // Ticking a planting-out job marks the plants as growing; the ticked job stays for the rest of the month.
       const tickedNow = g.jobsDone.some((j) => j.key === `plant-out:${plant.id}:${featureId}:${ym(year, month)}`);
       const toPlant = (tickedNow ? group : notGrowing).filter((p) => !p.sownOn || p.sownOn.slice(0, 7) <= ym(year, month));
-      if (toPlant.length && !doneBefore(g, `plant-out:${plant.id}:${featureId}:`, year, month)) add('plant-out', plant, where, featureId, ids(toPlant), undefined, featureId);
+      if (toPlant.length && !doneBefore(g, `plant-out:${plant.id}:${featureId}:`, year, month))
+        add('plant-out', plant, where, featureId, ids(toPlant), cover ? 'Under glass, so there’s no need to harden them off first.' : undefined, featureId);
     }
 
     const growing = group.filter((p) => isGrowing(p) || afterSowing(p, year, month));
@@ -150,7 +155,7 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
       }
     }
     const winter = plant.wintering;
-    if (winter?.type === 'protect' && month === protectMonth) add('protect', plant, where, featureId, ids(growing), winter.notes ?? 'Bring pots under cover or fleece the plants before the first frosts.', featureId);
+    if (winter?.type === 'protect' && month === protectMonth && !cover) add('protect', plant, where, featureId, ids(growing), winter.notes ?? 'Bring pots under cover or fleece the plants before the first frosts.', featureId);
     if (winter?.type === 'lift-and-store' && runEnds(harvest).includes(month)) add('lift', plant, where, featureId, ids(growing), winter.notes, featureId);
     if (winter?.type === 'annual' && runEnds(harvest).some((m) => m % 12 === month - 1 && month >= 9)) add('tidy', plant, where, featureId, ids(growing), 'Pull up finished plants and compost them, then mark the planting as harvested.', featureId);
   }

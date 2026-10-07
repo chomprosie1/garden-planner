@@ -14,6 +14,7 @@ const DEFAULT_SIZE: Partial<Record<Tool, [number, number]>> = {
   bed: [2400, 1200],
   building: [2400, 1800],
   greenhouse: [2400, 1800],
+  'cold-frame': [1200, 600],
   compost: [1000, 1000],
   surface: [3000, 2000],
   water: [1500, 1000],

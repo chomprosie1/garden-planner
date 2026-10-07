@@ -41,6 +41,8 @@ export interface ShedPlace {
   shelves: number;
   /** Trays or pots each shelf holds. */
   slots: number;
+  /** The greenhouse or cold frame on the plan this place is in, which it shares its climate with. */
+  featureId?: string;
 }
 
 export const CONTAINERS = ['module-tray', 'seed-tray', 'pot-9cm', 'pot-1l', 'root-trainer'] as const;
@@ -100,6 +102,7 @@ export const FEATURE_KINDS = [
   'wall',
   'building',
   'greenhouse',
+  'cold-frame',
   'tree',
   'hedge',
   'compost',
@@ -143,6 +146,15 @@ export interface Feature {
   deciduous?: boolean;
   opacityInLeaf?: number; // 0 to 1, share of light blocked in leaf
   opacityBare?: number; // 0 to 1, share of light blocked when bare
+  /** How much warmer it is under a greenhouse or cold frame. Absent: the usual for its kind. */
+  climate?: Climate;
+}
+
+/** Under glass: degrees warmer than outside by day and at night, and whether it's heated (kept frost-free). */
+export interface Climate {
+  heated: boolean;
+  dayGainC: number;
+  nightGainC: number;
 }
 
 export interface Planting {

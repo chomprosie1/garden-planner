@@ -32,6 +32,7 @@ export const STICKERS: Sticker[] = [
   { id: 'trough', group: 'beds', label: 'Trough', size: rect(1000, 400), kind: 'planter', shape: { rect: [1000, 400] } },
   { id: 'grow-bag', group: 'beds', label: 'Grow bag', size: rect(900, 350), kind: 'planter', shape: { rect: [900, 350] } },
   { id: 'greenhouse', group: 'beds', label: 'Greenhouse', size: rect(2400, 1800), kind: 'greenhouse', shape: { rect: [2400, 1800] } },
+  { id: 'cold-frame', group: 'beds', label: 'Cold frame', size: rect(1200, 600), kind: 'cold-frame', shape: { rect: [1200, 600] } },
   { id: 'lawn', group: 'ground', label: 'Lawn', size: rect(4000, 3000), kind: 'surface', shape: { rect: [4000, 3000] }, material: 'lawn' },
   { id: 'meadow', group: 'ground', label: 'Wildflower meadow', size: rect(3000, 2000), kind: 'surface', shape: { rect: [3000, 2000] }, material: 'meadow' },
   { id: 'gravel', group: 'ground', label: 'Gravel', size: rect(2000, 2000), kind: 'surface', shape: { rect: [2000, 2000] }, material: 'gravel' },
