@@ -4,6 +4,7 @@ const GROUPS: { title: string; keys: [string, string][] }[] = [
   {
     title: 'Anywhere',
     keys: [
+      ['Ctrl + K', 'Search everything: plants, your plan and actions'],
       ['Ctrl + Z', 'Undo'],
       ['Ctrl + Y', 'Redo'],
       ['?', 'This list'],

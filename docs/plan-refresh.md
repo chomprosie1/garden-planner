@@ -1,6 +1,6 @@
 # The plan, refreshed: two changes
 
-6 Oct 2026 · Stages 13a and 13b built 7 Oct 2026; 13c and 14 to come
+6 Oct 2026 · Stages 13a, 13b and 13c built 7 Oct 2026; 14 to come
 
 ## Why
 

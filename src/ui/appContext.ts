@@ -20,9 +20,11 @@ export interface AppActions {
   plantOutTray(trayId: string): void;
   /** The Potting Shed, ready to sow this plant (or any plant). */
   sowInShed(plantId?: string): void;
+  /** Search everything (Ctrl+K). */
+  openSearch(): void;
 }
 
 const noop = () => undefined;
-export const AppContext = createContext<AppActions>({ notify: noop, go: noop, openPlant: noop, showOnPlan: noop, plantIt: noop, plantOutTray: noop, sowInShed: noop });
+export const AppContext = createContext<AppActions>({ notify: noop, go: noop, openPlant: noop, showOnPlan: noop, plantIt: noop, plantOutTray: noop, sowInShed: noop, openSearch: noop });
 
 export const useApp = () => useContext(AppContext);

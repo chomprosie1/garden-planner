@@ -2,10 +2,7 @@
 // structures, and precise drawing. Drag a sticker onto the plan, or tap it to
 // drop it in the middle of the view.
 
-import { useMemo, useRef, useEffect, useState } from 'preact/hooks';
-import { fit } from '../canvas/viewport';
-import { planStyle, renderStatic } from '../canvas/render';
-import { bounds } from '../geometry/polygon';
+import { useMemo, useState } from 'preact/hooks';
 import { canSowIn } from '../library/library';
 import { traysOf } from '../lifecycle/shed';
 import { newAppState } from '../model/defaults';
@@ -13,8 +10,9 @@ import { KINDS } from '../model/features';
 import { STICKERS, stickerFeature, type Sticker, type StickerGroup } from '../model/stickers';
 import type { FeatureKind, Garden, Plant } from '../model/types';
 import { Icon, type IconName } from './icons';
+import { MiniPlan } from './MiniPlan';
 import { canDrawByHand, PLANT_DRAG_TYPE, STICKER_DRAG_TYPE, TRAY_DRAG_TYPE, type Tool } from './PlanCanvas';
-import { PlantIcon, useThemeAttrs } from './PlantIcon';
+import { PlantIcon } from './PlantIcon';
 
 export type Drawer = 'plants' | StickerGroup | 'draw';
 
@@ -28,24 +26,8 @@ const DRAWERS: { id: Drawer; label: string; icon: IconName }[] = [
 
 /** A sticker as it'll look on the plan, drawn by the plan's own renderer. */
 function StickerIcon({ sticker, size = 52 }: { sticker: Sticker; size?: number }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  const { look, mode } = useThemeAttrs();
-  useEffect(() => {
-    const c = ref.current;
-    const ctx = c?.getContext('2d');
-    if (!c || !ctx) return;
-    const dpr = Math.min(window.devicePixelRatio || 1, 3);
-    c.width = c.height = Math.round(size * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const f = stickerFeature(sticker, [0, 0]);
-    const garden: Garden = { ...newAppState().garden, features: [f] };
-    const b = bounds(f.footprint)!;
-    // Thin things (fences, paths) are shown a little thicker than life, so they're recognisable.
-    const pad = Math.max(b.maxX - b.minX, b.maxY - b.minY) * 0.12;
-    const view = fit({ minX: b.minX - pad, minY: b.minY - pad, maxX: b.maxX + pad, maxY: b.maxY + pad }, size, size, 3);
-    renderStatic(ctx, { garden, view, width: size, height: size, style: planStyle(look, mode), selected: null, selectedVertex: null, hoverId: null, draft: null, trace: null, minimal: true, depth: false, noLabels: true });
-  }, [sticker.id, size, look, mode]);
-  return <canvas ref={ref} class="sticker-icon" width={size} height={size} style={{ width: `${size}px`, height: `${size}px` }} aria-hidden="true" />;
+  const garden = useMemo<Garden>(() => ({ ...newAppState().garden, features: [stickerFeature(sticker, [0, 0])] }), [sticker.id]);
+  return <MiniPlan garden={garden} width={size} class="sticker-icon" />;
 }
 
 /** Precise drawing: click corners and type lengths, for boundaries and shapes of any size. */

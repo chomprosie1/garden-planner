@@ -6,9 +6,11 @@ import type { AppState } from '../model/types';
 import { LOOKS } from '../theme/looks';
 import type { PrefsStore, View } from '../theme/prefs';
 import { AppContext, type AppActions } from './appContext';
+import { CommandSearch } from './CommandSearch';
 import { usePrefs, useView } from './hooks';
 import { Icon, type IconName } from './icons';
 import { Onboarding } from './Onboarding';
+import type { Command } from './search';
 import { Shortcuts } from './Shortcuts';
 import { useAppState } from './useStore';
 import { CheckPlants } from './views/CheckPlants';
@@ -50,6 +52,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   const [plantCard, setPlantCard] = useState<string | null>(null);
   const [checkFrom, setCheckFrom] = useState<string | null>(null);
   const [shortcuts, setShortcuts] = useState(false);
+  const [searching, setSearching] = useState(false);
   const [shedSow, setShedSow] = useState<string | null>(null);
 
   const navigate = (v: View) => {
@@ -85,13 +88,21 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
         setShedSow(plantId ?? '');
         navigate('shed');
       },
+      openSearch() {
+        setSearching(true);
+      },
     }),
     [store, view],
   );
 
-  // Keyboard: undo/redo everywhere, H for photos on the plan, ? for the list of shortcuts.
+  // Keyboard: Ctrl+K to search, undo/redo everywhere, H for photos on the plan, ? for the list of shortcuts.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearching(true);
+        return;
+      }
       if (isTyping(e.target)) return;
       const key = e.key.toLowerCase();
       if (e.ctrlKey || e.metaKey) {
@@ -122,6 +133,41 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   if (!prefs.onboarded) return <Onboarding store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} go={navigate} />;
 
   const back = () => navigate(previous);
+
+  /** Does what a search result says. Things for the plan go there as an intent. */
+  const run = (c: Command) => {
+    const toPlan = (intent: PlanIntent) => {
+      setPlanIntent(intent);
+      navigate('plan');
+    };
+    switch (c.kind) {
+      case 'go':
+        return navigate(c.view);
+      case 'plant':
+        return actions.plantIt(c.id);
+      case 'about':
+        return actions.openPlant(c.id);
+      case 'sow':
+        return actions.sowInShed(c.id);
+      case 'show':
+        return actions.showOnPlan(c.target);
+      case 'lock':
+        prefsStore.set({ layoutLocked: c.on });
+        return actions.notify(c.on ? 'Layout locked: beds and paths stay put. Plants can still be moved.' : 'Layout unlocked: beds and paths can be moved and reshaped.');
+      case 'shortcuts':
+        return setShortcuts(true);
+      case 'lens':
+        return toPlan({ kind: 'lens', lens: c.lens });
+      case 'sticker':
+        return toPlan({ kind: 'sticker', id: c.id });
+      case 'tool':
+        return toPlan({ kind: 'tool', tool: c.tool });
+      case 'fit':
+        return toPlan({ kind: 'fit' });
+      case 'setup':
+        return toPlan({ kind: 'setup' });
+    }
+  };
   const screen = (() => {
     switch (view) {
       case 'home':
@@ -237,6 +283,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
           </div>
         )}
         {shortcuts && <Shortcuts close={() => setShortcuts(false)} />}
+        {searching && <CommandSearch garden={garden} userPlants={userPlants} locked={prefs.layoutLocked} run={run} close={() => setSearching(false)} />}
       </div>
     </AppContext.Provider>
   );

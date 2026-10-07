@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { featureLabel, KINDS, type Target } from '../../model/features';
-import type { Store } from '../../model/store';
+import { makeSpace, spaceInfo } from '../../model/spaces';
+import { updateGarden, type Store } from '../../model/store';
 import type { FeatureKind, Garden, Plant, Point } from '../../model/types';
 import { checkGarden, formatHours, type Finding } from '../../planting/rules';
 import { hoursAt } from '../../sun/hours';
@@ -21,13 +22,25 @@ import { PhoneDrawBar, PhoneHandBar, PhoneSheet, PlantingBar } from '../PhonePla
 import { canDrawByHand, geometryForTool, PlanCanvas, type CanvasApi, type Placing, type SketchPen, type Tool } from '../PlanCanvas';
 import { SeasonPhoto } from '../SeasonPhoto';
 import { SketchBar } from '../SketchBar';
+import { SpaceDialog } from '../SpacePicker';
+import { useApp } from '../appContext';
 import { clockText, SunBar, type CalendarDate, type SunView } from '../SunBar';
 import { usePlants } from '../usePlants';
 import { spacingStyle } from '../../planting/place';
 import { useSunHours } from '../useSunHours';
 
-/** Something another screen asked the plan to do. */
-export type PlanIntent = { kind: 'plant'; id: string } | { kind: 'select'; target: Target } | { kind: 'tray'; trayId: string };
+/** Something another screen (or search) asked the plan to do. */
+export type PlanIntent =
+  | { kind: 'plant'; id: string }
+  | { kind: 'select'; target: Target }
+  | { kind: 'tray'; trayId: string }
+  | { kind: 'lens'; lens: Lens }
+  /** Drop this sticker in the middle of the view. */
+  | { kind: 'sticker'; id: string }
+  | { kind: 'tool'; tool: Tool }
+  | { kind: 'fit' }
+  /** Ask "Where are you growing?". */
+  | { kind: 'setup' };
 
 interface Props {
   store: Store;
@@ -92,7 +105,9 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const [drawer, setDrawer] = useState<Drawer | null>(null);
   const [placed, setPlaced] = useState<Placed | null>(null);
   const [lens, setLens] = useState<Lens>('none');
+  const [settingUp, setSettingUp] = useState(false);
   const locked = prefs.layoutLocked;
+  const app = useApp();
 
   // Sun and shade.
   const clock = ukClock(now);
@@ -166,10 +181,21 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
     setTool('plant');
   };
 
-  // Another screen asked for something: a plant to place, a tray to plant out, or a thing to show.
+  // Another screen asked for something: a plant to place, a tray to plant out, a thing to show, or (from search) a lens, a sticker or a tool.
   useEffect(() => {
-    if (!intent || !plants) return;
-    if (intent.kind === 'plant') startPlanting(intent.id);
+    if (!intent) return;
+    // Plants wait for the library; the rest can happen straight away.
+    if ((intent.kind === 'plant' || intent.kind === 'tray') && !plants) return;
+    if (intent.kind === 'lens') setLens(intent.lens);
+    else if (intent.kind === 'tool') setTool(intent.tool);
+    else if (intent.kind === 'fit') setFitSignal((n) => n + 1);
+    else if (intent.kind === 'setup') setSettingUp(true);
+    else if (intent.kind === 'sticker') {
+      const id = intent.id;
+      setToolState('select');
+      // The canvas sizes itself on its first frame; drop it once it has.
+      setTimeout(() => canvasApi.current?.dropSticker(id), 80);
+    } else if (intent.kind === 'plant') startPlanting(intent.id);
     else if (intent.kind === 'tray') {
       const t = garden.trays?.find((x) => x.id === intent.trayId);
       if (t) {
@@ -276,6 +302,12 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const select = (t: Target | null) => {
     setSelected(t);
     setSelectedVertex(null);
+  };
+  const makeTheSpace = (space: Parameters<typeof makeSpace>[1], w: number, d: number) => {
+    store.apply(updateGarden((g) => makeSpace(g, space, w, d)));
+    setFitSignal((n) => n + 1);
+    setDrawer('plants');
+    setMessage(`Your ${spaceInfo(space).label.toLowerCase()} is laid out. Drop plants from below into a bed or pot.`);
   };
   const toggleLock = () => {
     prefsStore.set({ layoutLocked: !locked });
@@ -423,6 +455,9 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
         <h1 class="toolbar-title">{garden.name}</h1>
         {!phone && lensBar}
         <div class="toolbar-actions">
+          <button type="button" class="icon-btn" aria-label="Search everything" title="Search everything (Ctrl+K)" onClick={() => app.openSearch()}>
+            <Icon name="search" />
+          </button>
           {lockButton}
           {!phone && (
             <button type="button" class="icon-btn" aria-label="Fit the garden to the screen" title="Fit (0)" onClick={() => setFitSignal((n) => n + 1)}>
@@ -538,9 +573,12 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
             {empty && tool === 'select' && (
               <div class="plan-empty">
                 <p class="plan-empty-title">Start your plan</p>
-                <p>Drag a raised bed, a pot or a lawn in from below, then drop plants into it. Or draw your garden’s boundary to scale.</p>
+                <p>Say where you’re growing and it’s laid out for you. Or drag a raised bed, a pot or a lawn in from below, or draw your garden’s boundary to scale.</p>
                 <div class="button-row">
-                  <button type="button" class="btn btn-primary" onClick={() => setDrawer('beds')}>
+                  <button type="button" class="btn btn-primary" onClick={() => setSettingUp(true)}>
+                    Where are you growing?
+                  </button>
+                  <button type="button" class="btn" onClick={() => setDrawer('beds')}>
                     Beds and pots
                   </button>
                   <button type="button" class="btn" onClick={() => setTool('boundary')}>
@@ -571,6 +609,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
         )}
       </div>
       {phone && bottom}
+      {settingUp && <SpaceDialog make={(c) => makeTheSpace(c.space, c.w, c.d)} close={() => setSettingUp(false)} />}
     </div>
   );
 }

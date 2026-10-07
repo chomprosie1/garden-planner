@@ -263,7 +263,7 @@ Brought forward from "parked": the plant life cycle, frost and Growing Degree Da
 | 12 | The Potting Shed, with shelves: trays, places, frost dates, plant out from a tray | Built |
 | 13a | No modes: the padlock, the floating action pill, handles with typed sizes, rotate, smart guides | Built |
 | 13b | The dock and stickers, the fill pop-over, pots and planters, dropping trays from the shed | Built |
-| 13c | First run ("Where are you growing?") and search everything | |
+| 13c | First run ("Where are you growing?") and search everything | Built |
 | 14 | The garden through the year: scrubber, projected stages, gaps, job chips, lenses, share and timelapse | |
 | 15 | Greenhouses and cold frames as microclimates | |
 | 16 | Growing Degree Days from UK climate averages (capped at 2 weeks) | |
@@ -362,6 +362,26 @@ Tests: `tests/shed.test.ts` covers dates and frost estimates, places and trays (
 - **Not done:** equal-spacing guides, snapping to path widths, and tapping a length on the plan to type it (the pill's size does this). Rotating doesn't apply to round things.
 
 Tests: `tests/arrange.test.ts` covers stickers, pots and planters as containers, the default fill for each kind of plant and bed, rows, fills in round pots and beds at an angle, rectangles at any angle, and turning beds with their plants.
+
+### Stage 13c — Start in a minute, and search everything (as built)
+- **Where are you growing?** The first run's first step, and a button on an empty plan: Balcony · Patio or yard · Garden · Allotment · Just a bed, each shown as a small picture of what it makes, then a width and depth in metres (an allotment offers a full plot, 10 × 25 m, or a half plot, 5 × 25 m). It lays the space out (`src/model/spaces.ts`):
+  - **Balcony:** decking, a trough along the railing, and two pots.
+  - **Patio or yard:** paving, a small raised bed, and pots.
+  - **Garden:** a border along the top, one or two raised beds, and a lawn.
+  - **Allotment:** beds across the plot with paths between, in its top 60%, and a compost bin; the rest is left open.
+  - **Just a bed:** one raised bed and no boundary.
+
+  Everything fits inside the space down to the smallest sizes offered. A garden still called "My garden" is named after the space. It's only offered for an empty plan, and the first run skips it for a garden restored from a backup. Going back and choosing again replaces what was made.
+- **The first plant:** from a new balcony, Plants, a plant, and a tap on the trough plants a row: 3 taps on the plan, 8 from opening the app.
+- **Search everything:** Ctrl+K anywhere, or the search button on the plan's header (on a phone too). One box finds:
+  - **Actions:** go to any page, show sun hours or shade, lock or unlock the layout, fit the garden, draw the boundary, sketch, add any sticker, keyboard shortcuts, and "Set up your space" for an empty plan;
+  - **On your plan:** beds, surfaces, plantings (with the bed they're in) and the boundary, which it selects and shows;
+  - **Plants:** "add tomato" puts it on the plan ready to drop into a bed, "sow basil" sows it in the Potting Shed, "about basil" opens its card.
+
+  Every word must start a word in the result, little words ("the", "to") are ignored, and the result's own name counts most (`src/ui/search.ts`). Arrow keys and Enter work; results are grouped, a few of each.
+- **Not done:** recent searches, and searching jobs and journal notes.
+
+Tests: `tests/start.test.ts` covers each space at its usual and smallest sizes, allotment plots, naming, and search: verbs, things on the plan, stickers, the lock, suggestions and empty results.
 
 ---
 
