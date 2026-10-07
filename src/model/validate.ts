@@ -109,6 +109,12 @@ export function validateGarden(g: unknown): string[] {
         p.stageDates === undefined || (isObject(p.stageDates) && Object.entries(p.stageDates).every(([k, v]) => oneOf(STAGES, k) && isStr(v))),
         `${at}.stageDates must give a date for each stage.`,
       );
+      need(p.sowBy === undefined || (isStr(p.sowBy) && /^\d{4}-\d{2}-\d{2}$/.test(p.sowBy)), `${at}.sowBy must be a date.`);
+      need(
+        p.batch === undefined ||
+          (isObject(p.batch) && isStr(p.batch.group) && Number.isInteger(p.batch.n) && Number.isInteger(p.batch.of) && (p.batch.n as number) >= 1 && (p.batch.n as number) <= (p.batch.of as number)),
+        `${at}.batch needs a group and which batch it is, of how many.`,
+      );
     });
 
   if (g.sketches !== undefined) {

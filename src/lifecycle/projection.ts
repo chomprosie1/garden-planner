@@ -8,6 +8,7 @@
 
 import { isCover, microclimateOf, type Cover } from '../climate/microclimate';
 import { coverKey } from '../climate/warmth';
+import { rainOver, weatherOn, type Weather } from '../weather/weather';
 import { featureLabel } from '../model/features';
 import { STAGES, type Feature, type Garden, type Plant, type Planting, type Stage } from '../model/types';
 import { isContainer } from '../planting/place';
@@ -89,6 +90,8 @@ interface Context {
   cover: Cover | null;
   /** When it was sown outside or planted out, the day its growing degree days count from; null before that. */
   start: string | null;
+  /** This year's weather, if you've turned it on: the days it covers count as they were. */
+  weather: Weather | null;
 }
 
 /**
@@ -169,7 +172,7 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
   // When the crop's had the warmth to be ready: the first harvest (or flowers, for a plant grown for them). A perennial
   // comes round with the seasons instead.
   const cropMonths = path.includes('harvesting') ? harvestMonths : flowerMonths;
-  const ready = (share = 1) => (c.start && !perennial(plant) ? readyFrom(plant, pl, g, c.start, climate, share) : null);
+  const ready = (share = 1) => (c.start && !perennial(plant) ? readyFrom(plant, pl, g, c.start, climate, share, c.weather) : null);
   // A late sowing still crops before its season's out: the warmth can't push the first harvest past two weeks before
   // the end of its months.
   const cropBy = (): string | null => {
@@ -194,7 +197,7 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
       const [min, max] = germination(plant);
       const usual = Math.round((min + max) / 2);
       // Indoors it's always warm; outside, seeds come up sooner in warm soil and slower in cold.
-      return step('germinated', sowingOf(plant, pl) === 'direct' ? upFrom(plant, g, date, climate, usual) : addDays(date, usual));
+      return step('germinated', sowingOf(plant, pl) === 'direct' ? upFrom(plant, g, date, climate, usual, c.weather) : addDays(date, usual));
     }
     case 'germinated': {
       if (ahead('hardening')) {
@@ -256,9 +259,11 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
 /** Steps that put a planting in the ground: planting out, or sowing outside. */
 const startsGrowth = (s: Step, plant: Plant, pl: Planting) => s.date !== null && (s.stage === 'transplanted' || (s.stage === 'sown' && sowingOf(plant, pl) === 'direct'));
 
-/** When a planned planting would usually be sown (or planted, if it isn't grown from seed), on or after today. */
+/** When a planned planting would usually be sown (or planted, if it isn't grown from seed), on or after today, or when you mean to sow it. */
 function firstStep(plant: Plant, pl: Planting, today: string): Step | null {
   const how = sowingOf(plant, pl);
+  // A batch sown on a date of your choosing: then, whatever the months say.
+  if (pl.sowBy) return { stage: how === 'none' ? 'transplanted' : 'sown', date: pl.sowBy, guessed: true };
   if (how === 'none') {
     const d = plant.plantOutMonths?.length ? nextInMonths(today, plant.plantOutMonths) : today;
     return d ? { stage: 'transplanted', date: d, guessed: true } : null;
@@ -272,11 +277,11 @@ function firstStep(plant: Plant, pl: Planting, today: string): Step | null {
  * A planting's life as steps in date order: what you've marked, then (unless it's been cleared) what usually
  * comes next, carried on from its latest stage for about two years.
  */
-export function timeline(plant: Plant, pl: Planting, g: Garden, today: string): Step[] {
+export function timeline(plant: Plant, pl: Planting, g: Garden, today: string, weather: Weather | null = null): Step[] {
   const steps = marked(pl);
   if (pl.removedOn) return steps;
   const now = currentStage(pl);
-  const c: Context = { plant, pl, g, cover: microclimateOf(g, pl), start: null };
+  const c: Context = { plant, pl, g, cover: microclimateOf(g, pl), start: null, weather };
   for (const s of steps) if (startsGrowth(s, plant, pl)) c.start = s.date;
   let last: Step | null;
   if (now === 'planned') last = firstStep(plant, pl, today);
@@ -310,17 +315,17 @@ export function stageIn(steps: Step[], date: string): Projected {
 }
 
 /** Where a planting is on a day: what you've marked up to today, a guess after. */
-export const stageOn = (plant: Plant, pl: Planting, g: Garden, date: string, today: string): Projected => stageIn(timeline(plant, pl, g, today), date);
+export const stageOn = (plant: Plant, pl: Planting, g: Garden, date: string, today: string, weather: Weather | null = null): Projected => stageIn(timeline(plant, pl, g, today, weather), date);
 
 /**
  * The stage a growing planting has probably reached by a day (tomorrow, by default), when that's flowering or
  * harvesting and later than the stage you've marked. Earlier stages need you to look.
  */
-export function probableStage(plant: Plant, pl: Planting, g: Garden, today: string, by = addDays(today, 1)): 'flowering' | 'harvesting' | null {
+export function probableStage(plant: Plant, pl: Planting, g: Garden, today: string, weather: Weather | null = null, by = addDays(today, 1)): 'flowering' | 'harvesting' | null {
   const now = currentStage(pl);
   if (now === 'planned' || now === 'cleared') return null;
   if (!isGrowingStage(now) && sowingOf(plant, pl) !== 'direct') return null;
-  const at = stageIn(timeline(plant, pl, g, today), by);
+  const at = stageIn(timeline(plant, pl, g, today, weather), by);
   if (!at.guessed || (at.stage !== 'flowering' && at.stage !== 'harvesting') || order(at.stage) <= order(now)) return null;
   return at.stage;
 }
@@ -346,13 +351,15 @@ export type YearLens = 'flower' | 'harvest' | 'water';
  * - harvest: ready to harvest;
  * - water: thirsty, from April to September: plants that like it moist, anything young or just planted, and
  *   everything in pots and planters, which dry out fastest, and under glass, where no rain falls (in March and October
- *   too). Live weather will sharpen this.
+ *   too). With this year's weather, for the days it covers: after a good soaking only what's under glass; after a
+ *   little rain, pots in warm weather; in a dry, warm spell, everything in the ground.
  */
-export function pickedBy(lens: YearLens, g: Garden, plantOf: (id: string) => Plant, at: (pl: Planting) => Projected, date: string): Set<string> {
+export function pickedBy(lens: YearLens, g: Garden, plantOf: (id: string) => Plant, at: (pl: Planting) => Projected, date: string, weather: Weather | null = null): Set<string> {
   const month = monthOf(date);
   const ids = new Set<string>();
   const kindOf = new Map(g.features.map((f) => [f.id, f.kind]));
   const anyCover = lens === 'water' && g.features.some(isCover);
+  const wet = lens === 'water' ? wetness(weather, date) : null;
   for (const pl of g.plantings) {
     const plant = plantOf(pl.plantId);
     const { stage } = at(pl);
@@ -363,14 +370,41 @@ export function pickedBy(lens: YearLens, g: Garden, plantOf: (id: string) => Pla
     else if (lens === 'harvest') picked = stage === 'harvesting';
     else {
       const kind = kindOf.get(pl.featureId);
-      const potted = kind === 'pot' || kind === 'planter' || (anyCover && !!microclimateOf(g, pl));
+      const covered = anyCover && !!microclimateOf(g, pl);
+      const potted = kind === 'pot' || kind === 'planter' || covered;
       const summer = month >= 4 && month <= 9;
       const young = stage === 'sown' || stage === 'germinated' || stage === 'transplanted';
-      picked = (summer && (potted || young || plant.conditions.moisture === 'moist')) || (potted && (month === 3 || month === 10));
+      if (wet && covered) picked = month >= 3 && month <= 10;
+      else if (wet?.soaked) picked = false;
+      else if (wet) picked = (potted && wet.warm) || (!wet.damp && (young || plant.conditions.moisture === 'moist' || (wet.dry && wet.warm)));
+      else picked = (summer && (potted || young || plant.conditions.moisture === 'moist')) || (potted && (month === 3 || month === 10));
     }
     if (picked) ids.add(pl.id);
   }
   return ids;
+}
+
+/** How wet it's been, from the weather, for the Water lens. */
+export interface Wetness {
+  /** 10 mm or more in the last three days: the ground's had a good soaking. */
+  soaked: boolean;
+  /** 4 mm or more in the last three days: enough for beds, not for pots in the warm. */
+  damp: boolean;
+  /** Under 5 mm in the last week. */
+  dry: boolean;
+  /** 18 °C or warmer by day. */
+  warm: boolean;
+  /** Rain in the last three days, mm. */
+  rain3: number;
+}
+
+/** How wet it's been up to a day; null on days the weather doesn't cover. */
+export function wetness(w: Weather | null, date: string): Wetness | null {
+  const day = weatherOn(w, date);
+  const rain3 = rainOver(w, date, 3);
+  const rain7 = rainOver(w, date, 7);
+  if (!day || rain3 === null || rain7 === null) return null;
+  return { soaked: rain3 >= 10, damp: rain3 >= 4, dry: rain7 < 5, warm: day.max >= 18, rain3 };
 }
 
 // ---------- Beds standing empty ----------
@@ -386,12 +420,15 @@ export interface Gap {
 /** Quick crops, in order of preference, for filling a bed that's standing empty. */
 const FILLERS = ['lettuce', 'radish', 'spinach', 'rocket', 'spring-onion', 'oriental-greens', 'mizuna', 'pak-choi', 'winter-purslane', 'corn-salad', 'garlic', 'broad-bean', 'onion', 'pea', 'beetroot', 'chard', 'kale', 'green-manure'];
 
-/** Plants that can be sown outside or planted out in a month, quickest first. */
-export function fillersFor(month: number, plantOf: (id: string) => Plant | null): string[] {
+/**
+ * Plants that can be sown outside or planted out in a month: from your sowing list first, then quick crops, quickest
+ * first. Two at most.
+ */
+export function fillersFor(month: number, plantOf: (id: string) => Plant | null, sowingList: string[] = []): string[] {
   const out: string[] = [];
-  for (const id of FILLERS) {
+  for (const id of [...new Set([...sowingList, ...FILLERS])]) {
     const p = plantOf(id);
-    if (!p) continue;
+    if (!p || perennial(p)) continue;
     const sow = (p.sowing ?? []).some((s) => s.method === 'direct' && s.months.includes(month));
     if (sow || p.plantOutMonths?.includes(month)) out.push(p.id);
     if (out.length === 2) break;
@@ -425,7 +462,7 @@ export function gapsOn(g: Garden, plantOf: (id: string) => Plant, timelines: Map
         if (!inGround(s.stage, plant, pl) && inGround(steps[i - 1]!.stage, plant, pl) && (!emptyFrom || s.date > emptyFrom)) emptyFrom = s.date;
       }
     }
-    if (!used) gaps.push({ bed, emptyFrom, ideas: fillersFor(monthOf(date), ideaOf) });
+    if (!used) gaps.push({ bed, emptyFrom, ideas: fillersFor(monthOf(date), ideaOf, g.wishlist) });
   }
   return gaps;
 }

@@ -6,7 +6,11 @@ import type { PrefsStore } from '../theme/prefs';
 import { downloadFile, parseFileText } from '../storage/file';
 import { Icon } from './icons';
 import { estimateFrost, frostDates, inYear, short } from '../lifecycle/shed';
-import { averagesAt, referenceAverages, seasonDays, stationNames, yearDegreeDays } from '../climate/warmth';
+import { averagesAt, referenceAverages, seasonDays, stationNames, yearDegreeDays, yearSoFar } from '../climate/warmth';
+import { ATTRIBUTION } from '../weather/openMeteo';
+import { lastDay } from '../weather/weather';
+import { usePrefs } from './hooks';
+import { useWeatherNow } from './useWeather';
 
 interface Props {
   store: Store;
@@ -96,7 +100,7 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
           </p>
         </fieldset>
         <FrostDates store={store} garden={garden} />
-        <Warmth garden={garden} />
+        <Warmth garden={garden} prefsStore={prefsStore} />
       </section>
 
       <section class="card" aria-labelledby="backup">
@@ -239,7 +243,7 @@ const one = (n: number) => `${Math.round(n * 10) / 10} °C`;
 const listed = (names: string[]) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0]!);
 
 /** The usual warmth here, from UK climate averages: what times growth on the plan's year. */
-function Warmth({ garden }: { garden: Garden }) {
+function Warmth({ garden, prefsStore }: { garden: Garden; prefsStore?: PrefsStore }) {
   const av = averagesAt(garden.latitude, garden.longitude);
   const dd = yearDegreeDays(av);
   const ref = yearDegreeDays(referenceAverages());
@@ -266,6 +270,49 @@ function Warmth({ garden }: { garden: Garden }) {
         sooner where it's warmer, later where it's cooler, and sooner still under glass. A sheltered garden, a city or a hillside can differ by a degree or two,
         and any year can be warmer or colder.
       </p>
+      {prefsStore && <WeatherSwitch garden={garden} prefsStore={prefsStore} />}
+    </div>
+  );
+}
+
+const time = (iso: string) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+/** This year's weather from Open-Meteo: off until you turn it on, as it sends the garden's rough location. */
+function WeatherSwitch({ garden, prefsStore }: { garden: Garden; prefsStore: PrefsStore }) {
+  const prefs = usePrefs(prefsStore);
+  const { weather, status, refresh } = useWeatherNow();
+  const today = todayIso();
+  const soFar = weather ? yearSoFar(weather, averagesAt(garden.latitude, garden.longitude), today) : null;
+  const pct = soFar && soFar.usual > 0 ? Math.round(((soFar.actual - soFar.usual) / soFar.usual) * 100) : null;
+  return (
+    <div class="weather-switch">
+      <label class="check-row">
+        <input type="checkbox" checked={prefs.weather} onChange={(e) => prefsStore.set({ weather: (e.currentTarget as HTMLInputElement).checked })} />
+        <span>Use this year’s weather and the forecast</span>
+      </label>
+      <p class="muted small">
+        Crops are timed by the real weather so far and the next fortnight’s forecast, Home warns you of frost, and the Water lens knows when it’s rained. The
+        weather comes from Open-Meteo, free for personal use. Only your garden’s location, rounded to about a kilometre, is sent, and the weather is kept on
+        this device.
+      </p>
+      {prefs.weather && (
+        <p class="small" role="status">
+          {status === 'loading'
+            ? 'Getting the weather…'
+            : status === 'error' && !weather
+              ? 'Couldn’t get the weather just now, so crops are timed by the usual for your area.'
+              : weather
+                ? `Updated ${weather.fetchedAt.slice(0, 10) === today ? `at ${time(weather.fetchedAt)} today` : `on ${short(weather.fetchedAt.slice(0, 10))}`}, with the forecast to ${short(lastDay(weather))}.`
+                : 'No weather yet.'}{' '}
+          {pct !== null && `This year so far: ${Math.abs(pct) < 3 ? 'about as warm as usual' : `about ${Math.abs(pct)}% ${pct > 0 ? 'warmer' : 'cooler'} than usual`} since 1 January.`}{' '}
+          {status !== 'loading' && (
+            <button type="button" class="link-btn" onClick={refresh}>
+              Update now
+            </button>
+          )}
+          <span class="muted"> {ATTRIBUTION}.</span>
+        </p>
+      )}
     </div>
   );
 }

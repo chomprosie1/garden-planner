@@ -24,7 +24,11 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Tap a length on the plan to type it | Build, Stage 13 | S | For now: the size button on the action pill |
 | Recent searches, and searching jobs and journal notes | Build, Stage 13c | S | Search finds plants, things on the plan and actions |
 | Jobs for the week, not just the month, on the plan | Build, Stage 14 | S | Chips show the month's jobs |
-| Ideas for an empty bed from your own sowing list | Build, Stage 14 | S | For now, quick crops that can go in that month |
+| Ideas for an empty bed from your own sowing list | Build, Stage 14 | S | Built in Stage 17 |
 | Days to crop for your own plants, in the plant form | Build, Stage 16 | S | Your own plants go by their months, moved with the season |
 | A warmer or cooler correction for your garden (a city, a hillside, a frost pocket) | Build, Stage 16 | S | For now, the nearest stations’ averages and your own frost dates |
 | Check-progress jobs from the warmth, not the month | Build, Stage 16 | S | The planting panel’s “Probably flowering by now” already uses it |
+| Frost warnings as notifications, when the app is closed | Build, Stage 17 | M | Needs a service worker and push; for now, the card on Home |
+| This year’s warmth moving perennials’ seasons (an early spring brings strawberries on) | Build, Stage 17 | S | Their seasons go by the averages; crops with days use the real weather |
+| Join batches back together | Build, Stage 17 | S | For now, undo straight after splitting |
+| Cards cut off at the right on a narrow phone (about 420 px) | Build, Stage 17 | S | Seen in headless Edge screenshots of Home, Settings and What’s new; there before Stage 17 |

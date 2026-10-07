@@ -21,6 +21,7 @@ import { todayIso } from '../model/ids';
 import { updateGarden, type Store } from '../model/store';
 import { STAGES, type Garden, type Plant, type Planting, type Stage } from '../model/types';
 import { useApp } from './appContext';
+import { useWeatherNow } from './useWeather';
 import { formatDate } from './NotesSection';
 
 const order = (s: LifeStage) => (s === 'planned' ? -1 : s === 'cleared' ? 99 : STAGES.indexOf(s));
@@ -35,7 +36,8 @@ export function StageStrip({ store, garden, pl, plant, canEdit, covered = false 
   const tips = stageTips(plant, now, pl);
   const today = todayIso();
   // From the warmth it's had since it went in, by UK climate averages.
-  const guess = probableStage(plant, pl, garden, today);
+  const { weather } = useWeatherNow();
+  const guess = probableStage(plant, pl, garden, today, weather);
   const moveTo = (s: Stage | 'planned', newSeason = false) => commit((g) => setStage(g, [pl.id], s, today, { newSeason }));
   const methods = new Set((plant.sowing ?? []).map((s) => (s.method === 'direct' ? 'direct' : 'indoors')));
   const canChooseSowing = now === 'planned' && methods.size > 1;

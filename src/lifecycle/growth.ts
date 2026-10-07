@@ -5,8 +5,9 @@
 // and later in the north, in a cold spring or from an early sowing. Pure
 // functions.
 
-import { averagesAt, coverKey, dailyTable, daysUntil, dayIndex, REFERENCE, sumOver, type Averages } from '../climate/warmth';
+import { actualTable, averagesAt, coverKey, dailyTable, daysUntil, dayIndex, REFERENCE, sumOver, type Averages } from '../climate/warmth';
 import type { Climate, Garden, Plant, Planting } from '../model/types';
+import type { Weather } from '../weather/weather';
 import { addDays, isTender } from './shed';
 import { sowingOf } from './stages';
 
@@ -105,15 +106,16 @@ function warmthNeeded(base: number, refStart: string, days: number): number {
 
 /**
  * When something that usually takes `days` (from a start in these months) is done, started on `start` in this garden:
- * the day it's had the warmth it would have had in the middle of England. Null when the months don't say when it usually starts.
+ * the day it's had the warmth it would have had in the middle of England. With this year's weather, the days it covers
+ * count as they were (or are forecast to be). Null when the months don't say when it usually starts.
  */
-export function afterWarmth(p: Plant, g: Garden, cover: Climate | null, start: string, days: number, months: number[]): string | null {
+export function afterWarmth(p: Plant, g: Garden, cover: Climate | null, start: string, days: number, months: number[], weather: Weather | null = null): string | null {
   const run = runFor(months, start);
   if (!run || days <= 0) return null;
   const base = baseOf(p);
   const need = warmthNeeded(base, middleOf(run), days);
   const limit = Math.ceil(days * SLOWEST ** (1 / DAMPING));
-  const n = daysUntil(dailyTable(averagesOf(g), base, cover), start, need, limit) ?? limit;
+  const n = daysUntil(dailyTable(averagesOf(g), base, cover), start, need, limit, weather && actualTable(weather, base, cover)) ?? limit;
   const damped = days * (n / days) ** DAMPING;
   return addDays(start, Math.round(Math.min(days * SLOWEST, Math.max(days * FASTEST, damped))));
 }
@@ -123,7 +125,7 @@ export function afterWarmth(p: Plant, g: Garden, cover: Climate | null, start: s
  * or the first flowers for a plant grown for its flowers. `share` of the way there gives an earlier milestone, such
  * as a fruiting crop's first flowers. Null without the plant's days, or for an autumn sowing.
  */
-export function readyFrom(p: Plant, pl: Planting, g: Garden, start: string, cover: Climate | null, share = 1): string | null {
+export function readyFrom(p: Plant, pl: Planting, g: Garden, start: string, cover: Climate | null, share = 1, weather: Weather | null = null): string | null {
   const growth = p.growth;
   if (!growth?.days) return null;
   const usual = (growth.days[0] + growth.days[1]) / 2;
@@ -131,12 +133,12 @@ export function readyFrom(p: Plant, pl: Planting, g: Garden, start: string, cove
   const sown = sowingOf(p, pl) === 'direct';
   const from = growth.from ?? 'planting';
   const days = from === 'planting' && sown ? usual + HEAD_START : from === 'sowing' && !sown ? Math.max(14, usual - HEAD_START) : usual;
-  return afterWarmth(p, g, cover, start, Math.round(days * share), startMonths(p, sown ? 'sowing' : 'planting'));
+  return afterWarmth(p, g, cover, start, Math.round(days * share), startMonths(p, sown ? 'sowing' : 'planting'), weather);
 }
 
 /** When seeds sown outside come up: their usual days, faster in warm soil and slower in cold. */
-export function upFrom(p: Plant, g: Garden, sownOn: string, cover: Climate | null, usualDays: number): string {
-  return afterWarmth(p, g, cover, sownOn, usualDays, startMonths(p, 'sowing')) ?? addDays(sownOn, usualDays);
+export function upFrom(p: Plant, g: Garden, sownOn: string, cover: Climate | null, usualDays: number, weather: Weather | null = null): string {
+  return afterWarmth(p, g, cover, sownOn, usualDays, startMonths(p, 'sowing'), weather) ?? addDays(sownOn, usualDays);
 }
 
 /** Shifts for each place's averages, by cover and month. */

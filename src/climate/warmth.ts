@@ -9,7 +9,9 @@
 // nearest stations. They're averages, not this year's weather.
 
 import data from '../../data/climate/uk-stations.json';
+import { dayNumber } from '../model/dates';
 import type { Climate } from '../model/types';
+import type { Weather } from '../weather/weather';
 
 export interface Station {
   id: string;
@@ -159,17 +161,76 @@ export function sumOver(table: Float64Array, from: string, days: number): number
   return sum;
 }
 
-/** Days from a day until this many degree days have built up; null if they don't within the limit. */
-export function daysUntil(table: Float64Array, from: string, needed: number, limit = 730): number | null {
+// ---------- This year's weather ----------
+
+/** Degree days for the days the weather has, from its first day: NaN where a day is missing. */
+export interface Actual {
+  /** Day number of the first day. */
+  start: number;
+  dd: Float64Array;
+}
+
+const actuals = new WeakMap<Weather, Map<string, Actual>>();
+
+/** This year's degree days, from the weather, above a base, outdoors or under cover. Worked out once and kept. */
+export function actualTable(w: Weather, base: number, cover: Climate | null = null): Actual {
+  let mine = actuals.get(w);
+  if (!mine) actuals.set(w, (mine = new Map()));
+  const key = `${base}|${coverKey(cover)}`;
+  const hit = mine.get(key);
+  if (hit) return hit;
+  const dd = new Float64Array(w.tmax.length);
+  for (let i = 0; i < dd.length; i++) {
+    const [max, min] = [w.tmax[i], w.tmin[i]];
+    if (max == null || min == null) dd[i] = NaN;
+    else {
+      const t = underCover({ max, min }, cover);
+      dd[i] = degreeDays(t.max, t.min, base);
+    }
+  }
+  const out = { start: dayNumber(w.from), dd };
+  mine.set(key, out);
+  return out;
+}
+
+/**
+ * Days from a day until this many degree days have built up; null if they don't within the limit. Days the weather
+ * has (what's happened and the forecast) count as they were; the rest, as usual.
+ */
+export function daysUntil(table: Float64Array, from: string, needed: number, limit = 730, actual: Actual | null = null): number | null {
   if (needed <= 0) return 0;
   let sum = 0;
   let d = dayIndex(from);
+  // Where this day falls in the weather, if it does.
+  let k = actual ? dayNumber(from) - actual.start : -1;
+  const len = actual ? actual.dd.length : 0;
   for (let i = 1; i <= limit; i++) {
-    sum += table[d]!;
+    const real = k >= 0 && k < len ? actual!.dd[k]! : NaN;
+    sum += Number.isNaN(real) ? table[d]! : real;
     if (sum >= needed) return i;
     d = d === 364 ? 0 : d + 1;
+    k++;
   }
   return null;
+}
+
+/**
+ * How this year compares with the usual, from 1 January to a day: degree days above 5 °C, so far and as usual. Null
+ * when the weather doesn't cover those days.
+ */
+export function yearSoFar(w: Weather, av: Averages, today: string): { actual: number; usual: number } | null {
+  const jan1 = `${today.slice(0, 4)}-01-01`;
+  const a = actualTable(w, 5);
+  const from = dayNumber(jan1) - a.start;
+  const to = dayNumber(today) - a.start;
+  if (from < 0 || to > a.dd.length || to - from < 30) return null;
+  let actual = 0;
+  for (let i = from; i < to; i++) {
+    if (Number.isNaN(a.dd[i]!)) return null;
+    actual += a.dd[i]!;
+  }
+  const usual = sumOver(dailyTable(av, 5), jan1, to - from);
+  return { actual: Math.round(actual), usual: Math.round(usual) };
 }
 
 // ---------- In a sentence ----------

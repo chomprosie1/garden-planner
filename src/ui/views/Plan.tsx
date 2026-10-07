@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { jobsFor } from '../../calendar/jobs';
 import type { Focus, TimeScene } from '../../canvas/render';
-import { pickedBy, timeline } from '../../lifecycle/projection';
+import { pickedBy, timeline, wetness } from '../../lifecycle/projection';
 import { featureLabel, KINDS, type Target } from '../../model/features';
 import { makeSpace, spaceInfo } from '../../model/spaces';
 import { updateGarden, type Store } from '../../model/store';
@@ -33,6 +33,7 @@ import { clockText, SunBar, type CalendarDate, type SunView } from '../SunBar';
 import { usePlants } from '../usePlants';
 import { spacingStyle } from '../../planting/place';
 import { useSunHours } from '../useSunHours';
+import { useWeatherNow } from '../useWeather';
 import { yearScene } from '../yearScene';
 import { YearScrubber } from '../YearScrubber';
 
@@ -185,7 +186,9 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   // Checks wait for the library, so plants never show as "unknown" for a moment.
   const findings: Finding[] = useMemo(() => (plants ? checkGarden(garden, plantOf, juneGrid ?? null) : []), [garden, plantOf, plants, juneGrid]);
   // The garden through the year: each planting's life, read at the chosen day.
-  const timelines = useMemo(() => (plants ? new Map(garden.plantings.map((pl) => [pl.id, timeline(plantOf(pl.plantId), pl, garden, todayIso)])) : null), [garden, plants, plantOf, todayIso]);
+  // With this year's weather on, the days it covers count as they were (or are forecast to be).
+  const { weather } = useWeatherNow();
+  const timelines = useMemo(() => (plants ? new Map(garden.plantings.map((pl) => [pl.id, timeline(plantOf(pl.plantId), pl, garden, todayIso, weather)])) : null), [garden, plants, plantOf, todayIso, weather]);
   const plantById = useMemo(() => new Map((plants ?? []).map((pl) => [pl.id, pl])), [plants]);
   const ideaOf = (id: string) => plantById.get(id) ?? null;
   const year = useMemo(() => (timelines ? yearScene(garden, plantOf, timelines, when, ideaOf) : null), [garden, plantOf, timelines, when, plantById]);
@@ -208,11 +211,11 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const lastFocus = useRef<Focus | null>(null);
   const focus: Focus | null = useMemo(() => {
     if (!isFocusLens(lens) || !stageAt) return (lastFocus.current = null);
-    const ids = pickedBy(lens, garden, plantOf, stageAt, when);
+    const ids = pickedBy(lens, garden, plantOf, stageAt, when, weather);
     const prev = lastFocus.current;
     if (prev && prev.kind === lens && prev.ids.size === ids.size && [...ids].every((id) => prev.ids.has(id))) return prev;
     return (lastFocus.current = { kind: lens, ids });
-  }, [lens, stageAt, garden, plantOf, when]);
+  }, [lens, stageAt, garden, plantOf, when, weather]);
   const focusGuessed = !!focus && !!stageAt && garden.plantings.some((pl) => focus.ids.has(pl.id) && stageAt(pl).guessed);
   // The month's jobs on their beds, from this month on; they can be ticked off in this month.
   const monthJobs = useMemo(() => {
@@ -643,7 +646,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
             </PlanCanvas>
             {focus && (
               <div class="lens-legend-wrap">
-                <LensLegend kind={focus.kind} count={focus.ids.size} guessed={focusGuessed} />
+                <LensLegend kind={focus.kind} count={focus.ids.size} guessed={focusGuessed} live={!!weather} rain={focus.kind === 'water' ? (wetness(weather, when)?.rain3 ?? null) : null} />
               </div>
             )}
             {empty && tool === 'select' && (

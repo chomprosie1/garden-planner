@@ -12,6 +12,7 @@ import { checkGarden } from '../planting/rules';
 import { saveStatus, type SaveStatus } from '../storage/local';
 import { resolveMode } from '../theme/apply';
 import type { Prefs, PrefsStore } from '../theme/prefs';
+import { latestNews, unseenNews } from '../content/whatsNew';
 import { useApp } from './appContext';
 import { backUp, UseLocationButton } from './GardenSettings';
 import { Icon } from './icons';
@@ -238,6 +239,39 @@ export function JournalCard({ store, garden, plantOf }: { store: Store; garden: 
           Add a note
         </button>
       )}
+    </section>
+  );
+}
+
+// ---------- What's new ----------
+
+/** The newest change to the app, until you've read it or put it away. */
+export function WhatsNewCard({ prefs, prefsStore }: { prefs: Prefs; prefsStore: PrefsStore }) {
+  const app = useApp();
+  const unseen = unseenNews(prefs.seenNews);
+  if (!unseen.length) return null;
+  const latest = unseen[0]!;
+  const more = unseen.length - 1;
+  return (
+    <section class="card news-card" aria-labelledby="news-card-title">
+      <div class="card-head">
+        <h2 id="news-card-title">What’s new</h2>
+        <span class="news-badge">New</span>
+      </div>
+      <p class="news-card-title">{latest.title}</p>
+      <ul class="news-items">
+        {latest.items.slice(0, 2).map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+      <div class="button-row">
+        <button type="button" class="btn btn-primary" onClick={() => app.go('new')}>
+          {more > 0 ? `See what’s new (${unseen.length} updates)` : 'See what’s new'}
+        </button>
+        <button type="button" class="btn btn-quiet" onClick={() => prefsStore.set({ seenNews: latestNews().id })}>
+          Not now
+        </button>
+      </div>
     </section>
   );
 }

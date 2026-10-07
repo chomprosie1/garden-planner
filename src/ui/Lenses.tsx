@@ -54,14 +54,18 @@ const LEGEND: Record<FocusKind, (n: number) => string> = {
   water: (n) => (n ? `${n} likely to be thirsty: pots and planters first, then young plants and those that like it moist. Check the soil before watering.` : 'Nothing likely to need watering this week.'),
 };
 
-/** What a lens shows, under the plan: its ring, a count, and a word on what it's based on. */
-export function LensLegend({ kind, count, guessed }: { kind: FocusKind; count: number; guessed: boolean }) {
+/**
+ * What a lens shows, under the plan: its ring, a count, and a word on what it's based on. live: this year's weather is
+ * on; rain: rain in the three days to the day shown, when the weather covers it.
+ */
+export function LensLegend({ kind, count, guessed, live = false, rain = null }: { kind: FocusKind; count: number; guessed: boolean; live?: boolean; rain?: number | null }) {
   return (
     <p class="lens-legend" role="status">
       <Ring kind={kind} />
       <span>
         {LEGEND[kind](count)}
-        {guessed ? ' Based on the usual warmth here.' : ''}
+        {kind === 'water' && rain !== null ? ` ${rain >= 1 ? `${Math.round(rain)} mm of rain` : 'No rain to speak of'} in the three days to then.` : ''}
+        {guessed ? (live ? ' Based on this year’s weather and the forecast.' : ' Based on the usual warmth here.') : ''}
       </span>
     </p>
   );

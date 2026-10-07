@@ -1,4 +1,5 @@
 import { useState } from 'preact/hooks';
+import { latestNews } from '../content/whatsNew';
 import { seasonFor } from '../content/seasons';
 import { makeSpace } from '../model/spaces';
 import { updateGarden, type Store } from '../model/store';
@@ -33,7 +34,8 @@ export function Onboarding({ store, garden, prefs, prefsStore, go }: Props) {
   const steps: Step[] = before.boundary.length === 0 && before.features.length === 0 ? ['space', 'look', 'garden'] : ['look', 'garden'];
   const current = steps[step - 1];
   const finish = () => {
-    prefsStore.set({ onboarded: true });
+    // Everything's new to someone just starting: no "What's new" until the next change.
+    prefsStore.set({ onboarded: true, seenNews: latestNews().id });
     go('plan');
   };
   const makeIt = () => {

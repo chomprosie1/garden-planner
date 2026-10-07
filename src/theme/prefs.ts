@@ -3,7 +3,7 @@
 
 import { LOOK_IDS, type LookId } from './looks';
 
-export const VIEWS = ['home', 'plan', 'plants', 'month', 'notes', 'settings', 'check', 'shed'] as const;
+export const VIEWS = ['home', 'plan', 'plants', 'month', 'notes', 'settings', 'check', 'shed', 'new'] as const;
 export type View = (typeof VIEWS)[number];
 
 export interface Prefs {
@@ -30,6 +30,10 @@ export interface Prefs {
   sketches: boolean;
   /** Soft shadows on the plan, for depth. null = the look's default (off in Minimal). */
   depth: boolean | null;
+  /** Fetch this year's weather and the forecast from Open-Meteo. Off until you turn it on: it sends the garden's rough location. */
+  weather: boolean;
+  /** The newest "What's new" entry you've seen, by id. null: never looked. */
+  seenNews: string | null;
 }
 
 
@@ -55,6 +59,8 @@ export function defaultPrefs(): Prefs {
     setupHidden: false,
     sketches: true,
     depth: null,
+    weather: false,
+    seenNews: null,
   };
 }
 
@@ -87,6 +93,8 @@ export function sanitisePrefs(raw: unknown): Prefs {
     setupHidden: r.setupHidden === true,
     sketches: r.sketches !== false,
     depth: typeof r.depth === 'boolean' ? r.depth : null,
+    weather: r.weather === true,
+    seenNews: typeof r.seenNews === 'string' ? r.seenNews : null,
   };
 }
 

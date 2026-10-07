@@ -174,6 +174,18 @@ export interface Planting {
   /** When each stage after sowing was reached. The sowing date itself stays in sownOn. */
   stageDates?: Partial<Record<Stage, string>>;
   removedOn?: string; // ISO date; kept for history
+  /** When you mean to sow it (or plant it), ISO, for a planned planting: one of a set of batches, sown a few weeks apart. */
+  sowBy?: string;
+  /** One of a row or block split into batches, sown a few weeks apart. */
+  batch?: Batch;
+}
+
+/** Sowing little and often: which batch this is, of how many, in a group sown together. */
+export interface Batch {
+  group: string;
+  /** From 1. */
+  n: number;
+  of: number;
 }
 
 /** Where a plant is in its life, in order. Not every plant goes through every stage: see src/lifecycle/stages.ts. */

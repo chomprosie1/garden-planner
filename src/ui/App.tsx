@@ -13,6 +13,7 @@ import { Onboarding } from './Onboarding';
 import type { Command } from './search';
 import { Shortcuts } from './Shortcuts';
 import { useAppState } from './useStore';
+import { useWeatherFeed, WeatherContext } from './useWeather';
 import { CheckPlants } from './views/CheckPlants';
 import { Home } from './views/Home';
 import { Month } from './views/Month';
@@ -21,6 +22,7 @@ import { Plan, type PlanIntent } from './views/Plan';
 import { Plants } from './views/Plants';
 import { Settings } from './views/Settings';
 import { Shed } from './views/Shed';
+import { WhatsNew } from './views/WhatsNew';
 
 const NAV: { view: View; label: string; icon: IconName }[] = [
   { view: 'home', label: 'Home', icon: 'home' },
@@ -30,7 +32,7 @@ const NAV: { view: View; label: string; icon: IconName }[] = [
 ];
 
 /** Pages that sit under a tab rather than being one: they highlight their parent. */
-const PARENT: Partial<Record<View, View>> = { notes: 'home', check: 'plants', shed: 'month' };
+const PARENT: Partial<Record<View, View>> = { notes: 'home', check: 'plants', shed: 'month', new: 'home' };
 
 const isTyping = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
@@ -54,9 +56,10 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   const [shortcuts, setShortcuts] = useState(false);
   const [searching, setSearching] = useState(false);
   const [shedSow, setShedSow] = useState<string | null>(null);
+  const weather = useWeatherFeed(garden, prefs.weather && prefs.onboarded);
 
   const navigate = (v: View) => {
-    if ((v === 'settings' || v === 'check' || v === 'notes' || v === 'shed') && view !== v) setPrevious(view);
+    if ((v === 'settings' || v === 'check' || v === 'notes' || v === 'shed' || v === 'new') && view !== v) setPrevious(view);
     go(v);
   };
 
@@ -209,6 +212,8 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
         return <Shed store={store} garden={garden} userPlants={userPlants} back={back} sowPlantId={shedSow} clearSow={() => setShedSow(null)} />;
       case 'check':
         return <CheckPlants store={store} userPlants={userPlants} startAt={checkFrom} back={back} />;
+      case 'new':
+        return <WhatsNew prefs={prefs} prefsStore={prefsStore} back={back} go={navigate} />;
       case 'settings':
         return (
           <Settings
@@ -229,6 +234,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
 
   return (
     <AppContext.Provider value={actions}>
+      <WeatherContext.Provider value={weather}>
       <div class="app" data-view={view}>
         <nav class="rail" aria-label="Main">
           {NAV.map((n) => (
@@ -287,6 +293,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
         {shortcuts && <Shortcuts close={() => setShortcuts(false)} />}
         {searching && <CommandSearch garden={garden} userPlants={userPlants} locked={prefs.layoutLocked} run={run} close={() => setSearching(false)} />}
       </div>
+      </WeatherContext.Provider>
     </AppContext.Provider>
   );
 }

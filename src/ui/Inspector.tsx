@@ -44,8 +44,9 @@ import {
   updatePlanting,
 } from '../planting/place';
 import { formatHours, sunNeeded, type Finding } from '../planting/rules';
-import { expectedText, timeline } from '../lifecycle/projection';
-import { currentStage, STAGE_LABEL, stageDate } from '../lifecycle/stages';
+import { expectedText, nextInMonths, shortDate, timeline } from '../lifecycle/projection';
+import { batchDates, batchesOf, batchLabel, canSowInBatches, maxBatches, MIN_BATCHES, setSowBy, splitIntoBatches } from '../planting/batches';
+import { currentStage, sowingOf, STAGE_LABEL, stageDate } from '../lifecycle/stages';
 import { deleteBlob, saveBlob } from '../storage/idb';
 import { areaHours, averageHours, lightBand, type SunGrid } from '../sun/hours';
 import { useApp } from './appContext';
@@ -55,6 +56,7 @@ import { formatDate, NotesSection } from './NotesSection';
 import { deletedMessage, type Tool } from './PlanCanvas';
 import { PlantIcon } from './PlantIcon';
 import { StageStrip } from './StageStrip';
+import { useWeatherNow } from './useWeather';
 
 interface Props {
   store: Store;
@@ -839,7 +841,8 @@ function PlantingPanel(props: Props & { pl: Planting }) {
   const step = nextStep(pl, plant, cover?.climate ?? null);
   const today = todayIso();
   // When it's likely to be ready, from the warmth it gets here (UK climate averages), and under glass if it's covered.
-  const expected = status !== 'planned' ? expectedText(timeline(plant, pl, garden, today), plant, today) : null;
+  const { weather } = useWeatherNow();
+  const expected = status !== 'planned' ? expectedText(timeline(plant, pl, garden, today, weather), plant, today) : null;
   const canEdit = true;
 
   return (
@@ -852,7 +855,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
         </span>
         {step && <span class="muted small">{step}</span>}
       </p>
-      {expected && <p class="muted small expect-line">{expected}, by the usual warmth here.</p>}
+      {expected && <p class="muted small expect-line">{expected}, {weather ? 'by this year’s weather and the forecast' : 'by the usual warmth here'}.</p>}
       {cover && (
         <p class="cover-fact">
           Under cover in {featureLabel(cover.feature)}: {climateText(cover.climate)}.
@@ -896,6 +899,8 @@ function PlantingPanel(props: Props & { pl: Planting }) {
           <FindingsList findings={mine} {...findingsProps(props)} />
         </Section>
       )}
+
+      {canEdit && <BatchesSection key={pl.id} store={store} garden={garden} pl={pl} plant={plant} select={(id) => setSelected({ type: 'planting', id })} />}
 
       {canEdit && (
         <Section id="planting-details" title="Details" open={false}>
@@ -957,6 +962,102 @@ function PlantingPanel(props: Props & { pl: Planting }) {
       </div>
       <NotesSection store={store} garden={garden} on={{ plantingId: pl.id }} />
     </div>
+  );
+}
+
+// ---------- Sowing in batches ----------
+
+const WEEK_CHOICES = [1, 2, 3, 4];
+
+/**
+ * Sowing little and often: split a row or block into batches a few weeks apart, or, for a batch, when it's to be sown
+ * and the others in its set.
+ */
+function BatchesSection({ store, garden, pl, plant, select }: { store: Store; garden: Garden; pl: Planting; plant: Plant; select: (id: string) => void }) {
+  const app = useApp();
+  const today = todayIso();
+  const direct = sowingOf(plant, pl) === 'direct';
+  const sowMonths = (plant.sowing ?? []).filter((x) => (direct ? x.method === 'direct' : x.method !== 'direct')).flatMap((x) => x.months);
+  const months = sowMonths.length ? sowMonths : (plant.sowing ?? []).flatMap((x) => x.months);
+  const most = maxBatches(pl, plant);
+  const [count, setCount] = useState(Math.min(3, Math.max(MIN_BATCHES, most)));
+  const [weeks, setWeeks] = useState(3);
+  const [first, setFirst] = useState(() => nextInMonths(today, months) ?? today);
+
+  if (pl.batch) {
+    const set = batchesOf(garden, pl);
+    return (
+      <Section id="batches" title={batchLabel(pl)!}>
+        {!pl.sownOn && pl.sowBy && (
+          <label class="field">
+            Sow on
+            <input type="date" value={pl.sowBy} onChange={(e) => {
+              const v = (e.currentTarget as HTMLInputElement).value;
+              if (v) store.apply(updateGarden((g) => setSowBy(g, pl.id, v)));
+            }} />
+          </label>
+        )}
+        <ul class="plain-list batch-list">
+          {set.map((b) => (
+            <li key={b.id}>
+              <button type="button" class="link-btn" aria-current={b.id === pl.id ? 'true' : undefined} disabled={b.id === pl.id} onClick={() => select(b.id)}>
+                {batchLabel(b)}
+              </button>{' '}
+              <span class="muted small">{b.sownOn ? `sown ${formatDate(b.sownOn)}` : b.sowBy ? `to sow about ${formatDate(b.sowBy)}` : ''}</span>
+            </li>
+          ))}
+        </ul>
+      </Section>
+    );
+  }
+  if (!canSowInBatches(plant, pl) || most < MIN_BATCHES) return null;
+  const dates = batchDates(first, count, weeks * 7);
+  const late = dates.filter((d) => !months.includes(Number(d.slice(5, 7))));
+  return (
+    <Section id="batches" title="Sow in batches" open={false}>
+      <p class="muted small">
+        Sow a little at a time, a few weeks apart, for a steady supply instead of a glut. The {pl.layout === 'row' ? 'row is split into shorter rows' : 'block is split into strips'}, each
+        sown on its own date, with its own sowing job.
+      </p>
+      <div class="field-row">
+        <label class="field">
+          Batches
+          <select value={count} onChange={(e) => setCount(Number((e.currentTarget as HTMLSelectElement).value))}>
+            {Array.from({ length: most - MIN_BATCHES + 1 }, (_, i) => i + MIN_BATCHES).map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label class="field">
+          Every
+          <select value={weeks} onChange={(e) => setWeeks(Number((e.currentTarget as HTMLSelectElement).value))}>
+            {WEEK_CHOICES.map((w) => (
+              <option key={w} value={w}>
+                {w === 1 ? 'week' : `${w} weeks`}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <label class="field">
+        First sowing
+        <input type="date" value={first} onChange={(e) => setFirst((e.currentTarget as HTMLInputElement).value || first)} />
+      </label>
+      <p class="small">Sow on {dates.map((d) => shortDate(d)).join(', ')}.</p>
+      {late.length > 0 && <p class="muted small">{late.length === 1 ? `${shortDate(late[0]!)} is` : 'Some of these are'} outside its usual sowing months, {monthRanges(months)}.</p>}
+      <button
+        type="button"
+        class="btn"
+        onClick={() => {
+          store.apply(updateGarden((g) => splitIntoBatches(g, pl.id, plant, count, weeks * 7, first)));
+          app.notify(`${plant.commonName} split into ${count} batches, ${weeks === 1 ? 'a week' : `${weeks} weeks`} apart.`, { undo: true });
+        }}
+      >
+        Split into {count} batches
+      </button>
+    </Section>
   );
 }
 

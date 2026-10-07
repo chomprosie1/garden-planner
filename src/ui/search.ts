@@ -82,7 +82,8 @@ const VIEWS: { view: View; label: string; words: string }[] = [
   { view: 'month', label: 'Go to Month', words: 'open page jobs calendar sowing list' },
   { view: 'shed', label: 'Go to the Potting Shed', words: 'open page seedlings trays sow indoors propagator windowsill' },
   { view: 'notes', label: 'Go to the journal', words: 'open page notes diary' },
-  { view: 'settings', label: 'Go to Settings', words: 'open page backup location look theme dark frost' },
+  { view: 'settings', label: 'Go to Settings', words: 'open page backup location look theme dark frost weather forecast climate' },
+  { view: 'new', label: 'What’s new', words: 'open page news changes updates latest release' },
 ];
 
 /** "a pot", "gravel": no "a" for things you can't count. */

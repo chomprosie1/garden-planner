@@ -7,7 +7,8 @@
 
 import { microclimateOf } from '../climate/microclimate';
 import { addDays, frostDates, plantOutMonthsUnder } from '../lifecycle/shed';
-import { currentStage, pathFor, setStage, STAGE_LABEL, stageTips, suggestedStage } from '../lifecycle/stages';
+import { currentStage, pathFor, setStage, sowingOf, STAGE_LABEL, stageTips, suggestedStage } from '../lifecycle/stages';
+import { shortDate } from '../lifecycle/projection';
 import { featureLabel } from '../model/features';
 import { STAGES, type Garden, type Plant, type Planting, type Stage } from '../model/types';
 import { isActive, plantingStatus } from '../planting/place';
@@ -115,7 +116,8 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     const [plantId, featureId] = k.split('|') as [string, string];
     const plant = plantOf(plantId);
     const bed = g.features.find((f) => f.id === featureId);
-    const where = `in ${bed ? featureLabel(bed) : 'a bed'}${describeGroup(group)}`;
+    const bedName = bed ? featureLabel(bed) : 'a bed';
+    const where = `in ${bedName}${describeGroup(group)}`;
     const ids = (list: Planting[]) => list.map((p) => p.id);
     // Under a greenhouse or cold frame: in sooner, with no hardening off, and no winter protection.
     const cover = microclimateOf(g, group[0]!);
@@ -126,12 +128,25 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     const isGrowing = (p: Planting) => plantingStatus(p) === 'growing';
     const notGrowing = group.filter((p) => !isGrowing(p));
     const toSow = notGrowing.filter((p) => !p.sownOn || sownThisMonth(p, year, month));
-    if (toSow.length)
-      for (const s of sowingKinds(plant, month)) add(s.kind, plant, s.kind === 'sow-indoors' ? `for ${where.slice(3)}` : where, featureId, ids(toSow), s.detail, featureId);
+    // Batches are sown in the month you chose for each, one job each; the rest in the plant's sowing months.
+    const plain = toSow.filter((p) => !p.sowBy);
+    if (plain.length)
+      for (const s of sowingKinds(plant, month)) add(s.kind, plant, s.kind === 'sow-indoors' ? `for ${where.slice(3)}` : where, featureId, ids(plain), s.detail, featureId);
+    // A batch not sown in its month stays on the list for the month after, as running late.
+    const lastMonth = month === 1 ? ym(year - 1, 12) : ym(year, month - 1);
+    for (const p of toSow.filter((x) => x.sowBy && ((x.sownOn ?? x.sowBy).slice(0, 7) === ym(year, month) || (!x.sownOn && x.sowBy.slice(0, 7) === lastMonth)))) {
+      const how = sowingOf(plant, p);
+      if (how === 'none') continue;
+      const kind: JobKind = how === 'direct' ? 'sow-direct' : 'sow-indoors';
+      const bed = `${bedName}${p.batch ? ` (batch ${p.batch.n} of ${p.batch.of})` : ''}`;
+      const tip = sowingKinds(plant, month).find((s) => s.kind === kind)?.detail;
+      add(kind, plant, kind === 'sow-indoors' ? `for ${bed}` : `in ${bed}`, `${featureId}~${p.batch?.n ?? p.id}`, [p.id], [p.sowBy!.slice(0, 7) === lastMonth ? `Running late: it was due about ${shortDate(p.sowBy!)}.` : `Sow about ${shortDate(p.sowBy!)}.`, tip].filter(Boolean).join(' '), featureId);
+    }
     if (outMonths.includes(month)) {
       // Ticking a planting-out job marks the plants as growing; the ticked job stays for the rest of the month.
+      // A batch waits until after the month it's sown in.
       const tickedNow = g.jobsDone.some((j) => j.key === `plant-out:${plant.id}:${featureId}:${ym(year, month)}`);
-      const toPlant = (tickedNow ? group : notGrowing).filter((p) => !p.sownOn || p.sownOn.slice(0, 7) <= ym(year, month));
+      const toPlant = (tickedNow ? group : notGrowing).filter((p) => (!p.sownOn || p.sownOn.slice(0, 7) <= ym(year, month)) && (!p.sowBy || p.sowBy.slice(0, 7) < ym(year, month)));
       if (toPlant.length && !doneBefore(g, `plant-out:${plant.id}:${featureId}:`, year, month))
         add('plant-out', plant, where, featureId, ids(toPlant), cover ? 'Under glass, so there’s no need to harden them off first.' : undefined, featureId);
     }

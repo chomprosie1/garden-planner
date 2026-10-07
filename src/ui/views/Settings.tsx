@@ -109,6 +109,14 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
         </button>
       </section>
 
+      <section class="card" aria-labelledby="news">
+        <h2 id="news">What’s new</h2>
+        <p class="muted small">The latest changes to the app, in plain English.</p>
+        <button type="button" class="btn" onClick={() => go('new')}>
+          See what’s new
+        </button>
+      </section>
+
       <section class="card desktop-only" aria-labelledby="keys">
         <h2 id="keys">Keyboard</h2>
         <p class="muted small">Press ? at any time to see the shortcuts.</p>

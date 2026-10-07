@@ -7,7 +7,8 @@ import { usePlants } from '../usePlants';
 import { spacingStyle } from '../../planting/place';
 import { LOOKS } from '../../theme/looks';
 import type { Prefs, PrefsStore, View } from '../../theme/prefs';
-import { BackupCard, GardenCard, JournalCard, SaveIndicator, SetupCard } from '../HomeCards';
+import { BackupCard, GardenCard, JournalCard, SaveIndicator, SetupCard, WhatsNewCard } from '../HomeCards';
+import { FrostCard } from '../WeatherCards';
 import { Icon } from '../icons';
 import { doneOf, JobList, jobsDoneCount, PlantJobs } from '../Jobs';
 import { PhotoCredit, SeasonPhoto } from '../SeasonPhoto';
@@ -123,6 +124,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
       )}
 
       <div class="home-body">
+        {plants && <FrostCard garden={garden} plantOf={plantOf} />}
         <SetupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} />
         {plants && <ReadyCard store={store} garden={garden} plantOf={plantOf} />}
         <section class="card">
@@ -152,6 +154,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
           </p>
         </section>
 
+        <WhatsNewCard prefs={prefs} prefsStore={prefsStore} />
         <GardenCard garden={garden} prefs={prefs} plants={plants} plantOf={plantOf} />
         <JournalCard store={store} garden={garden} plantOf={plantOf} />
         <BackupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} now={now} />

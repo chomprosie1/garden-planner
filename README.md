@@ -19,7 +19,7 @@ Every push to `main` runs the tests and deploys to Pages.
 
 ## Your data
 
-Your garden is saved in your browser, never on a server. Use **Download a backup** (Settings, or the reminder on Home) for a backup file, and **Restore from a backup** to get it back or move it to another device. Plant checks are kept per device.
+Your garden is saved in your browser, never on a server. If you turn on this year's weather (Settings → Your climate), the garden's location, rounded to about a kilometre, is sent to Open-Meteo for the forecast; the weather is kept on your device. Use **Download a backup** (Settings, or the reminder on Home) for a backup file, and **Restore from a backup** to get it back or move it to another device. Plant checks are kept per device.
 
 ## Layout
 
@@ -29,10 +29,11 @@ Your garden is saved in your browser, never on a server. Use **Download a backup
 | `src/storage/` | Browser autosave, export and import, IndexedDB for images |
 | `src/geometry/` | Pure maths in millimetres: areas, snapping, hulls, fence outlines |
 | `src/theme/` | The five looks (light and dark), fonts, and per-device preferences |
-| `src/content/` | Seasonal lines and jobs for each month, and the photo manifest |
-| `src/ui/` | Preact screens: Home (with the journal), Plan (one canvas with a dock, an action pill, and sun and shade lenses), Plants, Month, Settings, plant checks, first run |
+| `src/content/` | Seasonal lines and jobs for each month, the photo manifest, and What's new |
+| `src/ui/` | Preact screens: Home (with the journal), Plan (one canvas with a dock, an action pill, and sun and shade lenses), Plants, Month, Settings, plant checks, first run, What’s new |
 | `src/planting/` | Plantings, their positions and status, filling a bed, and the spacing, neighbour and light rules |
 | `src/climate/` | Greenhouses and cold frames as microclimates, and your garden's usual warmth from UK climate averages |
+| `src/weather/` | This year's weather and the forecast from Open-Meteo (opt-in): fetching and reading it |
 | `src/lifecycle/` | Life stages, the Potting Shed, growing degree days, and each planting's stage on any day of the year |
 | `src/share/` | A picture of the plan, and a timelapse of the year, made on the device |
 | `src/calendar/` | Each month's jobs for your own plants |

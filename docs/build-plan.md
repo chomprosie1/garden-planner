@@ -267,7 +267,7 @@ Brought forward from "parked": the plant life cycle, frost and Growing Degree Da
 | 14 | The garden through the year: scrubber, projected stages, gaps, job chips, lenses, share and timelapse | Built |
 | 15 | Greenhouses and cold frames as microclimates | Built |
 | 16 | Growing Degree Days from UK climate averages (capped at 2 weeks) | Built |
-| 17 | Live weather (opt-in Open-Meteo) and succession sowing | |
+| 17 | Live weather (opt-in Open-Meteo) and succession sowing, plus What's new | Built |
 | 18 | 3D garden view (three.js, loaded only when opened) | |
 
 Stages 13a to 14 replace "Screens and cards polish" (the old Stage 13), from the proposal in [plan-refresh.md](plan-refresh.md). The stages after them moved up by one.
@@ -442,6 +442,27 @@ Tests: `tests/microclimate.test.ts` covers climates by kind, the cover over a po
 
 Tests: `tests/warmth.test.ts` covers the stations, blending and distance, the year drawn smoothly, dates through leap years, degree days and the gains under glass, warmth by region, runs and middles, bases, the usual days in the middle of England, north and south and under glass, early and late sowings, head starts, autumn sowings, seasons moved and stretched, tomatoes outside and under glass, sweetcorn lost to frost, late lettuce, standing sprouts, strawberries by region, seeds in cold soil, what it's probably at, what's next, the plant data's days and their checks, and the plant card.
 
+### Stage 17 — This year's weather, sowing in batches, and What's new (as built)
+- **This year's weather, opt-in** (Settings → Your climate → "Use this year's weather and the forecast"; `prefs.weather`, off by default):
+  - `src/weather/openMeteo.ts` asks Open-Meteo (free for personal, non-commercial use, no key) for the garden's place rounded to two decimals (about a kilometre): the archive for the past 400 days (to six days ago) and the forecast API for the last ten days and the next 16. The forecast wins where both have a day; if the archive fails, the forecast is enough. Both allow requests from the browser (CORS checked).
+  - `src/storage/weatherCache.ts` keeps it in this browser (`garden-planner:weather`), like preferences: never in a backup, forgotten when you turn it off. `src/ui/useWeather.ts` uses the kept copy at once and fetches again when it's more than six hours old, for another place, or when you come back to the app; it shares it through a context.
+  - `src/weather/weather.ts` (pure): days as one run (missing days empty), the weather on a day, rain over the last few days, cold nights in the forecast, fresh and usable checks.
+  - Settings says when it was updated, how far the forecast runs, and how this year compares with the usual since 1 January ("about 12% warmer than usual"), with Update now and the Open-Meteo credit (CC BY 4.0).
+- **Degree days from the real weather:** `actualTable` and `daysUntil` in `src/climate/warmth.ts` count the days the weather covers (what's happened and the forecast, with greenhouse and cold frame gains added) as they were, and the usual for the rest. Seeds coming up outside, the first harvest and flowers all use it; seasons still move by the averages. Guesses say "by this year's weather and the forecast" instead of "by the usual warmth here".
+- **Frost warnings** (`src/lifecycle/frostWatch.ts`, a card at the top of Home): the first night this week down to 3 °C or below (a ground frost possible; 1 °C or below, a frost likely) that puts something at risk: tender plants in the ground outside, tender plants and trays hardening off, and tender seedlings or plants under unheated glass when the night gain doesn't lift it above 1 °C. Never under a heated greenhouse. It says when ("tonight, into tomorrow morning", "early on Saturday"), how cold, what to do, and what's at risk.
+- **The Water lens, with real rain,** for the days the weather covers: after 10 mm or more in three days, only what's under glass; after 4 mm, pots in warm weather (18 °C or more); otherwise young plants and those that like it moist, and everything in the ground in a dry (under 5 mm in a week), warm spell. Its legend says how much rain fell in the three days. Outside the weather's days it goes by the months, as before.
+- **Sowing in batches** (`src/planting/batches.ts`, the planting panel's **Sow in batches** section): a planned row or block of a plant raised from seed (not perennials) splits into 2 to 6 batches, 1 to 4 weeks apart, from a first sowing date (the next sowing month by default). A row becomes shorter rows with the same plants in the same places (to the millimetre, give or take rounding); a block becomes strips across its longer side. Each batch is its own planting with `sowBy` and `batch` (`group`, `n`, `of`); the first keeps the original id and notes. One undo puts it back.
+  - The year's projections start each batch on its own date.
+  - Each batch gets its own sowing job in its month ("in Veg bed (batch 2 of 3)", "Sow about 26 Apr."), and stays as "Running late" in the month after if it isn't sown. Ticking it sows only that batch. Planting-out jobs wait until after a batch's month.
+  - A batch's panel shows when to sow it (and lets you change it) and the rest of its set, to jump between them.
+- **Empty-bed ideas** now start with plants from your sowing list that can go in that month, then the quick crops.
+- **What's new** (`src/content/whatsNew.ts`, `#/new`): changes in plain English for people using the app, newest first, each with a stable id, a date and a "try it" button. A **What's new** card on Home shows the newest unseen entry until you open the page or choose Not now (`prefs.seenNews`); new gardens start with everything seen. It's linked from Settings and search ("what's new"). Entries go back to the Potting Shed.
+- **Dates** moved to `src/model/dates.ts` (the shed still exports them).
+- **Model:** schema 9 adds `Planting.sowBy` and `Planting.batch`, both optional. Preferences gain `weather` and `seenNews`.
+- **Not done:** jobs by the week; frost warnings as notifications when the app's closed; this year's warmth moving the seasons of perennials; rain in the month's watering jobs; joining batches back together (undo works straight after).
+
+Tests: `tests/weather.test.ts` covers reading a real Open-Meteo reply, joining the archive and forecast, the request (rounded place, dates), fetching with either failing, freshness and place, rain totals, keeping and forgetting it, off by default, degree days from real days, hot and cold spells, the year's projections, the year so far, cold nights and gains, who's at risk outside, under glass, hardening off and on a bench, the words for when, the Water lens after soaking, light rain and a dry spell, splitting rows and blocks, batch dates and ids, projections and jobs per batch (late, ticked), ideas from your sowing list, schema 9, and What's new (order, ids, plain words, what's unseen).
+
 ---
 
 ## Repo layout
@@ -469,6 +490,7 @@ garden-planner/
 - The app is usable without the sun layer.
 - It is checked once on your phone.
 - The MVP doc and this plan are updated if anything changed.
+- Anything someone using the app would notice gets a **What's new** entry in `src/content/whatsNew.ts`, newest first with a new id: what they can now do and where to find it, in plain English, with no stage numbers or code.
 
 ## Verification overall
 - Unit tests: geometry, store and undo, migrations, rules, jobs, sun position against NOAA, and shadow length.
