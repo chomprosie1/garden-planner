@@ -39,10 +39,22 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Alerts when a plant hasn't moved on, with common causes | You, 7 Oct 2026 | M | Built in release 8 |
 | Weeds to keep or remove, and weeding reminders | You, 7 Oct 2026 | M | Built in release 8 |
 | The year slider hard to see over full photos | You, 7 Oct 2026 | S | Built in release 6 |
-| The garden as it is, from an overhead photo | You, 7 Oct 2026 | ? | A spike first; tracing over a photo by hand already works (Stage 2e) |
+| The garden as it is, from an overhead photo | You, 7 Oct 2026 | ? | Spike done (7 Oct 2026): no-go for drawing it automatically; nothing found the beds ([aerial-spike.md](aerial-spike.md)). Tracing by hand works (Stage 2e) |
 | Testing by risk, not the full suite every time | You, 7 Oct 2026 | S | Built in release 5 (`CLAUDE.md`) |
 | Plants (a fruit tree, a big shrub) casting shade in the sun views | Build, release 6 | M | Only features cast shade; a fruit tree planted as a plant doesn't |
 | Small, medium and large for rows and blocks | Build, release 6 | S | Single plants only for now |
 | A simpler details panel in Simple | Build, release 7 | S | More shows the full details in both modes |
 | No harvest job for a direct sowing that's running behind (not up) | Build, release 8 | S | Today can say it's not up and to harvest it in the same month |
 | Weeds marked as a patch across a lawn or bed | Build, release 8 | S | One weed at a time for now |
+| Straighten a photo taken at an angle before tracing: tap four corners of something rectangular and give its size | Aerial spike, 7 Oct 2026 | S | Photos from an upstairs window or a drone are never straight down. The spike has the 30 lines of straightening |
+| Ask the browser to keep the garden's storage, and push iPhone users to install | Review, 7 Oct 2026 | S | Parked until beta testing. Safari can clear a site's data after about 7 days without a visit unless it's on the home screen, and gardeners leave the app for weeks in winter |
+| "What grows here?": tap any spot for its sun hours through the year, frost and warmth, and the plants that suit it best | Review, 7 Oct 2026 | M | Uses the sun-hours grid, warmth, microclimates and plant conditions. Suggested for release 12 |
+| Next year, drafted for you: crop families rotated bed by bed, what did well kept, what failed or ran behind dropped or moved | Review, 7 Oct 2026 | L | Crop rotation, from the MVP's "planning over years". Needs a `family` on each plant. Offered as the season ends, after Wrapped. Suggested for release 13 |
+| Water forecast: roof areas into water butts, rain and evaporation from Open-Meteo, "the butt runs dry on Thursday; water the pots tonight" | Review, 7 Oct 2026 | M | Builds on the Water lens and live weather. Suggested for release 12 |
+| Nature calendar: what's in flower for bees each month, with gaps filled ("Nothing for bees in March: crocus?") | Review, 7 Oct 2026 | S–M | Uses `flowerMonths`, the In flower lens and kept weeds. A card for Wrapped. Suggested for release 11 |
+| Same-spot photo timelapse: the last photo shown faintly over the camera to line up, stitched into a real timelapse | Review, 7 Oct 2026 | M | Builds on the photo diary and the timelapse maker. Suggested for release 14 |
+| Seed tin: varieties, seeds left, sow-by dates and a packet photo; suggestions start with seeds you have | Review, 7 Oct 2026 | M | Varieties are the library's biggest gap. Scanning a packet would need a server, so that waits for beta testing. Suggested for release 14 |
+| Harvest worth in pounds: "Your garden grew £143 of food this year" | Review, 7 Oct 2026 | S | A rough price per kg in the plant data; a card for Wrapped and Today. Suggested for release 11 |
+| Logging by voice: "Picked a bowl of beans", "Sowed carrots in the veg bed" | Review, 7 Oct 2026 | S | Search already understands "sow basil"; uses the browser's speech recognition. Suggested for release 11 |
+| Sync and shared gardens (a household, allotment partners, a whole allotment site) | Review, 7 Oct 2026 | L | Parked until beta testing. Needs a server: a business decision first (see the cost ladder in the MVP plan) |
+| Ask the garden: questions and photos of a sick plant, answered with this garden's own sun, stage and weather | Review, 7 Oct 2026 | L | Parked until beta testing. Needs a server and a vision model. The natural paid tier |

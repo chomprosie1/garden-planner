@@ -564,7 +564,7 @@ Each idea was checked against the code and against everything still open. Stage 
 | 7. A simple planner | A Simple / Advanced switch on the plan, and a phone pass | ~2 wk | Built |
 | 8. Keeping on track | "Running behind" alerts with common causes, weeds and weeding | ~1.5 wk | Built |
 | 9. A bigger library | 150 more plants in three batches of 50 (can run alongside 7 and 8) | ~3 wk of data | Built |
-| Spike | The garden from an aerial photo: research and a prototype, go or no-go | 2–3 evenings | |
+| Spike | The garden from an aerial photo: research and a prototype, go or no-go | 2–3 evenings | Done: no-go |
 | 10. The garden in 3D | An angled view to look at, three.js loaded only when opened, with the sun and the year | ~2–3 wk | |
 
 ### Release 5 — Housekeeping (as built)
@@ -710,14 +710,18 @@ Tests: `tests/on-track.test.ts` covers:
 
 Tests: the plant and art tests cover every new plant. The "bean" search test now also finds borlotti beans and green manure (field beans).
 
-### Spike — the garden from an aerial photo (planned)
-2–3 evenings, building on the trace image (Stage 2e). It looks at:
-- where the photos come from (your own, or satellite tiles, whose terms mostly forbid tracing);
-- colour segmentation in the browser;
-- a vision model returning outlines (needs a server or key, and the app has none);
-- an in-browser segmentation model.
-
-The best two are tried on 3–5 real photos, measuring how much is right and how many fixes it needs. The result goes in `docs/aerial-spike.md` with a go or no-go. Nothing ships.
+### Spike — the garden from an aerial photo (as done)
+The full write-up is in [aerial-spike.md](aerial-spike.md).
+- **Tried:**
+  - colour and texture in plain code;
+  - SegFormer, an image model that runs in the browser (15 MB and 110 MB versions), via transformers.js.
+- **Photos:** five openly licensed ones (two back gardens, three allotment sites), each as taken and straightened from four corners.
+- **No-go** for drawing a garden automatically:
+  - not one bed was found;
+  - about a quarter of the main things (shed, patio, lawn, fence) came out, as blobs of 15 to 160 corners that would need redrawing and scaling;
+  - dropping them in from the dock is quicker.
+- **Found on the way:** real photos are never straight down. "Straighten a photo before tracing" goes on the wishlist (S).
+- **Not tried:** a vision model on a server (servers are off the table until beta testing).
 
 ### Release 10 — The garden in 3D (planned)
 - "See it in 3D" in the ⋯ menu and Show.
