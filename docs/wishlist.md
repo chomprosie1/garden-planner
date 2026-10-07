@@ -25,3 +25,6 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Recent searches, and searching jobs and journal notes | Build, Stage 13c | S | Search finds plants, things on the plan and actions |
 | Jobs for the week, not just the month, on the plan | Build, Stage 14 | S | Chips show the month's jobs |
 | Ideas for an empty bed from your own sowing list | Build, Stage 14 | S | For now, quick crops that can go in that month |
+| Days to crop for your own plants, in the plant form | Build, Stage 16 | S | Your own plants go by their months, moved with the season |
+| A warmer or cooler correction for your garden (a city, a hillside, a frost pocket) | Build, Stage 16 | S | For now, the nearest stations’ averages and your own frost dates |
+| Check-progress jobs from the warmth, not the month | Build, Stage 16 | S | The planting panel’s “Probably flowering by now” already uses it |

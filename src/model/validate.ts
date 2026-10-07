@@ -228,6 +228,18 @@ export function validatePlant(p: unknown): string[] {
       Array.isArray(p.germinationDays) && p.germinationDays.length === 2 && p.germinationDays.every((d) => Number.isInteger(d) && d >= 1) && (p.germinationDays[0] as number) <= (p.germinationDays[1] as number),
       'germinationDays must be [fewest, most] days.',
     );
+  if (p.growth !== undefined) {
+    const gr = p.growth;
+    need(
+      isObject(gr) &&
+        Object.keys(gr).every((k) => k === 'days' || k === 'from' || k === 'baseC') &&
+        (gr.days === undefined ||
+          (Array.isArray(gr.days) && gr.days.length === 2 && gr.days.every((d) => Number.isInteger(d) && d >= 1 && d <= 400) && (gr.days[0] as number) <= (gr.days[1] as number))) &&
+        (gr.from === undefined || gr.from === 'sowing' || gr.from === 'planting') &&
+        (gr.baseC === undefined || (isNum(gr.baseC) && gr.baseC >= 0 && gr.baseC <= 20)),
+      'growth can hold days ([fewest, most], up to 400), from ("sowing" or "planting") and baseC (0 to 20 °C).',
+    );
+  }
   if (p.image !== undefined)
     need(
       isObject(p.image) && isStr(p.image.url) && isStr(p.image.credit) && isStr(p.image.licence) && isStr(p.image.sourceUrl),

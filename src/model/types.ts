@@ -246,11 +246,25 @@ export interface Plant {
   art?: PlantArt;
   /** Days from sowing until seedlings usually show, fewest and most. Falls back to one to three weeks. */
   germinationDays?: [number, number];
+  /** How fast it grows, for growing degree days. See src/lifecycle/growth.ts. */
+  growth?: Growth;
   image?: { url: string; credit: string; licence: string; sourceUrl: string }; // PD, CC0, CC BY or CC BY-SA only
   source?: string;
   lastChecked?: string; // ISO date
   verified: boolean;
   userAdded: boolean;
+}
+
+export interface Growth {
+  /**
+   * Days to the first harvest (or the first flowers, for a plant grown for its flowers), fewest and most, in a usual
+   * summer in the middle of England, as on seed packets.
+   */
+  days?: [number, number];
+  /** What the days count from: sowing outside, or planting out (the default). */
+  from?: 'sowing' | 'planting';
+  /** Below this it hardly grows, °C. Absent: 10 °C for tender plants and 5 °C for the rest. */
+  baseC?: number;
 }
 
 /** The shape of a plant seen from above. */

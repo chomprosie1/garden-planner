@@ -6,6 +6,7 @@ import type { PrefsStore } from '../theme/prefs';
 import { downloadFile, parseFileText } from '../storage/file';
 import { Icon } from './icons';
 import { estimateFrost, frostDates, inYear, short } from '../lifecycle/shed';
+import { averagesAt, referenceAverages, seasonDays, stationNames, yearDegreeDays } from '../climate/warmth';
 
 interface Props {
   store: Store;
@@ -95,6 +96,7 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
           </p>
         </fieldset>
         <FrostDates store={store} garden={garden} />
+        <Warmth garden={garden} />
       </section>
 
       <section class="card" aria-labelledby="backup">
@@ -228,6 +230,41 @@ function FrostDates({ store, garden }: { store: Store; garden: Garden }) {
             </button>
           </>
         )}
+      </p>
+    </div>
+  );
+}
+
+const one = (n: number) => `${Math.round(n * 10) / 10} °C`;
+const listed = (names: string[]) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0]!);
+
+/** The usual warmth here, from UK climate averages: what times growth on the plan's year. */
+function Warmth({ garden }: { garden: Garden }) {
+  const av = averagesAt(garden.latitude, garden.longitude);
+  const dd = yearDegreeDays(av);
+  const ref = yearDegreeDays(referenceAverages());
+  const diff = Math.round(((dd - ref) / ref) * 100);
+  const compared = Math.abs(diff) < 3 ? 'about the same as' : `about ${Math.abs(diff)}% ${diff > 0 ? 'more than' : 'less than'}`;
+  return (
+    <div class="warmth">
+      <h3>Your climate</h3>
+      <dl class="facts">
+        <dt>July days</dt>
+        <dd>{one(av.tmax[6]!)}</dd>
+        <dt>January nights</dt>
+        <dd>{one(av.tmin[0]!)}</dd>
+        <dt>Growing season</dt>
+        <dd>{seasonDays(av)} days above 5 °C</dd>
+        <dt>Warmth for growing</dt>
+        <dd>
+          {dd.toLocaleString('en-GB')} degree days a year, {compared} the middle of England
+        </dd>
+      </dl>
+      <p class="muted small">
+        Averages for 1991–2020 from the weather stations nearest you: {listed(stationNames(av))}
+        {av.nearestKm > 150 ? `, the nearest ${av.nearestKm} km away, so take them as rough` : ''}. They time how fast crops grow on the plan's year:
+        sooner where it's warmer, later where it's cooler, and sooner still under glass. A sheltered garden, a city or a hillside can differ by a degree or two,
+        and any year can be warmer or colder.
       </p>
     </div>
   );

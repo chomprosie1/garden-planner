@@ -40,6 +40,7 @@
       8,
       9
     ],
+    "growth": { "days": [50, 70], "from": "planting" },
     "lookOutFor": [
       "Pick the flowers every few days or they stop coming. Needs canes or netting.",
       "The seeds are poisonous (check)."
@@ -119,6 +120,7 @@
       8,
       9
     ],
+    "growth": { "days": [60, 75], "from": "planting" },
     "lookOutFor": [
       "Tall kinds need staking in windy gardens. Leave seed heads for the birds."
     ],
@@ -179,6 +181,7 @@
       9,
       10
     ],
+    "growth": { "days": [25, 40], "from": "planting" },
     "lookOutFor": [
       "Often grown beside tomatoes, where it is said to deter whitefly."
     ],
@@ -239,6 +242,7 @@
       9,
       10
     ],
+    "growth": { "days": [45, 60], "from": "sowing" },
     "lookOutFor": [
       "Petals are edible. Self-seeds freely."
     ],
@@ -297,6 +301,7 @@
       9,
       10
     ],
+    "growth": { "days": [30, 40], "from": "planting" },
     "lookOutFor": [
       "Leaves and flowers are edible.",
       "Draws blackfly and cabbage white butterflies away from nearby crops."
@@ -367,6 +372,7 @@
       9,
       10
     ],
+    "growth": { "days": [40, 55], "from": "planting" },
     "lookOutFor": [
       "Cut the flowers often for more."
     ],
@@ -432,6 +438,7 @@
       8,
       9
     ],
+    "growth": { "days": [35, 50], "from": "planting" },
     "pests": [
       {
         "name": "Slugs and snails",
@@ -1492,6 +1499,7 @@
       7,
       8
     ],
+    "growth": { "days": [60, 75], "from": "sowing" },
     "lookOutFor": [
       "Autumn sowings flower earlier and stronger."
     ],
@@ -1541,6 +1549,7 @@
       7,
       8
     ],
+    "growth": { "days": [60, 80], "from": "sowing" },
     "lookOutFor": [
       "Self-seeds on disturbed ground."
     ],
@@ -1590,6 +1599,7 @@
       7,
       8
     ],
+    "growth": { "days": [65, 85], "from": "sowing" },
     "lookOutFor": [
       "Seed pods dry well for arrangements. Self-seeds."
     ],

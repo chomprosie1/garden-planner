@@ -146,8 +146,8 @@ export function flowerMonthsOf(plant: Plant): number[] {
 }
 
 /**
- * The stage a planting has probably reached in this month, when that's later than the stage you've marked.
- * For now this comes from the plant's months; growing degree days will sharpen it later.
+ * The stage a planting has probably reached in this month, when that's later than the stage you've marked: from the
+ * plant's months, for the month's jobs. For a day, projection.ts's probableStage uses growing degree days.
  * Only flowering and harvesting are guessed: earlier stages need you to look.
  */
 export function suggestedStage(plant: Plant, pl: Planting, month: number): Stage | null {

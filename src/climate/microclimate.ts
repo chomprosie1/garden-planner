@@ -1,8 +1,8 @@
 // Greenhouses and cold frames as microclimates: warmer by day and at night
 // than the garden around them. A planting in one, or in a bed inside one, is
 // under cover: it can go in sooner, needs no hardening off and no winter
-// protection, and gets no rain. Growing degree days (Stage 16) will use the
-// same gains to speed up its growth. Pure functions.
+// protection, gets no rain, and grows faster in the warmth (warmth.ts adds
+// the same gains to its growing degree days). Pure functions.
 
 import { pointInPolygon } from '../geometry/polygon';
 import type { Climate, Feature, Garden, Planting, Point, ShedPlace } from '../model/types';
@@ -102,5 +102,5 @@ export function climateText(c: Climate): string {
 export function coverEffects(c: Climate): string {
   const sooner = frostShiftDays(c);
   const go = sooner ? `Plants can go in ${shiftText(sooner)} sooner than outside, and need` : 'Plants need';
-  return `${go} no hardening off or winter protection. Nothing under glass gets rain, so water everything.`;
+  return `${go} no hardening off or winter protection, and crops come on faster in the warmth. Nothing under glass gets rain, so water everything.`;
 }

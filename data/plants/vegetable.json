@@ -11,6 +11,7 @@
       { "method": "direct", "months": [10, 11], "depthMm": 50, "notes": "Autumn sowings of hardy varieties such as 'Aquadulce' crop earliest." }
     ],
     "cropping": { "harvestMonths": [5, 6, 7, 8], "notes": "Pick while the pods are plump but the beans are still soft." },
+    "growth": { "days": [80, 100], "from": "sowing" },
     "lookOutFor": ["Tall plants flop in wind; support with canes and string."],
     "pests": [
       { "name": "Black bean aphid", "signs": "Dense black aphids on the shoot tips", "control": "Pinch out the tips once the first pods have set; rub off small colonies by hand." },
@@ -44,6 +45,7 @@
     ],
     "plantOutMonths": [5, 6],
     "cropping": { "harvestMonths": [7, 8, 9, 10], "notes": "Pick every few days, before the beans swell, to keep plants cropping." },
+    "growth": { "days": [55, 70], "from": "planting" },
     "lookOutFor": ["Flowers fail to set pods in hot, dry spells; water the roots well."],
     "pests": [
       { "name": "Slugs", "signs": "Young plants grazed overnight, slime trails", "control": "Plant out sturdy plants, check after dark, and protect seedlings with barriers or cloches." },
@@ -83,6 +85,7 @@
     ],
     "plantOutMonths": [5, 6],
     "cropping": { "harvestMonths": [7, 8, 9, 10], "notes": "Pick young and often." },
+    "growth": { "days": [45, 60], "from": "planting" },
     "lookOutFor": ["Cold, wet soil rots seeds; wait for warmth."],
     "pests": [
       { "name": "Slugs", "signs": "Seedlings eaten off at soil level", "control": "Raise plants indoors and plant out when larger; check after dark." },
@@ -112,6 +115,7 @@
     "size": { "heightMm": 1500, "spreadMm": 200, "spacingMm": 50, "closeSpacingMm": 75, "rowSpacingMm": 600 },
     "sowing": [{ "method": "direct", "months": [3, 4, 5, 6], "depthMm": 40, "notes": "Sow in a wide, flat drill, about 5 cm apart each way." }],
     "cropping": { "harvestMonths": [6, 7, 8, 9], "notes": "Pick regularly from the bottom of the plant up." },
+    "growth": { "days": [70, 90], "from": "sowing" },
     "lookOutFor": ["Needs pea sticks or netting to climb."],
     "pests": [
       { "name": "Pea moth", "signs": "Small caterpillars inside the pods", "control": "Sow early or late so flowering misses midsummer, or cover with fleece while in flower." },
@@ -145,6 +149,7 @@
     "size": { "heightMm": 600, "spreadMm": 500, "spacingMm": 350, "closeSpacingMm": 300, "rowSpacingMm": 650 },
     "sowing": [{ "method": "direct", "months": [3, 4, 5], "depthMm": 120, "notes": "Plant chitted seed potatoes: first earlies in late March, maincrop by early May." }],
     "cropping": { "harvestMonths": [6, 7, 8, 9, 10], "notes": "Earlies when the flowers open; maincrop when the foliage dies back." },
+    "growth": { "days": [75, 100], "from": "sowing", "baseC": 7 },
     "lookOutFor": ["Earth up shoots as they appear to protect them from frost and stop tubers turning green."],
     "pests": [
       { "name": "Potato blight", "signs": "Brown patches on leaves and stems in warm, wet weather; tubers rot", "control": "Grow resistant varieties, cut off and remove infected foliage, and lift tubers two weeks later." },
@@ -251,6 +256,7 @@
     "sowing": [{ "method": "cold-frame", "months": [3, 4], "depthMm": 10, "notes": "Sow in a seedbed or modules." }],
     "plantOutMonths": [6, 7],
     "cropping": { "harvestMonths": [9, 10, 11, 12, 1, 2, 3], "notes": "Lift as needed through autumn and winter." },
+    "growth": { "days": [80, 110], "from": "planting" },
     "lookOutFor": ["Transplant when pencil-thick into deep dibber holes and fill them with water, not soil, for long white stems."],
     "pests": [
       { "name": "Allium leaf miner", "signs": "Lines of tiny white dots on leaves; twisted stems with brown pupae", "control": "Cover with fine insect mesh in spring and autumn when the flies are active." },
@@ -273,6 +279,7 @@
     "size": { "heightMm": 300, "spreadMm": 50, "spacingMm": 20, "closeSpacingMm": 50, "rowSpacingMm": 150 },
     "sowing": [{ "method": "direct", "months": [3, 4, 5, 6, 7, 8], "depthMm": 10, "notes": "Sow thinly every few weeks for a steady supply." }],
     "cropping": { "harvestMonths": [5, 6, 7, 8, 9, 10], "notes": "Pull when about pencil-thick." },
+    "growth": { "days": [56, 70], "from": "sowing" },
     "lookOutFor": ["Easy to grow in a pot or between slower crops."],
     "pests": [{ "name": "Onion white rot", "signs": "Yellowing leaves and white mould at the base", "control": "Rotate crops; avoid ground where white rot has been." }],
     "companions": { "good": ["carrot", "lettuce"], "avoid": ["pea", "broad-bean"] },
@@ -291,6 +298,7 @@
     "size": { "heightMm": 300, "spreadMm": 100, "spacingMm": 60, "closeSpacingMm": 60, "rowSpacingMm": 150 },
     "sowing": [{ "method": "direct", "months": [3, 4, 5, 6, 7], "depthMm": 10, "notes": "Sow very thinly every three weeks; thin to about 6 cm." }],
     "cropping": { "harvestMonths": [6, 7, 8, 9, 10, 11], "notes": "Pull young for sweetness, or leave maincrops to size up." },
+    "growth": { "days": [70, 100], "from": "sowing" },
     "lookOutFor": ["Stony or freshly manured soil gives forked roots."],
     "pests": [{ "name": "Carrot fly", "signs": "Rusty-brown tunnels in the roots", "control": "Cover with fine insect mesh; sow thinly so you don't have to thin, as the smell attracts the fly." }],
     "companions": { "good": ["onion", "leek", "pea"], "avoid": [] },
@@ -309,6 +317,7 @@
     "size": { "heightMm": 400, "spreadMm": 200, "spacingMm": 150, "closeSpacingMm": 150, "rowSpacingMm": 300 },
     "sowing": [{ "method": "direct", "months": [3, 4, 5], "depthMm": 15, "notes": "Use fresh seed each year; germination is slow." }],
     "cropping": { "harvestMonths": [10, 11, 12, 1, 2, 3], "notes": "Flavour sweetens after a frost." },
+    "growth": { "days": [130, 160], "from": "sowing" },
     "lookOutFor": ["Slow to come up; mark the row with quick radishes."],
     "pests": [
       { "name": "Parsnip canker", "signs": "Orange-brown rough patches on the shoulders of the root", "control": "Grow resistant varieties and sow a little later." },
@@ -330,6 +339,7 @@
     "size": { "heightMm": 300, "spreadMm": 150, "spacingMm": 100, "closeSpacingMm": 100, "rowSpacingMm": 300 },
     "sowing": [{ "method": "direct", "months": [4, 5, 6, 7], "depthMm": 25, "notes": "Each 'seed' is a cluster; thin to the strongest seedling." }],
     "cropping": { "harvestMonths": [6, 7, 8, 9, 10], "notes": "Pull when golf-ball to tennis-ball size." },
+    "growth": { "days": [60, 80], "from": "sowing" },
     "lookOutFor": ["Early sowings may bolt in cold spells; choose bolt-resistant varieties."],
     "pests": [{ "name": "Birds", "signs": "Seedlings pecked", "control": "Cover with netting or fleece until established." }],
     "companions": { "good": ["onion", "garlic", "lettuce"], "avoid": [] },
@@ -348,6 +358,7 @@
     "size": { "heightMm": 150, "spreadMm": 50, "spacingMm": 25, "closeSpacingMm": 50, "rowSpacingMm": 150 },
     "sowing": [{ "method": "direct", "months": [3, 4, 5, 6, 7, 8, 9], "depthMm": 10, "notes": "Sow little and often; ready in about four weeks." }],
     "cropping": { "harvestMonths": [4, 5, 6, 7, 8, 9, 10], "notes": "Pick young; old roots turn woody and hot." },
+    "growth": { "days": [25, 30], "from": "sowing" },
     "lookOutFor": ["Dry soil makes them split or run to seed."],
     "pests": [{ "name": "Flea beetle", "signs": "Lots of small round holes in the leaves", "control": "Cover with fleece and keep the soil moist." }],
     "companions": { "good": ["pea", "lettuce", "parsnip"], "avoid": [] },
@@ -366,6 +377,7 @@
     "size": { "heightMm": 300, "spreadMm": 200, "spacingMm": 150, "closeSpacingMm": 150, "rowSpacingMm": 250 },
     "sowing": [{ "method": "direct", "months": [3, 4, 5, 6, 7, 8], "depthMm": 15 }],
     "cropping": { "harvestMonths": [5, 6, 7, 8, 9, 10, 11], "notes": "Pull early varieties at golf-ball size." },
+    "growth": { "days": [42, 70], "from": "sowing" },
     "lookOutFor": ["A brassica: grow it with the cabbage family in your rotation."],
     "pests": [
       { "name": "Flea beetle", "signs": "Small holes in young leaves", "control": "Cover with fleece and keep watered." },
@@ -391,6 +403,7 @@
     ],
     "plantOutMonths": [4, 5, 6, 7, 8],
     "cropping": { "harvestMonths": [5, 6, 7, 8, 9, 10], "notes": "Cut whole heads, or pick outer leaves from loose-leaf types." },
+    "growth": { "days": [35, 50], "from": "planting" },
     "lookOutFor": ["Runs to seed in heat and drought; some midday shade helps in summer."],
     "pests": [
       { "name": "Slugs", "signs": "Ragged holes and slime trails", "control": "Check after dark, use barriers, and water in the morning rather than evening." },
@@ -423,6 +436,7 @@
       { "method": "direct", "months": [8, 9], "depthMm": 20, "notes": "Late sowings crop through autumn and again in spring." }
     ],
     "cropping": { "harvestMonths": [4, 5, 6, 7, 9, 10, 11], "notes": "Pick leaves young; cut-and-come-again." },
+    "growth": { "days": [40, 55], "from": "sowing" },
     "lookOutFor": ["Bolts quickly in hot, dry weather; keep it watered and lightly shaded."],
     "pests": [
       { "name": "Downy mildew", "signs": "Yellow patches on top of leaves, grey mould beneath", "control": "Thin for airflow and water at the base." },
@@ -444,6 +458,7 @@
     "size": { "heightMm": 450, "spreadMm": 300, "spacingMm": 300, "closeSpacingMm": 250, "rowSpacingMm": 400 },
     "sowing": [{ "method": "direct", "months": [4, 5, 6, 7], "depthMm": 25 }],
     "cropping": { "harvestMonths": [7, 8, 9, 10, 11, 3, 4, 5], "notes": "Pick outer leaves and stems; plants keep producing." },
+    "growth": { "days": [55, 70], "from": "sowing" },
     "lookOutFor": ["One of the easiest leafy crops, and colourful in a border."],
     "pests": [{ "name": "Slugs", "signs": "Holes in young leaves", "control": "Check after dark; protect young plants." }],
     "companions": { "good": ["onion", "lettuce"], "avoid": [] },
@@ -463,6 +478,7 @@
     "sowing": [{ "method": "cold-frame", "months": [4, 5, 6], "depthMm": 15, "notes": "Sow in a seedbed or modules." }],
     "plantOutMonths": [6, 7],
     "cropping": { "harvestMonths": [9, 10, 11, 12, 1, 2, 3], "notes": "Pick young leaves from the top down." },
+    "growth": { "days": [55, 75], "from": "planting" },
     "lookOutFor": ["Plant firmly; brassicas dislike loose soil."],
     "pests": [
       { "name": "Pigeons", "signs": "Leaves torn to the ribs, especially in winter", "control": "Cover with netting held clear of the leaves." },
@@ -486,6 +502,7 @@
     "sowing": [{ "method": "cold-frame", "months": [3, 4, 5, 6, 7], "depthMm": 15, "notes": "Spring, summer, autumn and winter types; sow at the time each needs." }],
     "plantOutMonths": [5, 6, 7, 8],
     "cropping": { "harvestMonths": [6, 7, 8, 9, 10, 11, 12, 1, 2, 3], "notes": "Cut when the heads feel firm." },
+    "growth": { "days": [70, 100], "from": "planting" },
     "lookOutFor": ["Plant very firmly and water in well."],
     "pests": [
       { "name": "Cabbage root fly", "signs": "Young plants wilt; white maggots at the roots", "control": "Fit a collar around the stem when planting, or grow under mesh." },
@@ -534,6 +551,7 @@
     ],
     "plantOutMonths": [5, 6, 7],
     "cropping": { "harvestMonths": [7, 8, 9, 10], "notes": "Cut the main head while the buds are tight; side shoots follow." },
+    "growth": { "days": [55, 75], "from": "planting" },
     "lookOutFor": ["Check often in warm weather; heads open into yellow flowers quickly."],
     "pests": [{ "name": "Cabbage white caterpillars", "signs": "Holes in leaves and heads", "control": "Cover with fine mesh." }],
     "companions": { "good": ["onion", "beetroot"], "avoid": ["tomato"] },
@@ -553,6 +571,7 @@
     "sowing": [{ "method": "cold-frame", "months": [3, 4, 5], "depthMm": 15 }],
     "plantOutMonths": [5, 6],
     "cropping": { "harvestMonths": [7, 8, 9, 10, 11], "notes": "Cut while the curd is firm and white." },
+    "growth": { "days": [80, 100], "from": "planting" },
     "lookOutFor": ["Needs steady watering; a check in growth gives small, loose heads. Fold leaves over the curd to keep it white."],
     "pests": [
       { "name": "Cabbage white caterpillars", "signs": "Holes in leaves", "control": "Cover with fine mesh." },
@@ -575,6 +594,7 @@
     "sowing": [{ "method": "cold-frame", "months": [3, 4], "depthMm": 15 }],
     "plantOutMonths": [5, 6],
     "cropping": { "harvestMonths": [10, 11, 12, 1, 2], "notes": "Pick sprouts from the bottom of the stem up." },
+    "growth": { "days": [120, 150], "from": "planting" },
     "lookOutFor": ["Firm the soil well and stake tall plants against winter wind."],
     "pests": [
       { "name": "Pigeons", "signs": "Leaves torn in winter", "control": "Net the crop." },
@@ -600,6 +620,7 @@
     ],
     "plantOutMonths": [5, 6],
     "cropping": { "harvestMonths": [7, 8, 9, 10], "notes": "Pick at 10–15 cm, every couple of days in summer." },
+    "growth": { "days": [40, 55], "from": "planting" },
     "lookOutFor": ["One or two plants feed a family; water heavily at the base."],
     "pests": [
       { "name": "Powdery mildew", "signs": "White powder on the leaves in late summer", "control": "Water at the roots in dry weather and remove the worst leaves." },
@@ -633,6 +654,7 @@
     "sowing": [{ "method": "indoors", "months": [4, 5], "depthMm": 25, "notes": "Sow seed on its edge in small pots." }],
     "plantOutMonths": [6],
     "cropping": { "harvestMonths": [9, 10], "notes": "Cut with a length of stalk before the first frost." },
+    "growth": { "days": [80, 100], "from": "planting" },
     "lookOutFor": ["Trailing plants need plenty of room, or train them up a strong support."],
     "pests": [
       { "name": "Powdery mildew", "signs": "White powder on the leaves late in the season", "control": "Water at the roots; it rarely harms the fruit this late." },
@@ -663,6 +685,7 @@
     "sowing": [{ "method": "indoors", "months": [3, 4, 5], "depthMm": 15, "notes": "Needs warmth to germinate." }],
     "plantOutMonths": [5, 6],
     "cropping": { "harvestMonths": [7, 8, 9], "notes": "Pick regularly before the fruits yellow." },
+    "growth": { "days": [45, 60], "from": "planting" },
     "lookOutFor": ["Greenhouse types need warmth; outdoor ridge types suit a sunny, sheltered spot."],
     "pests": [
       { "name": "Powdery mildew", "signs": "White powder on the leaves", "control": "Keep the roots moist and the air moving." },
@@ -696,6 +719,7 @@
     "sowing": [{ "method": "indoors", "months": [2, 3, 4], "depthMm": 5, "notes": "Needs warmth to germinate; earliest for a greenhouse." }],
     "plantOutMonths": [5, 6],
     "cropping": { "harvestMonths": [7, 8, 9, 10], "notes": "Pick as the fruits colour; ripen the last green ones indoors." },
+    "growth": { "days": [60, 80], "from": "planting" },
     "lookOutFor": [
       "Pinch out side shoots on tall (cordon) varieties and tie the stem to a cane.",
       "Water regularly; uneven watering causes split fruit and blossom end rot."
@@ -739,6 +763,7 @@
     ],
     "plantOutMonths": [5, 6],
     "cropping": { "harvestMonths": [8, 9], "notes": "Ready when the tassels turn brown and the juice of a squeezed kernel is milky." },
+    "growth": { "days": [75, 95], "from": "planting" },
     "lookOutFor": ["Plant in a block, not a single row, so the wind pollinates the cobs."],
     "pests": [
       { "name": "Mice and birds", "signs": "Seeds dug up; cobs pecked", "control": "Raise plants indoors; net ripening cobs if needed." },
@@ -772,6 +797,7 @@
     "sowing": [{ "method": "indoors", "months": [1, 2, 3], "depthMm": 5, "notes": "Needs about 20°C to germinate; a heated propagator helps." }],
     "plantOutMonths": [5, 6],
     "cropping": { "harvestMonths": [7, 8, 9, 10], "notes": "Pick green or leave to ripen to full colour and heat." },
+    "growth": { "days": [60, 90], "from": "planting" },
     "lookOutFor": ["Best in a greenhouse or a sunny, sheltered spot against a wall."],
     "pests": [
       { "name": "Aphids", "signs": "Clusters on shoot tips and under leaves", "control": "Squash or rinse off; encourage ladybirds." },
@@ -839,6 +865,7 @@
       ],
       "notes": "Pick young leaves; it regrows."
     },
+    "growth": { "days": [30, 40], "from": "sowing" },
     "pests": [
       {
         "name": "Flea beetle",
@@ -896,6 +923,7 @@
         10
       ]
     },
+    "growth": { "days": [30, 45], "from": "sowing" },
     "pests": [
       {
         "name": "Flea beetle",
@@ -964,6 +992,7 @@
       ],
       "notes": "Pick when the size of a tennis ball, before it turns woody."
     },
+    "growth": { "days": [45, 60], "from": "sowing" },
     "pests": [
       {
         "name": "Flea beetle",
@@ -1025,6 +1054,7 @@
         2
       ]
     },
+    "growth": { "days": [100, 130], "from": "sowing" },
     "pests": [
       {
         "name": "Flea beetle",
@@ -1093,6 +1123,7 @@
         3
       ]
     },
+    "growth": { "days": [110, 140], "from": "planting" },
     "lookOutFor": [
       "Keep well watered all summer or the roots stay small."
     ],
@@ -1155,6 +1186,7 @@
         10
       ]
     },
+    "growth": { "days": [80, 100], "from": "planting", "baseC": 6 },
     "lookOutFor": [
       "Self-blanching kinds grow best in a block, not a row."
     ],
@@ -1225,6 +1257,7 @@
       ],
       "notes": "Pick green, or leave to ripen to red or yellow."
     },
+    "growth": { "days": [60, 80], "from": "planting" },
     "lookOutFor": [
       "Best in a greenhouse; outside only in a warm, sheltered spot."
     ],
@@ -1298,6 +1331,7 @@
         10
       ]
     },
+    "growth": { "days": [65, 85], "from": "planting" },
     "lookOutFor": [
       "Best in a greenhouse in the UK."
     ],
@@ -1486,6 +1520,7 @@
       ],
       "notes": "Pick a few leaves at a time through the winter."
     },
+    "growth": { "days": [45, 60], "from": "sowing" },
     "companions": {
       "good": [],
       "avoid": []
@@ -1543,6 +1578,7 @@
       ],
       "notes": "Cut and come again: it regrows several times."
     },
+    "growth": { "days": [25, 40], "from": "sowing" },
     "pests": [
       {
         "name": "Flea beetle",

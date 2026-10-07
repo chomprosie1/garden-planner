@@ -41,6 +41,7 @@
       ],
       "notes": "Pinch out shoot tips to keep plants bushy; pick before it flowers."
     },
+    "growth": { "days": [25, 35], "from": "planting" },
     "lookOutFor": [
       "Water in the morning, not the evening: cold, wet nights make it rot."
     ],
@@ -122,6 +123,7 @@
       ],
       "notes": "Cut the outer stalks first."
     },
+    "growth": { "days": [45, 60], "from": "planting" },
     "pests": [
       {
         "name": "Carrot fly",
@@ -190,6 +192,7 @@
       ],
       "notes": "Pick leaves young; let a few plants flower for seed."
     },
+    "growth": { "days": [40, 55], "from": "sowing" },
     "lookOutFor": [
       "Runs to seed quickly in hot, dry weather: a little shade and steady watering help."
     ],
@@ -583,6 +586,7 @@
       ],
       "notes": "Pick the feathery leaves young; seeds follow in late summer."
     },
+    "growth": { "days": [40, 60], "from": "sowing" },
     "lookOutFor": [
       "Flowers draw hoverflies, which eat aphids."
     ],

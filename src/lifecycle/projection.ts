@@ -1,15 +1,19 @@
 // The garden through the year: where each planting is on any day, a year
 // either side of today. Up to today it's what you've marked. After today it's
 // carried on from there with the plant's usual months (sowing, planting out,
-// flowering, harvest), so a projected stage is a guess, and says so. Growing
-// degree days will sharpen it later. Pure functions.
+// flowering, harvest), sharpened by growing degree days from UK climate
+// averages: crops come on with the warmth they get, so they're sooner in the
+// south and under glass, and tender ones end at the first frost. A projected
+// stage is a guess, and says so. Pure functions.
 
 import { isCover, microclimateOf, type Cover } from '../climate/microclimate';
+import { coverKey } from '../climate/warmth';
 import { featureLabel } from '../model/features';
 import { STAGES, type Feature, type Garden, type Plant, type Planting, type Stage } from '../model/types';
 import { isContainer } from '../planting/place';
-import { addDays, germination, hardenFrom, plantInFrom, plantOutFrom } from './shed';
-import { currentStage, flowerMonthsOf, pathFor, perennial, sowingOf, type LifeStage } from './stages';
+import { readyFrom, runsOf, seasonMonth, seasonShift, upFrom } from './growth';
+import { addDays, frostDatesUnder, germination, hardenFrom, inYear, isTender, plantInFrom, plantOutFrom } from './shed';
+import { currentStage, flowerMonthsOf, isGrowingStage, pathFor, perennial, sowingOf, type LifeStage } from './stages';
 
 export interface Step {
   stage: LifeStage;
@@ -74,31 +78,134 @@ function marked(pl: Planting): Step[] {
 /** Stops a projection running on for ever: a perennial goes round about twice in two years. */
 const MAX_STEPS = 16;
 
-/** The next step after a stage reached on a date, from the plant's usual months; null when nothing more is expected. */
-function after(plant: Plant, pl: Planting, g: Garden, stage: LifeStage, date: string, cover: Cover | null): Step | null {
+const later = (a: string, b: string) => (a > b ? a : b);
+const sooner = (a: string, b: string) => (a < b ? a : b);
+
+/** What a projection knows besides the stage: the cover over the planting, and when it went in the ground. */
+interface Context {
+  plant: Plant;
+  pl: Planting;
+  g: Garden;
+  cover: Cover | null;
+  /** When it was sown outside or planted out, the day its growing degree days count from; null before that. */
+  start: string | null;
+}
+
+/**
+ * The runs of these months around a day, as [first day, day after], moved with the season: a run starts `shift` days
+ * later (sooner, if negative). A month or two of flowers or fruit ends the same amount later; a longer season ends that
+ * much sooner, since where spring comes late, autumn comes early (and the other way round under glass).
+ */
+const seasonCache = new Map<string, [string, string][]>();
+
+function seasons(around: string, months: number[], shift: number): [string, string][] {
+  const year = yearOf(around);
+  const key = `${months.join(',')}|${shift}|${year}`;
+  const hit = seasonCache.get(key);
+  if (hit) return hit;
+  const out: [string, string][] = [];
+  for (let y = year - 1; y <= year + 2; y++)
+    for (const run of runsOf(months)) {
+      const first = firstOf(y, run[0]!);
+      const from = addDays(first, shift);
+      const to = addDays(afterRun(first, run), run.length >= 3 ? -shift : shift);
+      if (from < to) out.push([from, to]);
+    }
+  out.sort((a, b) => (a[0] < b[0] ? -1 : 1));
+  seasonCache.set(key, out);
+  return out;
+}
+
+/** The next day in these months, with the season moved by `shift` days: a spring that comes two weeks sooner brings the months two weeks sooner. */
+export function nextInSeason(from: string, months: number[], shift: number): string | null {
+  const run = seasons(from, months, shift).find(([, to]) => to > from);
+  return run ? later(run[0], from) : null;
+}
+
+/**
+ * The end of the run of these months that `from` is in, or the next one if it's come early (sprouts ready before their
+ * months stand until the end of them), moved with the season. The day after `from` if there's none within three months.
+ */
+export function afterSeason(from: string, months: number[], shift: number): string {
+  const run = seasons(from, months, shift).find(([, to]) => to > from);
+  return run && run[0] <= addDays(from, 92) ? run[1] : addDays(from, 1);
+}
+
+const frosts = new WeakMap<Garden, Map<string, ReturnType<typeof frostDatesUnder>>>();
+
+/** The garden's frost dates, outdoors or under a cover, kept with the garden while it's unchanged. */
+function frostsFor(g: Garden, cover: Cover | null) {
+  let mine = frosts.get(g);
+  if (!mine) frosts.set(g, (mine = new Map()));
+  const key = coverKey(cover?.climate ?? null);
+  if (!mine.has(key)) mine.set(key, frostDatesUnder(g, cover?.climate ?? null));
+  return mine.get(key)!;
+}
+
+/** Tender annuals outside, or under unheated glass, die at the first autumn frost after they went in. Null when that's not a worry. */
+function frostEnd(c: Context, from: string): string | null {
+  const { plant, g, cover } = c;
+  if (!isTender(plant) || perennial(plant)) return null;
+  const frost = frostsFor(g, cover);
+  if (!frost) return null;
+  const sameYear = inYear(frost.firstFrost, yearOf(from));
+  return sameYear > from ? sameYear : inYear(frost.firstFrost, yearOf(from) + 1);
+}
+
+/** The next step after a stage reached on a date, from the warmth it gets and the plant's usual months; null when nothing more is expected. */
+function after(c: Context, stage: LifeStage, date: string): Step | null {
+  const { plant, pl, g, cover } = c;
   const path = pathFor(plant, pl, !!cover);
-  const later = (s: Stage) => path.includes(s) && order(s) > order(stage);
+  const ahead = (s: Stage) => path.includes(s) && order(s) > order(stage);
   const step = (s: LifeStage, d: string | null): Step | null => (d ? { stage: s, date: d, guessed: true } : null);
+  const climate = cover?.climate ?? null;
   const flowerMonths = flowerMonthsOf(plant);
   const harvestMonths = plant.cropping?.harvestMonths ?? [];
+  // How much sooner or later its season comes here than in the middle of England.
+  const shiftFor = (months: number[]) => {
+    const m = seasonMonth(months);
+    return m ? seasonShift(g, climate, m) : 0;
+  };
+  // When the crop's had the warmth to be ready: the first harvest (or flowers, for a plant grown for them). A perennial
+  // comes round with the seasons instead.
+  const cropMonths = path.includes('harvesting') ? harvestMonths : flowerMonths;
+  const ready = (share = 1) => (c.start && !perennial(plant) ? readyFrom(plant, pl, g, c.start, climate, share) : null);
+  // A late sowing still crops before its season's out: the warmth can't push the first harvest past two weeks before
+  // the end of its months.
+  const cropBy = (): string | null => {
+    const d = ready();
+    if (!d || !c.start || !cropMonths.length) return d;
+    const shift = shiftFor(cropMonths);
+    const open = nextInSeason(c.start, cropMonths, shift);
+    if (!open) return d;
+    const close = addDays(afterSeason(open, cropMonths, shift), -14);
+    return d > close ? later(close, open) : d;
+  };
+  // A tender annual that hasn't got there by the first frost is finished.
+  const orFrost = (s: Stage, d: string | null): Step | null => {
+    const frost = frostEnd(c, c.start ?? date);
+    return d && frost && frost < d ? step('cleared', later(frost, addDays(date, 1))) : step(s, d);
+  };
   switch (stage) {
     case 'planned':
     case 'cleared':
       return null;
     case 'sown': {
       const [min, max] = germination(plant);
-      return step('germinated', addDays(date, Math.round((min + max) / 2)));
+      const usual = Math.round((min + max) / 2);
+      // Indoors it's always warm; outside, seeds come up sooner in warm soil and slower in cold.
+      return step('germinated', sowingOf(plant, pl) === 'direct' ? upFrom(plant, g, date, climate, usual) : addDays(date, usual));
     }
     case 'germinated': {
-      if (later('hardening')) {
+      if (ahead('hardening')) {
         // Hardening off starts at its usual time in spring, once the seedlings have had a month to grow. A late
         // sowing hardens off as soon as it's ready; an autumn sowing waits for next spring.
-        const ready = addDays(date, 28);
-        const usual = hardenFrom(plant, g, yearOf(ready));
-        return step('hardening', usual >= ready ? usual : monthOf(ready) <= 7 ? ready : hardenFrom(plant, g, yearOf(ready) + 1));
+        const grown = addDays(date, 28);
+        const usual = hardenFrom(plant, g, yearOf(grown));
+        return step('hardening', usual >= grown ? usual : monthOf(grown) <= 7 ? grown : hardenFrom(plant, g, yearOf(grown) + 1));
       }
       // Going under glass: straight in once grown on, with no hardening off.
-      if (cover && later('transplanted')) return step('transplanted', plantInFrom(plant, g, date, cover.climate));
+      if (cover && ahead('transplanted')) return step('transplanted', plantInFrom(plant, g, date, cover.climate));
       return step('vegetative', addDays(date, 21));
     }
     case 'hardening':
@@ -106,26 +213,48 @@ function after(plant: Plant, pl: Planting, g: Garden, stage: LifeStage, date: st
     case 'transplanted':
       return step('vegetative', addDays(date, 21));
     case 'vegetative': {
-      // Whichever comes first: growing on into the harvest months can pass the month it usually flowers.
-      const f = later('flowering') ? nextInMonths(addDays(date, 14), flowerMonths) : null;
-      const h = later('harvesting') ? nextInMonths(addDays(date, 21), harvestMonths) : null;
-      if (f && (!h || f <= h)) return step('flowering', f);
-      return step('harvesting', h);
+      const crop = cropBy();
+      if (crop) {
+        // From the warmth: a fruiting crop flowers a little over halfway to its first harvest, and at least a week before it.
+        const week = addDays(date, 7);
+        if (ahead('flowering')) return orFrost('flowering', later(ahead('harvesting') ? sooner(ready(0.6) ?? crop, addDays(crop, -7)) : crop, week));
+        if (ahead('harvesting')) return orFrost('harvesting', later(crop, week));
+      }
+      // From its months, moved with the season. Whichever comes first: growing on into the harvest months can pass
+      // the month it usually flowers.
+      const f = ahead('flowering') ? nextInSeason(addDays(date, 14), flowerMonths, shiftFor(flowerMonths)) : null;
+      const h = ahead('harvesting') ? nextInSeason(addDays(date, 21), harvestMonths, shiftFor(harvestMonths)) : null;
+      if (f && (!h || f <= h)) return orFrost('flowering', f);
+      return orFrost('harvesting', h);
     }
     case 'flowering': {
-      if (later('harvesting')) return step('harvesting', nextInMonths(addDays(date, 14), harvestMonths));
-      return step(perennial(plant) ? 'vegetative' : 'cleared', afterRun(date, flowerMonths));
+      if (ahead('harvesting')) {
+        const fromMonths = nextInSeason(addDays(date, 14), harvestMonths, shiftFor(harvestMonths));
+        const crop = cropBy();
+        return orFrost('harvesting', crop ? later(crop, addDays(date, 7)) : fromMonths);
+      }
+      // In flower to the end of its flower months, or for at least four weeks if the warmth brought it on late.
+      const end = later(afterSeason(date, flowerMonths, shiftFor(flowerMonths)), addDays(date, 28));
+      if (perennial(plant)) return step('vegetative', end);
+      const frost = frostEnd(c, c.start ?? date);
+      return step('cleared', frost ? later(sooner(end, frost), addDays(date, 1)) : end);
     }
     case 'harvesting': {
-      const end = afterRun(date, harvestMonths.length ? harvestMonths : [monthOf(date)]);
+      const months = harvestMonths.length ? harvestMonths : [monthOf(date)];
+      const end = later(afterSeason(date, months, shiftFor(months)), addDays(date, 28));
       if (perennial(plant)) return step('vegetative', end);
       // Its harvest months cover sowings through the season; one sowing of a quick leafy crop is cut for about six weeks.
       const quick = plant.art?.form === 'rosette' && plant.art.crop?.kind !== 'fruit' && plant.art.crop?.kind !== 'pod';
       const six = addDays(date, 42);
-      return step('cleared', quick && six < end ? six : end);
+      const done = quick && six < end ? six : end;
+      const frost = frostEnd(c, c.start ?? date);
+      return step('cleared', frost ? later(sooner(done, frost), addDays(date, 1)) : done);
     }
   }
 }
+
+/** Steps that put a planting in the ground: planting out, or sowing outside. */
+const startsGrowth = (s: Step, plant: Plant, pl: Planting) => s.date !== null && (s.stage === 'transplanted' || (s.stage === 'sown' && sowingOf(plant, pl) === 'direct'));
 
 /** When a planned planting would usually be sown (or planted, if it isn't grown from seed), on or after today. */
 function firstStep(plant: Plant, pl: Planting, today: string): Step | null {
@@ -147,13 +276,16 @@ export function timeline(plant: Plant, pl: Planting, g: Garden, today: string): 
   const steps = marked(pl);
   if (pl.removedOn) return steps;
   const now = currentStage(pl);
-  const cover = microclimateOf(g, pl);
+  const c: Context = { plant, pl, g, cover: microclimateOf(g, pl), start: null };
+  for (const s of steps) if (startsGrowth(s, plant, pl)) c.start = s.date;
   let last: Step | null;
   if (now === 'planned') last = firstStep(plant, pl, today);
   else {
     // Carry on from the latest stage, measured from when it was reached (or today, if that's not known).
     const latest = steps[steps.length - 1]!;
-    last = after(plant, pl, g, latest.stage, latest.date ?? today, cover);
+    // Growing, with no date for when it went in: count the warmth from when it reached this stage, or today.
+    if (!c.start && isGrowingStage(latest.stage)) c.start = latest.date ?? today;
+    last = after(c, latest.stage, latest.date ?? today);
   }
   const horizon = addDays(today, 800);
   const tomorrow = addDays(today, 1);
@@ -161,7 +293,8 @@ export function timeline(plant: Plant, pl: Planting, g: Garden, today: string): 
     // Each step follows from when the last was due. Nothing guessed shows on or before today: steps that are
     // overdue all land tomorrow, so it's shown at the latest of them.
     steps.push(last.date! <= today ? { ...last, date: tomorrow } : last);
-    last = after(plant, pl, g, last.stage, last.date!, cover);
+    if (startsGrowth(last, plant, pl)) c.start = last.date;
+    last = after(c, last.stage, last.date!);
   }
   return steps;
 }
@@ -178,6 +311,30 @@ export function stageIn(steps: Step[], date: string): Projected {
 
 /** Where a planting is on a day: what you've marked up to today, a guess after. */
 export const stageOn = (plant: Plant, pl: Planting, g: Garden, date: string, today: string): Projected => stageIn(timeline(plant, pl, g, today), date);
+
+/**
+ * The stage a growing planting has probably reached by a day (tomorrow, by default), when that's flowering or
+ * harvesting and later than the stage you've marked. Earlier stages need you to look.
+ */
+export function probableStage(plant: Plant, pl: Planting, g: Garden, today: string, by = addDays(today, 1)): 'flowering' | 'harvesting' | null {
+  const now = currentStage(pl);
+  if (now === 'planned' || now === 'cleared') return null;
+  if (!isGrowingStage(now) && sowingOf(plant, pl) !== 'direct') return null;
+  const at = stageIn(timeline(plant, pl, g, today), by);
+  if (!at.guessed || (at.stage !== 'flowering' && at.stage !== 'harvesting') || order(at.stage) <= order(now)) return null;
+  return at.stage;
+}
+
+/** "Ready to harvest from about 12 Aug": the next milestone a growing planting is heading for, after today. Null when there's none. */
+export function expectedText(steps: Step[], plant: Plant, today: string): string | null {
+  for (const s of steps) {
+    if (!s.guessed || s.date === null || s.date <= today) continue;
+    if (s.stage === 'flowering') return `In flower from about ${shortDate(s.date)}`;
+    if (s.stage === 'harvesting') return `Ready to harvest from about ${shortDate(s.date)}`;
+    if (s.stage === 'cleared') return perennial(plant) ? null : `Finished by about ${shortDate(s.date)}`;
+  }
+  return null;
+}
 
 // ---------- Lenses ----------
 

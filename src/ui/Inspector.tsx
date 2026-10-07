@@ -44,6 +44,7 @@ import {
   updatePlanting,
 } from '../planting/place';
 import { formatHours, sunNeeded, type Finding } from '../planting/rules';
+import { expectedText, timeline } from '../lifecycle/projection';
 import { currentStage, STAGE_LABEL, stageDate } from '../lifecycle/stages';
 import { deleteBlob, saveBlob } from '../storage/idb';
 import { areaHours, averageHours, lightBand, type SunGrid } from '../sun/hours';
@@ -836,6 +837,9 @@ function PlantingPanel(props: Props & { pl: Planting }) {
   const stage = currentStage(pl);
   const cover = microclimateOf(garden, pl);
   const step = nextStep(pl, plant, cover?.climate ?? null);
+  const today = todayIso();
+  // When it's likely to be ready, from the warmth it gets here (UK climate averages), and under glass if it's covered.
+  const expected = status !== 'planned' ? expectedText(timeline(plant, pl, garden, today), plant, today) : null;
   const canEdit = true;
 
   return (
@@ -848,12 +852,13 @@ function PlantingPanel(props: Props & { pl: Planting }) {
         </span>
         {step && <span class="muted small">{step}</span>}
       </p>
+      {expected && <p class="muted small expect-line">{expected}, by the usual warmth here.</p>}
       {cover && (
         <p class="cover-fact">
           Under cover in {featureLabel(cover.feature)}: {climateText(cover.climate)}.
         </p>
       )}
-      <StageStrip store={store} pl={pl} plant={plant} canEdit={canEdit} covered={!!cover} />
+      <StageStrip store={store} garden={garden} pl={pl} plant={plant} canEdit={canEdit} covered={!!cover} />
       <button type="button" class="link-btn about-plant" onClick={() => app.openPlant(plant.id)}>
         About {plant.commonName.toLowerCase()}: when to sow, pests, neighbours
       </button>

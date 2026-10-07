@@ -3277,9 +3277,13 @@ kbd {
   font: inherit;
   cursor: pointer;
 }
-.frost-dates h3 {
+.frost-dates h3,
+.warmth h3 {
   margin: 0.4rem 0 0.2rem;
   font-size: 1rem;
+}
+.expect-line {
+  margin: 0.3rem 0 0;
 }
 .month-day {
   border: 0;

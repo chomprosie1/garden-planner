@@ -61,7 +61,7 @@ export function LensLegend({ kind, count, guessed }: { kind: FocusKind; count: n
       <Ring kind={kind} />
       <span>
         {LEGEND[kind](count)}
-        {guessed ? ' Based on usual months.' : ''}
+        {guessed ? ' Based on the usual warmth here.' : ''}
       </span>
     </p>
   );

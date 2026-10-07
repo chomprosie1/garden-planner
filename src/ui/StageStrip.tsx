@@ -14,9 +14,9 @@ import {
   stageDate,
   stageTips,
   sowingOf,
-  suggestedStage,
   type LifeStage,
 } from '../lifecycle/stages';
+import { probableStage } from '../lifecycle/projection';
 import { todayIso } from '../model/ids';
 import { updateGarden, type Store } from '../model/store';
 import { STAGES, type Garden, type Plant, type Planting, type Stage } from '../model/types';
@@ -26,15 +26,16 @@ import { formatDate } from './NotesSection';
 const order = (s: LifeStage) => (s === 'planned' ? -1 : s === 'cleared' ? 99 : STAGES.indexOf(s));
 
 /** covered: under a greenhouse or cold frame, so there's no hardening off. */
-export function StageStrip({ store, pl, plant, canEdit, covered = false }: { store: Store; pl: Planting; plant: Plant; canEdit: boolean; covered?: boolean }) {
+export function StageStrip({ store, garden, pl, plant, canEdit, covered = false }: { store: Store; garden: Garden; pl: Planting; plant: Plant; canEdit: boolean; covered?: boolean }) {
   const app = useApp();
   const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
   const now = currentStage(pl);
   const path = pathFor(plant, pl, covered);
   const next = nextStage(plant, pl, covered);
   const tips = stageTips(plant, now, pl);
-  const guess = suggestedStage(plant, pl, new Date().getMonth() + 1);
   const today = todayIso();
+  // From the warmth it's had since it went in, by UK climate averages.
+  const guess = probableStage(plant, pl, garden, today);
   const moveTo = (s: Stage | 'planned', newSeason = false) => commit((g) => setStage(g, [pl.id], s, today, { newSeason }));
   const methods = new Set((plant.sowing ?? []).map((s) => (s.method === 'direct' ? 'direct' : 'indoors')));
   const canChooseSowing = now === 'planned' && methods.size > 1;

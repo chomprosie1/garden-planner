@@ -266,7 +266,7 @@ Brought forward from "parked": the plant life cycle, frost and Growing Degree Da
 | 13c | First run ("Where are you growing?") and search everything | Built |
 | 14 | The garden through the year: scrubber, projected stages, gaps, job chips, lenses, share and timelapse | Built |
 | 15 | Greenhouses and cold frames as microclimates | Built |
-| 16 | Growing Degree Days from UK climate averages (capped at 2 weeks) | |
+| 16 | Growing Degree Days from UK climate averages (capped at 2 weeks) | Built |
 | 17 | Live weather (opt-in Open-Meteo) and succession sowing | |
 | 18 | 3D garden view (three.js, loaded only when opened) | |
 
@@ -415,9 +415,32 @@ Tests: `tests/year.test.ts` covers months and runs, stages up to and after today
 - **On screen:** a greenhouse or cold frame's panel has an **Under cover** section: how much warmer it is, what that changes, a Heated tick (greenhouses), the day and night gains to type, and "Back to the usual". Plantings and beds under cover say "Under cover in Greenhouse: about +8 °C by day and +2 °C at night."
 - **The Potting Shed:** "Raise seedlings in here" on a greenhouse or cold frame adds a matching place to the shed, linked to it (`ShedPlace.featureId`); a greenhouse bench or cold frame in the shed can be linked from its Change menu. A linked place shares its climate, and an unlinked bench or cold frame has the usual one. Tender seedlings on an unheated bench are told to come indoors on cold nights until the last frost under the glass, and hardening off in a cold frame is "open it by day, close it at night". Deleting the feature unlinks the place, which stays.
 - **Model:** schema 8: the `cold-frame` kind, `Feature.climate` and `ShedPlace.featureId`, all optional.
-- **Not done:** faster growth under glass (Stage 16's growing degree days use the same gains), and earlier harvests and later crops in autumn.
+- **Not done:** faster growth under glass, and earlier harvests and later crops in autumn: built in Stage 16.
 
 Tests: `tests/microclimate.test.ts` covers climates by kind, the cover over a point and a planting (overlapping, heated, a bed inside a greenhouse), the dock sticker, frost dates under cover, frost on the plan, the path without hardening off, planting-in dates, planting-out months, the year's projection, jobs, the water lens, shed places and their advice, unlinking, and schema 8.
+
+### Stage 16 — Growing degree days from UK climate averages (as built)
+- **Climate averages** (`data/climate/uk-stations.json`): each month's average day (max) and night (min) temperature for 16 UK stations, 1991–2020, from Camborne to Lerwick. I drafted them; they're marked `verified: false` with the Met Office averages to check against, like the plant data.
+- **Your garden's warmth** (`src/climate/warmth.ts`): its three nearest stations, weighted by distance (one on its own within 2 km), drawn smoothly through the year between the middles of months. Degree days use the "modified" method: the day capped at 30 °C, the night counted at the base when it's colder. Under glass, half the sunny-day gain by day (over sunny and dull days, with the vents open) and the night gain at night; a heated greenhouse is never below 7 °C. Each place's day-by-day table is worked out once.
+- **How much warmth a crop needs** (`src/lifecycle/growth.ts`): the plant data's months and days describe a usual year in the middle of England (52.5° N, 1.5° W, where a new garden starts). The warmth a crop gets there in its usual days, from the middle of its sowing or planting months, is what it needs anywhere. Tender plants grow above 10 °C, the rest above 5 °C, unless the plant says otherwise.
+  - The change from the usual days is damped (degree days saying twice as long means about 1.5 times), since light and day length matter too, and stays between half and twice the usual days.
+  - A planting started the other way from the days (sown outside when they count from planting out, or the reverse) is about four weeks behind or ahead.
+  - An autumn sowing (a run of months starting from August) is left to its months: it grows on through the winter.
+- **New plant data:** an optional `growth` (`days`, `from`, `baseC`): days to the first harvest, or the first flowers for flowers, as on seed packets. Drafted for 50 annual crops, herbs and flowers, unchecked; potato and celery have their own base. Plant cards show "Time to crop: about 60 to 80 days from planting out…". Your own plants and perennials go by their months.
+- **The year's projections** (`src/lifecycle/projection.ts`):
+  - **Seeds sown outside** come up sooner in warm soil and slower in cold (their germination days, by the warmth). Indoors it's always warm.
+  - **First harvest or flowers** come when the crop's had the warmth, counted from when it went in the ground. A fruiting crop flowers about 60% of the way there. A late sowing still crops before its season's out: no later than two weeks before the end of its months.
+  - **Seasons move with the warmth:** for plants without days, and all perennials, their months come sooner or later by how soon the warmth since 1 January matches the middle of England's: about three weeks later in Aberdeen, a week sooner in Surrey, three weeks sooner in a cold frame and five in an unheated greenhouse (measured above 5 °C, at most six weeks). A month or two of flowers or fruit slides; a longer season stretches or shrinks at both ends. Nothing moves in midwinter.
+  - **Tender annuals end at the first frost** (later under glass, never in a heated greenhouse), whether they've cropped or not: sweetcorn in Aberdeen doesn't ripen. A crop ready before its months (sprouts in September) stands until the end of them.
+- **On screen:**
+  - A growing planting's panel says what's next: "Ready to harvest from about 2 Aug, by the usual warmth here." Its "Probably flowering by now" comes from the warmth it's had, not the month.
+  - Settings → **Your climate**: July days, January nights, the growing season above 5 °C, and degree days a year against the middle of England, naming the stations (and saying so when the nearest is over 150 km away).
+  - Lens legends say "Based on the usual warmth here."; the Under cover section says crops come on faster in the warmth.
+- **Speed:** dates are added with plain arithmetic instead of `Date` objects, and tables, seasons, frost dates and averages are kept per place and garden: projecting 2,000 plantings takes about 65 ms, as before.
+- **Model:** no schema change. `Plant.growth` is optional.
+- **Not done:** the month's jobs still guess flowering from the months; days for your own plants (the plant form has no field yet); a correction for a warm city or a cold hillside; this year's weather (Stage 17).
+
+Tests: `tests/warmth.test.ts` covers the stations, blending and distance, the year drawn smoothly, dates through leap years, degree days and the gains under glass, warmth by region, runs and middles, bases, the usual days in the middle of England, north and south and under glass, early and late sowings, head starts, autumn sowings, seasons moved and stretched, tomatoes outside and under glass, sweetcorn lost to frost, late lettuce, standing sprouts, strawberries by region, seeds in cold soil, what it's probably at, what's next, the plant data's days and their checks, and the plant card.
 
 ---
 

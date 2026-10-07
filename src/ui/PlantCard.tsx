@@ -1,4 +1,5 @@
 import { monthRanges } from '../library/library';
+import { growthText } from '../lifecycle/growth';
 import type { Light, Plant, Sowing } from '../model/types';
 import { formatLength } from '../canvas/viewport';
 import { PlantIcon } from './PlantIcon';
@@ -68,6 +69,7 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
   const app = useApp();
   const c = p.conditions;
   const s = p.size;
+  const growth = growthText(p);
   const neighbours = (ids: string[]) =>
     ids.map((id) => byId.get(id)).filter((x): x is Plant => !!x);
 
@@ -232,6 +234,11 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
             {p.cropping?.notes && (
               <li>
                 <strong>Harvest.</strong> {p.cropping.notes}
+              </li>
+            )}
+            {growth && (
+              <li>
+                <strong>{growth.label}.</strong> {growth.text}
               </li>
             )}
           </ul>

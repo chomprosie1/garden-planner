@@ -32,8 +32,8 @@ Your garden is saved in your browser, never on a server. Use **Download a backup
 | `src/content/` | Seasonal lines and jobs for each month, and the photo manifest |
 | `src/ui/` | Preact screens: Home (with the journal), Plan (one canvas with a dock, an action pill, and sun and shade lenses), Plants, Month, Settings, plant checks, first run |
 | `src/planting/` | Plantings, their positions and status, filling a bed, and the spacing, neighbour and light rules |
-| `src/climate/` | Greenhouses and cold frames as microclimates: what's under cover, and how much warmer it is |
-| `src/lifecycle/` | Life stages, the Potting Shed, and each planting's stage on any day of the year |
+| `src/climate/` | Greenhouses and cold frames as microclimates, and your garden's usual warmth from UK climate averages |
+| `src/lifecycle/` | Life stages, the Potting Shed, growing degree days, and each planting's stage on any day of the year |
 | `src/share/` | A picture of the plan, and a timelapse of the year, made on the device |
 | `src/calendar/` | Each month's jobs for your own plants |
 | `src/sun/` | Sun position (UK time), shadows and sun hours |
@@ -41,6 +41,7 @@ Your garden is saved in your browser, never on a server. Use **Download a backup
 | `public/seasons/` | Seasonal photos, added only with `npm run add-photo` |
 | `tools/` | `add-photo.ts`: fetches a Commons photo, checks its licence, makes the sizes |
 | `data/plants/` | The starter plant library, one JSON file per category |
+| `data/climate/` | Monthly day and night temperatures for 16 UK weather stations, 1991–2020 |
 | `tests/` | Vitest unit tests and fixtures |
 
 Features read from `model/` and the plant library only; they never import each other and none keeps its own storage.
