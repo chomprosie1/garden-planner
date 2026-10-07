@@ -792,6 +792,169 @@ Tests: `tests/three.test.ts` covers:
 - Push with the app closed on an iPhone or a computer (it needs a server).
 - Parked: accounts and sync, crop rotation, more environment layers, a paid tier.
 
+## The third round: releases 11 to 18 (added 7 Oct 2026)
+From your feedback after release 10:
+- more room on screen;
+- a UI that feels less AI-made and nicer on a phone;
+- a lifestyle feel and a warmer voice;
+- UV reminders;
+- which way windowsills and shed places face;
+- fertilisers;
+- 500+ plants with varieties;
+- harvest through to the kitchen;
+- a more prominent This week;
+- inspiration for empty areas;
+- walking through the garden in 3D, with leaves you can recognise.
+
+The ideas from the review of 7 Oct 2026 (in the wishlist) are folded in where they fit.
+
+Decided:
+- **Mock-ups before the UI is built.**
+- **Fertilisers:** organic and mineral, by generic name only, never brands.
+- **Recipes:** our own.
+- **Parked until beta testing:** storage, sync and anything needing a server.
+
+| Release | What | Size | Status |
+| --- | --- | --- | --- |
+| 11. Room to see | Sun views maximise the plan, the sun bar's chips become a drop-down, camera or library for photos, UV, which way windowsills and shed places face | ~1 wk | |
+| 12. A new look | 12a mock-ups (you choose) → 12b build: a phone-first redesign, This week as cards, and the new voice | ~3 wk | |
+| 13. From plot to plate | Recipes, storing and preserving, a kitchen card for this week, harvest worth in £ | ~2 wk + writing | |
+| 14. Feeding | Fertiliser types, prices, what each plant likes, feed jobs | ~1.5 wk | |
+| 15. 500 plants, and varieties | +250 plants in batches of 50, a variety model, the seed tin | ~4 wk of data (alongside 13–14) | |
+| 16. Inspire me | Tap an empty area, give a budget, a time and effort; it suggests what would grow (folds in "What grows here?") | ~1.5 wk | |
+| 17. Walk through it | First-person walking in 3D, leaves you can recognise, frost and lawn by season | ~2 wk | |
+| 18. Later from the review | Nature calendar, voice logging, water forecast, next year drafted (crop rotation), same-spot timelapse | Split as needed | |
+
+### Release 11 — Room to see (planned)
+- **Sun and shade use the whole screen.**
+  - **When on:** while Sun hours or Shade is on, the Simple/Advanced switch, lock and undo fold into the ⋯ menu, and the dock folds to one "Tools ▴" handle along the bottom. Tap or pull it up to bring the dock back. On a phone, the year slider shrinks to its date and play.
+  - **When off:** everything comes back.
+  - **Files:** `src/ui/views/Plan.tsx` (`bottom`, toolbar), `src/ui/Dock.tsx`, `src/styles.css`.
+- **The sun bar's Midsummer / Midwinter / Today chips become one "Day: Today ▾" drop-down,** like `LensPicker` (`src/ui/SunBar.tsx`).
+- **Photos:**
+  - two clear buttons wherever a photo can be added: **Take a photo** (`capture="environment"`, touch screens only) and **Choose a photo**;
+  - **Files:** `src/ui/Photo.tsx`, used by the journal, notes and "What's happened?".
+- **UV:**
+  - `src/weather/uv.ts` (pure).
+  - **Live:** with weather on, it asks Open-Meteo for daily `uv_index_max` and hourly `uv_index` (added to `src/weather/openMeteo.ts`).
+  - **Otherwise:** a clear-sky estimate from the sun's height at the garden (`src/sun/position.ts`), labelled "on a sunny day at this time of year".
+  - **Bands:** Low, Moderate, High, Very high and Extreme, with the advice for each, e.g. at High: "Factor 30+, a hat, and shade from 11 to 3"; at Very high: "factor 50".
+  - **On Today:** a UV card from April to September when it's Moderate or above.
+  - **Reminder:** a "Sun cream reminders" switch next to Frost warnings, using `ReminderKeeper` and the service worker.
+- **Which way it faces:**
+  - `ShedPlace.facing` (8 compass points), set from a picker or the phone's compass (`src/geometry/compass.ts`, `CompassNorth`).
+  - `src/lifecycle/shedSun.ts`: hours of direct sun through a window facing that way, each month, from the sun's path. It only counts sun within ±80° of the facing and above the horizon.
+  - **In Seedlings:** each windowsill and shelf says "About 5 h of sun in April", and sowing suggests the sunniest place for sun-lovers (tomatoes, peppers, basil). A north sill warns about leggy seedlings.
+  - Schema 14, with a migration test.
+- **Tests:**
+  - new `tests/room.test.ts` (UV bands, the clear-sky estimate against known UK values, sun hours by facing and month, where to put each plant, schema 14);
+  - words, weather, shed and prefs;
+  - screenshots of the plan in Sun hours at 390 px.
+
+### Release 12 — A new look (planned)
+**12a, mock-ups.** A page with three directions at 390 px: Today, the plan, a plant card, Seedlings, and a job written in the new voice. You choose, or mix.
+- **Moving away from what reads as AI:**
+  - a pill or bordered card around everything;
+  - even spacing everywhere;
+  - long explanatory sentences;
+  - generic icons;
+  - too many words.
+- **Moving towards a crafted feel:**
+  - strong typography and a real type scale;
+  - illustration and photography leading;
+  - bottom sheets with drag handles;
+  - swipe gestures;
+  - motion, and haptics where phones have them;
+  - fewer, warmer words.
+
+**12b, build** the chosen direction:
+- **Theme and styles:** `src/theme/looks.ts` tokens and `src/styles.css`, in sections. The five looks stay, re-expressed in the new direction.
+- **Today:** This week as swipeable cards at the top (`src/ui/WeekCard.tsx`, `src/ui/views/Home.tsx`). Each card shows the plant's picture, what to do, and when.
+- **Moving about:**
+  - sheets that pull up and down (`PhoneSheet`, `Dock`);
+  - swipe to tick a job;
+  - a fresh set of icons (`src/ui/icons.tsx`).
+- **The voice:**
+  - `docs/voice.md`: warm and unhurried, gardening as a pleasure rather than a chore ("Pinch out the side shoots: a few minutes with the tomatoes is one of summer's quiet jobs.").
+  - We don't name or imitate any real person.
+  - The screen words are rewritten in that voice, release by release, starting with Today, jobs and stage advice (`stageTips`, `src/content/seasons.ts`).
+- **Small seasonal moments** on Today, e.g. the first frost or the first pick.
+- **Tests:** words (extended for the voice's banned words), contrast for any new colours; then screenshots of every main screen at 390 px and on a desktop.
+
+### Release 13 — From plot to plate (planned)
+- **Data:**
+  - `data/kitchen/recipes.json`: about 100 short, original recipes, each with crops, season, time and serves.
+  - `Plant.kitchen`: how to store it (fridge, freeze, dry, clamp), preserve it (jam, pickle, chutney) and use it, plus a rough £ per kg.
+- **Logic:** `src/kitchen/recipes.ts` (pure) picks recipes for what's harvesting this week, from the timeline's projections and logged picks.
+- **On screen:**
+  - **In the kitchen this week** on Today;
+  - **Storing and recipes** on each plant card;
+  - after logging a pick, "What to do with it".
+- **Harvest worth:** "Your garden grew about £143 of food this year", on Today and a Wrapped card.
+- **Tests:** new `tests/kitchen.test.ts` (recipes match what's cropping, season and empty cases, worth totals); plants and words.
+
+### Release 14 — Feeding (planned)
+- **Data:** `data/feeds.json`, about 15 generic types:
+  - **organic:** blood, fish and bone; chicken manure pellets; seaweed; bonemeal; garden compost; well-rotted manure; comfrey tea; nettle tea; liquid tomato feed;
+  - **mineral:** a balanced granular feed; sulphate of potash; sulphate of ammonia; ericaceous feed; slow-release granules.
+  - Each with rough NPK, organic or mineral, how and when to use it, and a typical UK price range ("about £5–8 for 1.5 kg, autumn 2026").
+  - No brands.
+- **Plant data:** `Plant.feeding` (hungry / moderate / light; which feed at which stage; what to avoid, e.g. fresh manure for carrots, lime for blueberries), drafted for every plant and unchecked, like the rest.
+- **Jobs and advice:**
+  - feed jobs in `src/calendar/jobs.ts` (e.g. tomatoes weekly from the first truss);
+  - feed advice in the stage tips;
+  - "too much feed" in the running-behind causes.
+- **Your feed shelf:** what you have, with an estimate of the season's cost.
+- **Tests:** full suite (jobs.ts), plus new feed fixtures in `tests/feeding.test.ts`.
+
+### Release 15 — 500 plants, and varieties (planned)
+- **Model:**
+  - `Plant.varietyOf` (a parent id) and `Plant.variety` (the variety's name);
+  - a variety inherits everything from its parent and overrides only what differs: days to crop, height, habit (cordon or bush), sowing months, hardiness, disease resistance.
+  - `src/library/library.ts` merges them.
+  - Plantings can use a variety id; the parent stays valid. Schema 15 if plantings need it, with a migration test.
+- **Data:**
+  - +250 species in five batches of 50 (vegetables and salads, herbs, fruit, flowers and perennials, shrubs and climbers);
+  - 3–6 varieties for the 25 most-grown crops, e.g. tomatoes (cordon, bush, cherry, beefsteak), potatoes (first early, second early, maincrop), peas (early, maincrop, mangetout);
+  - each with art, germination days, growth days, winter habit, feeding and kitchen data, and a plant family for crop rotation;
+  - all unchecked.
+- **Seed tin** (from the review): your seed packets (variety, how many, sow-by date, a photo), "You have seeds for this" in suggestions, and a price per packet to feed Inspire me.
+- **Tests:** plants, art and three (every plant draws); variety inheritance and override tests.
+
+### Release 16 — Inspire me (planned)
+- **Asking:** tap an empty bed, a gap or an empty area of lawn (or **Inspire me** on Today), then answer three questions:
+  - **Budget:** under £10, £25 or £50+;
+  - **When:** for this summer, this year or the long term;
+  - **Time a week:** 10 minutes, an hour or a weekend.
+- **The suggestions:** three ideas with a picture, cost, effort, when they're ready and why each suits (e.g. "6 h of sun here in June"). Pick one and it's planted on the plan.
+- **Logic:** `src/planting/inspire.ts` (pure) ranks plants and kits by the spot's sun hours (`src/sun/hours.ts` `hoursAt`), cover and warmth, then by cost (seed tin and plant prices), effort (new `Plant.effort`) and time to crop. It reuses `gapsOn` and fills from `src/planting/fill.ts`.
+- **Folds in** the review's "What grows here?"
+- **Tests:** new `tests/inspire.test.ts` (sun-suited picks, budget and effort filters, the time frame, an empty result); planting.
+
+### Release 17 — Walk through it (planned)
+- **Walking:**
+  - a **Walk** preset in the 3D view: eye height 1.6 m;
+  - WASD or arrows and the mouse on a desktop, a thumb pad on a phone, or tap the ground to walk there;
+  - you can't walk through buildings, walls, fences or beds (collision against the scene's outlines in `src/three/scene.ts`).
+- **Leaves you can recognise:**
+  - leaf-cluster textures drawn by code for each leaf shape (broad, lobed, feathery, needle, strap), in the tree type's colour;
+  - canopies built as shells of instanced leaf cards, so a birch, a pine and a copper beech look different;
+  - plants' side drawings get finer leaves when you're close.
+- **Wishlist extras:** frost and a greener lawn by season, and sketches in 3D.
+- **Tests:** `tests/three.test.ts` (collision, walkable start point, leaf choice by type); screenshots walking on a phone and a desktop.
+
+### Release 18 — Later from the review (planned)
+To be split into releases as we get there:
+- nature calendar (bees each month);
+- voice logging;
+- water forecast with water butts;
+- next year drafted, with crop rotation (using the plant families from release 15);
+- same-spot photo timelapse.
+
+### Notes for this round
+- **Checking the data:** 500 unchecked plants plus feeding and kitchen data is a lot to check. The "Check the plants" page will gain feeding and kitchen sections, and checking stays the gate before marketing.
+- **Prices** are rough ranges with a date, shown as "about".
+
 ---
 
 ## Repo layout

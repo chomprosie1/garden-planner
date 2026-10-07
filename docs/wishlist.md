@@ -48,16 +48,30 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Weeds marked as a patch across a lawn or bed | Build, release 8 | S | One weed at a time for now |
 | Straighten a photo taken at an angle before tracing: tap four corners of something rectangular and give its size | Aerial spike, 7 Oct 2026 | S | Photos from an upstairs window or a drone are never straight down. The spike has the 30 lines of straightening |
 | Ask the browser to keep the garden's storage, and push iPhone users to install | Review, 7 Oct 2026 | S | Parked until beta testing. Safari can clear a site's data after about 7 days without a visit unless it's on the home screen, and gardeners leave the app for weeks in winter |
-| "What grows here?": tap any spot for its sun hours through the year, frost and warmth, and the plants that suit it best | Review, 7 Oct 2026 | M | Uses the sun-hours grid, warmth, microclimates and plant conditions. Suggested for release 12 |
-| Next year, drafted for you: crop families rotated bed by bed, what did well kept, what failed or ran behind dropped or moved | Review, 7 Oct 2026 | L | Crop rotation, from the MVP's "planning over years". Needs a `family` on each plant. Offered as the season ends, after Wrapped. Suggested for release 13 |
-| Water forecast: roof areas into water butts, rain and evaporation from Open-Meteo, "the butt runs dry on Thursday; water the pots tonight" | Review, 7 Oct 2026 | M | Builds on the Water lens and live weather. Suggested for release 12 |
-| Nature calendar: what's in flower for bees each month, with gaps filled ("Nothing for bees in March: crocus?") | Review, 7 Oct 2026 | S–M | Uses `flowerMonths`, the In flower lens and kept weeds. A card for Wrapped. Suggested for release 11 |
-| Same-spot photo timelapse: the last photo shown faintly over the camera to line up, stitched into a real timelapse | Review, 7 Oct 2026 | M | Builds on the photo diary and the timelapse maker. Suggested for release 14 |
-| Seed tin: varieties, seeds left, sow-by dates and a packet photo; suggestions start with seeds you have | Review, 7 Oct 2026 | M | Varieties are the library's biggest gap. Scanning a packet would need a server, so that waits for beta testing. Suggested for release 14 |
-| Harvest worth in pounds: "Your garden grew £143 of food this year" | Review, 7 Oct 2026 | S | A rough price per kg in the plant data; a card for Wrapped and Today. Suggested for release 11 |
-| Logging by voice: "Picked a bowl of beans", "Sowed carrots in the veg bed" | Review, 7 Oct 2026 | S | Search already understands "sow basil"; uses the browser's speech recognition. Suggested for release 11 |
+| "What grows here?": tap any spot for its sun hours through the year, frost and warmth, and the plants that suit it best | Review, 7 Oct 2026 | M | Planned in release 16, as part of Inspire me |
+| Next year, drafted for you: crop families rotated bed by bed, what did well kept, what failed or ran behind dropped or moved | Review, 7 Oct 2026 | L | Planned in release 18. Needs a plant family on each plant, added in release 15 |
+| Water forecast: roof areas into water butts, rain and evaporation from Open-Meteo, "the butt runs dry on Thursday; water the pots tonight" | Review, 7 Oct 2026 | M | Planned in release 18 |
+| Nature calendar: what's in flower for bees each month, with gaps filled ("Nothing for bees in March: crocus?") | Review, 7 Oct 2026 | S–M | Planned in release 18 |
+| Same-spot photo timelapse: the last photo shown faintly over the camera to line up, stitched into a real timelapse | Review, 7 Oct 2026 | M | Planned in release 18 |
+| Seed tin: varieties, seeds left, sow-by dates and a packet photo; suggestions start with seeds you have | Review, 7 Oct 2026 | M | Planned in release 15, with varieties. Scanning a packet would need a server, so that waits for beta testing |
+| Harvest worth in pounds: "Your garden grew £143 of food this year" | Review, 7 Oct 2026 | S | Planned in release 13, From plot to plate |
+| Logging by voice: "Picked a bowl of beans", "Sowed carrots in the veg bed" | Review, 7 Oct 2026 | S | Planned in release 18 |
 | Sync and shared gardens (a household, allotment partners, a whole allotment site) | Review, 7 Oct 2026 | L | Parked until beta testing. Needs a server: a business decision first (see the cost ladder in the MVP plan) |
 | Ask the garden: questions and photos of a sick plant, answered with this garden's own sun, stage and weather | Review, 7 Oct 2026 | L | Parked until beta testing. Needs a server and a vision model. The natural paid tier |
 | A winter habit (evergreen, deciduous, dies back) on the plant form for your own plants | Build, release 10 | S | Your own plants go by their category for now |
-| 3D: walk round inside it, frost and a greener lawn by season, sketches, leafier tree canopies | Build, release 10 | M | The view is to look round from outside for now |
+| 3D: walk round inside it, frost and a greener lawn by season, sketches, leafier tree canopies | Build, release 10 | M | Planned in release 17, Walk through it |
 | The year slider’s month letters overlap where the year changes, on a phone | Build, release 10 | S | Seen in the release 10 screenshots; it was already so |
+| Sun hours and shade use the whole screen: the toolbar and dock tuck away, to pull back up | You, 7 Oct 2026 | S | Planned in release 11 |
+| The sun bar’s day chips as a drop-down | You, 7 Oct 2026 | S | Planned in release 11 |
+| Photos in the journal: take one with the camera, or choose one already taken | You, 7 Oct 2026 | S | Planned in release 11 |
+| UV reminders: live where possible, otherwise a sunny day’s level for the time of year; factor 50 and a hat when it’s high | You, 7 Oct 2026 | S | Planned in release 11 |
+| Which way windowsills and shed places face, and their sun, deciding what goes where | You, 7 Oct 2026 | S | Planned in release 11 |
+| A UI that feels crafted, not AI-made, and nicer on a phone | You, 7 Oct 2026 | L | Planned in release 12, mock-ups first |
+| This week more prominent, as cards | You, 7 Oct 2026 | S | Planned in release 12 |
+| A lifestyle feel, and a warm voice that makes the jobs a pleasure | You, 7 Oct 2026 | M | Planned in release 12, then screen by screen |
+| Harvest to the kitchen: recipes, storing and preserving, seasonal recipes from what’s growing | You, 7 Oct 2026 | L | Planned in release 13 |
+| Fertilisers: the common types, rough prices, what each plant likes | You, 7 Oct 2026 | M | Planned in release 14 |
+| A library of at least 500 plants, with varieties of the same plant | You, 7 Oct 2026 | L | Planned in release 15 |
+| Inspiration for empty areas, by budget, time frame and effort | You, 7 Oct 2026 | M | Planned in release 16 |
+| Walk through the garden in 3D | You, 7 Oct 2026 | M | Planned in release 17 |
+| Leaves you can recognise in 3D | You, 7 Oct 2026 | S | Planned in release 17 |
