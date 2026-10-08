@@ -73,6 +73,7 @@
         "Pick flowers every few days; if they set seed, flowering stops."
       ]
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost", "note": "A trench of compost, for deep roots." }, { "when": "flowering", "feed": "tomato-feed", "every": 14 }] },
     "art": {"form":"climber","leaf":"round","foliage":"#7aa06a","flower":"#d880b0","bloom":"daisy"},
     "source": "Check against: RHS – sweet peas; seed packet",
     "verified": false,
@@ -140,6 +141,7 @@
     "wintering": {
       "type": "annual"
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }] },
     "art": {"form":"upright","leaf":"broad","foliage":"#5a8a3a","flower":"#f2c020","bloom":"big"},
     "source": "Check against: RHS – sunflowers; seed packet",
     "verified": false,
@@ -204,6 +206,7 @@
     "wintering": {
       "type": "annual"
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Most of all in pots and baskets." }] },
     "art": {"form":"mound","leaf":"feathery","foliage":"#4f7f3a","flower":"#f08a1a","bloom":"daisy"},
     "source": "Check against: RHS – French marigolds; seed packet",
     "verified": false,
@@ -259,6 +262,7 @@
     "wintering": {
       "type": "annual"
     },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil or feed: plenty of leaves and few flowers."] },
     "art": {"form":"mound","leaf":"broad","foliage":"#6a9a4a","flower":"#f2a020","bloom":"daisy"},
     "source": "Check against: RHS – calendula; seed packet",
     "verified": false,
@@ -334,6 +338,7 @@
     "wintering": {
       "type": "annual"
     },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil or feed: plenty of leaves and few flowers."] },
     "art": {"form":"sprawl","leaf":"round","foliage":"#7aa85a","flower":"#e8501a","bloom":"cup"},
     "source": "Check against: RHS – nasturtiums; seed packet",
     "verified": false,
@@ -396,6 +401,7 @@
     "wintering": {
       "type": "annual"
     },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil or feed: plenty of leaves and few flowers."] },
     "art": {"form":"upright","leaf":"feathery","foliage":"#6aa04a","flower":"#e070b0","bloom":"daisy"},
     "source": "Check against: RHS – cosmos; seed packet",
     "verified": false,
@@ -460,6 +466,7 @@
     "wintering": {
       "type": "annual"
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Most of all in pots and baskets." }] },
     "art": {"form":"upright","leaf":"broad","foliage":"#5a8a3a","flower":"#e8402a","bloom":"daisy"},
     "source": "Check against: RHS – zinnias; seed packet",
     "verified": false,
@@ -520,6 +527,7 @@
       "winter": "dies-back",
       "perennial": true
     },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "rotted-manure", "note": "Dug into the planting hole." }, { "when": "flowering", "feed": "tomato-feed", "every": 7 }] },
     "art": {"form":"shrub","leaf":"lobed","foliage":"#3f6a35","flower":"#c8203a","bloom":"big"},
     "source": "Check against: RHS – dahlias; nursery label",
     "verified": false,
@@ -571,6 +579,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }, { "when": "after", "feed": "tomato-feed", "note": "A liquid feed as the flowers fade builds next year’s bulb." }] },
     "art": {"form":"bulb","leaf":"broad","foliage":"#7a9a7a","flower":"#d8283a","bloom":"cup"},
     "source": "Check against: RHS – tulips; bulb supplier",
     "verified": false,
@@ -617,6 +626,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }, { "when": "after", "feed": "tomato-feed", "note": "A liquid feed as the flowers fade builds next year’s bulb." }] },
     "art": {"form":"bulb","leaf":"strap","foliage":"#6a8a6a","flower":"#f2d02a","bloom":"cup"},
     "source": "Check against: RHS – daffodils; bulb supplier",
     "verified": false,
@@ -662,6 +672,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }] },
     "art": {"form":"bulb","leaf":"strap","foliage":"#6a8a7a","flower":"#f8f8f4","bloom":"cup"},
     "source": "Check against: RHS – snowdrops; bulb supplier",
     "verified": false,
@@ -712,6 +723,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }] },
     "art": {"form":"bulb","leaf":"strap","foliage":"#5a7a4a","flower":"#9a6ad0","bloom":"cup"},
     "source": "Check against: RHS – crocuses; bulb supplier",
     "verified": false,
@@ -756,6 +768,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }] },
     "art": {"form":"bulb","leaf":"strap","foliage":"#7a9a7a","flower":"#a070d0","bloom":"umbel"},
     "source": "Check against: RHS – ornamental alliums; bulb supplier",
     "verified": false,
@@ -811,6 +824,7 @@
       "winter": "evergreen",
       "perennial": true
     },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil, manure and strong feeds: soft, floppy growth with less flavour."] },
     "art": {"form":"shrub","leaf":"needle","foliage":"#8aa090","flower":"#8a70c0","bloom":"spike"},
     "source": "Check against: RHS – lavender; nursery label",
     "verified": false,
@@ -873,6 +887,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "rotted-manure", "note": "Dug into the planting hole." }, { "when": "spring", "feed": "blood-fish-bone", "note": "As the leaves open." }, { "when": "spring", "feed": "rotted-manure", "note": "A mulch round the base, clear of the stems." }, { "when": "after", "feed": "blood-fish-bone", "months": [7], "note": "After the first flush, for more flowers to come." }] },
     "art": {"form":"shrub","leaf":"broad","foliage":"#3f6a35","flower":"#e0607a","bloom":"big"},
     "source": "Check against: RHS – roses; nursery label",
     "verified": false,
@@ -926,6 +941,7 @@
       "type": "hardy",
       "notes": "A biennial: leaves the first year, flowers the second."
     },
+    "feeding": { "need": "light", "steps": [] },
     "art": {"form":"rosette","leaf":"broad","foliage":"#5a7a4a","flower":"#c070b0","bloom":"spike"},
     "source": "Check against: RHS – foxgloves; seed packet",
     "verified": false,
@@ -984,6 +1000,7 @@
     "wintering": {
       "type": "hardy"
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "garden-compost", "note": "A mulch round the plants as they start to grow." }] },
     "art": {"form":"upright","leaf":"lobed","foliage":"#5a8a4a","flower":"#e080a0","bloom":"daisy"},
     "source": "Check against: RHS – hollyhocks; seed packet",
     "verified": false,
@@ -1051,6 +1068,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Feeds rich in nitrogen: it makes its own."] },
     "art": {"form":"mound","leaf":"lobed","foliage":"#5a8a5a","flower":"#7a6ad0","bloom":"spike"},
     "source": "Check against: RHS – lupins; seed packet",
     "verified": false,
@@ -1102,6 +1120,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "hungry", "steps": [{ "when": "spring", "feed": "blood-fish-bone" }, { "when": "spring", "feed": "garden-compost", "note": "A mulch round the crowns." }] },
     "art": {"form":"upright","leaf":"lobed","foliage":"#4f7f4a","flower":"#4a6ad0","bloom":"spike"},
     "source": "Check against: RHS – delphiniums; nursery label",
     "verified": false,
@@ -1151,6 +1170,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "light", "steps": [] },
     "art": {"form":"mound","leaf":"lobed","foliage":"#4f7f3a","flower":"#9a7ae0","bloom":"daisy"},
     "source": "Check against: RHS – hardy geraniums; nursery label",
     "verified": false,
@@ -1205,6 +1225,7 @@
       "winter": "evergreen",
       "perennial": true
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "garden-compost", "note": "A mulch round the plants as they start to grow." }] },
     "art": {"form":"rosette","leaf":"lobed","foliage":"#3f5f3a","flower":"#e8d0e0","bloom":"cup"},
     "source": "Check against: RHS – hellebores; nursery label",
     "verified": false,
@@ -1256,6 +1277,7 @@
       "winter": "dies-back",
       "perennial": true
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "blood-fish-bone", "note": "A light scatter round the crown." }], "avoid": ["Manure or compost over the crown: it stops it flowering."] },
     "art": {"form":"shrub","leaf":"lobed","foliage":"#4f7f45","flower":"#f090b0","bloom":"big"},
     "source": "Check against: RHS – peonies; nursery label",
     "verified": false,
@@ -1308,6 +1330,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "garden-compost", "note": "A mulch round the plants as they start to grow." }] },
     "art": {"form":"mound","leaf":"needle","foliage":"#4f7f3a","flower":"#c080d0","bloom":"daisy"},
     "source": "Check against: RHS – asters; nursery label",
     "verified": false,
@@ -1368,6 +1391,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil or feed: plenty of leaves and few flowers."] },
     "art": {"form":"mound","leaf":"broad","foliage":"#4f7f3a","flower":"#d070a0","bloom":"daisy"},
     "source": "Check against: RHS – echinacea; seed packet",
     "verified": false,
@@ -1421,6 +1445,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "garden-compost", "note": "A mulch round the plants as they start to grow." }] },
     "art": {"form":"mound","leaf":"broad","foliage":"#4f7f3a","flower":"#f2b020","bloom":"daisy"},
     "source": "Check against: RHS – rudbeckias; nursery label",
     "verified": false,
@@ -1478,6 +1503,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil or feed: plenty of leaves and few flowers."] },
     "art": {"form":"grass","leaf":"needle","foliage":"#6a9a5a","flower":"#9a60c0","bloom":"umbel"},
     "source": "Check against: RHS – Verbena bonariensis; seed packet",
     "verified": false,
@@ -1529,6 +1555,7 @@
     "wintering": {
       "type": "annual"
     },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil or feed: plenty of leaves and few flowers."] },
     "art": {"form":"grass","leaf":"needle","foliage":"#7a9a8a","flower":"#4a7ad0","bloom":"daisy"},
     "source": "Check against: RHS – cornflowers; seed packet",
     "verified": false,
@@ -1580,6 +1607,7 @@
     "wintering": {
       "type": "annual"
     },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil or feed: plenty of leaves and few flowers."] },
     "art": {"form":"rosette","leaf":"feathery","foliage":"#6a9a5a","flower":"#e0281a","bloom":"cup"},
     "source": "Check against: RHS – poppies; seed packet",
     "verified": false,
@@ -1631,6 +1659,7 @@
     "wintering": {
       "type": "annual"
     },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil or feed: plenty of leaves and few flowers."] },
     "art": {"form":"grass","leaf":"feathery","foliage":"#7aa06a","flower":"#7aa0e0","bloom":"daisy"},
     "source": "Check against: RHS – love-in-a-mist; seed packet",
     "verified": false,
@@ -1683,6 +1712,7 @@
       "type": "hardy",
       "notes": "A biennial: plant out in autumn to flower the next year."
     },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost" }] },
     "art": {"form":"mound","leaf":"strap","foliage":"#4f7f4a","flower":"#c8304a","bloom":"daisy"},
     "source": "Check against: RHS – sweet William; seed packet",
     "verified": false,
@@ -1704,6 +1734,7 @@
     "lookOutFor": ["Pinch out the tips for bushier plants; bumblebees love them."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Most of all in pots and baskets." }] },
     "art": { "form": "upright", "leaf": "strap", "foliage": "#5f8a45", "flower": "#e85a7a", "bloom": "spike" },
     "source": "Check against: RHS – snapdragon; seed packet or nursery label",
     "verified": false,
@@ -1726,6 +1757,7 @@
     "lookOutFor": ["Honey-scented, and good for bees and hoverflies."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil or feed: plenty of leaves and few flowers."] },
     "art": { "form": "mound", "leaf": "strap", "foliage": "#6a8a5a", "flower": "#f8f6f0", "bloom": "umbel" },
     "source": "Check against: RHS – sweet alyssum; seed packet or nursery label",
     "verified": false,
@@ -1746,6 +1778,7 @@
     "lookOutFor": ["A good cut flower, and a magnet for hoverflies."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil or feed: plenty of leaves and few flowers."] },
     "art": { "form": "upright", "leaf": "feathery", "foliage": "#6a9a5a", "flower": "#f8f6f0", "bloom": "umbel" },
     "source": "Check against: RHS – bishop’s flower; seed packet or nursery label",
     "verified": false,
@@ -1769,6 +1802,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil or feed: plenty of leaves and few flowers."] },
     "art": { "form": "upright", "leaf": "feathery", "foliage": "#5f8a45", "flower": "#6a5ad0", "bloom": "spike" },
     "source": "Check against: RHS – larkspur; seed packet or nursery label",
     "verified": false,
@@ -1789,6 +1823,7 @@
     "lookOutFor": ["Hoverflies love it, and their young eat aphids. Self-seeds."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil or feed: plenty of leaves and few flowers."] },
     "art": { "form": "sprawl", "leaf": "feathery", "foliage": "#7aa060", "flower": "#f6e070", "bloom": "cup" },
     "source": "Check against: RHS – poached egg plant; seed packet or nursery label",
     "verified": false,
@@ -1813,6 +1848,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "flowering", "feed": "tomato-feed", "every": 7, "note": "Most of all in pots and baskets." }] },
     "art": { "form": "mound", "leaf": "broad", "foliage": "#5f8a45", "flower": "#a03a9a", "bloom": "cup" },
     "source": "Check against: RHS – petunia; seed packet or nursery label",
     "verified": false,
@@ -1833,6 +1869,7 @@
     "lookOutFor": ["Thrives in poor, dry soil, and self-seeds."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil or feed: plenty of leaves and few flowers."] },
     "art": { "form": "sprawl", "leaf": "feathery", "foliage": "#8aa8a0", "flower": "#f2902a", "bloom": "cup" },
     "source": "Check against: RHS – california poppy; seed packet or nursery label",
     "verified": false,
@@ -1857,6 +1894,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Most of all in pots and baskets." }] },
     "art": { "form": "upright", "leaf": "broad", "foliage": "#6a9a5a", "flower": "#f6f4ee", "bloom": "cup" },
     "source": "Check against: RHS – tobacco plant; seed packet or nursery label",
     "verified": false,
@@ -1879,6 +1917,7 @@
     "lookOutFor": ["Blue-grey leaves and purple bells; bees love it."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil or feed: plenty of leaves and few flowers."] },
     "art": { "form": "mound", "leaf": "round", "foliage": "#8aa0a0", "flower": "#4a3a8a", "bloom": "cup" },
     "source": "Check against: RHS – honeywort; seed packet or nursery label",
     "verified": false,
@@ -1900,6 +1939,7 @@
     "lookOutFor": ["Bees and butterflies love it; pick often for more flowers."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Most of all in pots and baskets." }] },
     "art": { "form": "upright", "leaf": "lobed", "foliage": "#6a8a5a", "flower": "#6a2a5a", "bloom": "daisy" },
     "source": "Check against: RHS – sweet scabious; seed packet or nursery label",
     "verified": false,
@@ -1924,6 +1964,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Most of all in pots and baskets." }] },
     "art": { "form": "upright", "leaf": "strap", "foliage": "#8aa0a0", "flower": "#d070a8", "bloom": "spike" },
     "source": "Check against: RHS – stocks; seed packet or nursery label",
     "verified": false,
@@ -1948,6 +1989,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy", "notes": "Flowers in its second spring." },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost" }] },
     "art": { "form": "mound", "leaf": "strap", "foliage": "#4f7a45", "flower": "#e8802a", "bloom": "spike" },
     "source": "Check against: RHS – wallflower; seed packet or nursery label",
     "verified": false,
@@ -1972,6 +2014,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy", "notes": "Flowers in its second spring." },
+    "feeding": { "need": "light", "steps": [] },
     "art": { "form": "mound", "leaf": "broad", "foliage": "#5f8a50", "flower": "#6a9ae0", "bloom": "daisy" },
     "source": "Check against: RHS – forget-me-not; seed packet or nursery label",
     "verified": false,
@@ -1997,6 +2040,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Most of all in pots and baskets." }] },
     "art": { "form": "mound", "leaf": "round", "foliage": "#4f7a40", "flower": "#6a4ac0", "bloom": "cup" },
     "source": "Check against: RHS – pansy and viola; seed packet or nursery label",
     "verified": false,
@@ -2018,6 +2062,7 @@
     "lookOutFor": ["The flat, silvery seed pods dry well.", "Early food for orange-tip butterflies."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy", "notes": "Flowers in its second spring." },
+    "feeding": { "need": "light", "steps": [] },
     "art": { "form": "upright", "leaf": "broad", "foliage": "#5f8a45", "flower": "#a050c0", "bloom": "spike" },
     "source": "Check against: RHS – honesty; seed packet or nursery label",
     "verified": false,
@@ -2037,6 +2082,7 @@
     "germinationDays": [7, 14],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil or feed: plenty of leaves and few flowers."] },
     "art": { "form": "upright", "leaf": "strap", "foliage": "#6a8a5a", "flower": "#e070a0", "bloom": "spike" },
     "source": "Check against: RHS – clarkia; seed packet or nursery label",
     "verified": false,
@@ -2058,6 +2104,7 @@
     "lookOutFor": ["Papery flowers that keep their colour dried: cut just before they open."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Most of all in pots and baskets." }] },
     "art": { "form": "upright", "leaf": "strap", "foliage": "#6a8a5a", "flower": "#f0a020", "bloom": "daisy" },
     "source": "Check against: RHS – strawflower; seed packet or nursery label",
     "verified": false,
@@ -2078,6 +2125,7 @@
     "germinationDays": [10, 21],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Most of all in pots and baskets." }] },
     "art": { "form": "upright", "leaf": "lobed", "foliage": "#5f8a45", "flower": "#e8a0d0", "bloom": "spike" },
     "source": "Check against: RHS – spider flower; seed packet or nursery label",
     "verified": false,
@@ -2103,6 +2151,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "protect", "notes": "Bring indoors before the first frost; keep just moist over winter." },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "moderate", "steps": [{ "when": "flowering", "feed": "tomato-feed", "every": 14 }], "avoid": ["Rich, nitrogen feeds: leaves rather than flowers."] },
     "art": { "form": "mound", "leaf": "round", "foliage": "#5f8a45", "flower": "#d82a3a", "bloom": "big" },
     "source": "Check against: RHS – pelargonium; seed packet or nursery label",
     "verified": false,
@@ -2123,6 +2172,7 @@
     "germinationDays": [14, 21],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Most of all in pots and baskets." }] },
     "art": { "form": "mound", "leaf": "strap", "foliage": "#5f8a45", "flower": "#3a4ad0", "bloom": "cup" },
     "source": "Check against: RHS – lobelia; seed packet or nursery label",
     "verified": false,
@@ -2141,6 +2191,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }, { "when": "after", "feed": "tomato-feed", "note": "A liquid feed as the flowers fade builds next year’s bulb." }] },
     "art": { "form": "bulb", "leaf": "strap", "foliage": "#5f8a5a", "flower": "#8a6ad0", "bloom": "spike" },
     "source": "Check against: RHS – hyacinth; seed packet or nursery label",
     "verified": false,
@@ -2159,6 +2210,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }] },
     "art": { "form": "bulb", "leaf": "strap", "foliage": "#5f8a5a", "flower": "#3a4ab0", "bloom": "spike" },
     "source": "Check against: RHS – grape hyacinth; seed packet or nursery label",
     "verified": false,
@@ -2177,6 +2229,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [] },
     "art": { "form": "bulb", "leaf": "strap", "foliage": "#4f7a50", "flower": "#4a5ad0", "bloom": "spike" },
     "source": "Check against: RHS – english bluebell; seed packet or nursery label",
     "verified": false,
@@ -2199,6 +2252,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "bonemeal" }, { "when": "flowering", "feed": "tomato-feed", "every": 14 }] },
     "art": { "form": "bulb", "leaf": "strap", "foliage": "#4f7a45", "flower": "#f6f4ee", "bloom": "big" },
     "source": "Check against: RHS – lily; seed packet or nursery label",
     "verified": false,
@@ -2217,6 +2271,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "lift-and-store", "notes": "Lift the corms in autumn and store dry and frost-free." },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "bonemeal" }, { "when": "flowering", "feed": "tomato-feed", "every": 14 }] },
     "art": { "form": "bulb", "leaf": "strap", "foliage": "#5f8a5a", "flower": "#e84a5a", "bloom": "spike" },
     "source": "Check against: RHS – gladiolus; seed packet or nursery label",
     "verified": false,
@@ -2238,6 +2293,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }] },
     "art": { "form": "bulb", "leaf": "strap", "foliage": "#6a8a6a", "flower": "#8a3a6a", "bloom": "cup" },
     "source": "Check against: RHS – snake’s head fritillary; seed packet or nursery label",
     "verified": false,
@@ -2256,6 +2312,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }] },
     "art": { "form": "bulb", "leaf": "strap", "foliage": "#5f8a6a", "flower": "#4a3ab0", "bloom": "cup" },
     "source": "Check against: RHS – dwarf iris; seed packet or nursery label",
     "verified": false,
@@ -2274,6 +2331,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }] },
     "art": { "form": "bulb", "leaf": "lobed", "foliage": "#5f8a45", "flower": "#f2d02a", "bloom": "cup" },
     "source": "Check against: RHS – winter aconite; seed packet or nursery label",
     "verified": false,
@@ -2295,6 +2353,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "winter": "evergreen", "perennial": true },
+    "feeding": { "need": "light", "steps": [{ "when": "spring", "feed": "garden-compost", "months": [9], "note": "A thin mulch of leaf mould or compost as the leaves come." }] },
     "art": { "form": "rosette", "leaf": "round", "foliage": "#4f6a50", "flower": "#e080b0", "bloom": "cup" },
     "source": "Check against: RHS – hardy cyclamen; seed packet or nursery label",
     "verified": false,
@@ -2313,6 +2372,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }] },
     "art": { "form": "bulb", "leaf": "strap", "foliage": "#5f8a5a", "flower": "#6a7ad8", "bloom": "spike" },
     "source": "Check against: RHS – camassia; seed packet or nursery label",
     "verified": false,
@@ -2331,6 +2391,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil or feed: plenty of leaves and few flowers."] },
     "art": { "form": "upright", "leaf": "strap", "foliage": "#5f7a5a", "flower": "#5a3ab0", "bloom": "spike" },
     "source": "Check against: RHS – woodland sage; seed packet or nursery label",
     "verified": false,
@@ -2349,6 +2410,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil or feed: plenty of leaves and few flowers."] },
     "art": { "form": "mound", "leaf": "strap", "foliage": "#8aa0a0", "flower": "#8a8ae0", "bloom": "spike" },
     "source": "Check against: RHS – catmint; seed packet or nursery label",
     "verified": false,
@@ -2367,6 +2429,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [] },
     "art": { "form": "upright", "leaf": "strap", "foliage": "#4f7a45", "flower": "#c8305a", "bloom": "spike" },
     "source": "Check against: RHS – penstemon; seed packet or nursery label",
     "verified": false,
@@ -2384,6 +2447,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "garden-compost", "note": "A mulch round the plants as they start to grow." }] },
     "art": { "form": "clump", "leaf": "lobed", "foliage": "#4f7a45", "flower": "#e8d0e0", "bloom": "umbel" },
     "source": "Check against: RHS – astrantia; seed packet or nursery label",
     "verified": false,
@@ -2402,6 +2466,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "garden-compost", "note": "A mulch round the plants as they start to grow." }] },
     "art": { "form": "rosette", "leaf": "lobed", "foliage": "#4f7a3c", "flower": "#f0602a", "bloom": "cup" },
     "source": "Check against: RHS – geum; seed packet or nursery label",
     "verified": false,
@@ -2423,6 +2488,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "winter": "evergreen", "perennial": true },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "garden-compost", "note": "A mulch round the plants as they start to grow." }] },
     "art": { "form": "mound", "leaf": "round", "foliage": "#7a2a3a", "flower": "#f0c0d0", "bloom": "spike" },
     "source": "Check against: RHS – heuchera; seed packet or nursery label",
     "verified": false,
@@ -2444,6 +2510,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "garden-compost", "note": "A mulch round the plants as they start to grow." }] },
     "art": { "form": "clump", "leaf": "broad", "foliage": "#5f8a6a", "flower": "#e8e0f0", "bloom": "spike" },
     "source": "Check against: RHS – hosta; seed packet or nursery label",
     "verified": false,
@@ -2462,6 +2529,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil or feed: plenty of leaves and few flowers."] },
     "art": { "form": "mound", "leaf": "round", "foliage": "#8aa890", "flower": "#e080a0", "bloom": "umbel" },
     "source": "Check against: RHS – ice plant; seed packet or nursery label",
     "verified": false,
@@ -2480,6 +2548,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [] },
     "art": { "form": "grass", "leaf": "strap", "foliage": "#5f8a4a", "flower": "#e8401a", "bloom": "spike" },
     "source": "Check against: RHS – crocosmia; seed packet or nursery label",
     "verified": false,
@@ -2498,6 +2567,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "moderate", "steps": [{ "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Most of all in pots." }] },
     "art": { "form": "clump", "leaf": "strap", "foliage": "#4f7a45", "flower": "#4a6ad8", "bloom": "umbel" },
     "source": "Check against: RHS – agapanthus; seed packet or nursery label",
     "verified": false,
@@ -2516,6 +2586,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "garden-compost", "note": "A mulch round the plants as they start to grow." }] },
     "art": { "form": "clump", "leaf": "lobed", "foliage": "#4f7a45", "flower": "#f0c8d8", "bloom": "cup" },
     "source": "Check against: RHS – japanese anemone; seed packet or nursery label",
     "verified": false,
@@ -2541,6 +2612,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [] },
     "art": { "form": "clump", "leaf": "lobed", "foliage": "#7a9a9a", "flower": "#6a4ab0", "bloom": "cup" },
     "source": "Check against: RHS – columbines; seed packet or nursery label",
     "verified": false,
@@ -2562,6 +2634,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "garden-compost", "note": "A mulch round the plants as they start to grow." }] },
     "art": { "form": "upright", "leaf": "broad", "foliage": "#4f7a45", "flower": "#e070b0", "bloom": "umbel" },
     "source": "Check against: RHS – phlox; seed packet or nursery label",
     "verified": false,
@@ -2580,6 +2653,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [] },
     "art": { "form": "clump", "leaf": "lobed", "foliage": "#6a8a6a", "flower": "#e83a2a", "bloom": "big" },
     "source": "Check against: RHS – oriental poppy; seed packet or nursery label",
     "verified": false,
@@ -2598,6 +2672,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil or feed: plenty of leaves and few flowers."] },
     "art": { "form": "upright", "leaf": "feathery", "foliage": "#6a8a6a", "flower": "#f0d040", "bloom": "umbel" },
     "source": "Check against: RHS – yarrow; seed packet or nursery label",
     "verified": false,
@@ -2619,6 +2694,7 @@
     "lookOutFor": ["The seeds are poisonous (check)."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Most of all in pots and baskets." }] },
     "art": { "form": "climber", "leaf": "broad", "foliage": "#5f8a45", "flower": "#6a5ad8", "bloom": "cup" },
     "source": "Check against: RHS – morning glory; seed packet or nursery label",
     "verified": false,
@@ -2640,6 +2716,7 @@
     "lookOutFor": ["Good in a pot on a sunny patio, up a wigwam."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Most of all in pots and baskets." }] },
     "art": { "form": "climber", "leaf": "broad", "foliage": "#5f8a45", "flower": "#f2a020", "bloom": "cup" },
     "source": "Check against: RHS – black-eyed susan vine; seed packet or nursery label",
     "verified": false,

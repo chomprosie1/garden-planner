@@ -16,6 +16,7 @@ const SHORT: Record<JobKind, string> = {
   'sow-direct': 'Sow',
   'plant-out': 'Plant out',
   check: 'Check',
+  feed: 'Feed',
   harvest: 'Harvest',
   protect: 'Protect',
   lift: 'Lift',

@@ -5,6 +5,7 @@ import { formatLength } from '../canvas/viewport';
 import { Icon } from './icons';
 import { PlantIcon } from './PlantIcon';
 import { PlantKitchen } from './Kitchen';
+import { PlantFeeding } from './FeedShelf';
 import { unknownPlant } from '../planting/place';
 import { useApp } from './appContext';
 
@@ -257,6 +258,8 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
           </ul>
         </section>
       )}
+
+      <PlantFeeding plant={p} />
 
       <PlantKitchen plant={p} plantOf={(id) => byId.get(id) ?? unknownPlant(id)} />
 

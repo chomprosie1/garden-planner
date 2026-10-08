@@ -65,6 +65,13 @@ export function runStarts(months: number[]): number[] {
   return [...set].filter((m) => !set.has(m === 1 ? 12 : m - 1)).sort((a, b) => a - b);
 }
 
+/** Months where a run ends: [6,7,8] → [8]; [9,10,11,12,1,2,3] → [3]. */
+export function runEnds(months: number[]): number[] {
+  const set = new Set(months);
+  if (set.size === 12) return [];
+  return [...set].filter((m) => !set.has((m % 12) + 1)).sort((a, b) => a - b);
+}
+
 /** [2,3,4,10,11] → "Feb–Apr, Oct–Nov"; [11,12,1,2] → "Nov–Feb". */
 export function monthRanges(months: number[], long = false): string {
   const names = long ? MONTH_LONG : MONTH_SHORT;

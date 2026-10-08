@@ -71,6 +71,8 @@ export interface Prefs {
   planMode: 'simple' | 'advanced';
   /** A monthly "Weed the beds" job, March to October. */
   weeding: boolean;
+  /** Feed jobs for plants that want feeding, and what goes in before planting. */
+  feeding: boolean;
 }
 
 
@@ -106,6 +108,7 @@ export function defaultPrefs(): Prefs {
     installHidden: false,
     planMode: 'simple',
     weeding: true,
+    feeding: true,
   };
 }
 
@@ -148,6 +151,7 @@ export function sanitisePrefs(raw: unknown): Prefs {
     installHidden: r.installHidden === true,
     planMode: oneOf(['simple', 'advanced'] as const, r.planMode, d.planMode),
     weeding: r.weeding !== false,
+    feeding: r.feeding !== false,
   };
 }
 

@@ -266,8 +266,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const monthJobs = useMemo(() => {
     if (!plants || when.slice(0, 7) < todayIso.slice(0, 7)) return [];
     const done = new Set(garden.jobsDone.map((j) => j.key));
-    return jobsFor(garden, plantOf, shownMonth, Number(when.slice(0, 4)), { weeding: prefs.weeding }).filter((j) => !done.has(j.key));
-  }, [garden, plants, plantOf, when, todayIso, shownMonth]);
+    return jobsFor(garden, plantOf, shownMonth, Number(when.slice(0, 4)), { weeding: prefs.weeding, feeding: prefs.feeding }).filter((j) => !done.has(j.key));
+  }, [garden, plants, plantOf, when, todayIso, shownMonth, prefs.weeding, prefs.feeding]);
   const hoverHours = lens === 'sun' && viewGrid && hoverPoint ? hoursAt(viewGrid, hoverPoint) : null;
   const tapHours = lens === 'sun' && viewGrid && tapPoint ? hoursAt(viewGrid, tapPoint) : null;
   const warnings = findings.filter((f) => f.level === 'warn').length;

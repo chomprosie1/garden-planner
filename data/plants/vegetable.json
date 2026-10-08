@@ -28,6 +28,7 @@
         "Pinch out the growing tips once the lowest pods form, to deter blackfly."
       ]
     },
+    "feeding": { "need": "light", "steps": [], "avoid": ["High-nitrogen feeds: it makes its own nitrogen, and feeding it grows leaves rather than pods."] },
     "art": {"form":"upright","leaf":"broad","foliage":"#6a8a55","flower":"#f3f0e8","bloom":"daisy","crop":{"kind":"pod","colour":"#7da04f"}},
     "source": "Check against: RHS Grow Your Own – broad beans; seed packet",
     "verified": false,
@@ -69,6 +70,7 @@
         "Pick pods young and often, before the beans bulge; leaving them stops new pods forming."
       ]
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "rotted-manure", "note": "A trench of compost or manure keeps the roots moist." }, { "when": "flowering", "feed": "comfrey-tea", "every": 14, "note": "Once the first beans form." }], "avoid": ["High-nitrogen feeds: it makes its own nitrogen, and feeding it grows leaves rather than pods."] },
     "art": {"form":"climber","leaf":"broad","foliage":"#4f7f3a","flower":"#d9432f","bloom":"daisy","crop":{"kind":"pod","colour":"#5f9a3a"}},
     "source": "Check against: RHS Grow Your Own – runner beans; seed packet",
     "verified": false,
@@ -104,6 +106,7 @@
         "Pick pods young and often, before the beans bulge."
       ]
     },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost" }], "avoid": ["High-nitrogen feeds: it makes its own nitrogen, and feeding it grows leaves rather than pods."] },
     "art": {"form":"mound","leaf":"broad","foliage":"#5a8a3c","flower":"#f1eedf","bloom":"daisy","crop":{"kind":"pod","colour":"#6aa043"}},
     "source": "Check against: RHS Grow Your Own – French beans; seed packet",
     "verified": false,
@@ -139,6 +142,7 @@
         "Pick pods as they fill, from the bottom up; regular picking keeps more coming."
       ]
     },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost" }], "avoid": ["High-nitrogen feeds: it makes its own nitrogen, and feeding it grows leaves rather than pods."] },
     "art": {"form":"climber","leaf":"round","foliage":"#7fa86a","flower":"#f6f3ea","bloom":"daisy","crop":{"kind":"pod","colour":"#7cb257"}},
     "source": "Check against: RHS Grow Your Own – peas; seed packet",
     "verified": false,
@@ -170,6 +174,7 @@
         "Earlies are ready when the flowers open; maincrop when the foliage dies back."
       ]
     },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "rotted-manure", "note": "Dug in the autumn or winter before." }, { "when": "planting", "feed": "chicken-manure-pellets", "note": "Along the trench as you plant." }], "avoid": ["Lime and wood ash: scab on the skins."] },
     "art": {"form":"mound","leaf":"broad","foliage":"#4f7a3a","flower":"#e9e2f2","bloom":"daisy"},
     "source": "Check against: RHS Grow Your Own – potatoes; seed potato supplier",
     "verified": false,
@@ -202,6 +207,7 @@
         "Lift when the tops have flopped and yellowed; dry thoroughly before storing."
       ]
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "blood-fish-bone", "note": "A week or two before planting." }, { "when": "growing", "feed": "blood-fish-bone", "every": 28, "months": [5, 6], "note": "Stop by midsummer, so the bulbs ripen and keep." }], "avoid": ["Fresh manure: the bulbs rot.", "Feeding after midsummer: soft bulbs that don’t keep."] },
     "art": {"form":"clump","leaf":"strap","foliage":"#5f8f6a","crop":{"kind":"head","colour":"#c9a35a"}},
     "source": "Check against: RHS Grow Your Own – onions; seed packet",
     "verified": false,
@@ -220,6 +226,7 @@
     "pests": [{ "name": "Onion white rot", "signs": "Yellowing leaves and white mould at the base", "control": "Remove affected plants; avoid growing alliums there again for many years." }],
     "companions": { "good": ["carrot", "beetroot"], "avoid": ["broad-bean", "pea"] },
     "wintering": { "type": "lift-and-store", "notes": "Dry well, separate the bulbs and store somewhere cool and airy." },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "blood-fish-bone", "note": "A week or two before planting." }], "avoid": ["Fresh manure: the bulbs rot."] },
     "art": {"form":"clump","leaf":"strap","foliage":"#62906b","crop":{"kind":"head","colour":"#b07850"}},
     "source": "Check against: RHS Grow Your Own – shallots",
     "verified": false,
@@ -246,6 +253,7 @@
         "Lift when the lower leaves turn yellow, and dry in the sun before storing."
       ]
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "blood-fish-bone" }, { "when": "spring", "feed": "blood-fish-bone", "months": [3], "note": "As growth starts. Nothing after May." }], "avoid": ["Fresh manure: the bulbs rot."] },
     "art": {"form":"clump","leaf":"strap","foliage":"#6f9a72","crop":{"kind":"head","colour":"#efe7d6"}},
     "source": "Check against: RHS Grow Your Own – garlic",
     "verified": false,
@@ -271,6 +279,7 @@
     "germinationDays": [10, 18],
     "companions": { "good": ["carrot"], "avoid": ["broad-bean", "pea"] },
     "wintering": { "type": "hardy", "notes": "Leave in the ground and lift as needed." },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "rotted-manure", "note": "Dug in the winter before." }, { "when": "growing", "feed": "nettle-tea", "every": 14 }] },
     "art": {"form":"clump","leaf":"strap","foliage":"#5c8a74"},
     "source": "Check against: RHS Grow Your Own – leeks; seed packet",
     "verified": false,
@@ -291,6 +300,7 @@
     "germinationDays": [7, 14],
     "companions": { "good": ["carrot", "lettuce"], "avoid": ["pea", "broad-bean"] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [] },
     "art": {"form":"clump","leaf":"strap","foliage":"#6fa060"},
     "source": "Check against: RHS Grow Your Own – spring onions; seed packet",
     "verified": false,
@@ -311,6 +321,7 @@
     "germinationDays": [14, 21],
     "companions": { "good": ["onion", "leek", "pea"], "avoid": [] },
     "wintering": { "type": "lift-and-store", "notes": "Lift by late autumn on heavy soil and store in boxes of damp sand." },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Fresh manure, or compost dug in just before sowing: the roots fork. Sow where a crop was manured last year."] },
     "art": {"form":"clump","leaf":"feathery","foliage":"#5e9a3c","crop":{"kind":"root","colour":"#e07b24"}},
     "source": "Check against: RHS Grow Your Own – carrots; seed packet",
     "verified": false,
@@ -334,6 +345,7 @@
     "germinationDays": [14, 28],
     "companions": { "good": ["onion", "radish"], "avoid": [] },
     "wintering": { "type": "hardy", "notes": "Leave in the ground and lift as needed." },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Fresh manure, or compost dug in just before sowing: the roots fork. Sow where a crop was manured last year."] },
     "art": {"form":"rosette","leaf":"lobed","foliage":"#6a9a4a","crop":{"kind":"root","colour":"#efe2c0"}},
     "source": "Check against: RHS Grow Your Own – parsnips; seed packet",
     "verified": false,
@@ -354,6 +366,7 @@
     "germinationDays": [10, 14],
     "companions": { "good": ["onion", "garlic", "lettuce"], "avoid": [] },
     "wintering": { "type": "lift-and-store", "notes": "Twist off the leaves and store in boxes of damp sand." },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "blood-fish-bone", "note": "A light dressing before sowing." }] },
     "art": {"form":"rosette","leaf":"broad","foliage":"#5d7a3e","crop":{"kind":"root","colour":"#8e1f3f"}},
     "source": "Check against: RHS Grow Your Own – beetroot; seed packet",
     "verified": false,
@@ -374,6 +387,7 @@
     "germinationDays": [3, 7],
     "companions": { "good": ["pea", "lettuce", "parsnip"], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [] },
     "art": {"form":"rosette","leaf":"broad","foliage":"#6aa04a","crop":{"kind":"root","colour":"#d23c5a"}},
     "source": "Check against: RHS Grow Your Own – radish; seed packet",
     "verified": false,
@@ -397,6 +411,7 @@
     "germinationDays": [5, 10],
     "companions": { "good": ["pea"], "avoid": [] },
     "wintering": { "type": "lift-and-store" },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "blood-fish-bone", "note": "A light dressing before sowing." }] },
     "art": {"form":"rosette","leaf":"lobed","foliage":"#6f9e4a","crop":{"kind":"root","colour":"#9a5aa0"}},
     "source": "Check against: RHS Grow Your Own – turnips; seed packet",
     "verified": false,
@@ -432,6 +447,7 @@
         "Pick outer leaves as you need them, or cut whole heads."
       ]
     },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost", "note": "A thin layer raked in." }] },
     "art": {"form":"rosette","leaf":"broad","foliage":"#8cc063"},
     "source": "Check against: RHS Grow Your Own – lettuce; seed packet",
     "verified": false,
@@ -458,6 +474,7 @@
     "germinationDays": [7, 14],
     "companions": { "good": ["radish", "lettuce"], "avoid": [] },
     "wintering": { "type": "hardy", "notes": "Autumn sowings overwinter better under a cloche." },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "growing", "feed": "nettle-tea", "every": 14, "note": "For more leaves after each cut." }] },
     "art": {"form":"rosette","leaf":"broad","foliage":"#3f7a35"},
     "source": "Check against: RHS Grow Your Own – spinach; seed packet",
     "verified": false,
@@ -478,6 +495,7 @@
     "germinationDays": [7, 14],
     "companions": { "good": ["onion", "lettuce"], "avoid": [] },
     "wintering": { "type": "hardy", "notes": "Usually survives winter and crops again in spring." },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "growing", "feed": "nettle-tea", "every": 14, "note": "For more leaves after each cut." }] },
     "art": {"form":"rosette","leaf":"broad","foliage":"#3f6e33","crop":{"kind":"stem","colour":"#e0503a"}},
     "source": "Check against: RHS Grow Your Own – Swiss chard; seed packet",
     "verified": false,
@@ -503,6 +521,7 @@
     "germinationDays": [5, 10],
     "companions": { "good": ["onion", "beetroot"], "avoid": ["tomato"] },
     "wintering": { "type": "hardy", "notes": "Crops right through winter." },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "chicken-manure-pellets", "note": "Into firm soil: brassicas like it trodden down." }, { "when": "growing", "feed": "nettle-tea", "every": 14 }, { "when": "spring", "feed": "chicken-manure-pellets", "months": [3], "note": "A boost as growth starts again." }], "avoid": ["Fresh manure dug in just before planting: soft, loose growth. Manure the bed the autumn before."] },
     "art": {"form":"rosette","leaf":"lobed","foliage":"#3f6a4a"},
     "source": "Check against: RHS Grow Your Own – kale; seed packet",
     "verified": false,
@@ -528,6 +547,7 @@
     "germinationDays": [5, 10],
     "companions": { "good": ["onion", "beetroot"], "avoid": ["tomato"] },
     "wintering": { "type": "hardy", "notes": "Winter and spring cabbages stand through cold weather." },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "chicken-manure-pellets", "note": "Into firm soil: brassicas like it trodden down." }, { "when": "growing", "feed": "nettle-tea", "every": 14 }, { "when": "spring", "feed": "sulphate-of-ammonia", "months": [3], "note": "For cabbages over winter: a boost as growth starts." }], "avoid": ["Fresh manure dug in just before planting: soft, loose growth. Manure the bed the autumn before."] },
     "art": {"form":"rosette","leaf":"broad","foliage":"#7fa37a","crop":{"kind":"head","colour":"#bcd49a"}},
     "source": "Check against: RHS Grow Your Own – cabbages; seed packet",
     "verified": false,
@@ -551,6 +571,7 @@
     "germinationDays": [5, 10],
     "companions": { "good": ["onion"], "avoid": ["tomato"] },
     "wintering": { "type": "hardy", "notes": "Stands over winter to crop in early spring." },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "chicken-manure-pellets", "note": "Into firm soil: brassicas like it trodden down." }, { "when": "growing", "feed": "nettle-tea", "every": 14 }, { "when": "spring", "feed": "chicken-manure-pellets", "months": [3], "note": "A boost as growth starts again." }], "avoid": ["Fresh manure dug in just before planting: soft, loose growth. Manure the bed the autumn before."] },
     "art": {"form":"rosette","leaf":"broad","foliage":"#4f7a5a","crop":{"kind":"head","colour":"#6a4a7a"}},
     "source": "Check against: RHS Grow Your Own – broccoli; seed packet",
     "verified": false,
@@ -575,6 +596,7 @@
     "germinationDays": [5, 10],
     "companions": { "good": ["onion", "beetroot"], "avoid": ["tomato"] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "chicken-manure-pellets", "note": "Into firm soil: brassicas like it trodden down." }, { "when": "growing", "feed": "nettle-tea", "every": 14 }], "avoid": ["Fresh manure dug in just before planting: soft, loose growth. Manure the bed the autumn before."] },
     "art": {"form":"rosette","leaf":"broad","foliage":"#4f7a5a","crop":{"kind":"head","colour":"#3f6a3a"}},
     "source": "Check against: RHS Grow Your Own – broccoli; seed packet",
     "verified": false,
@@ -599,6 +621,7 @@
     "germinationDays": [5, 10],
     "companions": { "good": ["onion"], "avoid": ["tomato"] },
     "wintering": { "type": "annual", "notes": "Winter types overwinter to crop in spring." },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "chicken-manure-pellets", "note": "Into firm soil: brassicas like it trodden down." }, { "when": "growing", "feed": "nettle-tea", "every": 14 }], "avoid": ["Fresh manure dug in just before planting: soft, loose growth. Manure the bed the autumn before."] },
     "art": {"form":"rosette","leaf":"broad","foliage":"#6a9a6a","crop":{"kind":"head","colour":"#f2ecd8"}},
     "source": "Check against: RHS Grow Your Own – cauliflowers; seed packet",
     "verified": false,
@@ -623,6 +646,7 @@
     "germinationDays": [5, 10],
     "companions": { "good": ["onion"], "avoid": ["tomato"] },
     "wintering": { "type": "hardy", "notes": "Crops through winter." },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "chicken-manure-pellets", "note": "Into firm soil: brassicas like it trodden down." }, { "when": "growing", "feed": "nettle-tea", "every": 14 }, { "when": "spring", "feed": "chicken-manure-pellets", "months": [3], "note": "A boost as growth starts again." }], "avoid": ["Fresh manure dug in just before planting: soft, loose growth. Manure the bed the autumn before."] },
     "art": {"form":"upright","leaf":"broad","foliage":"#5a8a5a","crop":{"kind":"fruit","colour":"#86b05a"}},
     "source": "Check against: RHS Grow Your Own – Brussels sprouts; seed packet",
     "verified": false,
@@ -661,6 +685,7 @@
         "Pick at about 10 to 15 cm, every few days; left on, they turn into marrows and the plant stops cropping."
       ]
     },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "rotted-manure", "note": "A bucketful in each planting hole." }, { "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Once the first fruits start to swell." }] },
     "art": {"form":"sprawl","leaf":"lobed","foliage":"#4f8a3a","flower":"#f2b52a","bloom":"cup","crop":{"kind":"fruit","colour":"#3f6a2a"}},
     "source": "Check against: RHS Grow Your Own – courgettes; seed packet",
     "verified": false,
@@ -693,6 +718,7 @@
         "Leave the fruit on the plant to ripen; cure in the sun for a week or two before storing."
       ]
     },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "rotted-manure", "note": "A bucketful in each planting hole." }, { "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Once the first fruits start to swell." }] },
     "art": {"form":"sprawl","leaf":"lobed","foliage":"#5a8a3a","flower":"#f2b52a","bloom":"cup","crop":{"kind":"fruit","colour":"#e2862a"}},
     "source": "Check against: RHS Grow Your Own – pumpkins and winter squash; seed packet",
     "verified": false,
@@ -728,6 +754,7 @@
         "Pick regularly while young and firm."
       ]
     },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "rotted-manure", "note": "Into a mound of compost or rotted manure." }, { "when": "flowering", "feed": "tomato-feed", "every": 10, "note": "Once the first fruits are forming." }] },
     "art": {"form":"climber","leaf":"lobed","foliage":"#5a9a3a","flower":"#f2d02a","bloom":"daisy","crop":{"kind":"fruit","colour":"#4f7a2a"}},
     "source": "Check against: RHS Grow Your Own – cucumbers; seed packet",
     "verified": false,
@@ -770,6 +797,7 @@
         "Pick fruit as it colours. Once there are four to six trusses outside (more under glass), pinch out the top of the plant."
       ]
     },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "garden-compost", "note": "Dig in plenty of compost, or plant into fresh compost in a pot or grow bag." }, { "when": "flowering", "feed": "tomato-feed", "every": 7, "note": "Once the first truss has set fruit." }], "avoid": ["High-nitrogen feeds once it’s flowering: all leaf and little fruit."] },
     "art": {"form":"upright","leaf":"lobed","foliage":"#4f7f35","flower":"#f2d02a","bloom":"daisy","crop":{"kind":"fruit","colour":"#d8352a"}},
     "source": "Check against: RHS Grow Your Own – tomatoes; seed packet",
     "verified": false,
@@ -808,6 +836,7 @@
         "Ready when the silks turn brown and a squeezed kernel gives a milky juice."
       ]
     },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "rotted-manure", "note": "Dug in a few weeks before." }, { "when": "growing", "feed": "chicken-manure-pellets", "every": 28, "note": "Scattered round the plants and watered in." }] },
     "art": {"form":"clump","leaf":"strap","foliage":"#6a9a3a","flower":"#d9c27a","bloom":"umbel","crop":{"kind":"head","colour":"#f0d060"}},
     "source": "Check against: RHS Grow Your Own – sweetcorn; seed packet",
     "verified": false,
@@ -840,6 +869,7 @@
         "Feed with high-potash feed once flowers form; gently shake the plants indoors to help pollination."
       ]
     },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "garden-compost", "note": "Dig in plenty of compost, or plant into fresh compost in a pot or grow bag." }, { "when": "flowering", "feed": "tomato-feed", "every": 7, "note": "Once the first fruits have set." }], "avoid": ["High-nitrogen feeds once it’s flowering: all leaf and little fruit."] },
     "art": {"form":"upright","leaf":"broad","foliage":"#3f7a35","flower":"#f4f1e6","bloom":"daisy","crop":{"kind":"fruit","colour":"#d0282a"}},
     "source": "Check against: RHS Grow Your Own – chilli peppers; seed packet",
     "verified": false,
@@ -908,6 +938,7 @@
     "wintering": {
       "type": "annual"
     },
+    "feeding": { "need": "light", "steps": [] },
     "art": {"form":"rosette","leaf":"lobed","foliage":"#4f8a3a"},
     "source": "Check against: RHS – salad rocket; seed packet",
     "verified": false,
@@ -972,6 +1003,7 @@
     "wintering": {
       "type": "annual"
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "blood-fish-bone" }] },
     "art": {"form":"rosette","leaf":"broad","foliage":"#5a9a4a","crop":{"kind":"stem","colour":"#e8f0d8"}},
     "source": "Check against: RHS – pak choi; seed packet",
     "verified": false,
@@ -1041,6 +1073,7 @@
     "wintering": {
       "type": "annual"
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "blood-fish-bone" }] },
     "art": {"form":"rosette","leaf":"broad","foliage":"#7fa37a","crop":{"kind":"head","colour":"#b8d49a"}},
     "source": "Check against: RHS – kohlrabi; seed packet",
     "verified": false,
@@ -1106,6 +1139,7 @@
       "type": "hardy",
       "notes": "Can stay in the ground over winter until needed."
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "blood-fish-bone" }], "avoid": ["Fresh manure, or compost dug in just before sowing: the roots fork. Sow where a crop was manured last year."] },
     "art": {"form":"rosette","leaf":"lobed","foliage":"#6f9a7a","crop":{"kind":"root","colour":"#c9a05a"}},
     "source": "Check against: RHS – swedes; seed packet",
     "verified": false,
@@ -1174,6 +1208,7 @@
       "type": "hardy",
       "notes": "Cover with straw in hard winters."
     },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "rotted-manure", "note": "Dug in well: it wants rich, moist soil." }, { "when": "growing", "feed": "liquid-seaweed", "every": 14 }] },
     "art": {"form":"rosette","leaf":"broad","foliage":"#4f8a3a","crop":{"kind":"root","colour":"#e2d6b6"}},
     "source": "Check against: RHS – celeriac; seed packet",
     "verified": false,
@@ -1242,6 +1277,7 @@
     "wintering": {
       "type": "annual"
     },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "rotted-manure", "note": "Dug in well: it wants rich, moist soil." }, { "when": "growing", "feed": "nettle-tea", "every": 14 }] },
     "art": {"form":"rosette","leaf":"broad","foliage":"#7aa85a","crop":{"kind":"stem","colour":"#b8d890"}},
     "source": "Check against: RHS – celery; seed packet",
     "verified": false,
@@ -1319,6 +1355,7 @@
         "Feed with high-potash feed once flowers form."
       ]
     },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "garden-compost", "note": "Dig in plenty of compost, or plant into fresh compost in a pot or grow bag." }, { "when": "flowering", "feed": "tomato-feed", "every": 7, "note": "Once the first fruits have set." }], "avoid": ["High-nitrogen feeds once it’s flowering: all leaf and little fruit."] },
     "art": {"form":"upright","leaf":"broad","foliage":"#3f7a35","flower":"#f4f1e6","bloom":"daisy","crop":{"kind":"fruit","colour":"#c8302a"}},
     "source": "Check against: RHS – sweet peppers; seed packet",
     "verified": false,
@@ -1392,6 +1429,7 @@
         "Feed with high-potash feed once flowers form; mist the flowers to help them set."
       ]
     },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "garden-compost", "note": "Dig in plenty of compost, or plant into fresh compost in a pot or grow bag." }, { "when": "flowering", "feed": "tomato-feed", "every": 7, "note": "Once the first fruits have set." }], "avoid": ["High-nitrogen feeds once it’s flowering: all leaf and little fruit."] },
     "art": {"form":"upright","leaf":"broad","foliage":"#5a7a5a","flower":"#9a6ac0","bloom":"daisy","crop":{"kind":"fruit","colour":"#4a2a5a"}},
     "source": "Check against: RHS – aubergines; seed packet",
     "verified": false,
@@ -1452,6 +1490,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "rotted-manure", "note": "Dug into the bed: it’s there for twenty years." }, { "when": "spring", "feed": "blood-fish-bone", "months": [3] }, { "when": "after", "feed": "blood-fish-bone", "note": "When you stop cutting, to build the crowns for next year." }] },
     "art": {"form":"grass","leaf":"feathery","foliage":"#6a9a4a","crop":{"kind":"pod","colour":"#7a9a4a"}},
     "source": "Check against: RHS – asparagus; nursery label",
     "verified": false,
@@ -1512,6 +1551,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "rotted-manure", "note": "A mulch round the plants, clear of the crowns." }] },
     "art": {"form":"rosette","leaf":"lobed","foliage":"#9ab0a0","flower":"#8a5ac0","bloom":"big","crop":{"kind":"head","colour":"#6a8a6a"}},
     "source": "Check against: RHS – globe artichokes; nursery label",
     "verified": false,
@@ -1567,6 +1607,7 @@
       "type": "hardy",
       "notes": "A winter salad: stands in the ground until spring."
     },
+    "feeding": { "need": "light", "steps": [] },
     "art": {"form":"rosette","leaf":"round","foliage":"#5a8a3a"},
     "source": "Check against: RHS – corn salad; seed packet",
     "verified": false,
@@ -1637,6 +1678,7 @@
     "wintering": {
       "type": "annual"
     },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost", "note": "A thin layer raked in." }] },
     "art": {"form":"rosette","leaf":"feathery","foliage":"#5a9a3a"},
     "source": "Check against: RHS – oriental leaves; seed packet",
     "verified": false,
@@ -1658,6 +1700,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy", "notes": "Tubers keep in the ground all winter." },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [] },
     "art": { "form": "upright", "leaf": "broad", "foliage": "#5f8a3e", "flower": "#f0c020", "bloom": "daisy", "crop": { "kind": "root", "colour": "#c8a070" } },
     "source": "Check against: RHS Grow Your Own – jerusalem artichoke; seed packet or nursery label",
     "verified": false,
@@ -1675,6 +1718,7 @@
     "lookOutFor": ["Grown from slips (rooted cuttings) bought in spring.", "Best under cover or in a warm, sheltered spot; black plastic over the bed helps."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "growing", "feed": "tomato-feed", "every": 14, "note": "Potash helps the tubers." }] },
     "art": { "form": "sprawl", "leaf": "broad", "foliage": "#4f7a3c", "crop": { "kind": "root", "colour": "#c86a3a" } },
     "source": "Check against: RHS Grow Your Own – sweet potato; seed packet or nursery label",
     "verified": false,
@@ -1701,6 +1745,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "growing", "feed": "liquid-seaweed", "every": 14 }] },
     "art": { "form": "upright", "leaf": "feathery", "foliage": "#7aa060", "crop": { "kind": "stem", "colour": "#e8ecd0" } },
     "source": "Check against: RHS Grow Your Own – florence fennel; seed packet or nursery label",
     "verified": false,
@@ -1722,6 +1767,7 @@
     "lookOutFor": ["Long roots: deep soil without stones gives straight ones.", "Leave a few in: the next spring’s flower buds are good to eat."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy", "notes": "Hardy in the ground." },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Fresh manure, or compost dug in just before sowing: the roots fork. Sow where a crop was manured last year."] },
     "art": { "form": "grass", "leaf": "strap", "foliage": "#6a8a5a", "crop": { "kind": "root", "colour": "#d8c8a8" } },
     "source": "Check against: RHS Grow Your Own – salsify; seed packet or nursery label",
     "verified": false,
@@ -1747,6 +1793,7 @@
     ],
     "companions": { "good": ["sweetcorn"], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "rotted-manure", "note": "A bucketful in each planting hole." }, { "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Once the first fruits start to swell." }] },
     "art": { "form": "sprawl", "leaf": "lobed", "foliage": "#4f7d3a", "flower": "#f2a51c", "bloom": "big", "crop": { "kind": "fruit", "colour": "#e07a1f" } },
     "source": "Check against: RHS Grow Your Own – pumpkin; seed packet or nursery label",
     "verified": false,
@@ -1773,6 +1820,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "rotted-manure", "note": "A bucketful in each planting hole." }, { "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Once the first fruits start to swell." }] },
     "art": { "form": "sprawl", "leaf": "lobed", "foliage": "#4f7d3a", "flower": "#f2b51c", "bloom": "big", "crop": { "kind": "fruit", "colour": "#5f8a3a" } },
     "source": "Check against: RHS Grow Your Own – marrow; seed packet or nursery label",
     "verified": false,
@@ -1799,6 +1847,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "rotted-manure", "note": "Into a mound of compost or rotted manure." }, { "when": "flowering", "feed": "tomato-feed", "every": 7, "note": "Once fruits the size of a walnut have set." }] },
     "art": { "form": "sprawl", "leaf": "lobed", "foliage": "#5f8f45", "flower": "#f2d23c", "bloom": "cup", "crop": { "kind": "fruit", "colour": "#d8c070" } },
     "source": "Check against: RHS Grow Your Own – melon; seed packet or nursery label",
     "verified": false,
@@ -1821,6 +1870,7 @@
     "lookOutFor": ["Climbs: give it a trellis or canes."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "lift-and-store", "notes": "Lift the tubers in autumn and keep frost-free to replant." },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "flowering", "feed": "tomato-feed", "every": 14 }] },
     "art": { "form": "climber", "leaf": "lobed", "foliage": "#5f8f45", "crop": { "kind": "fruit", "colour": "#6a9a5a" } },
     "source": "Check against: RHS Grow Your Own – cucamelon; seed packet or nursery label",
     "verified": false,
@@ -1843,6 +1893,7 @@
     "lookOutFor": ["Grow two or more: a single plant sets little fruit."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "flowering", "feed": "tomato-feed", "every": 14 }] },
     "art": { "form": "upright", "leaf": "broad", "foliage": "#5f8a45", "flower": "#f2e04a", "bloom": "cup", "crop": { "kind": "fruit", "colour": "#a8c060" } },
     "source": "Check against: RHS Grow Your Own – tomatillo; seed packet or nursery label",
     "verified": false,
@@ -1869,6 +1920,7 @@
     ],
     "companions": { "good": [], "avoid": ["onion", "garlic", "leek", "shallot"] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost" }], "avoid": ["High-nitrogen feeds: it makes its own nitrogen, and feeding it grows leaves rather than pods."] },
     "art": { "form": "upright", "leaf": "broad", "foliage": "#5f8a45", "crop": { "kind": "pod", "colour": "#8ab060" } },
     "source": "Check against: RHS Grow Your Own – edamame; seed packet or nursery label",
     "verified": false,
@@ -1895,6 +1947,7 @@
     ],
     "companions": { "good": ["carrot", "turnip"], "avoid": ["onion", "garlic", "leek", "shallot"] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost" }], "avoid": ["High-nitrogen feeds: it makes its own nitrogen, and feeding it grows leaves rather than pods."] },
     "art": { "form": "climber", "leaf": "round", "foliage": "#6a9a5a", "flower": "#f6f2ea", "bloom": "cup", "crop": { "kind": "pod", "colour": "#8cc060" } },
     "source": "Check against: RHS Grow Your Own – mangetout; seed packet or nursery label",
     "verified": false,
@@ -1916,6 +1969,7 @@
     "lookOutFor": ["Grow in a container stood in a tray of water, changing the water often."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [] },
     "art": { "form": "sprawl", "leaf": "round", "foliage": "#4f8a3e", "flower": "#f6f4ee", "bloom": "daisy" },
     "source": "Check against: RHS Grow Your Own – watercress; seed packet or nursery label",
     "verified": false,
@@ -1940,6 +1994,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost", "note": "A thin layer raked in." }] },
     "art": { "form": "rosette", "leaf": "lobed", "foliage": "#4f7a3c" },
     "source": "Check against: RHS Grow Your Own – land cress; seed packet or nursery label",
     "verified": false,
@@ -1964,6 +2019,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost", "note": "A thin layer raked in." }] },
     "art": { "form": "rosette", "leaf": "feathery", "foliage": "#7aa050" },
     "source": "Check against: RHS Grow Your Own – endive; seed packet or nursery label",
     "verified": false,
@@ -1987,6 +2043,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost", "note": "A thin layer raked in." }] },
     "art": { "form": "rosette", "leaf": "broad", "foliage": "#a8324a" },
     "source": "Check against: RHS Grow Your Own – chicory and radicchio; seed packet or nursery label",
     "verified": false,
@@ -2008,6 +2065,7 @@
     "lookOutFor": ["Self-seeds gently. Good outside or under cover all winter."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "light", "steps": [] },
     "art": { "form": "rosette", "leaf": "round", "foliage": "#6a9a50", "flower": "#f6f4ee", "bloom": "daisy" },
     "source": "Check against: RHS Grow Your Own – winter purslane; seed packet or nursery label",
     "verified": false,
@@ -2033,6 +2091,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy", "notes": "Most are hardy, better under cover." },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost", "note": "A thin layer raked in." }] },
     "art": { "form": "rosette", "leaf": "lobed", "foliage": "#6a7a3a" },
     "source": "Check against: RHS Grow Your Own – oriental greens; seed packet or nursery label",
     "verified": false,
@@ -2053,6 +2112,7 @@
     "lookOutFor": ["Cut it down before it seeds, and dig it in or leave it as a mulch.", "Grazing rye or field beans sown in autumn cover bare soil all winter."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [] },
     "art": { "form": "clump", "leaf": "feathery", "foliage": "#6a9a50", "flower": "#8a7ad0", "bloom": "spike" },
     "source": "Check against: RHS – green manures; seed packet or nursery label",
     "verified": false,
@@ -2076,6 +2136,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost", "note": "A thin layer raked in." }] },
     "art": { "form": "rosette", "leaf": "strap", "foliage": "#5f8a3a" },
     "source": "Check against: RHS Grow Your Own – oriental greens; seed packet or nursery label",
     "verified": false,
@@ -2100,6 +2161,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "growing", "feed": "nettle-tea", "every": 14, "note": "For more leaves after each cut." }] },
     "art": { "form": "rosette", "leaf": "broad", "foliage": "#3f7a35" },
     "source": "Check against: RHS Grow Your Own – leaf beet; seed packet or nursery label",
     "verified": false,
@@ -2123,6 +2185,7 @@
     "lookOutFor": ["Copes with heat and drought, and doesn’t bolt."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost", "note": "A thin layer raked in." }] },
     "art": { "form": "sprawl", "leaf": "broad", "foliage": "#5f8f4a" },
     "source": "Check against: RHS Grow Your Own – new zealand spinach; seed packet or nursery label",
     "verified": false,
@@ -2147,6 +2210,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Fresh manure, or compost dug in just before sowing: the roots fork. Sow where a crop was manured last year."] },
     "art": { "form": "rosette", "leaf": "lobed", "foliage": "#5f8a3a", "crop": { "kind": "root", "colour": "#f2f0e6" } },
     "source": "Check against: RHS Grow Your Own – winter radish; seed packet or nursery label",
     "verified": false,
@@ -2169,6 +2233,7 @@
     ],
     "companions": { "good": [], "avoid": ["broad-bean", "runner-bean", "french-bean", "pea"] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "blood-fish-bone" }, { "when": "spring", "feed": "blood-fish-bone", "months": [3], "note": "As growth starts. Nothing after May." }], "avoid": ["Fresh manure: the bulbs rot."] },
     "art": { "form": "grass", "leaf": "strap", "foliage": "#6a8a6a", "flower": "#c8a0d0", "bloom": "umbel", "crop": { "kind": "root", "colour": "#f0ece0" } },
     "source": "Check against: RHS Grow Your Own – elephant garlic; seed packet or nursery label",
     "verified": false,
@@ -2196,6 +2261,7 @@
     "companions": { "good": [], "avoid": ["broad-bean", "runner-bean", "french-bean", "pea"] },
     "wintering": { "type": "hardy" },
     "lifePath": { "winter": "evergreen", "perennial": true },
+    "feeding": { "need": "light", "steps": [{ "when": "spring", "feed": "garden-compost", "note": "A mulch round the clump." }] },
     "art": { "form": "clump", "leaf": "strap", "foliage": "#5f8a4a", "flower": "#f6f2e6", "bloom": "umbel" },
     "source": "Check against: RHS Grow Your Own – welsh onion; seed packet or nursery label",
     "verified": false,
@@ -2221,6 +2287,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "blood-fish-bone" }] },
     "art": { "form": "rosette", "leaf": "broad", "foliage": "#a8c870", "crop": { "kind": "head", "colour": "#e8f0c8" } },
     "source": "Check against: RHS Grow Your Own – chinese cabbage; seed packet or nursery label",
     "verified": false,
@@ -2244,6 +2311,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "rotted-manure", "note": "A mulch round the plants, clear of the crowns." }] },
     "art": { "form": "clump", "leaf": "lobed", "foliage": "#8a9a9a", "flower": "#8a5ab0", "bloom": "big" },
     "source": "Check against: RHS Grow Your Own – cardoon; seed packet or nursery label",
     "verified": false,
@@ -2263,6 +2331,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "garden-compost", "note": "A mulch round the crowns." }] },
     "art": { "form": "clump", "leaf": "broad", "foliage": "#8aa0a0", "flower": "#f6f4ee", "bloom": "umbel" },
     "source": "Check against: RHS Grow Your Own – sea kale; seed packet or nursery label",
     "verified": false,
@@ -2289,6 +2358,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "rotted-manure", "note": "A bucketful in each planting hole." }, { "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Once the first fruits start to swell." }] },
     "art": { "form": "sprawl", "leaf": "lobed", "foliage": "#4f7d3a", "flower": "#f2b51c", "bloom": "big", "crop": { "kind": "fruit", "colour": "#e8d070" } },
     "source": "Check against: RHS Grow Your Own – summer squash and patty pans; seed packet or nursery label",
     "verified": false,
@@ -2314,6 +2384,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "flowering", "feed": "tomato-feed", "every": 14 }] },
     "art": { "form": "upright", "leaf": "lobed", "foliage": "#5f8a45", "flower": "#f2e090", "bloom": "cup", "crop": { "kind": "pod", "colour": "#6a9a4a" } },
     "source": "Check against: RHS Grow Your Own – okra; seed packet or nursery label",
     "verified": false,
@@ -2339,6 +2410,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost" }], "avoid": ["High-nitrogen feeds: it makes its own nitrogen, and feeding it grows leaves rather than pods."] },
     "art": { "form": "sprawl", "leaf": "round", "foliage": "#5f8a4a", "flower": "#a0283a", "bloom": "cup", "crop": { "kind": "pod", "colour": "#6a9a4a" } },
     "source": "Check against: RHS Grow Your Own – asparagus pea; seed packet or nursery label",
     "verified": false,
@@ -2365,6 +2437,7 @@
     ],
     "companions": { "good": [], "avoid": ["onion", "garlic", "leek", "shallot"] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost" }], "avoid": ["High-nitrogen feeds: it makes its own nitrogen, and feeding it grows leaves rather than pods."] },
     "art": { "form": "climber", "leaf": "broad", "foliage": "#5f8a45", "flower": "#f2ece0", "bloom": "cup", "crop": { "kind": "pod", "colour": "#c8606a" } },
     "source": "Check against: RHS Grow Your Own – French beans; seed packet or nursery label",
     "verified": false,
@@ -2385,6 +2458,7 @@
     "germinationDays": [10, 21],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Fresh manure, or compost dug in just before sowing: the roots fork. Sow where a crop was manured last year."] },
     "art": { "form": "grass", "leaf": "strap", "foliage": "#5f8a4a", "crop": { "kind": "root", "colour": "#3a2a20" } },
     "source": "Check against: RHS Grow Your Own – scorzonera; seed packet or nursery label",
     "verified": false,
@@ -2409,6 +2483,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "blood-fish-bone" }] },
     "art": { "form": "upright", "leaf": "lobed", "foliage": "#5f8a3a", "crop": { "kind": "head", "colour": "#6a9a3a" } },
     "source": "Check against: seed packet – turnip tops; seed packet or nursery label",
     "verified": false,
@@ -2434,6 +2509,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "chicken-manure-pellets", "note": "Into firm soil: brassicas like it trodden down." }, { "when": "growing", "feed": "nettle-tea", "every": 14 }, { "when": "spring", "feed": "chicken-manure-pellets", "months": [3], "note": "A boost as growth starts again." }], "avoid": ["Fresh manure dug in just before planting: soft, loose growth. Manure the bed the autumn before."] },
     "art": { "form": "upright", "leaf": "strap", "foliage": "#2f4a3a" },
     "source": "Check against: RHS Grow Your Own – kale; seed packet or nursery label",
     "verified": false,
@@ -2461,6 +2537,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "chicken-manure-pellets", "note": "Into firm soil: brassicas like it trodden down." }, { "when": "growing", "feed": "nettle-tea", "every": 14 }, { "when": "spring", "feed": "chicken-manure-pellets", "months": [3], "note": "A boost as growth starts again." }], "avoid": ["Fresh manure dug in just before planting: soft, loose growth. Manure the bed the autumn before."] },
     "art": { "form": "rosette", "leaf": "round", "foliage": "#4f7a3c", "crop": { "kind": "head", "colour": "#6a9a4a" } },
     "source": "Check against: RHS Grow Your Own – cabbages; seed packet or nursery label",
     "verified": false,
@@ -2482,6 +2559,7 @@
     "lookOutFor": ["Sow every week or two; grows on a windowsill all year too."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [] },
     "art": { "form": "rosette", "leaf": "feathery", "foliage": "#7ab050" },
     "source": "Check against: RHS Grow Your Own – garden cress; seed packet or nursery label",
     "verified": false,
@@ -2502,6 +2580,7 @@
     "germinationDays": [14, 28],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Fresh manure, or compost dug in just before sowing: the roots fork. Sow where a crop was manured last year."] },
     "art": { "form": "rosette", "leaf": "feathery", "foliage": "#4f7a3c", "crop": { "kind": "root", "colour": "#f0e8d0" } },
     "source": "Check against: RHS Grow Your Own – hamburg parsley; seed packet or nursery label",
     "verified": false,
@@ -2527,6 +2606,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "hungry", "steps": [{ "when": "planting", "feed": "chicken-manure-pellets", "note": "Into firm soil: brassicas like it trodden down." }, { "when": "growing", "feed": "nettle-tea", "every": 14 }], "avoid": ["Fresh manure dug in just before planting: soft, loose growth. Manure the bed the autumn before."] },
     "art": { "form": "rosette", "leaf": "broad", "foliage": "#6a8a4a", "crop": { "kind": "head", "colour": "#b8d060" } },
     "source": "Check against: RHS Grow Your Own – cauliflowers; seed packet or nursery label",
     "verified": false,
@@ -2548,6 +2628,7 @@
     "lookOutFor": ["Cut the flower spikes before they seed, or it seeds everywhere."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [] },
     "art": { "form": "upright", "leaf": "broad", "foliage": "#8a2a4a" },
     "source": "Check against: seed packet – mountain spinach; seed packet or nursery label",
     "verified": false,
@@ -2570,6 +2651,7 @@
     "lookOutFor": ["Also called chop suey greens; the yellow flowers are edible."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost", "note": "A thin layer raked in." }] },
     "art": { "form": "upright", "leaf": "feathery", "foliage": "#5f8a45", "flower": "#f2d23c", "bloom": "daisy" },
     "source": "Check against: seed packet – edible chrysanthemum; seed packet or nursery label",
     "verified": false,

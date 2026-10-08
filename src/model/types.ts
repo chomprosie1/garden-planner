@@ -31,6 +31,8 @@ export interface Garden {
   /** Average last spring frost and first autumn frost, "MM-DD". Absent: estimated from the latitude. */
   lastFrost?: string;
   firstFrost?: string;
+  /** Feeds you have in, by id from data/feeds.json. */
+  feedShelf?: string[];
 }
 
 export const SHED_PLACE_KINDS = ['shelves', 'windowsill', 'propagator', 'greenhouse-bench', 'cold-frame'] as const;
@@ -302,6 +304,8 @@ export interface Plant {
   growth?: Growth;
   /** A weed: how it spreads, what it's good for, and how to get rid of it, by hand. */
   weed?: WeedInfo;
+  /** How hungry it is, which feeds it likes when, and what to keep away from it. */
+  feeding?: Feeding;
   image?: { url: string; credit: string; licence: string; sourceUrl: string }; // PD, CC0, CC BY or CC BY-SA only
   source?: string;
   lastChecked?: string; // ISO date
@@ -322,6 +326,35 @@ export interface WeedInfo {
   wildlife?: string;
   /** How to be rid of it, by hand or with a hoe: never a weedkiller. */
   removal: string;
+}
+
+/** Hungry crops want feeding through the season; light feeders do best in ordinary soil. */
+export const FEED_NEEDS = ['hungry', 'moderate', 'light'] as const;
+export type FeedNeed = (typeof FEED_NEEDS)[number];
+/**
+ * When a feed goes on: before planting, once in spring (perennials and anything over winter), regularly while it
+ * grows, regularly from the first flowers, or once after it's cropped or flowered.
+ */
+export const FEED_TIMES = ['planting', 'spring', 'growing', 'flowering', 'after'] as const;
+export type FeedTime = (typeof FEED_TIMES)[number];
+
+export interface FeedStep {
+  when: FeedTime;
+  /** A feed's id, from data/feeds.json. */
+  feed: string;
+  /** For growing and flowering: every so many days. Absent: every two weeks. */
+  every?: number;
+  /** The months it applies, where the usual ones are wrong. */
+  months?: number[];
+  /** A word on this plant: "Weekly once the first truss has set." */
+  note?: string;
+}
+
+export interface Feeding {
+  need: FeedNeed;
+  steps: FeedStep[];
+  /** What to keep away from it, and why: "Fresh manure: the roots fork." */
+  avoid?: string[];
 }
 
 export interface Growth {

@@ -5654,3 +5654,56 @@ h2 {
 .kitchen-hint .recipe:last-child {
   border-bottom: 0;
 }
+
+/* Release 14: feeding. The feed shelf on the Seedlings page, and its parts of the shed. */
+.shed-pages {
+  margin: 0.2rem 0 0.4rem;
+}
+.feed-kind h3 {
+  margin: 1rem 0 0.3rem;
+}
+.feed-list,
+.feed-uses {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.feed-row {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.feed-row:last-child {
+  border-bottom: 0;
+}
+.feed-for {
+  margin: 0.1rem 0 0 calc(22px + 0.6rem);
+}
+.feed-more {
+  margin: 0.2rem 0 0 calc(22px + 0.6rem);
+}
+.feed-more summary {
+  cursor: pointer;
+  color: var(--link);
+}
+.feed-more .kitchen-facts {
+  margin-top: 0.2rem;
+}
+.feed-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  cursor: pointer;
+}
+.feed-check input {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 0.1rem 0 0;
+  accent-color: var(--accent);
+}
+.feed-uses li {
+  padding: 0.3rem 0;
+}

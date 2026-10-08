@@ -7,6 +7,8 @@ import {
   CONTAINERS,
   CROP_KINDS,
   EDGINGS,
+  FEED_NEEDS,
+  FEED_TIMES,
   LEAF_SHAPES,
   LIGHT_LEVELS,
   MATERIALS,
@@ -152,6 +154,7 @@ export function validateGarden(g: unknown): string[] {
 
   const monthDay = (v: unknown) => v === undefined || (isStr(v) && /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(v));
   need(monthDay(g.lastFrost) && monthDay(g.firstFrost), 'frost dates must be MM-DD.');
+  need(g.feedShelf === undefined || (Array.isArray(g.feedShelf) && g.feedShelf.every((f) => isStr(f) && /^[a-z0-9-]{1,40}$/.test(f))), 'feedShelf must be a list of feed ids.');
   const placeIds = new Set<string>();
   if (g.shedPlaces !== undefined) {
     if (!Array.isArray(g.shedPlaces)) errors.push('shedPlaces must be a list.');
@@ -279,6 +282,26 @@ export function validatePlant(p: unknown): string[] {
       'weed needs how it spreads (seed, roots or both) and how to remove it.',
     );
   need(p.category !== 'weed' || p.weed !== undefined, 'a weed needs its weed details.');
+  if (p.feeding !== undefined) {
+    const f = p.feeding;
+    need(
+      isObject(f) &&
+        oneOf(FEED_NEEDS, f.need) &&
+        Array.isArray(f.steps) &&
+        f.steps.every(
+          (s) =>
+            isObject(s) &&
+            oneOf(FEED_TIMES, s.when) &&
+            isStr(s.feed) &&
+            /^[a-z0-9-]+$/.test(s.feed) &&
+            (s.every === undefined || (Number.isInteger(s.every) && (s.every as number) >= 7 && (s.every as number) <= 60)) &&
+            (s.months === undefined || isMonths(s.months)) &&
+            (s.note === undefined || isStr(s.note)),
+        ) &&
+        (f.avoid === undefined || (Array.isArray(f.avoid) && f.avoid.every(isStr))),
+      'feeding needs how hungry it is (hungry, moderate or light) and steps, each with a time and a feed.',
+    );
+  }
 
   return errors;
 }

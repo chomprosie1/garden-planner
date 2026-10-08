@@ -62,6 +62,7 @@
     "wintering": {
       "type": "annual"
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "growing", "feed": "liquid-seaweed", "every": 14, "note": "Most of all in pots." }] },
     "art": {"form":"mound","leaf":"broad","foliage":"#5aa03a","flower":"#f4f1e6","bloom":"spike"},
     "source": "Check against: RHS – basil; seed packet",
     "verified": false,
@@ -144,6 +145,7 @@
       "type": "hardy",
       "notes": "A biennial: it runs to seed in its second summer, so sow again each year."
     },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost" }] },
     "art": {"form":"mound","leaf":"feathery","foliage":"#3f7f35"},
     "source": "Check against: RHS – parsley; seed packet",
     "verified": false,
@@ -208,6 +210,7 @@
     "wintering": {
       "type": "annual"
     },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost" }] },
     "art": {"form":"mound","leaf":"feathery","foliage":"#5a9a3a","flower":"#f4f1e6","bloom":"umbel"},
     "source": "Check against: RHS – coriander; seed packet",
     "verified": false,
@@ -287,6 +290,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "light", "steps": [{ "when": "spring", "feed": "garden-compost", "note": "A mulch round the clump." }] },
     "art": {"form":"clump","leaf":"strap","foliage":"#4f8a4a","flower":"#b07ad0","bloom":"umbel"},
     "source": "Check against: RHS – chives; seed packet",
     "verified": false,
@@ -350,6 +354,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "garden-compost", "note": "A mulch, or fresh compost if it’s in a pot." }] },
     "art": {"form":"mound","leaf":"broad","foliage":"#4f8f4a","flower":"#c9a0e0","bloom":"spike"},
     "source": "Check against: RHS – mint; herb nursery label",
     "verified": false,
@@ -420,6 +425,7 @@
       "winter": "evergreen",
       "perennial": true
     },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil, manure and strong feeds: soft, floppy growth with less flavour."] },
     "art": {"form":"shrub","leaf":"needle","foliage":"#5a7a6a","flower":"#8aa0e0","bloom":"daisy"},
     "source": "Check against: RHS – rosemary; herb nursery label",
     "verified": false,
@@ -486,6 +492,7 @@
       "winter": "evergreen",
       "perennial": true
     },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil, manure and strong feeds: soft, floppy growth with less flavour."] },
     "art": {"form":"mound","leaf":"round","foliage":"#6a8a5a","flower":"#d8a0d0","bloom":"daisy"},
     "source": "Check against: RHS – thyme; seed packet",
     "verified": false,
@@ -551,6 +558,7 @@
       "winter": "evergreen",
       "perennial": true
     },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil, manure and strong feeds: soft, floppy growth with less flavour."] },
     "art": {"form":"shrub","leaf":"broad","foliage":"#8aa08a","flower":"#8a7ad0","bloom":"spike"},
     "source": "Check against: RHS – sage; seed packet",
     "verified": false,
@@ -613,6 +621,7 @@
     "wintering": {
       "type": "annual"
     },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost" }] },
     "art": {"form":"grass","leaf":"feathery","foliage":"#7aa04a","flower":"#e8d040","bloom":"umbel"},
     "source": "Check against: RHS – dill; seed packet",
     "verified": false,
@@ -678,6 +687,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil, manure and strong feeds: soft, floppy growth with less flavour."] },
     "art": {"form":"mound","leaf":"round","foliage":"#5a8a4a","flower":"#d8a0d0","bloom":"daisy"},
     "source": "Check against: RHS – oregano and marjoram; seed packet",
     "verified": false,
@@ -745,6 +755,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "light", "steps": [] },
     "art": {"form":"grass","leaf":"feathery","foliage":"#7aa05a","flower":"#e8d040","bloom":"umbel"},
     "source": "Check against: RHS – herb fennel; seed packet",
     "verified": false,
@@ -808,6 +819,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "light", "steps": [] },
     "art": {"form":"mound","leaf":"broad","foliage":"#7ab04a","flower":"#f4f1e6","bloom":"daisy"},
     "source": "Check against: RHS – lemon balm; seed packet",
     "verified": false,
@@ -874,6 +886,7 @@
       "winter": "evergreen",
       "perennial": true
     },
+    "feeding": { "need": "light", "steps": [{ "when": "spring", "feed": "slow-release", "note": "In a pot: worked into the top of the compost." }] },
     "art": {"form":"shrub","leaf":"broad","foliage":"#3f6a3a"},
     "source": "Check against: RHS – bay; nursery label",
     "verified": false,
@@ -922,6 +935,7 @@
     "lifePath": {
       "perennial": true
     },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil, manure and strong feeds: soft, floppy growth with less flavour."] },
     "art": {"form":"mound","leaf":"needle","foliage":"#6a9a5a"},
     "source": "Check against: RHS – tarragon; herb nursery label",
     "verified": false,
@@ -946,6 +960,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [{ "when": "spring", "feed": "garden-compost", "note": "A mulch round the clump." }] },
     "art": { "form": "clump", "leaf": "strap", "foliage": "#5f8a3a" },
     "source": "Check against: RHS – sorrel; seed packet or nursery label",
     "verified": false,
@@ -968,6 +983,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "garden-compost", "note": "A mulch round the clump." }] },
     "art": { "form": "upright", "leaf": "lobed", "foliage": "#4f7a3c", "flower": "#e8e090", "bloom": "umbel" },
     "source": "Check against: RHS – lovage; seed packet or nursery label",
     "verified": false,
@@ -986,6 +1002,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [] },
     "art": { "form": "rosette", "leaf": "broad", "foliage": "#5f8a45", "crop": { "kind": "root", "colour": "#e8e0c8" } },
     "source": "Check against: RHS – horseradish; seed packet or nursery label",
     "verified": false,
@@ -1006,6 +1023,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [] },
     "art": { "form": "rosette", "leaf": "feathery", "foliage": "#6a9a5a" },
     "source": "Check against: RHS – salad burnet; seed packet or nursery label",
     "verified": false,
@@ -1026,6 +1044,7 @@
     "lookOutFor": ["Bolts in heat: sow little and often, in some shade."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost" }] },
     "art": { "form": "upright", "leaf": "feathery", "foliage": "#7ab060", "flower": "#f6f4ee", "bloom": "umbel" },
     "source": "Check against: RHS – chervil; seed packet or nursery label",
     "verified": false,
@@ -1049,6 +1068,7 @@
     "companions": { "good": [], "avoid": ["broad-bean", "pea"] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "light", "steps": [{ "when": "spring", "feed": "garden-compost", "note": "A mulch round the clump." }] },
     "art": { "form": "clump", "leaf": "strap", "foliage": "#5f8a4a", "flower": "#f6f4ee", "bloom": "umbel" },
     "source": "Check against: RHS – garlic chives; seed packet or nursery label",
     "verified": false,
@@ -1069,6 +1089,7 @@
     "lookOutFor": ["Bees love it, and it self-seeds freely.", "The blue flowers are edible."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [] },
     "art": { "form": "mound", "leaf": "broad", "foliage": "#6a8a6a", "flower": "#4a6ad8", "bloom": "daisy" },
     "source": "Check against: RHS – borage; seed packet or nursery label",
     "verified": false,
@@ -1089,6 +1110,7 @@
     "germinationDays": [7, 14],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [] },
     "art": { "form": "upright", "leaf": "feathery", "foliage": "#7aa060", "flower": "#f6f4ee", "bloom": "daisy" },
     "source": "Check against: RHS – German chamomile; seed packet or nursery label",
     "verified": false,
@@ -1110,6 +1132,7 @@
     "germinationDays": [7, 14],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual", "notes": "Usually grown as an annual." },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil, manure and strong feeds: soft, floppy growth with less flavour."] },
     "art": { "form": "mound", "leaf": "round", "foliage": "#8aa070", "flower": "#f6f0f0", "bloom": "daisy" },
     "source": "Check against: RHS – sweet marjoram; seed packet or nursery label",
     "verified": false,
@@ -1131,6 +1154,7 @@
     "germinationDays": [10, 21],
     "companions": { "good": ["broad-bean", "french-bean"], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil, manure and strong feeds: soft, floppy growth with less flavour."] },
     "art": { "form": "upright", "leaf": "needle", "foliage": "#6a8a5a", "flower": "#e8d0e0", "bloom": "spike" },
     "source": "Check against: RHS – summer savory; seed packet or nursery label",
     "verified": false,
@@ -1153,6 +1177,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "winter": "evergreen", "perennial": true },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil, manure and strong feeds: soft, floppy growth with less flavour."] },
     "art": { "form": "mound", "leaf": "needle", "foliage": "#4f6a45", "flower": "#f6f0f0", "bloom": "spike" },
     "source": "Check against: RHS – winter savory; seed packet or nursery label",
     "verified": false,
@@ -1176,6 +1201,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "winter": "evergreen", "perennial": true },
+    "feeding": { "need": "light", "steps": [], "avoid": ["Rich soil, manure and strong feeds: soft, floppy growth with less flavour."] },
     "art": { "form": "upright", "leaf": "needle", "foliage": "#4f6a45", "flower": "#4a5ad0", "bloom": "spike" },
     "source": "Check against: RHS – hyssop; seed packet or nursery label",
     "verified": false,
@@ -1193,6 +1219,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "protect", "notes": "Bring pots under cover for winter, or mulch thickly on a warm wall." },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "moderate", "steps": [{ "when": "growing", "feed": "liquid-seaweed", "every": 14 }] },
     "art": { "form": "shrub", "leaf": "strap", "foliage": "#8aa050" },
     "source": "Check against: RHS – lemon verbena; seed packet or nursery label",
     "verified": false,
@@ -1215,6 +1242,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "protect", "notes": "Keep indoors in a bright, frost-free place over winter." },
     "lifePath": { "perennial": true },
+    "feeding": { "need": "moderate", "steps": [{ "when": "growing", "feed": "nettle-tea", "every": 14, "note": "It likes nitrogen." }] },
     "art": { "form": "grass", "leaf": "strap", "foliage": "#8aa860" },
     "source": "Check against: RHS – lemongrass; seed packet or nursery label",
     "verified": false,
@@ -1235,6 +1263,7 @@
     "germinationDays": [7, 21],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "growing", "feed": "liquid-seaweed", "every": 14 }] },
     "art": { "form": "upright", "leaf": "broad", "foliage": "#6a2a4a" },
     "source": "Check against: seed packet – perilla; seed packet or nursery label",
     "verified": false,

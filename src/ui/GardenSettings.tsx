@@ -464,6 +464,11 @@ function Reminders({ prefsStore }: { prefsStore: PrefsStore }) {
         <span>Weeding reminders</span>
       </label>
       <p class="muted small">A “Weed the beds” job each month from March to October, with what to do that month. Weeds you’ve marked on the plan get their own jobs either way.</p>
+      <label class="check-row">
+        <input type="checkbox" checked={prefs.feeding} onChange={(e) => prefsStore.set({ feeding: (e.currentTarget as HTMLInputElement).checked })} />
+        <span>Feeding reminders</span>
+      </label>
+      <p class="muted small">A “Feed” job when a plant wants feeding, and what to dig in before planting, from each plant’s notes.</p>
       {status && (
         <p class="small" role="status">
           {REMINDER_TEXT[status]}

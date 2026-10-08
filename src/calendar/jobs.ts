@@ -6,15 +6,19 @@
 // When a planting has probably reached flowering, a "check progress" job asks you to confirm it.
 
 import { microclimateOf } from '../climate/microclimate';
+import { feedDetail, feedingDue, isOnce, plantingFeedText } from '../feeding/schedule';
 import { addDays, frostDates, plantOutMonthsUnder } from '../lifecycle/shed';
 import { currentStage, pathFor, setStage, sowingOf, STAGE_LABEL, stageTips, suggestedStage } from '../lifecycle/stages';
 import { shortDate } from '../lifecycle/projection';
 import { placeLabel } from '../model/features';
+import { runEnds } from '../library/library';
 import { STAGES, type Garden, type PickSize, type Plant, type Planting, type Stage } from '../model/types';
 import { addPick } from '../planting/harvest';
 import { isActive, isContainer, plantingStatus } from '../planting/place';
 
-export const JOB_KINDS = ['sow-indoors', 'sow-direct', 'plant-out', 'check', 'harvest', 'protect', 'lift', 'tidy', 'weed'] as const;
+export { runEnds };
+
+export const JOB_KINDS = ['sow-indoors', 'sow-direct', 'plant-out', 'check', 'feed', 'harvest', 'protect', 'lift', 'tidy', 'weed'] as const;
 export type JobKind = (typeof JOB_KINDS)[number];
 
 export const JOB_LABEL: Record<JobKind, string> = {
@@ -22,6 +26,7 @@ export const JOB_LABEL: Record<JobKind, string> = {
   'sow-direct': 'Sow outside',
   'plant-out': 'Plant out',
   check: 'Keep an eye on',
+  feed: 'Feed',
   harvest: 'Ready to pick',
   protect: 'Tuck in for winter',
   lift: 'Lift and store',
@@ -45,17 +50,13 @@ export interface Job {
   plantingIds: string[];
   /** For a "check progress" job: the stage the plants have probably reached. Ticking it marks them at that stage. */
   stage?: Stage;
+  /** For a feed job: the feeds it calls for, by id. */
+  feeds?: string[];
 }
 
 
 const ym = (year: number, month: number) => `${year}-${String(month).padStart(2, '0')}`;
 
-/** Months where a run ends: [6,7,8] → [8]; [9,10,11,12,1,2,3] → [3]. */
-export function runEnds(months: number[]): number[] {
-  const set = new Set(months);
-  if (set.size === 12) return [];
-  return [...set].filter((m) => !set.has((m % 12) + 1)).sort((a, b) => a - b);
-}
 
 /** True when this month comes after the month a planting was sown. */
 function afterSowing(pl: Planting, year: number, month: number): boolean {
@@ -128,6 +129,8 @@ const WEEDING_TIP: Record<number, string> = {
 export interface JobOptions {
   /** A monthly "Weed the beds" reminder, March to October. The app asks for it unless it's turned off in Your garden. */
   weeding?: boolean;
+  /** Feed jobs, and what goes in before planting. The app asks for them unless they're turned off in Your garden. */
+  feeding?: boolean;
 }
 
 /** Your jobs for a month, in the order of JOB_KINDS, then by plant name. */
@@ -173,8 +176,10 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     const toSow = notGrowing.filter((p) => !p.sownOn || sownThisMonth(p, year, month));
     // Batches are sown in the month you chose for each, one job each; the rest in the plant's sowing months.
     const plain = toSow.filter((p) => !p.sowBy);
+    const before = opts.feeding ? plantingFeedText(plant) : undefined;
+    const withFeed = (detail?: string) => [detail, before].filter(Boolean).join(' ') || undefined;
     if (plain.length)
-      for (const s of sowingKinds(plant, month)) add(s.kind, plant, s.kind === 'sow-indoors' ? `for ${where.slice(3)}` : where, featureId, ids(plain), s.detail, featureId);
+      for (const s of sowingKinds(plant, month)) add(s.kind, plant, s.kind === 'sow-indoors' ? `for ${where.slice(3)}` : where, featureId, ids(plain), s.kind === 'sow-direct' ? withFeed(s.detail) : s.detail, featureId);
     // A batch not sown in its month stays on the list for the month after, as running late.
     const lastMonth = month === 1 ? ym(year - 1, 12) : ym(year, month - 1);
     for (const p of toSow.filter((x) => x.sowBy && ((x.sownOn ?? x.sowBy).slice(0, 7) === ym(year, month) || (!x.sownOn && x.sowBy.slice(0, 7) === lastMonth)))) {
@@ -191,7 +196,7 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
       const tickedNow = g.jobsDone.some((j) => j.key === `plant-out:${plant.id}:${featureId}:${ym(year, month)}`);
       const toPlant = (tickedNow ? group : notGrowing).filter((p) => (!p.sownOn || p.sownOn.slice(0, 7) <= ym(year, month)) && (!p.sowBy || p.sowBy.slice(0, 7) < ym(year, month)));
       if (toPlant.length && !doneBefore(g, `plant-out:${plant.id}:${featureId}:`, year, month))
-        add('plant-out', plant, where, featureId, ids(toPlant), cover ? 'Under glass, so there’s no need to harden them off first.' : undefined, featureId);
+        add('plant-out', plant, where, featureId, ids(toPlant), withFeed(cover ? 'Under glass, so there’s no need to harden them off first.' : undefined), featureId);
     }
 
     const growing = group.filter((p) => isGrowing(p) || afterSowing(p, year, month));
@@ -210,6 +215,16 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
         const tip = stageTips(plant, stage, due[0])[0];
         job.detail = `Probably ${STAGE_LABEL[stage].toLowerCase()} by now. Tick when you see it.${tip ? ` ${tip}` : ''}`;
         jobs.push(job);
+      }
+    }
+    // Feeding: once in spring or after cropping, or every week or two through its months. Only what's in the ground.
+    if (opts.feeding) {
+      const inGround = growing.filter((p) => isGrowing(p) || sowingOf(plant, p) !== 'indoors');
+      for (const due of inGround.length ? feedingDue(plant, month) : []) {
+        const scope = `${featureId}:${due.when}`;
+        if (isOnce(due.when) && doneBefore(g, `feed:${plant.id}:${scope}:`, year, month)) continue;
+        add('feed', plant, where, scope, ids(inGround), feedDetail(due.steps), featureId);
+        jobs[jobs.length - 1]!.feeds = [...new Set(due.steps.map((s) => s.feed))];
       }
     }
     const winter = plant.wintering;

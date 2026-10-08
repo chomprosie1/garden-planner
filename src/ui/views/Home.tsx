@@ -39,7 +39,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
   const layout = prefs.photos === 'full' ? LOOKS[prefs.look].home : 'band';
   // Jobs for your own plants when you have any; otherwise the general UK jobs.
   const { plants, plantOf } = usePlants(userPlants, spacingStyle(garden));
-  const mine = plants ? jobsFor(garden, plantOf, month, year, { weeding: prefs.weeding }) : [];
+  const mine = plants ? jobsFor(garden, plantOf, month, year, { weeding: prefs.weeding, feeding: prefs.feeding }) : [];
   const total = mine.length || seasonFor(month).jobs.length;
   const doneCount = mine.length ? doneOf(garden, mine) : jobsDoneCount(garden, month, year);
 

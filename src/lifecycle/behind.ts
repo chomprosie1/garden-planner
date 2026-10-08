@@ -11,6 +11,7 @@ import type { Garden, Plant, Planting } from '../model/types';
 import { isActive } from '../planting/place';
 import type { Weather } from '../weather/weather';
 import { expectedNext } from './projection';
+import { feedTip } from '../feeding/feeds';
 import { currentStage, STAGE_LABEL, type LifeStage } from './stages';
 
 export interface Behind {
@@ -56,6 +57,7 @@ const CAUSES: Partial<Record<LifeStage, string[]>> = {
   vegetative: [
     'A cold spell: growth stalls below about 6 °C.',
     'Short of water, or of food in poor soil.',
+    'Too much feed: strong feeds scorch young roots, and fresh manure burns them.',
     'Pests at the roots or under the leaves.',
   ],
   flowering: [
@@ -66,6 +68,7 @@ const CAUSES: Partial<Record<LifeStage, string[]>> = {
   harvesting: [
     'Not pollinated: too few insects, or too cold or wet for them. Some crops can be helped by hand.',
     'Uneven watering: fruit and pods need steady moisture.',
+    'Too much nitrogen feed: plenty of leaf and little fruit. A high-potash feed, such as tomato feed, turns it round.',
     'Too little sun or warmth this year.',
     'Pests or disease: look under the leaves and at the stems.',
   ],
@@ -75,7 +78,9 @@ const CAUSES: Partial<Record<LifeStage, string[]>> = {
 export function causesFor(plant: Plant, next: LifeStage): string[] {
   if (!CAUSES[next]) return [];
   const own = next === 'germinated' ? [] : (plant.pests ?? []).slice(0, 2).map((p) => `${p.name}: ${p.signs.charAt(0).toLowerCase()}${p.signs.slice(1)}`);
-  return [...(CAUSES[next] ?? []), ...own];
+  // A hungry crop slow to grow away is most likely short of food.
+  const hungry = next === 'vegetative' && plant.feeding?.need === 'hungry' ? [`Hungry: ${plant.commonName.toLowerCase()} is a hungry crop, and thin soil holds it back. ${feedTip(plant, 'vegetative') ?? 'A feed and a mulch of compost help.'}`] : [];
+  return [...hungry, ...(CAUSES[next] ?? []), ...own];
 }
 
 /**

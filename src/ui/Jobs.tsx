@@ -7,6 +7,8 @@ import { PICK_LABEL } from '../planting/harvest';
 import { useApp } from './appContext';
 import { KitchenHint } from './Kitchen';
 import { groupJobs, JOB_LABEL, logPick, toggleJob, type Job } from '../calendar/jobs';
+import { feedById } from '../feeding/feeds';
+import { shelfFor } from '../feeding/schedule';
 
 /** How far a job is swiped to tick it, px. */
 const SWIPE_PX = 72;
@@ -130,16 +132,33 @@ export function jobsDoneCount(garden: Garden, month: number, year: number): numb
 // ---------- Jobs for your own plants ----------
 
 /** One job: "Carrot in Veg bed (2 rows)", with any advice underneath. */
-function PlantJob({ job, done, onToggle, onPick, plantOf }: { job: Job; done?: boolean; onToggle?: () => void; onPick?: (size: PickSize) => void; plantOf?: (id: string) => Plant }) {
+/**
+ * For a feed job, once you've started a feed shelf: a feed that isn't on it, or one on it that will do instead. Nothing
+ * when the shelf has it.
+ */
+function shelfLine(garden: Garden | undefined, job: Job): string | null {
+  if (job.kind !== 'feed' || !garden?.feedShelf || !job.feeds) return null;
+  for (const id of job.feeds) {
+    const have = shelfFor(garden, id);
+    const name = feedById(id)?.name.toLowerCase() ?? id;
+    if (!have) return `No ${name} on your feed shelf.`;
+    if (have !== id) return `Your ${feedById(have)?.name.toLowerCase() ?? have} will do instead of ${name}.`;
+  }
+  return null;
+}
+
+function PlantJob({ job, done, onToggle, onPick, plantOf, garden }: { job: Job; done?: boolean; onToggle?: () => void; onPick?: (size: PickSize) => void; plantOf?: (id: string) => Plant; garden?: Garden }) {
   const [picking, setPicking] = useState(false);
   /** Just picked: what to do with it, from the kitchen. */
   const [picked, setPicked] = useState(false);
+  const shelf = shelfLine(garden, job);
   const text = (
     <span class="job-text">
       <span>
         <strong>{job.plant}</strong> {job.where}
       </span>
       {job.detail && <span class="job-detail small muted">{job.detail}</span>}
+      {shelf && <span class="job-detail small">{shelf}</span>}
     </span>
   );
   const app = useApp();
@@ -219,6 +238,7 @@ export function PlantJobs({ jobs, garden, store, limit, plantOf }: { jobs: Job[]
               <SwipeRow key={job.key} {...(store ? { onTick: () => store.apply(updateGarden((g) => toggleJob(g, job, todayIso(), plantOf))) } : {})}>
                 <PlantJob
                   job={job}
+                  garden={garden}
                   {...(plantOf ? { plantOf } : {})}
                   done={done.has(job.key)}
                   {...(store ? { onToggle: () => store.apply(updateGarden((g) => toggleJob(g, job, todayIso(), plantOf))) } : {})}

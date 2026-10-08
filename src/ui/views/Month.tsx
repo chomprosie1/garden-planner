@@ -28,8 +28,8 @@ export function Month({ store, garden, userPlants, prefs, go, back, now = new Da
   const season = seasonFor(month);
   const photoMonth = prefs.photoMonth === 'auto' ? month : prefs.photoMonth;
   const { plants, plantOf } = usePlants(userPlants);
-  const jobs = useMemo(() => (plants ? jobsFor(garden, plantOf, month, year, { weeding: prefs.weeding }) : []), [garden, plantOf, plants, month, year, prefs.weeding]);
-  const comingUp = useMemo(() => (plants ? jobsFor(garden, plantOf, next, nextYear, { weeding: prefs.weeding }) : []), [garden, plantOf, plants, next, nextYear, prefs.weeding]);
+  const jobs = useMemo(() => (plants ? jobsFor(garden, plantOf, month, year, { weeding: prefs.weeding, feeding: prefs.feeding }) : []), [garden, plantOf, plants, month, year, prefs.weeding, prefs.feeding]);
+  const comingUp = useMemo(() => (plants ? jobsFor(garden, plantOf, next, nextYear, { weeding: prefs.weeding, feeding: prefs.feeding }) : []), [garden, plantOf, plants, next, nextYear, prefs.weeding, prefs.feeding]);
   const hasPlants = garden.plantings.some((p) => !p.removedOn) || garden.wishlist.length > 0;
 
   return (

@@ -828,7 +828,7 @@ Decided:
 | 11b. Your gardens | More than one garden, switching between them, and deleting everything to start again | ~1 wk | Built 8 Oct 2026 |
 | 12. A new look | 12a mock-ups (you choose) → 12b build: a phone-first redesign, This week as cards, and the new voice | ~3 wk | Built 8 Oct 2026, without mock-ups |
 | 13. From plot to plate | Recipes, storing and preserving, a kitchen card for this week, harvest worth in £ | ~2 wk + writing | Built 8 Oct 2026 |
-| 14. Feeding | Fertiliser types, prices, what each plant likes, feed jobs | ~1.5 wk | |
+| 14. Feeding | Fertiliser types, prices, what each plant likes, feed jobs | ~1.5 wk | Built 9 Oct 2026 |
 | 15. 500 plants, and varieties | +250 plants in batches of 50, a variety model, the seed tin | ~4 wk of data (alongside 13–14) | |
 | 16. Inspire me | Tap an empty area, give a budget, a time and effort; it suggests what would grow (folds in "What grows here?") | ~1.5 wk | |
 | 17. Walk through it | First-person walking in 3D, leaves you can recognise, frost and lawn by season | ~2 wk | |
@@ -1037,19 +1037,49 @@ Tests: new `tests/kitchen.test.ts`:
 - **Recipes:** chosen across the crops, the same every time, in season first.
 - **Worth:** this year's picks only, most first; the rough wording; the Wrapped card.
 
-### Release 14 — Feeding (planned)
-- **Data:** `data/feeds.json`, about 15 generic types:
-  - **organic:** blood, fish and bone; chicken manure pellets; seaweed; bonemeal; garden compost; well-rotted manure; comfrey tea; nettle tea; liquid tomato feed;
-  - **mineral:** a balanced granular feed; sulphate of potash; sulphate of ammonia; ericaceous feed; slow-release granules.
-  - Each with rough NPK, organic or mineral, how and when to use it, and a typical UK price range ("about £5–8 for 1.5 kg, autumn 2026").
-  - No brands.
-- **Plant data:** `Plant.feeding` (hungry / moderate / light; which feed at which stage; what to avoid, e.g. fresh manure for carrots, lime for blueberries), drafted for every plant and unchecked, like the rest.
-- **Jobs and advice:**
-  - feed jobs in `src/calendar/jobs.ts` (e.g. tomatoes weekly from the first truss);
-  - feed advice in the stage tips;
-  - "too much feed" in the running-behind causes.
-- **Your feed shelf:** what you have, with an estimate of the season's cost.
-- **Tests:** full suite (jobs.ts), plus new feed fixtures in `tests/feeding.test.ts`.
+### Release 14 — Feeding (as built, schema 15)
+- **Data** (`data/feeds.json`): fifteen generic feeds, no brands.
+  - **Organic:** blood, fish and bone; chicken manure pellets; liquid seaweed; bonemeal; garden compost; well-rotted manure; comfrey tea; nettle tea; liquid tomato feed; wood ash.
+  - **Mineral:** a balanced granular feed; sulphate of potash; sulphate of ammonia; ericaceous feed; slow-release granules.
+  - Each has rough NPK, what it's for, how and when, a dose in words, an amount a square metre (for the season's sums), a usual pack and its price range (autumn 2026), and, for the home-made ones, how to make them. Liquid tomato feed is listed as organic, with a note that mineral kinds work the same.
+- **Plant data:** `Plant.feeding` for all 250 plants (not weeds), drafted and unchecked:
+  - how hungry it is (hungry, moderate or light);
+  - steps: a time (before planting, in spring, while it grows, from the first flowers, afterwards), a feed, how often (every 7 to 60 days) and a note;
+  - what to keep away, and why (fresh manure for carrots, lime for blueberries, nitrogen for beans and peas).
+  - **Changed from the plan:** it lives in the plant files (one line each), not beside them like the kitchen notes, because the jobs need it.
+- **Logic:**
+  - `src/feeding/feeds.ts` (pure): the feeds, and the words for steps, prices and amounts. The stage advice uses it.
+  - `src/feeding/schedule.ts` (pure):
+    - the months for each step: spring is March, or April if missed; regular feeds run April to September, from planting or from the first flowers; "afterwards" is the month after the crop or the flowers end;
+    - what's due this month;
+    - the feed shelf, and which feeds stand in for each other;
+    - a season's feeding: amounts from each planting's spacing, and the cost at pack prices for the amount used. Home-made feeds cost nothing.
+  - `runEnds` moved to `src/library/library.ts`, beside `runStarts` (jobs re-exports it).
+- **Jobs** (`src/calendar/jobs.ts`):
+  - **Feed jobs:** one a plant and bed for each time that's due, only for what's in the ground. Once-a-year feeds (spring, afterwards) don't come back once ticked.
+  - **Before planting:** sowing outside and planting out say what to dig in first ("Before planting: well-rotted manure, a bucketful a square metre.").
+  - Both sit behind a new setting, **Feeding reminders** (on by default), in Your garden, like weeding.
+  - **The shelf on a job:** once you've ticked anything on the shelf, a feed job says "No sulphate of potash on your feed shelf", or "Your balanced granular feed will do instead of blood, fish and bone".
+- **Advice:**
+  - The stage tips end with a line on feeding (growing, flowering, after cropping).
+  - Running behind gains "too much feed" for growing on and "too much nitrogen" for cropping.
+  - A hungry crop slow to grow away is told first that it's likely short of food.
+- **On screen:**
+  - **The feed shelf:** a second part of the Seedlings page, beside the trays. This season's feeding first (each feed, how much, for which plants, its rough cost, and a total), then every feed to tick off, with how to use it.
+  - **Feeding** on each plant's card, before the kitchen notes.
+- **Checked:** screenshots at 390 px of the feed shelf and a tomato's card.
+- **Not done:**
+  - Feeding for your own plants (a copy of a library plant keeps its notes).
+  - A feed for lawns.
+  - Checking the feeding data on the Check the plants page.
+
+Tests: new `tests/feeding.test.ts`:
+- **The feeds:** generic names and no brands, NPK, and a price or a way to make it.
+- **Every plant's feeding:** real feeds, none for weeds, the voice, and bad data refused.
+- **The months:** tomatoes June to September; spring, and a step's own months; after cropping; while growing.
+- **Feed jobs:** weekly for tomatoes, only when asked for; nothing before planting out; a spring feed not repeated once ticked; the planting advice.
+- **Advice:** the stage tips and running behind.
+- **The shelf:** a season's feeding and its cost, the shelf and what stands in, and the schema 15 migration.
 
 ### Release 15 — 500 plants, and varieties (planned)
 - **Model:**

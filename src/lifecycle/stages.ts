@@ -6,6 +6,7 @@
 // off, lettuce has no flowering stage worth marking (it has bolted), and plants
 // bought in pots or bulbs start at planting. Perennials go round again each year.
 
+import { feedTip } from '../feeding/feeds';
 import { runStarts } from '../library/library';
 import { addNote, makeNote } from '../model/notes';
 import { STAGES, type Garden, type Plant, type Planting, type Stage } from '../model/types';
@@ -170,11 +171,16 @@ export function suggestedStage(plant: Plant, pl: Planting, month: number): Stage
 
 // ---------- Advice ----------
 
-/** Advice for a stage: the plant's own first, then general advice that fits how it's grown. */
+/** Advice for a stage: the plant's own first, or general advice that fits how it's grown; then a line on feeding, if it has one. */
 export function stageTips(plant: Plant, stage: LifeStage, pl?: Planting): string[] {
   if (stage === 'planned' || stage === 'cleared') return [];
+  const feed = feedTip(plant, stage);
   const own = plant.stageTips?.[stage];
-  if (own?.length) return own;
+  const tips = own?.length ? own : generalTips(plant, stage, pl, !!feed);
+  return feed ? [...tips, feed] : tips;
+}
+
+function generalTips(plant: Plant, stage: Stage, pl: Planting | undefined, fed: boolean): string[] {
   const sowing = sowingOf(plant, pl);
   switch (stage) {
     case 'sown':
@@ -195,7 +201,7 @@ export function stageTips(plant: Plant, stage: LifeStage, pl?: Planting): string
       return plant.category === 'flower'
         ? ['Snip off the faded flowers and more will follow: a few minutes with the secateurs on a summer evening.']
         : harvests(plant)
-          ? ['The flowers are the start of the crop. Water regularly, and switch to a high-potash feed for fruiting crops.']
+          ? [fed ? 'The flowers are the start of the crop. Water regularly, so the fruit doesn’t split.' : 'The flowers are the start of the crop. Water regularly, and switch to a high-potash feed for fruiting crops.']
           : ['In flower. Enjoy it.'];
     case 'harvesting':
       return ['Pick little and often: for many crops, the more you pick, the more there is.'];

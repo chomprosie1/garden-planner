@@ -45,6 +45,7 @@ import { CompassFacing } from '../CompassNorth';
 import { useIsPhone } from '../hooks';
 import { PlantIcon } from '../PlantIcon';
 import { TrayArt } from '../TrayArt';
+import { FeedShelf } from '../FeedShelf';
 import { usePlants } from '../usePlants';
 
 const TRAY_DRAG = 'application/x-garden-tray';
@@ -60,6 +61,14 @@ interface Props {
   clearSow?: () => void;
 }
 
+type ShedPage = 'trays' | 'feeds';
+const SHED_PAGES: [ShedPage, string][] = [
+  ['trays', 'Trays'],
+  ['feeds', 'Feed shelf'],
+];
+/** The part of the shed you were last in, while the app's open. */
+let lastPage: ShedPage = 'trays';
+
 /** Plants sown indoors or under cover: the ones the shed is for. */
 const sownUnderCover = (p: Plant) => !!p.sowing?.some((s) => s.method !== 'direct');
 
@@ -72,6 +81,11 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
   const [selected, setSelected] = useState<string | null>(null);
   const [sowing, setSowing] = useState<string | null>(sowPlantId);
   const [tab, setTab] = useState<string | null>(null);
+  const [page, setPage] = useState<ShedPage>(lastPage);
+  const show = (p: ShedPage) => {
+    lastPage = p;
+    setPage(p);
+  };
   const places = placesOf(garden);
   const trays = traysOf(garden);
   const indoors = plants ? plantingsIndoors(garden, plantOf) : [];
@@ -82,6 +96,7 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
 
   useEffect(() => {
     if (sowPlantId) {
+      show('trays');
       setSowing(sowPlantId);
       clearSow?.();
     }
@@ -99,7 +114,7 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
     <div class="page shed-page">
       <header class="page-head">
         <h1 class="title">Seedlings</h1>
-        <button type="button" class="btn btn-primary shed-sow-btn" onClick={() => setSowing('')}>
+        <button type="button" class="btn btn-primary shed-sow-btn" onClick={() => (show('trays'), setSowing(''))}>
           Sow seeds
         </button>
       </header>
@@ -117,138 +132,152 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
         </a>
       </p>
 
-      {ready.length > 0 && (
-        <section class="card shed-ready" aria-labelledby="ready-head">
-          <h2 id="ready-head">Ready for the garden</h2>
-          <ul class="plain-list">
-            {ready.map((r) => {
-              const p = plantOf(r.plantId);
-              return (
-                <li key={r.id} class="shed-ready-row">
-                  <PlantIcon plant={p} size={28} stage="transplanted" />
-                  <span>
-                    <strong>{p.commonName}</strong>
-                    {r.kind === 'tray' ? ` · ${r.count} ${r.count === 1 ? 'plant' : 'plants'}` : ' · already has its place on the plan'}
-                  </span>
-                  <button
-                    type="button"
-                    class="btn btn-primary"
-                    onClick={() => (r.kind === 'tray' ? app.plantOutTray(r.id) : commit((g) => setIndoorStage(g, r.id, 'transplanted', today)))}
-                  >
-                    {r.kind === 'tray' ? 'Plant out' : 'Mark as planted out'}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      )}
-
-      {sowing !== null && plants && (
-        <SowForm
-          plants={plants}
-          places={places}
-          sunOf={(id) => {
-            const pl = places.find((x) => x.id === id);
-            return pl ? placeSun(garden, pl, month, year) : null;
-          }}
-          sunniest={sunniestPlace(garden, month, year)}
-          month={month}
-          initial={sowing || null}
-          onCancel={() => setSowing(null)}
-          onSow={(plant, o) => {
-            let made: string | null = null;
-            commit((g) => {
-              const [next, id] = sowInTray(g, plant, o);
-              made = id;
-              return next;
-            });
-            setSowing(null);
-            if (made) setSelected(made);
-            app.notify(`${plant.commonName} sown in the shed.`, { undo: true });
-          }}
-        />
-      )}
-
-      {tray && plants && <TrayPanel tray={tray} plant={plantOf(tray.plantId)} garden={garden} commit={commit} close={() => setSelected(null)} today={today} />}
-
-      {places.length === 0 ? (
-        <section class="card shed-empty">
-          <div class="shed-empty-art" aria-hidden="true" />
-          <h2>Nothing sown yet</h2>
-          <p class="muted">
-            Sow seeds in trays and pots here, on a windowsill, in a propagator or on shelves. Each tray shows when its seedlings are due, when to harden them off, and when they’re ready for the garden.
-          </p>
-          <button type="button" class="btn btn-primary" onClick={() => setSowing('')}>
-            Sow seeds
+      <div class="shed-tabs shed-pages" role="tablist" aria-label="In the shed">
+        {SHED_PAGES.map(([id, label]) => (
+          <button key={id} type="button" role="tab" class="mode-tab" aria-selected={page === id} onClick={() => show(id)}>
+            {label}
           </button>
-        </section>
-      ) : (
+        ))}
+      </div>
+
+      {page === 'feeds' && plants && <FeedShelf store={store} garden={garden} plantOf={plantOf} />}
+
+      {page === 'trays' && (
         <>
-          {phone && places.length > 1 && (
-            <div class="shed-tabs" role="tablist" aria-label="Places">
-              {places.map((p) => {
-                const n = trays.filter((t) => t.placeId === p.id).length;
-                return (
-                  <button key={p.id} type="button" role="tab" class="mode-tab" aria-selected={(tab ?? places[0]!.id) === p.id} onClick={() => setTab(p.id)}>
-                    {p.name}
-                    {n > 0 && <span class="mode-badge">{n}</span>}
-                  </button>
-                );
-              })}
-            </div>
+          {ready.length > 0 && (
+            <section class="card shed-ready" aria-labelledby="ready-head">
+              <h2 id="ready-head">Ready for the garden</h2>
+              <ul class="plain-list">
+                {ready.map((r) => {
+                  const p = plantOf(r.plantId);
+                  return (
+                    <li key={r.id} class="shed-ready-row">
+                      <PlantIcon plant={p} size={28} stage="transplanted" />
+                      <span>
+                        <strong>{p.commonName}</strong>
+                        {r.kind === 'tray' ? ` · ${r.count} ${r.count === 1 ? 'plant' : 'plants'}` : ' · already has its place on the plan'}
+                      </span>
+                      <button
+                        type="button"
+                        class="btn btn-primary"
+                        onClick={() => (r.kind === 'tray' ? app.plantOutTray(r.id) : commit((g) => setIndoorStage(g, r.id, 'transplanted', today)))}
+                      >
+                        {r.kind === 'tray' ? 'Plant out' : 'Mark as planted out'}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
           )}
-          {tray && <p class="shed-move-hint small">Tap an empty space to move {plantOf(tray.plantId).commonName.toLowerCase()} there, or drag it.</p>}
-          <div class="shed-places">
-            {shownPlaces.map((place) => (
-              <PlaceScene
-                key={place.id}
-                place={place}
-                garden={garden}
-                plantOf={plantOf}
-                selected={selected}
-                select={(id) => setSelected(id === selected ? null : id)}
-                move={move}
-                commit={commit}
-                today={today}
-              />
-            ))}
-          </div>
+
+          {sowing !== null && plants && (
+            <SowForm
+              plants={plants}
+              places={places}
+              sunOf={(id) => {
+                const pl = places.find((x) => x.id === id);
+                return pl ? placeSun(garden, pl, month, year) : null;
+              }}
+              sunniest={sunniestPlace(garden, month, year)}
+              month={month}
+              initial={sowing || null}
+              onCancel={() => setSowing(null)}
+              onSow={(plant, o) => {
+                let made: string | null = null;
+                commit((g) => {
+                  const [next, id] = sowInTray(g, plant, o);
+                  made = id;
+                  return next;
+                });
+                setSowing(null);
+                if (made) setSelected(made);
+                app.notify(`${plant.commonName} sown in the shed.`, { undo: true });
+              }}
+            />
+          )}
+
+          {tray && plants && <TrayPanel tray={tray} plant={plantOf(tray.plantId)} garden={garden} commit={commit} close={() => setSelected(null)} today={today} />}
+
+          {places.length === 0 ? (
+            <section class="card shed-empty">
+              <div class="shed-empty-art" aria-hidden="true" />
+              <h2>Nothing sown yet</h2>
+              <p class="muted">
+                Sow seeds in trays and pots here, on a windowsill, in a propagator or on shelves. Each tray shows when its seedlings are due, when to harden them off, and when they’re ready for the garden.
+              </p>
+              <button type="button" class="btn btn-primary" onClick={() => setSowing('')}>
+                Sow seeds
+              </button>
+            </section>
+          ) : (
+            <>
+              {phone && places.length > 1 && (
+                <div class="shed-tabs" role="tablist" aria-label="Places">
+                  {places.map((p) => {
+                    const n = trays.filter((t) => t.placeId === p.id).length;
+                    return (
+                      <button key={p.id} type="button" role="tab" class="mode-tab" aria-selected={(tab ?? places[0]!.id) === p.id} onClick={() => setTab(p.id)}>
+                        {p.name}
+                        {n > 0 && <span class="mode-badge">{n}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {tray && <p class="shed-move-hint small">Tap an empty space to move {plantOf(tray.plantId).commonName.toLowerCase()} there, or drag it.</p>}
+              <div class="shed-places">
+                {shownPlaces.map((place) => (
+                  <PlaceScene
+                    key={place.id}
+                    place={place}
+                    garden={garden}
+                    plantOf={plantOf}
+                    selected={selected}
+                    select={(id) => setSelected(id === selected ? null : id)}
+                    move={move}
+                    commit={commit}
+                    today={today}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+
+          {indoors.length > 0 && (
+            <section class="card" aria-labelledby="indoors-head">
+              <h2 id="indoors-head">Sown for the plan</h2>
+              <p class="muted small">These already have a place in a bed. They’re here while they grow on indoors.</p>
+              <ul class="plain-list shed-indoors">
+                {indoors.map((pl) => {
+                  const p = plantOf(pl.plantId);
+                  const stage = currentStage(pl) as TrayStage;
+                  const next = plantingNext(pl, p, garden, today);
+                  const bed = garden.features.find((f) => f.id === pl.featureId);
+                  // Going into a greenhouse or cold frame: straight in, with no hardening off.
+                  const covered = !!microclimateOf(garden, pl);
+                  const forward = stage === 'sown' ? 'germinated' : stage === 'germinated' && !covered ? 'hardening' : 'transplanted';
+                  return (
+                    <li key={pl.id} class="shed-indoor-row">
+                      <PlantIcon plant={p} size={30} stage={stage} />
+                      <span class="shed-indoor-text">
+                        <strong>{p.commonName}</strong> for {bed ? featureLabel(bed) : 'a bed'} · {STAGE_NAME[stage]}
+                        <span class="small muted">{next.text}</span>
+                      </span>
+                      <button type="button" class={`btn ${next.ready ? 'btn-primary' : ''}`} onClick={() => commit((g) => setIndoorStage(g, pl.id, forward, today))}>
+                        {forward === 'germinated' ? 'Mark as up' : forward === 'hardening' ? 'Start hardening off' : 'Mark as planted out'}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
+
+          <AddPlace onAdd={(kind) => commit((g) => addPlace(g, makePlace(kind)))} />
+          <p class="assumption">Germination times and frost dates are averages. Seeds come up faster somewhere warm, and a late frost can catch anyone out.</p>
         </>
       )}
-
-      {indoors.length > 0 && (
-        <section class="card" aria-labelledby="indoors-head">
-          <h2 id="indoors-head">Sown for the plan</h2>
-          <p class="muted small">These already have a place in a bed. They’re here while they grow on indoors.</p>
-          <ul class="plain-list shed-indoors">
-            {indoors.map((pl) => {
-              const p = plantOf(pl.plantId);
-              const stage = currentStage(pl) as TrayStage;
-              const next = plantingNext(pl, p, garden, today);
-              const bed = garden.features.find((f) => f.id === pl.featureId);
-              // Going into a greenhouse or cold frame: straight in, with no hardening off.
-              const covered = !!microclimateOf(garden, pl);
-              const forward = stage === 'sown' ? 'germinated' : stage === 'germinated' && !covered ? 'hardening' : 'transplanted';
-              return (
-                <li key={pl.id} class="shed-indoor-row">
-                  <PlantIcon plant={p} size={30} stage={stage} />
-                  <span class="shed-indoor-text">
-                    <strong>{p.commonName}</strong> for {bed ? featureLabel(bed) : 'a bed'} · {STAGE_NAME[stage]}
-                    <span class="small muted">{next.text}</span>
-                  </span>
-                  <button type="button" class={`btn ${next.ready ? 'btn-primary' : ''}`} onClick={() => commit((g) => setIndoorStage(g, pl.id, forward, today))}>
-                    {forward === 'germinated' ? 'Mark as up' : forward === 'hardening' ? 'Start hardening off' : 'Mark as planted out'}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      )}
-
-      <AddPlace onAdd={(kind) => commit((g) => addPlace(g, makePlace(kind)))} />
-      <p class="assumption">Germination times and frost dates are averages. Seeds come up faster somewhere warm, and a late frost can catch anyone out.</p>
     </div>
   );
 }

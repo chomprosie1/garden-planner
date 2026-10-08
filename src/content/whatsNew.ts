@@ -17,6 +17,19 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-09-feeding',
+    date: '2026-10-09',
+    title: 'Feeding',
+    items: [
+      'Every plant’s card in Plants now says how hungry it is, what to feed it and when, and what to keep away from it, like fresh manure for carrots or lime for blueberries.',
+      'Feed jobs in your month: tomatoes every week from the first flowers, raspberries in spring, leeks every two weeks while they grow. Planting jobs say what to dig in first.',
+      'A feed shelf in Seedlings: tick the feeds you have, and see what this season’s plants call for, roughly how much, and roughly what it costs. If you have something that does the same job, it says so.',
+      'Fifteen everyday feeds, organic and mineral, by their plain names: blood, fish and bone, tomato feed, comfrey tea and the rest, with how to make the home-made ones.',
+      'Rather not have feed jobs? Turn them off in Your garden, under Reminders.',
+    ],
+    tryIt: { label: 'Open the feed shelf', view: 'shed' },
+  },
+  {
     id: '2026-10-09-3d-move',
     date: '2026-10-09',
     title: 'Move about in 3D',

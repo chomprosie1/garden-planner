@@ -71,6 +71,7 @@
       ]
     },
     "lifePath": { "winter": "evergreen" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "From the first flowers until the fruit colours." }, { "when": "after", "feed": "blood-fish-bone", "note": "Cut off the old leaves, then a feed for next year’s crowns." }] },
     "art": {"form":"mound","leaf":"lobed","foliage":"#3f7a35","flower":"#f8f6ee","bloom":"daisy","crop":{"kind":"fruit","colour":"#d8282a"}},
     "source": "Check against: RHS – strawberries; nursery label",
     "verified": false,
@@ -134,6 +135,7 @@
       "type": "hardy",
       "notes": "Summer kinds: cut fruited canes to the ground after picking. Autumn kinds: cut all canes down in late winter."
     },
+    "feeding": { "need": "hungry", "steps": [{ "when": "spring", "feed": "blood-fish-bone" }, { "when": "spring", "feed": "sulphate-of-potash" }, { "when": "spring", "feed": "rotted-manure", "note": "A mulch along the row, clear of the canes." }] },
     "art": {"form":"shrub","leaf":"lobed","foliage":"#4f7f3a","flower":"#f4f1e6","bloom":"daisy","crop":{"kind":"fruit","colour":"#c8283a"}},
     "source": "Check against: RHS – raspberries; nursery label",
     "verified": false,
@@ -189,6 +191,7 @@
       "type": "hardy",
       "notes": "Cut out the canes that fruited; tie in the new ones."
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "blood-fish-bone" }, { "when": "spring", "feed": "garden-compost", "note": "A mulch round the roots." }] },
     "art": {"form":"shrub","leaf":"lobed","foliage":"#3f6a35","flower":"#f2d6e0","bloom":"daisy","crop":{"kind":"fruit","colour":"#2a1a2a"}},
     "source": "Check against: RHS – blackberries; nursery label",
     "verified": false,
@@ -247,6 +250,7 @@
       "type": "hardy",
       "notes": "Prune in winter, removing about a third of the oldest stems."
     },
+    "feeding": { "need": "hungry", "steps": [{ "when": "spring", "feed": "blood-fish-bone" }, { "when": "spring", "feed": "rotted-manure", "note": "A mulch round the bush, clear of the stems." }] },
     "art": {"form":"shrub","leaf":"lobed","foliage":"#4f7f3a","flower":"#c9d07a","bloom":"daisy","crop":{"kind":"fruit","colour":"#1f1a2a"}},
     "source": "Check against: RHS – blackcurrants; nursery label",
     "verified": false,
@@ -306,6 +310,7 @@
       "type": "hardy",
       "notes": "Prune in winter to an open goblet shape."
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "sulphate-of-potash" }, { "when": "spring", "feed": "garden-compost", "note": "A mulch round the bush, clear of the stems." }] },
     "art": {"form":"shrub","leaf":"lobed","foliage":"#5a8a3a","flower":"#c9d07a","bloom":"daisy","crop":{"kind":"fruit","colour":"#d0202a"}},
     "source": "Check against: RHS – redcurrants; nursery label",
     "verified": false,
@@ -364,6 +369,7 @@
       "type": "hardy",
       "notes": "Prune in winter to an open goblet shape."
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "sulphate-of-potash" }, { "when": "spring", "feed": "garden-compost", "note": "A mulch round the bush, clear of the stems." }], "avoid": ["Too much nitrogen: soft growth that mildew loves."] },
     "art": {"form":"shrub","leaf":"lobed","foliage":"#5a8a4a","flower":"#c9d07a","bloom":"daisy","crop":{"kind":"fruit","colour":"#a8c060"}},
     "source": "Check against: RHS – gooseberries; nursery label",
     "verified": false,
@@ -419,6 +425,7 @@
     "wintering": {
       "type": "hardy"
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "growing", "feed": "ericaceous-feed", "every": 14, "months": [4, 5, 6, 7, 8] }], "avoid": ["Lime, mushroom compost, wood ash and hard tap water: it needs acid soil. Water with rainwater."] },
     "art": {"form":"shrub","leaf":"round","foliage":"#4f7a5a","flower":"#f6f0f0","bloom":"cup","crop":{"kind":"fruit","colour":"#3a4a8a"}},
     "source": "Check against: RHS – blueberries; nursery label",
     "verified": false,
@@ -475,6 +482,7 @@
       "perennial": true,
       "flowering": false
     },
+    "feeding": { "need": "hungry", "steps": [{ "when": "spring", "feed": "rotted-manure", "note": "Round the crown, not over it." }, { "when": "after", "feed": "blood-fish-bone", "note": "When you stop pulling, to build next year’s crown." }] },
     "art": {"form":"rosette","leaf":"broad","foliage":"#3f7a35","crop":{"kind":"stem","colour":"#c8304a"}},
     "source": "Check against: RHS – rhubarb; nursery label",
     "verified": false,
@@ -540,6 +548,7 @@
       "type": "hardy",
       "notes": "Prune in winter."
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "bonemeal" }, { "when": "spring", "feed": "blood-fish-bone", "note": "Under the branches, as far out as they reach." }, { "when": "spring", "feed": "sulphate-of-potash" }] },
     "art": {"form":"tree","leaf":"broad","foliage":"#4f7f3a","flower":"#f6d6de","bloom":"daisy","crop":{"kind":"fruit","colour":"#c8382a"}},
     "source": "Check against: RHS – apples; nursery label",
     "verified": false,
@@ -599,6 +608,7 @@
       "type": "hardy",
       "notes": "Prune in winter."
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "bonemeal" }, { "when": "spring", "feed": "blood-fish-bone", "note": "Under the branches, as far out as they reach." }, { "when": "spring", "feed": "sulphate-of-potash" }] },
     "art": {"form":"tree","leaf":"broad","foliage":"#4f7f3a","flower":"#f8f6ee","bloom":"daisy","crop":{"kind":"fruit","colour":"#b8b040"}},
     "source": "Check against: RHS – pears; nursery label",
     "verified": false,
@@ -656,6 +666,7 @@
     "wintering": {
       "type": "hardy"
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "bonemeal" }, { "when": "spring", "feed": "blood-fish-bone", "note": "Under the branches, as far out as they reach." }, { "when": "spring", "feed": "sulphate-of-potash" }] },
     "art": {"form":"tree","leaf":"broad","foliage":"#4a6a3a","flower":"#f8f6ee","bloom":"daisy","crop":{"kind":"fruit","colour":"#5a2a5a"}},
     "source": "Check against: RHS – plums; nursery label",
     "verified": false,
@@ -712,6 +723,7 @@
     "wintering": {
       "type": "hardy"
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "bonemeal" }, { "when": "spring", "feed": "blood-fish-bone", "note": "Under the branches, as far out as they reach." }, { "when": "spring", "feed": "sulphate-of-potash" }] },
     "art": {"form":"tree","leaf":"broad","foliage":"#4f7f3a","flower":"#f8e6ee","bloom":"daisy","crop":{"kind":"fruit","colour":"#a01a2a"}},
     "source": "Check against: RHS – cherries; nursery label",
     "verified": false,
@@ -756,6 +768,7 @@
       "type": "protect",
       "notes": "Fleece the young fruitlets on cold nights. Remove larger figs in autumn: they won’t ripen."
     },
+    "feeding": { "need": "light", "steps": [{ "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Only in a pot. In the ground it needs none." }], "avoid": ["Rich soil and manure: lots of leaves and few figs."] },
     "art": {"form":"tree","leaf":"lobed","foliage":"#4f7f3a","crop":{"kind":"fruit","colour":"#5a3a4a"}},
     "source": "Check against: RHS – figs; nursery label",
     "verified": false,
@@ -815,6 +828,7 @@
       "type": "hardy",
       "notes": "Prune hard in early winter, while dormant."
     },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "blood-fish-bone" }, { "when": "spring", "feed": "sulphate-of-potash" }] },
     "art": {"form":"climber","leaf":"lobed","foliage":"#5a8a3a","crop":{"kind":"fruit","colour":"#4a2a5a"}},
     "source": "Check against: RHS – grapes; nursery label",
     "verified": false,
@@ -836,6 +850,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "bonemeal" }, { "when": "spring", "feed": "blood-fish-bone", "note": "Under the branches, as far out as they reach." }] },
     "art": { "form": "tree", "leaf": "broad", "foliage": "#5f7a45", "flower": "#f6e0e6", "bloom": "cup", "crop": { "kind": "fruit", "colour": "#e8c040" } },
     "source": "Check against: RHS Grow Your Own – quince; seed packet or nursery label",
     "verified": false,
@@ -854,6 +869,7 @@
     "lookOutFor": ["Self-fertile, with big white flowers."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "bonemeal" }, { "when": "spring", "feed": "blood-fish-bone", "note": "Under the branches, as far out as they reach." }] },
     "art": { "form": "tree", "leaf": "broad", "foliage": "#5f7a40", "flower": "#f6f4ee", "bloom": "cup", "crop": { "kind": "fruit", "colour": "#8a5a2a" } },
     "source": "Check against: RHS Grow Your Own – medlar; seed packet or nursery label",
     "verified": false,
@@ -875,6 +891,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "bonemeal" }, { "when": "spring", "feed": "blood-fish-bone", "note": "Under the branches, as far out as they reach." }, { "when": "spring", "feed": "sulphate-of-potash" }] },
     "art": { "form": "tree", "leaf": "broad", "foliage": "#4a6a3a", "flower": "#f8f6ee", "bloom": "daisy", "crop": { "kind": "fruit", "colour": "#3a2a4a" } },
     "source": "Check against: RHS Grow Your Own – damson; seed packet or nursery label",
     "verified": false,
@@ -896,6 +913,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "bonemeal" }, { "when": "spring", "feed": "blood-fish-bone", "note": "Under the branches, as far out as they reach." }, { "when": "spring", "feed": "sulphate-of-potash" }] },
     "art": { "form": "tree", "leaf": "broad", "foliage": "#4a6a3a", "flower": "#f8f6ee", "bloom": "daisy", "crop": { "kind": "fruit", "colour": "#a8c060" } },
     "source": "Check against: RHS Grow Your Own – greengage; seed packet or nursery label",
     "verified": false,
@@ -914,6 +932,7 @@
     "lookOutFor": ["Flowers very early: cover with fleece on frosty nights, and pollinate by hand with a soft brush.", "Best fanned on a warm wall."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "bonemeal" }, { "when": "spring", "feed": "blood-fish-bone", "note": "Under the branches, as far out as they reach." }, { "when": "spring", "feed": "sulphate-of-potash" }] },
     "art": { "form": "tree", "leaf": "broad", "foliage": "#5a7a40", "flower": "#f8e8ec", "bloom": "daisy", "crop": { "kind": "fruit", "colour": "#f0a040" } },
     "source": "Check against: RHS Grow Your Own – apricot; seed packet or nursery label",
     "verified": false,
@@ -935,6 +954,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "bonemeal" }, { "when": "spring", "feed": "blood-fish-bone", "note": "Under the branches, as far out as they reach." }, { "when": "spring", "feed": "sulphate-of-potash" }] },
     "art": { "form": "tree", "leaf": "strap", "foliage": "#5a7a40", "flower": "#f2b0c8", "bloom": "daisy", "crop": { "kind": "fruit", "colour": "#f0905a" } },
     "source": "Check against: RHS Grow Your Own – peach; seed packet or nursery label",
     "verified": false,
@@ -955,6 +975,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "bonemeal" }, { "when": "spring", "feed": "blood-fish-bone", "note": "Under the branches, as far out as they reach." }] },
     "art": { "form": "tree", "leaf": "broad", "foliage": "#4a6a3a", "crop": { "kind": "fruit", "colour": "#3a1a2a" } },
     "source": "Check against: RHS Grow Your Own – black mulberry; seed packet or nursery label",
     "verified": false,
@@ -976,6 +997,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "bonemeal" }, { "when": "spring", "feed": "blood-fish-bone", "note": "Under the branches, as far out as they reach." }, { "when": "spring", "feed": "sulphate-of-potash" }] },
     "art": { "form": "tree", "leaf": "broad", "foliage": "#4a6a3a", "flower": "#f8f6ee", "bloom": "daisy", "crop": { "kind": "fruit", "colour": "#6a1a2a" } },
     "source": "Check against: RHS Grow Your Own – cherries; seed packet or nursery label",
     "verified": false,
@@ -997,6 +1019,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "blood-fish-bone" }, { "when": "spring", "feed": "garden-compost", "note": "A mulch round the roots." }] },
     "art": { "form": "shrub", "leaf": "lobed", "foliage": "#4a6a3a", "flower": "#f6e8ea", "bloom": "cup", "crop": { "kind": "fruit", "colour": "#8a1a3a" } },
     "source": "Check against: RHS Grow Your Own – hybrid berries; seed packet or nursery label",
     "verified": false,
@@ -1017,6 +1040,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "hungry", "steps": [{ "when": "spring", "feed": "blood-fish-bone" }, { "when": "spring", "feed": "rotted-manure", "note": "A mulch round the bush, clear of the stems." }] },
     "art": { "form": "shrub", "leaf": "lobed", "foliage": "#4a6a3a", "crop": { "kind": "fruit", "colour": "#2a1a2a" } },
     "source": "Check against: RHS Grow Your Own – jostaberry; seed packet or nursery label",
     "verified": false,
@@ -1038,6 +1062,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "sulphate-of-potash" }, { "when": "spring", "feed": "garden-compost", "note": "A mulch round the bush, clear of the stems." }] },
     "art": { "form": "shrub", "leaf": "lobed", "foliage": "#5a7a45", "crop": { "kind": "fruit", "colour": "#f0ecd0" } },
     "source": "Check against: RHS Grow Your Own – redcurrants and whitecurrants; seed packet or nursery label",
     "verified": false,
@@ -1059,6 +1084,7 @@
     ],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "light", "steps": [{ "when": "spring", "feed": "garden-compost", "note": "A mulch round the bush." }] },
     "art": { "form": "shrub", "leaf": "broad", "foliage": "#5a7a50", "flower": "#f6f0d0", "bloom": "cup", "crop": { "kind": "fruit", "colour": "#3a3a7a" } },
     "source": "Check against: nursery label – haskap; seed packet or nursery label",
     "verified": false,
@@ -1077,6 +1103,7 @@
     "lookOutFor": ["Most need a male plant to pollinate the females; ‘Issai’ is self-fertile.", "A vigorous climber: give it a strong pergola or wires."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
+    "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "blood-fish-bone" }, { "when": "spring", "feed": "garden-compost", "note": "A mulch over the roots." }] },
     "art": { "form": "climber", "leaf": "round", "foliage": "#4a7a40", "flower": "#f6f4ee", "bloom": "cup", "crop": { "kind": "fruit", "colour": "#6a9a3a" } },
     "source": "Check against: nursery label – kiwi berry; seed packet or nursery label",
     "verified": false,
@@ -1099,6 +1126,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual", "notes": "Usually grown as an annual." },
     "lifePath": { "perennial": false },
+    "feeding": { "need": "moderate", "steps": [{ "when": "flowering", "feed": "tomato-feed", "every": 14 }], "avoid": ["Rich soil: leaves at the expense of fruit."] },
     "art": { "form": "upright", "leaf": "broad", "foliage": "#5f8a45", "flower": "#f2e04a", "bloom": "cup", "crop": { "kind": "fruit", "colour": "#f0b030" } },
     "source": "Check against: RHS Grow Your Own – cape gooseberry; seed packet or nursery label",
     "verified": false,
@@ -1126,6 +1154,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "winter": "evergreen" },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "garden-compost" }] },
     "art": { "form": "rosette", "leaf": "broad", "foliage": "#4f7a3c", "flower": "#f6f4ee", "bloom": "daisy", "crop": { "kind": "fruit", "colour": "#d02a2a" } },
     "source": "Check against: RHS Grow Your Own – alpine strawberry; seed packet or nursery label",
     "verified": false,
