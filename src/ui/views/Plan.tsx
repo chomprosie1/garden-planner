@@ -10,6 +10,7 @@ import { checkGarden, formatHours, type Finding } from '../../planting/rules';
 import { hoursAt } from '../../sun/hours';
 import { fromUkClock, sunAt, sunDay, ukClock } from '../../sun/position';
 import { shadowsAt } from '../../sun/shadow';
+import { openTraceKey } from '../../storage/gardens';
 import { loadBlob } from '../../storage/idb';
 import { resolveMode } from '../../theme/apply';
 import { LOOKS } from '../../theme/looks';
@@ -59,7 +60,9 @@ export type PlanIntent =
   /** Share a picture of the plan. */
   | { kind: 'share' }
   /** See the garden in 3D. */
-  | { kind: '3d' };
+  | { kind: '3d' }
+  /** Clear beds: one, several or all. */
+  | { kind: 'clear' };
 
 interface Props {
   store: Store;
@@ -292,6 +295,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
     else if (intent.kind === 'setup') setSettingUp(true);
     else if (intent.kind === 'share') setSharing(true);
     else if (intent.kind === '3d') setThreeD(true);
+    else if (intent.kind === 'clear') setClearing(true);
     else if (intent.kind === 'sticker') {
       const id = intent.id;
       setToolState('select');
@@ -364,11 +368,13 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
 
   // The trace photo lives in IndexedDB, not in the garden file.
   const hasTrace = !!garden.trace;
+  // Each garden keeps its own; switching gardens loads the other's.
+  const traceKey = hasTrace ? openTraceKey() : '';
   useEffect(() => {
     if (!hasTrace) return setTraceImage(null);
     let url = '';
     let cancelled = false;
-    loadBlob('trace')
+    loadBlob(traceKey)
       .then((blob) => {
         if (!blob || cancelled) return;
         url = URL.createObjectURL(blob);
@@ -381,7 +387,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       cancelled = true;
       if (url) URL.revokeObjectURL(url);
     };
-  }, [hasTrace]);
+  }, [hasTrace, traceKey]);
 
   const empty = garden.boundary.length === 0 && garden.features.length === 0;
   const sketchBar = (
@@ -630,6 +636,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               ...(growing ? [{ label: 'Clear beds…', icon: 'trash' as const, onSelect: () => setClearing(true) }] : []),
               { label: 'Share a picture of the plan', icon: 'share', onSelect: () => setSharing(true) },
               { label: 'Your garden: location and backups', icon: 'settings', onSelect: () => app.go('profile') },
+              { label: 'Your gardens: switch, or start a new one', icon: 'plan', onSelect: () => app.go('settings') },
             ]}
           />
         </div>

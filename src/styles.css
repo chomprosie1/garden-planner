@@ -5054,3 +5054,128 @@ button.plan-chip:hover {
   list-style: none;
   padding-left: 0;
 }
+
+/* ---------- Release 11b: your gardens ---------- */
+.garden-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.garden-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.4rem 0.75rem;
+  align-items: center;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.garden-row.is-open {
+  border-color: var(--link);
+}
+.garden-thumb {
+  grid-row: span 2;
+  width: 64px;
+  height: 52px;
+  border-radius: 6px;
+  background: var(--bg);
+}
+.garden-row-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.garden-row-text strong {
+  overflow-wrap: anywhere;
+}
+.garden-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.9rem;
+}
+.btn-small {
+  min-height: 36px;
+  padding: 0.25rem 0.8rem;
+  font-size: 0.9rem;
+}
+.garden-rename {
+  display: flex;
+  gap: 0.4rem;
+}
+.garden-rename input {
+  min-width: 0;
+  flex: 1;
+  font: inherit;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+}
+.garden-hidden {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+.garden-hidden h3 {
+  margin: 0 0 0.4rem;
+}
+.garden-hidden-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem 0.75rem;
+}
+.careful-choices {
+  list-style: none;
+  padding: 0;
+  gap: 0.75rem;
+  margin: 0.5rem 0 1rem;
+}
+.careful-choices li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+.careful-goes {
+  margin: 0.3rem 0 0.8rem;
+}
+.restore-choice p {
+  margin: 0 0 0.5rem;
+}
+/* Hold to confirm: the button fills from the left while it's held. */
+.hold-btn {
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.hold-fill {
+  position: absolute;
+  inset: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: currentColor;
+  opacity: 0.22;
+}
+.hold-btn.is-held .hold-fill {
+  transform: scaleX(1);
+  transition: transform var(--hold-ms, 2s) linear;
+}
+.hold-label {
+  position: relative;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hold-btn.is-held .hold-fill {
+    transition: none;
+    transform: scaleX(1);
+  }
+}

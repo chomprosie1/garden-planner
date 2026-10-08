@@ -7,6 +7,7 @@ import type { Prefs, PrefsStore, View } from '../../theme/prefs';
 import { usePlants } from '../usePlants';
 import { Icon } from '../icons';
 import { Choice, LookPicker } from '../LookPicker';
+import { GardenSwitcher, StartAgainCard } from '../Gardens';
 
 interface Props {
   store: Store;
@@ -30,6 +31,8 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
         </button>
         <h1 class="title">Settings</h1>
       </header>
+
+      <GardenSwitcher store={store} prefsStore={prefsStore} garden={garden} />
 
       <section class="card" aria-labelledby="appearance">
         <h2 id="appearance">Appearance</h2>
@@ -195,6 +198,8 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
           </button>
         </p>
       </details>
+
+      <StartAgainCard store={store} prefsStore={prefsStore} garden={garden} />
     </div>
   );
 }

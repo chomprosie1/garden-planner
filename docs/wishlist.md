@@ -79,8 +79,10 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Copy and paste a plant | You, 8 Oct 2026 | S | Built in release 11a |
 | Bug: the looks don't wrap in Settings on a phone; think again about how they're shown | You, 8 Oct 2026 | S | Fixed in release 11a |
 | Bug: in 3D, where ground layers overlap (paving over a lawn), the lower one shows through at some angles | You, 8 Oct 2026 | S | Fixed in release 11a; to check on a phone, as headless Edge never showed it |
-| Create a new garden | You, 8 Oct 2026 | M | Planned in release 11b, with switching between gardens |
-| Delete everything and start again, with a careful way through it | You, 8 Oct 2026 | S | Planned in release 11b: gentler choices first, choose what to keep, save a copy, hold to confirm, 30 days to bring it back |
+| Create a new garden | You, 8 Oct 2026 | M | Built in release 11b, with switching between gardens |
+| Delete everything and start again, with a careful way through it | You, 8 Oct 2026 | S | Built in release 11b: gentler choices first, choose what to keep, save a copy, hold to confirm, 30 days to bring it back |
 | How good the garden is for bees and other pollinators | You, 8 Oct 2026 | M | Planned in release 18 with the nature calendar; the plant data comes in release 15 |
 | UV now, by the hour, not just the day's highest | Build, release 11a | S | The card and the sun cream reminder use the day's highest |
 | Select several beds on the plan at once (to clear, move or delete them together) | Build, release 11a | M | Clear beds uses a checklist for now |
+| A look for each garden | Build, release 11b | S | The look is the same for every garden for now |
+| Move a bed from one garden to another | Build, release 11b | S | Plants already can: copy one, open the other garden and paste it (the clipboard stays when you switch) |

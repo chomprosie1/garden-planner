@@ -57,6 +57,7 @@ import { expectedText, nextInMonths, shortDate, timeline } from '../lifecycle/pr
 import { batchDates, batchesOf, batchLabel, canSowInBatches, maxBatches, MIN_BATCHES, setSowBy, splitIntoBatches } from '../planting/batches';
 import { currentStage, sowingOf, STAGE_LABEL, stageDate } from '../lifecycle/stages';
 import { deleteBlob, saveBlob } from '../storage/idb';
+import { openTraceKey } from '../storage/gardens';
 import { areaHours, averageHours, lightBand, type SunGrid } from '../sun/hours';
 import { useApp } from './appContext';
 import { copyPlanting } from './clipboard';
@@ -527,7 +528,7 @@ function GardenPanel({ store, garden, setSelected, setTool, embedded = false }: 
     const file = input.files?.[0];
     input.value = '';
     if (!file || !file.type.startsWith('image/')) return;
-    await saveBlob('trace', file);
+    await saveBlob(openTraceKey(), file);
     const xs = b.map((p) => p[0]);
     const ys = b.map((p) => p[1]);
     const width = b.length >= 2 ? Math.max(...xs) - Math.min(...xs) : 10000;
@@ -610,7 +611,7 @@ function GardenPanel({ store, garden, setSelected, setTool, embedded = false }: 
                     const { trace: _drop, ...rest } = g;
                     return rest;
                   });
-                  await deleteBlob('trace');
+                  await deleteBlob(openTraceKey());
                   app.notify('Photo removed.');
                 }}
               >

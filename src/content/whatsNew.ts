@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-08-gardens',
+    date: '2026-10-08',
+    title: 'More than one garden, and starting again',
+    items: [
+      'Keep more than one garden: the back garden, the allotment, a balcony. Your gardens are at the top of Settings, with a small picture of each. Open, rename or delete one there, or start a new one, in the same place as this one if you like.',
+      'Your own plants and your look are shared by all your gardens. Today, the jobs and reminders follow the garden that’s open.',
+      'Restoring a backup now asks whether to add it as another garden or replace the one that’s open.',
+      'Start again, at the bottom of Settings, takes you through it carefully. It first offers to clear the beds or start a new garden instead, then says what goes and asks what to keep, offers a copy to save, and asks you to hold the button to be sure.',
+      'A garden you start again or delete is kept, hidden, for 30 days. Bring it back from Settings if you change your mind.',
+      'Delete everything, also at the bottom of Settings, removes every garden and photo from this browser, for when you’re handing a phone on. There’s no way back from that one, and it says so.',
+    ],
+    tryIt: { label: 'Open Settings', view: 'settings' },
+  },
+  {
     id: '2026-10-08-room-to-see',
     date: '2026-10-08',
     title: 'Room to see, sun cream and sunny windowsills',

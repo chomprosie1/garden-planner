@@ -825,7 +825,7 @@ Decided:
 | Release | What | Size | Status |
 | --- | --- | --- | --- |
 | 11a. Room to see | Sun views maximise the plan, the sun bar's chips become a drop-down, camera or library for photos, UV, which way windowsills and shed places face; clear several or all beds, copy and paste a plant; two bug fixes | ~1.5 wk | Built 8 Oct 2026 |
-| 11b. Your gardens | More than one garden, switching between them, and deleting everything to start again | ~1 wk | |
+| 11b. Your gardens | More than one garden, switching between them, and deleting everything to start again | ~1 wk | Built 8 Oct 2026 |
 | 12. A new look | 12a mock-ups (you choose) → 12b build: a phone-first redesign, This week as cards, and the new voice | ~3 wk | |
 | 13. From plot to plate | Recipes, storing and preserving, a kitchen card for this week, harvest worth in £ | ~2 wk + writing | |
 | 14. Feeding | Fertiliser types, prices, what each plant likes, feed jobs | ~1.5 wk | |
@@ -894,33 +894,52 @@ Tests:
   - **Clearing:** several beds; plantings already cleared; only what's finished.
   - **Copying:** copies keep size and layout and drop history; duplicating beside the original, clear of every plant; pasting a row into another bed, wholly inside it; no room, and nowhere to grow.
 
-### Release 11b — Your gardens (planned)
-- **More than one garden.**
-  - **Today:** there's one garden, in `localStorage` under `garden-planner:state` (`src/storage/local.ts`).
-  - **Storage:**
-    - an index of gardens (id, name, last opened) and the open garden's id;
-    - each garden under its own key;
-    - the old key moved across on first load, with a test.
-    - Photos (`src/storage/photos.ts`) and reminders (`src/storage/reminders.ts`) are tied to their garden.
-    - Your own plants, the look and Simple/Advanced stay app-wide.
-  - **New garden:** from a garden switcher at the top of Settings, or the garden's name in the ⋯ menu. It runs the start ("Where are you growing?") again. Where you are and your frost dates are offered from the garden you're in.
-  - **Switching:** a list with each garden's name, a small picture of its plan and when it was last opened. Rename and delete live here. Reminders and Today follow the open garden.
-  - **Files:** saving and opening a file (`src/storage/file.ts`) works on the open garden. Opening a file asks whether to replace this garden or add it as a new one.
-- **Delete everything and start again.** A careful way through it, with a way back:
-  1. **Find it:** at the bottom of Settings, "Start again…", away from everything else.
-  2. **Offer the gentler choices first:** "Clear all beds" (11a) keeps the layout, and "New garden" keeps this one. Many people who reach for Start again want one of these.
-  3. **Say what goes:** the plan, plantings, journal, photos, picks and jobs, with counts ("312 photos").
-  4. **Ask what to keep,** all ticked by default:
-     - your own plants;
-     - your wish list;
-     - where you are and your frost dates;
-     - your look.
-  5. **Save a copy first:** the main button downloads the garden as a file. "Skip" is smaller.
-  6. **Confirm:** hold the button for two seconds. It works on a phone and is hard to do by accident, unlike typing the garden's name.
-  7. **A way back:** the old garden is hidden, not wiped, for 30 days. "Bring back the garden you cleared" shows in Settings until then. Then it and its photos are really removed.
-  8. **Start:** the start runs again, filled in with what you kept.
-  - **Delete this garden** (from the switcher) and **delete everything** (every garden, for handing a phone on) go the same way. Delete everything has no 30-day way back, and it says so.
-- **Tests:** full suite (storage/file.ts); the old single garden moved into the index; switching keeps each garden's own data apart; start again keeps what's ticked and drops the rest; the hidden garden comes back intact and is gone after 30 days. `local.ts` and `photos.ts` have no tests, so check these by hand: two gardens with photos, delete one, the other's photos are still there. Words; screenshots of the switcher and each Start again step at 390 px.
+### Release 11b — Your gardens (as built)
+- **Keeping gardens** (`src/storage/gardens.ts`):
+  - **An index** under `garden-planner:gardens`: each garden's id, name, when it was last opened, the day it was hidden (if it was), and where its trace photo is kept. Plus which garden is open.
+  - **Each garden** under `garden-planner:garden:<id>`, in the same file format as a backup.
+  - **Your own plants** once, under `garden-planner:user-plants`, for every garden.
+  - **The garden kept before** (`garden-planner:state`) moves across the first time the app opens: it becomes the first garden, keeps its old trace photo key, and the old key goes only once the new ones are written. An unreadable one is kept aside, as before.
+  - **Starting up** (`startUp`): the open garden, or the most recently opened one that can be read, keeping an unreadable one aside. With nothing kept, a new garden. Gardens hidden for 30 days go for good first.
+  - **Autosave** (`src/storage/local.ts`) saves to the open garden. It can be flushed before switching, and stopped before deleting everything.
+  - **Photos and trace photos** are tidied against every garden, hidden ones included (`tidyBlobs`, `unusedBlobs`). When the gardens can't be read, nothing is tidied. Each garden has its own trace photo key.
+  - **No schema change:** the gardens themselves are unchanged.
+- **New garden and starting again** (`src/model/fresh.ts`, pure): `newGardenFrom` (empty, in the same place and with the same frost dates if you like), `startAgainFrom` (empty, same name, with the wish list and place if ticked), `whatGoes` (the counts), and `KEEP_DAYS` (30).
+- **Your gardens** at the top of Settings (`GardenSwitcher` in `src/ui/Gardens.tsx`):
+  - each garden with a small picture of its plan, "Open now" or when it was last opened, and Open, Rename and Delete…;
+  - **New garden:** a name, and "In the same place as …, with its frost dates". It opens the new garden and runs the start again, without the welcome page (`again` on `Onboarding`). A second run doesn't mark What's new as seen.
+  - **Bring back a garden:** any cleared or deleted, with the days left.
+  - "Your gardens: switch, or start a new one" in the plan's ⋯ menu goes there.
+  - Switching (`src/ui/gardenActions.ts`) saves the open garden first, then replaces what's shown, which clears undo. Today, jobs and reminders follow the open garden.
+- **Restoring a backup** asks: "Add as a new garden" (the main button) or "Replace …" (it says that can't be undone). Your own plants from the file are added to yours; yours win where both have one.
+- **Start again** (`CarefulDialog`, from a card at the bottom of Settings), in four steps:
+  1. **The gentler choices:** "Clear the beds" (it opens the plan's Clear beds) or "Start a new garden".
+  2. **What goes,** counted, leaving out anything there's none of. **What to keep,** all ticked: your own plants (shared by all your gardens), your list of plants to grow, where it is and your frost dates, and your look.
+  3. **Save a copy first:** the main button downloads it (with photos, if it has any). "Skip" is quieter.
+  4. **Hold to start again** (`HoldButton`): 2 seconds by pointer, or Space or Enter held. It fills as you hold, and a short press does nothing.
+
+  The old garden is hidden for 30 days, an empty one with the same name opens in its place, and the start runs again with what was kept.
+- **Delete…** on any garden goes the same way, without the first step, and hides it for 30 days. If it was open, the most recently opened other garden opens; if it was the only one, a new garden is set up.
+- **Delete everything** goes the same way. It downloads every garden as its own file if you ask, then removes every `garden-planner:` key, every photo and trace (the IndexedDB database), the reminders and the service worker's note. Then it reloads to the welcome page. It says there's no way back.
+- **Checked by hand,** in headless Edge at 390 × 844:
+  - **Moving across:** a garden kept the old way became the first garden, and the old key went.
+  - **Two gardens:** New garden, the second run of the start, the switcher with two gardens, opening the other.
+  - **Start again:** every step; a short press doesn't count; the old garden is hidden and listed to bring back.
+  - **Deleting:** deleting a garden that isn't open; Delete everything reloading to the welcome page with only a fresh garden kept.
+  - **Photos:** with two gardens, each with a photo, an unused photo and an old trace went and both gardens' photos stayed. Once the second garden was past its 30 days, it and its photo went, and the first garden's stayed.
+- **Not done:**
+  - A garden's own look (the look is the same for every garden).
+  - Moving a bed from one garden to another. (Plants can be: copy one, open the other garden and paste it, as the clipboard stays when you switch.)
+  - Bringing back your own plants after a fresh start that didn't keep them: they aren't kept with the hidden garden.
+
+Tests: new `tests/gardens.test.ts`:
+- **Moving across:** the old garden moved across (garden, own plants, trace key, the old key gone), and an unreadable one kept aside.
+- **Starting up:** a new garden when nothing's kept.
+- **Two gardens:** saving only to the open garden, so switching never mixes them; own plants shared; the most recently opened first; renaming one that isn't open; opening the next when the open one can't be read; each garden's own trace key.
+- **Hidden gardens:** hiding, bringing back intact, and gone after 30 days (not on day 29); a hidden garden isn't what opens next.
+- **Photos and traces:** kept across every garden, hidden ones too; nothing tidied when the gardens can't be read.
+- **Deleting everything:** every key this app keeps goes, and nothing else.
+- **Fresh starts:** new gardens in the same place or not; starting again with all or none ticked; what goes, counted.
 
 ### Release 12 — A new look (planned)
 **12a, mock-ups.** A page with three directions at 390 px: Today, the plan, a plant card, Seedlings, and a job written in the new voice. You choose, or mix.

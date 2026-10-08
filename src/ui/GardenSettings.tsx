@@ -3,7 +3,9 @@ import { updateGarden, type Store } from '../model/store';
 import type { Garden } from '../model/types';
 import { todayIso } from '../model/ids';
 import type { PrefsStore } from '../theme/prefs';
-import { downloadFile, parseFileText } from '../storage/file';
+import { downloadFile, parseFileText, type ParseResult } from '../storage/file';
+import { addGarden } from '../storage/gardens';
+import { flushSave } from '../storage/local';
 import { fromDataUrl, loadPhoto, photoIds, putPhoto, toDataUrl } from '../storage/photos';
 import { Icon } from './icons';
 import { estimateFrost, frostDates, inYear, short } from '../lifecycle/shed';
@@ -58,6 +60,8 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
     );
   };
 
+  /** A backup read and checked, waiting for you to say whether it's a new garden or replaces this one. */
+  const [opened, setOpened] = useState<Extract<ParseResult, { ok: true }> | null>(null);
   const importFile = async (e: Event) => {
     const input = e.currentTarget as HTMLInputElement;
     const file = input.files?.[0];
@@ -68,9 +72,19 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
       setMessage({ kind: 'error', lines: ['That file could not be restored:', ...result.errors.slice(0, 8)] });
       return;
     }
-    if (!confirm(`Replace "${garden.name}" with "${result.state.garden.name}" from the file? Download a backup first if you want to keep the current one.`))
-      return;
-    store.replace(result.state);
+    setMessage(null);
+    setOpened(result);
+  };
+  const restore = async (result: Extract<ParseResult, { ok: true }>, asNew: boolean) => {
+    setOpened(null);
+    // Your own plants are shared by every garden: the file's are added to yours, and yours win where both have one.
+    const mine = store.get().userPlants;
+    const userPlants = [...mine, ...result.state.userPlants.filter((p) => !mine.some((m) => m.id === p.id))];
+    if (asNew) {
+      flushSave();
+      addGarden(result.state.garden, undefined, new Date(), true);
+    }
+    store.replace({ garden: result.state.garden, userPlants });
     // Photos in the backup go back on this device.
     let restored = 0;
     for (const [id, url] of Object.entries(result.photos ?? {})) {
@@ -81,7 +95,7 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
         // a damaged photo is left out
       }
     }
-    setMessage({ kind: 'ok', lines: [`Restored "${result.state.garden.name}" from the backup${restored ? `, with ${restored} ${restored === 1 ? 'photo' : 'photos'}` : ''}.`] });
+    setMessage({ kind: 'ok', lines: [`${asNew ? 'Added' : 'Restored'} "${result.state.garden.name}" from the backup${restored ? `, with ${restored} ${restored === 1 ? 'photo' : 'photos'}` : ''}.${asNew ? ` It’s open now; ${garden.name} is kept, to switch back to in Settings.` : ''}`] });
   };
 
   return (
@@ -168,6 +182,24 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
           </button>
           <input ref={fileInput} type="file" accept="application/json,.json" hidden onChange={importFile} />
         </div>
+        {opened && (
+          <div class="message ok restore-choice" role="status">
+            <p>
+              “{opened.state.garden.name}” is ready to open. Add it as another garden, or replace {garden.name} with it? Replacing can’t be undone.
+            </p>
+            <div class="button-row">
+              <button type="button" class="btn btn-primary" onClick={() => restore(opened, true)}>
+                Add as a new garden
+              </button>
+              <button type="button" class="btn" onClick={() => restore(opened, false)}>
+                Replace {garden.name}
+              </button>
+              <button type="button" class="btn btn-quiet" onClick={() => setOpened(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
         {message && (
           <div class={`message ${message.kind}`} role="status">
             {message.lines.map((line) => (

@@ -23,6 +23,8 @@ interface Props {
   prefs: Prefs;
   prefsStore: PrefsStore;
   go: (v: View) => void;
+  /** Setting up another garden, or starting again: straight to the questions, with no welcome. */
+  again?: boolean;
 }
 
 type Step = 'where' | 'space' | 'grow';
@@ -34,8 +36,8 @@ export const FAVOURITES = ['tomato', 'lettuce', 'strawberry', 'basil', 'potato',
  * First run: where your garden is, what you're growing in, and what you'd like to grow (a starter kit, and
  * favourites for your sowing list). Then Today, with real jobs. Every step can be skipped; the look is in Settings.
  */
-export function Onboarding({ store, garden, prefsStore, go }: Props) {
-  const [step, setStep] = useState(0);
+export function Onboarding({ store, garden, prefs, prefsStore, go, again = false }: Props) {
+  const [step, setStep] = useState(again ? 1 : 0);
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; lines: string[] } | null>(null);
   const [choice, setChoice] = useState<SpaceChoice | null>(null);
   const [kit, setKit] = useState<Kit | null>(null);
@@ -64,8 +66,8 @@ export function Onboarding({ store, garden, prefsStore, go }: Props) {
         }),
       );
     }
-    // Everything's new to someone just starting: no "What's new" until the next change.
-    prefsStore.set({ onboarded: true, seenNews: latestNews().id });
+    // Everything's new to someone just starting: no "What's new" until the next change. Someone setting up another garden has seen it.
+    prefsStore.set({ onboarded: true, seenNews: again ? prefs.seenNews : latestNews().id });
     go(skipped ? 'plan' : 'home');
   };
   const next = () => (step < steps.length ? setStep(step + 1) : finish());
@@ -153,9 +155,11 @@ export function Onboarding({ store, garden, prefsStore, go }: Props) {
           </>
         )}
         <div class="button-row onboarding-actions">
-          <button type="button" class="btn" onClick={() => setStep(step - 1)}>
-            Back
-          </button>
+          {!(again && step === 1) && (
+            <button type="button" class="btn" onClick={() => setStep(step - 1)}>
+              Back
+            </button>
+          )}
           <button type="button" class="btn btn-primary" onClick={next} disabled={current === 'grow' && !plants}>
             {step < steps.length ? 'Next' : 'Start growing'}
           </button>

@@ -3,6 +3,7 @@
 
 import type { Garden } from '../model/types';
 import { newId } from '../model/ids';
+import { blobsInUse } from './gardens';
 import { blobKeys, deleteBlob, loadBlob, saveBlob } from './idb';
 
 const PREFIX = 'photo:';
@@ -50,10 +51,19 @@ export const putPhoto = (id: string, blob: Blob) => saveBlob(PREFIX + id, blob);
 /** The photos the garden's notes use. */
 export const photoIds = (g: Garden): Set<string> => new Set(g.notes.flatMap((n) => (n.photo ? [n.photo] : [])));
 
-/** Deletes kept photos no note uses any more (run when the app opens, so undo still works while it's open). */
-export async function tidyPhotos(g: Garden): Promise<number> {
-  const used = photoIds(g);
-  const keys = (await blobKeys().catch(() => [] as string[])).filter((k) => k.startsWith(PREFIX) && !used.has(k.slice(PREFIX.length)));
+/** Which kept blobs no garden uses: photos no note has, and trace photos of gardens that are gone. */
+export function unusedBlobs(keys: string[], used: { photos: Set<string>; traces: Set<string> }): string[] {
+  return keys.filter((k) => (k.startsWith(PREFIX) ? !used.photos.has(k.slice(PREFIX.length)) : (k === 'trace' || k.startsWith('trace:')) && !used.traces.has(k)));
+}
+
+/**
+ * Deletes kept photos no note in any garden uses any more, and trace photos of gardens deleted for good. Run when the
+ * app opens, so undo still works while it's open. Gardens hidden to bring back keep theirs.
+ */
+export async function tidyBlobs(): Promise<number> {
+  const used = blobsInUse();
+  if (!used) return 0;
+  const keys = unusedBlobs(await blobKeys().catch(() => [] as string[]), used);
   await Promise.all(keys.map((k) => deleteBlob(k).catch(() => undefined)));
   return keys.length;
 }

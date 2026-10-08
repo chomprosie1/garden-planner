@@ -32,3 +32,14 @@ export const deleteBlob = (key: string) => run('readwrite', (s) => s.delete(key)
 
 /** Every key kept, for tidying up. */
 export const blobKeys = () => run<IDBValidKey[]>('readonly', (s) => s.getAllKeys()).then((keys) => keys.map(String));
+
+/** Deletes every photo and trace kept, for deleting everything. */
+export const deleteAllBlobs = () =>
+  new Promise<void>((resolve) => {
+    try {
+      const req = indexedDB.deleteDatabase(DB_NAME);
+      req.onsuccess = req.onerror = req.onblocked = () => resolve();
+    } catch {
+      resolve();
+    }
+  });

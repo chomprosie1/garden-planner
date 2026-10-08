@@ -10,6 +10,7 @@ import { CommandSearch } from './CommandSearch';
 import { hashFor, usePrefs, useView } from './hooks';
 import { Icon, type IconName } from './icons';
 import { Onboarding } from './Onboarding';
+import { gardenCount } from './gardenActions';
 import type { Command } from './search';
 import { Shortcuts } from './Shortcuts';
 import { useAppState } from './useStore';
@@ -105,6 +106,10 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
       openWrapped() {
         setWrapping(true);
       },
+      clearBeds() {
+        setPlanIntent({ kind: 'clear' });
+        navigate('plan');
+      },
     }),
     [store, view],
   );
@@ -144,7 +149,8 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
     prefsStore.set({ seenMonth: month });
   }, [prefsStore, prefs.onboarded]);
 
-  if (!prefs.onboarded) return <Onboarding store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} go={navigate} />;
+  // A second garden, or starting again, skips the welcome.
+  if (!prefs.onboarded) return <Onboarding store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} go={navigate} again={gardenCount() > 1} />;
 
   const back = () => navigate(previous);
 
