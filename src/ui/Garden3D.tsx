@@ -54,6 +54,7 @@ export function Garden3D({ garden, plantOf, stageAt, today, date, setDate, look,
   const [label, setLabel] = useState<{ text: string; x: number; y: number } | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const down = useRef<{ x: number; y: number } | null>(null);
+  const lastTap = useRef<{ t: number; x: number; y: number } | null>(null);
 
   const day = useMemo(() => sunDay(Number(date.slice(0, 4)), Number(date.slice(5, 7)), Number(date.slice(8, 10)), garden.latitude, garden.longitude), [date, garden.latitude, garden.longitude]);
   const rise = minutesOf(day.sunrise, 6 * 60);
@@ -127,6 +128,16 @@ export function Garden3D({ garden, plantOf, stageAt, today, date, setDate, look,
     const d = down.current;
     down.current = null;
     if (!d || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6 || !view.current || !wrap.current) return;
+    // Two taps in the same place: go there, and turn round it.
+    const now = performance.now();
+    const last = lastTap.current;
+    lastTap.current = { t: now, x: e.clientX, y: e.clientY };
+    if (last && now - last.t < 350 && Math.hypot(e.clientX - last.x, e.clientY - last.y) < 24) {
+      lastTap.current = null;
+      setLabel(null);
+      view.current.goTo(e.clientX, e.clientY);
+      return;
+    }
     const text = view.current.pick(e.clientX, e.clientY);
     const r = wrap.current.getBoundingClientRect();
     setLabel(text ? { text, x: e.clientX - r.left, y: e.clientY - r.top } : null);
@@ -160,7 +171,7 @@ export function Garden3D({ garden, plantOf, stageAt, today, date, setDate, look,
         )}
         {status === 'ready' && (
           <p class="garden-3d-hint" role="status">
-            {message ?? (phone ? 'Drag to turn, pinch to zoom, tap for a name.' : 'Drag to turn, scroll to zoom, click for a name.')}
+            {message ?? (phone ? 'Drag to turn, two fingers to move and zoom. Double-tap to go there; tap for a name.' : 'Drag to turn, right-drag to move, scroll to zoom. Double-click to go there; click for a name.')}
           </p>
         )}
       </div>

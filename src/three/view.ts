@@ -6,8 +6,8 @@
 // walls, fences, hedges and buildings at their heights with pitched roofs,
 // trees in their shapes, and each plant as crossed pictures drawn from the
 // side (one instanced mesh for every plant drawn the same way). The sun is a
-// light with real shadows. Read-only: drag to turn, pinch or scroll to zoom,
-// tap for a name.
+// light with real shadows. Read-only: drag to turn, two fingers (or a right-drag) to move, pinch or scroll to
+// zoom, double-tap to go somewhere, and tap for a name.
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -183,6 +183,8 @@ export class GardenView {
   private centre = new THREE.Vector3();
   private extent = 10;
   private bounds = { minX: 0, maxX: 0, minZ: 0, maxZ: 0 };
+  /** Gliding to a spot you double-tapped: where the camera and the point it turns round go, from where, and when. */
+  private glide: { from: [THREE.Vector3, THREE.Vector3]; to: [THREE.Vector3, THREE.Vector3]; start: number } | null = null;
 
   constructor(canvas: HTMLCanvasElement, opts: { phone: boolean }) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: false });
@@ -195,10 +197,16 @@ export class GardenView {
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.12;
-    this.controls.enablePan = false;
+    // Move about as well as turn: two fingers (or a right-drag) slide along the ground, so the point you turn round
+    // isn't stuck in the middle of the garden behind the shed.
+    this.controls.enablePan = true;
+    this.controls.screenSpacePanning = false;
     this.controls.maxPolarAngle = Math.PI / 2 - 0.04;
-    this.controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_ROTATE };
-    this.controls.addEventListener('change', () => (this.dirty = true));
+    this.controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
+    this.controls.addEventListener('change', () => {
+      this.keepInGarden();
+      this.dirty = true;
+    });
     this.sun.castShadow = true;
     const map = opts.phone ? 1024 : 2048;
     this.sun.shadow.mapSize.set(map, map);
@@ -207,6 +215,7 @@ export class GardenView {
     this.scene.add(this.sky, this.sun, this.sun.target, this.world);
     const loop = () => {
       this.frame = requestAnimationFrame(loop);
+      this.stepGlide();
       if (this.controls.update() || this.dirty) {
         this.dirty = false;
         this.renderer.render(this.scene, this.camera);
@@ -545,6 +554,7 @@ export class GardenView {
 
   /** Looking down over the garden from the bottom of the plan, or standing at its bottom edge. */
   preset(p: Preset): void {
+    this.glide = null;
     const c = this.centre;
     // A tall, narrow screen (a phone) needs to stand further back to see the whole garden.
     const D = this.extent / Math.min(1, this.camera.aspect) ** 0.4;
@@ -557,6 +567,66 @@ export class GardenView {
     }
     this.controls.update();
     this.dirty = true;
+  }
+
+  /** How far past the garden's edge you can move, metres. */
+  private static readonly EDGE = 3;
+
+  /** The point you turn round stays over the garden (and a little beyond), at about head height or below. */
+  private keepInGarden(): void {
+    const t = this.controls.target;
+    const e = GardenView.EDGE;
+    const x = Math.min(this.bounds.maxX + e, Math.max(this.bounds.minX - e, t.x));
+    const z = Math.min(this.bounds.maxZ + e, Math.max(this.bounds.minZ - e, t.z));
+    const y = Math.min(2, Math.max(0, t.y));
+    if (x === t.x && y === t.y && z === t.z) return;
+    // Move the camera with it, so the view doesn't swing.
+    const d = new THREE.Vector3(x - t.x, y - t.y, z - t.z);
+    t.add(d);
+    this.camera.position.add(d);
+  }
+
+  /**
+   * Goes to the spot under a point on the screen: the view glides there and turns round it, a little closer if it was
+   * far off. True if there was something there to go to.
+   */
+  goTo(clientX: number, clientY: number): boolean {
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    const ray = new THREE.Raycaster();
+    ray.setFromCamera(new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1), this.camera);
+    const hit = ray.intersectObjects(this.world.children, true)[0];
+    if (!hit) return false;
+    const e = GardenView.EDGE;
+    const to = new THREE.Vector3(
+      Math.min(this.bounds.maxX + e, Math.max(this.bounds.minX - e, hit.point.x)),
+      Math.min(1.5, Math.max(0, hit.point.y)),
+      Math.min(this.bounds.maxZ + e, Math.max(this.bounds.minZ - e, hit.point.z)),
+    );
+    const offset = this.camera.position.clone().sub(this.controls.target);
+    const near = Math.max(3, Math.min(8, this.extent * 0.5));
+    if (offset.length() > near) offset.setLength(near);
+    const cam = to.clone().add(offset);
+    cam.y = Math.max(cam.y, 0.4);
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this.controls.target.copy(to);
+      this.camera.position.copy(cam);
+      this.controls.update();
+      this.dirty = true;
+      return true;
+    }
+    this.glide = { from: [this.camera.position.clone(), this.controls.target.clone()], to: [cam, to], start: performance.now() };
+    return true;
+  }
+
+  private stepGlide(): void {
+    const g = this.glide;
+    if (!g) return;
+    const k = Math.min(1, (performance.now() - g.start) / 450);
+    const ease = k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2;
+    this.camera.position.lerpVectors(g.from[0], g.to[0], ease);
+    this.controls.target.lerpVectors(g.from[1], g.to[1], ease);
+    this.dirty = true;
+    if (k >= 1) this.glide = null;
   }
 
   /** What's under a point on the screen, in words. */

@@ -17,6 +17,16 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-09-3d-move',
+    date: '2026-10-09',
+    title: 'Move about in 3D',
+    items: [
+      'The 3D view no longer turns round one fixed point in the middle. Drag with two fingers to move along the garden (on a computer, drag with the right button).',
+      'Double-tap anywhere, behind the shed or by the far bed, and the view goes there and turns round that spot.',
+    ],
+    tryIt: { label: 'Open your garden', view: 'plan' },
+  },
+  {
     id: '2026-10-08-kitchen',
     date: '2026-10-08',
     title: 'From plot to plate',

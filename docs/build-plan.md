@@ -879,7 +879,7 @@ Decided:
   - the journal's photo buttons.
 
   3D was checked from above and standing in it, on a phone and a desktop.
-  - The 3D bug didn't show in headless Edge before the fix either (its software renderer has a more precise depth buffer than a phone's GPU). The fix is still to be checked on a phone.
+  - The 3D bug didn't show in headless Edge before the fix either (its software renderer has a more precise depth buffer than a phone's GPU). You confirmed the fix on a phone on 9 Oct 2026.
 - **Not done:**
   - Hourly UV ("UV now"): the card and reminder use the day's highest.
   - Selecting several beds on the plan at once.
@@ -1077,6 +1077,7 @@ Tests: new `tests/kitchen.test.ts`:
 - **Tests:** new `tests/inspire.test.ts` (sun-suited picks, budget and effort filters, the time frame, an empty result); planting.
 
 ### Release 17 — Walk through it (planned)
+- **Done early (9 Oct 2026), after your feedback that the view was stuck turning round the middle:** two fingers (or a right-drag) move along the garden, and a double-tap glides the view to that spot and turns round it (`goTo` in `src/three/view.ts`). It stays over the garden, up to 3 m past its edges. This release still adds walking at eye height, with collision.
 - **Walking:**
   - a **Walk** preset in the 3D view: eye height 1.6 m;
   - WASD or arrows and the mouse on a desktop, a thumb pad on a phone, or tap the ground to walk there;

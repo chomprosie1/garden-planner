@@ -78,7 +78,7 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Clear beds one at a time, several, or all | You, 8 Oct 2026 | S | Built in release 11a: a checklist of beds and pots, from the ⋯ menu |
 | Copy and paste a plant | You, 8 Oct 2026 | S | Built in release 11a |
 | Bug: the looks don't wrap in Settings on a phone; think again about how they're shown | You, 8 Oct 2026 | S | Fixed in release 11a |
-| Bug: in 3D, where ground layers overlap (paving over a lawn), the lower one shows through at some angles | You, 8 Oct 2026 | S | Fixed in release 11a; to check on a phone, as headless Edge never showed it |
+| Bug: in 3D, where ground layers overlap (paving over a lawn), the lower one shows through at some angles | You, 8 Oct 2026 | S | Fixed in release 11a; confirmed on a phone, 9 Oct 2026 |
 | Create a new garden | You, 8 Oct 2026 | M | Built in release 11b, with switching between gardens |
 | Delete everything and start again, with a careful way through it | You, 8 Oct 2026 | S | Built in release 11b: gentler choices first, choose what to keep, save a copy, hold to confirm, 30 days to bring it back |
 | How good the garden is for bees and other pollinators | You, 8 Oct 2026 | M | Planned in release 18 with the nature calendar; the plant data comes in release 15 |
