@@ -66,9 +66,9 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Photos in the journal: take one with the camera, or choose one already taken | You, 7 Oct 2026 | S | Built in release 11a |
 | UV reminders: live where possible, otherwise a sunny day’s level for the time of year; factor 50 and a hat when it’s high | You, 7 Oct 2026 | S | Built in release 11a |
 | Which way windowsills and shed places face, and their sun, deciding what goes where | You, 7 Oct 2026 | S | Built in release 11a |
-| A UI that feels crafted, not AI-made, and nicer on a phone | You, 7 Oct 2026 | L | Planned in release 12, mock-ups first |
-| This week more prominent, as cards | You, 7 Oct 2026 | S | Planned in release 12 |
-| A lifestyle feel, and a warm voice that makes the jobs a pleasure | You, 7 Oct 2026 | M | Planned in release 12, then screen by screen |
+| A UI that feels crafted, not AI-made, and nicer on a phone | You, 7 Oct 2026 | L | Built in release 12 (no mock-ups, on your say-so) |
+| This week more prominent, as cards | You, 7 Oct 2026 | S | Built in release 12 |
+| A lifestyle feel, and a warm voice that makes the jobs a pleasure | You, 7 Oct 2026 | M | Started in release 12 (Today, jobs, stage advice; docs/voice.md), then screen by screen |
 | Harvest to the kitchen: recipes, storing and preserving, seasonal recipes from what’s growing | You, 7 Oct 2026 | L | Planned in release 13 |
 | Fertilisers: the common types, rough prices, what each plant likes | You, 7 Oct 2026 | M | Planned in release 14 |
 | A library of at least 500 plants, with varieties of the same plant | You, 7 Oct 2026 | L | Planned in release 15 |

@@ -87,7 +87,7 @@ export function CheckPlants({ store, userPlants, startAt, back }: Props) {
 
           {!plant ? (
             <section class="card">
-              <h2>{done === all.length ? 'All checked. Thank you!' : 'Nothing left for now'}</h2>
+              <h2>{done === all.length ? 'All checked. Thank you.' : 'Nothing left for now'}</h2>
               <p class="muted">{done === all.length ? 'Every starter plant has been checked on this device.' : 'You skipped some. Come back to them any time.'}</p>
               {skipped.length > 0 && (
                 <button type="button" class="btn" onClick={() => setSkipped([])}>

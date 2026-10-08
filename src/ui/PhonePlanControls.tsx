@@ -1,7 +1,7 @@
 // Phone controls for the plan: a bar for each part of the plan, a drawing bar that works with the
 // crosshair, and a bottom sheet for details.
 
-import { useState } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 import { parseLength } from '../canvas/snap';
 import { KINDS } from '../model/features';
 import type { FeatureKind } from '../model/types';
@@ -197,9 +197,43 @@ export function PhoneDrawBar({ tool, corners, api, byHand }: DrawBarProps) {
 
 /** A sheet along the bottom of the plan; tap its header to expand or collapse. */
 export function PhoneSheet({ title, open, setOpen, onClose, children, fixed = false }: { title: string; open: boolean; setOpen: (o: boolean) => void; onClose: () => void; children: ComponentChildren; /** Always open: no expand or collapse. */ fixed?: boolean }) {
+  // Pull the sheet by its handle: up to open it, down to fold it away (or close it, when it's already folded).
+  const from = useRef<number | null>(null);
+  const pulled = useRef(false);
+  const [pull, setPull] = useState(0);
   return (
-    <section class={`phone-sheet ${open ? 'open' : ''}`} aria-label={title}>
-      <header class="phone-sheet-head">
+    <section class={`phone-sheet ${open ? 'open' : ''}`} aria-label={title} style={pull > 0 ? { transform: `translateY(${pull}px)` } : undefined}>
+      <header
+        class="phone-sheet-head"
+        onPointerDown={(e) => {
+          from.current = e.clientY;
+          pulled.current = false;
+        }}
+        onPointerMove={(e) => {
+          if (from.current === null) return;
+          const dy = e.clientY - from.current;
+          if (Math.abs(dy) > 6) pulled.current = true;
+          setPull(Math.max(0, Math.min(dy, 240)));
+        }}
+        onPointerUp={(e) => {
+          const dy = from.current === null ? 0 : e.clientY - from.current;
+          from.current = null;
+          setPull(0);
+          if (dy > 60) open && !fixed ? setOpen(false) : onClose();
+          else if (dy < -40 && !open && !fixed) setOpen(true);
+        }}
+        onPointerCancel={() => {
+          from.current = null;
+          setPull(0);
+        }}
+        onClickCapture={(e) => {
+          // A pull isn't a tap on the title.
+          if (pulled.current) {
+            e.stopPropagation();
+            pulled.current = false;
+          }
+        }}
+      >
         <button type="button" class="phone-sheet-toggle" aria-expanded={fixed ? undefined : open} disabled={fixed} onClick={() => setOpen(!open)}>
           <span class="phone-sheet-grip" aria-hidden="true" />
           <span class="phone-sheet-title">{title}</span>

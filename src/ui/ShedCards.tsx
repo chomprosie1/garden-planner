@@ -73,7 +73,7 @@ export function ReadyCard({ store, garden, plantOf }: { store: Store; garden: Ga
   const ready = readyToPlantOut(garden, plantOf, today);
   if (!ready.length) return null;
   return (
-    <section class="card shed-ready" aria-labelledby="ready-card-head">
+    <section class="card panel shed-ready" aria-labelledby="ready-card-head">
       <h2 id="ready-card-head">Ready for the garden</h2>
       <ul class="plain-list">
         {ready.map((r) => {

@@ -21,6 +21,15 @@ const BANNED: [RegExp, string][] = [
   [/\bschema\b/i, 'leave it out'],
   [/\b(latitude|longitude)\b/i, '"where it is", or a place name'],
   [/\bGDD\b/, 'leave it out'],
+  // The voice (docs/voice.md): filler, and a machine trying to sound friendly.
+  [/\b(simply|easily|effortless(ly)?|seamless(ly)?)\b/i, 'leave it out: say the thing'],
+  [/\b(elevate|empower|supercharge|game-changer|delve|embark|curated)\b/i, 'a plain word'],
+  [/\b(your|the) journey\b/i, 'say what they’re doing'],
+  [/\bunlock (your|new|the power)\b/i, 'a plain word'],
+  [/\b(let's|let’s|don't worry|don’t worry|great job|awesome|please note|in order to|utilise)\b/i, 'say it plainly'],
+  [/\w!(\s|$)/, 'no exclamation marks: a calm full stop'],
+  // Never name or imitate a real gardener.
+  [/\b(Monty Don|Titchmarsh|Charlie Dimmock|Carol Klein|Adam Frost|Joe Swift|Gertrude Jekyll|Christopher Lloyd|Geoff Hamilton|Beth Chatto|Sarah Raven|Alys Fowler)\b/i, 'leave real people out'],
 ];
 
 /**

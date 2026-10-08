@@ -73,17 +73,17 @@ export function upcomingVerb(u: Upcoming): string {
     case 'sown':
       return u.sowing === 'direct' ? 'Sow outside' : 'Sow indoors';
     case 'germinated':
-      return 'Seedlings likely up';
+      return 'Seedlings up soon';
     case 'hardening':
-      return 'Start hardening off';
+      return 'Harden off';
     case 'transplanted':
       return u.sowing === 'none' ? 'Plant' : 'Plant out';
     case 'flowering':
-      return 'Likely flowering';
+      return 'Coming into flower';
     case 'harvesting':
-      return 'Likely ready to pick';
+      return 'Ready to pick';
     case 'cleared':
-      return 'Likely finished: clear and compost';
+      return 'Clear and compost';
     default:
       return 'Growing on';
   }

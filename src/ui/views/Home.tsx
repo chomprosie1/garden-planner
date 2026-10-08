@@ -7,7 +7,7 @@ import { usePlants } from '../usePlants';
 import { spacingStyle } from '../../planting/place';
 import { LOOKS } from '../../theme/looks';
 import type { Prefs, PrefsStore, View } from '../../theme/prefs';
-import { BackupCard, GardenCard, GardenName, JournalCard, SaveIndicator, SetupCard, WhatsNewCard } from '../HomeCards';
+import { BackupCard, GardenCard, GardenName, JournalCard, MomentCard, SaveIndicator, SetupCard, WhatsNewCard } from '../HomeCards';
 import { FrostCard, UvCard } from '../WeatherCards';
 import { WeekCard } from '../WeekCard';
 import { SeasonCard } from '../Wrapped';
@@ -128,14 +128,17 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
       )}
 
       <div class="home-body">
+        {/* What needs you now first, in panels; then the week, the month and the rest, as a page. */}
+        {plants && <MomentCard garden={garden} plantOf={plantOf} />}
         {plants && <FrostCard garden={garden} plantOf={plantOf} />}
         <UvCard garden={garden} />
-        <SetupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} />
         {plants && <ReadyCard store={store} garden={garden} plantOf={plantOf} />}
+        {plants && <WeekCard garden={garden} plantOf={plantOf} />}
+        <SetupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} />
         {plants && <BehindCard store={store} garden={garden} plantOf={plantOf} />}
         <section class="card">
           <div class="card-head">
-            <h2>{layout === 'packet' ? 'Jobs on the plot' : layout === 'framed' ? 'Tasks for the month' : 'This month'}</h2>
+            <h2>{layout === 'packet' ? 'Jobs on the plot' : layout === 'framed' ? 'Jobs for the month' : 'This month'}</h2>
             <span class="muted small">
               {doneCount} of {total} done
             </span>
@@ -160,7 +163,6 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
           </p>
         </section>
 
-        {plants && <WeekCard garden={garden} plantOf={plantOf} />}
         {plants && <SeasonCard garden={garden} plantOf={plantOf} />}
         <JournalCard store={store} garden={garden} plantOf={plantOf} />
         <WhatsNewCard prefs={prefs} prefsStore={prefsStore} />

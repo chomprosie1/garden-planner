@@ -18,14 +18,14 @@ export const JOB_KINDS = ['sow-indoors', 'sow-direct', 'plant-out', 'check', 'ha
 export type JobKind = (typeof JOB_KINDS)[number];
 
 export const JOB_LABEL: Record<JobKind, string> = {
-  'sow-indoors': 'Sow indoors or under cover',
+  'sow-indoors': 'Sow under cover',
   'sow-direct': 'Sow outside',
   'plant-out': 'Plant out',
-  check: 'Check progress',
-  harvest: 'Harvest',
-  protect: 'Protect for winter',
+  check: 'Keep an eye on',
+  harvest: 'Ready to pick',
+  protect: 'Tuck in for winter',
   lift: 'Lift and store',
-  tidy: 'Clear and tidy',
+  tidy: 'Clear and compost',
   weed: 'Weeding',
 };
 

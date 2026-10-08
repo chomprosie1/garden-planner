@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-08-new-look',
+    date: '2026-10-08',
+    title: 'A new look, and a warmer word or two',
+    items: [
+      'Today reads like a page from a garden notebook now, not a pile of boxes. Only what needs you now, like a frost or seedlings ready to go out, sits in its own panel.',
+      'This week is a row of cards at the top of Today, each with a picture of the plant and when. Swipe through them, and tap one to see it on the plan.',
+      'Swipe a job to the right to tick it off. Phones that can will give a little buzz.',
+      'A small moment now and then: the first frost of autumn, your first tomatoes of the year, the longest day.',
+      'New pictures on the tabs, quieter buttons, and fewer, warmer words, starting with Today, the jobs and the advice for each stage.',
+      'On a phone, pull the details on the plan up to open them and down to put them away.',
+    ],
+    tryIt: { label: 'Open Today', view: 'home' },
+  },
+  {
     id: '2026-10-08-gardens',
     date: '2026-10-08',
     title: 'More than one garden, and starting again',

@@ -179,25 +179,25 @@ export function stageTips(plant: Plant, stage: LifeStage, pl?: Planting): string
   switch (stage) {
     case 'sown':
       return sowing === 'direct'
-        ? ['Keep the soil moist while the seeds come up, and watch for slugs on the seedlings.']
-        : ['Keep the compost just moist, not wet. Most seeds come up in one to three weeks; a warm windowsill or propagator helps.'];
+        ? ['Keep the soil moist while they come up, and look out for slugs after dark: they love a tender seedling.']
+        : ['Moist, not wet. Most seeds are up in one to three weeks, quicker somewhere warm.'];
     case 'germinated':
       return sowing === 'direct'
-        ? ['Thin the seedlings to their final spacing once they are big enough to handle.']
-        : ['Give the seedlings as much light as you can so they don’t stretch. Pot them on when roots show at the bottom of the pot.'];
+        ? ['Once they’re big enough to hold, thin them to their final spacing. The thinnings of many crops are good to eat.']
+        : ['All the light you can give them, so they grow sturdy rather than tall. Pot them on when roots peep out of the bottom.'];
     case 'hardening':
-      return ['Stand the plants outside by day and bring them in at night for 7 to 14 days, then leave them out on mild nights before planting.'];
+      return ['Out by day and in at night for a week or two, then out on mild nights too. Then they’re ready for the garden.'];
     case 'transplanted':
-      return sowing === 'none' ? ['Water in well, and keep watering in dry spells until the roots have spread.'] : ['Water in well to settle the soil round the roots. Fleece is handy if a cold night comes.'];
+      return sowing === 'none' ? ['Water in well, and keep watering in dry spells until the roots have found their way.'] : ['Water in well to settle the soil round the roots. Keep a fleece handy for a cold night.'];
     case 'vegetative':
-      return ['Keep the weeds down and water in dry spells; a mulch helps keep moisture in.'];
+      return ['Weeds down, water in dry spells, and a mulch to hold the moisture in. Then let it grow.'];
     case 'flowering':
       return plant.category === 'flower'
-        ? ['Deadhead faded flowers to keep more coming.']
+        ? ['Snip off the faded flowers and more will follow: a few minutes with the secateurs on a summer evening.']
         : harvests(plant)
-          ? ['Flowers are forming: water regularly, and switch to a high-potash feed for fruiting crops.']
-          : ['It’s in flower.'];
+          ? ['The flowers are the start of the crop. Water regularly, and switch to a high-potash feed for fruiting crops.']
+          : ['In flower. Enjoy it.'];
     case 'harvesting':
-      return ['Pick regularly. For many crops, picking keeps more coming.'];
+      return ['Pick little and often: for many crops, the more you pick, the more there is.'];
   }
 }

@@ -5179,3 +5179,342 @@ button.plan-chip:hover {
     transform: scaleX(1);
   }
 }
+
+/* ---------- Release 12: a new look ----------
+   A garden notebook rather than a stack of boxes. Today reads as a page, its parts set apart by type, space and a
+   fine rule; only what needs you now sits in a tinted panel. A real type scale, quieter secondary buttons, rows
+   that breathe, and a little motion where it helps. Every look keeps its own colours, fonts and corners. */
+:root {
+  --step--1: 0.875rem;
+  --step-0: 1rem;
+  --step-1: 1.2rem;
+  --step-2: 1.5rem;
+  --step-3: 1.95rem;
+  --step-4: 2.85rem;
+  --space-s: 0.5rem;
+  --space-m: 1rem;
+  --space-l: 1.75rem;
+  --space-xl: 2.75rem;
+}
+h2 {
+  font-size: var(--step-1);
+  line-height: 1.2;
+}
+.title {
+  font-size: var(--step-3);
+}
+.home .month-title {
+  font-size: var(--step-4);
+}
+
+/* Secondary buttons: a tone, not a box. Primary, quiet, danger and on-photo buttons keep their own. */
+.btn:not(.btn-primary):not(.btn-quiet):not(.btn-danger):not(.btn-on-photo) {
+  background: var(--surface2);
+  border-color: transparent;
+}
+.btn:not(.btn-primary):not(.btn-quiet):not(.btn-danger):not(.btn-on-photo):hover {
+  background: color-mix(in srgb, var(--surface2) 80%, var(--text) 8%);
+}
+
+/* Cards everywhere: no outline, just a surface. Heritage and Minimal keep their ruled sections. */
+.card {
+  border-color: transparent;
+}
+[data-look='heritage'] .card,
+[data-look='minimal'] .card {
+  border-color: var(--border);
+}
+
+/* ---------- Today as a page ---------- */
+.home-body {
+  gap: 0;
+  padding-top: var(--space-m);
+  padding-bottom: var(--space-l);
+}
+.home-body > .card:not(.panel),
+.home-body > .week-section {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  padding: var(--space-l) 0 var(--space-m);
+}
+.home-body > :first-child {
+  border-top: 0 !important;
+}
+.home-body > .card:not(.panel) > .card-head h2,
+.home-body > .card:not(.panel) > h2,
+.section-head h2 {
+  font-size: var(--step-2);
+}
+.home-body > .card:not(.panel) .card-head,
+.section-head {
+  margin-bottom: 0.2rem;
+}
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+/* What needs you now: a tinted panel, no outline. */
+.home-body > .panel {
+  border: 0;
+  border-radius: var(--radius-card);
+  padding: 1.1rem 1.2rem;
+  margin-bottom: var(--space-m);
+}
+.home-body > .shed-ready,
+.home-body > .moment-card {
+  background: var(--selected-bg);
+  color: var(--selected-text);
+}
+.home-body > .shed-ready .muted,
+.home-body > .moment-card .muted {
+  color: inherit;
+  opacity: 0.85;
+}
+.home-body > .news-card {
+  background: var(--surface2);
+}
+.home-body > .garden-card {
+  margin-top: var(--space-m);
+  background: var(--surface);
+}
+.home-body > .panel + .card:not(.panel),
+.home-body > .panel + .week-section {
+  border-top: 0;
+}
+/* Rows in a section on the page sit on the page's own colour. */
+.home-body > .card:not(.panel) {
+  --row-bg: var(--bg);
+}
+
+/* A moment in the garden's year. */
+.moment-card {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.9rem;
+}
+.moment-title {
+  font-size: var(--step-1);
+  margin-bottom: 0.15rem;
+}
+.moment-art {
+  flex: none;
+}
+
+/* ---------- This week, as cards to swipe ---------- */
+.week-cards {
+  list-style: none;
+  margin: 0.8rem calc(-1 * var(--gutter)) 0;
+  padding: 0.2rem var(--gutter) 0.9rem;
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 var(--gutter);
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.week-cards::-webkit-scrollbar {
+  display: none;
+}
+.week-tile {
+  flex: 0 0 auto;
+  width: 9.75rem;
+  scroll-snap-align: start;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 8px 22px rgb(0 0 0 / 0.07);
+}
+.week-tile-todo {
+  background: var(--selected-bg);
+  color: var(--selected-text);
+}
+.week-tile-btn {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+  height: 100%;
+  padding: 0.85rem 0.9rem 1rem;
+  border-radius: var(--radius-card);
+  cursor: pointer;
+}
+.week-tile-btn:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+.week-tile-when {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+.week-tile-art {
+  margin: 0.35rem 0 0.2rem;
+}
+.week-tile-verb {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  line-height: 1.15;
+  font-weight: 700;
+}
+.week-tile-what {
+  font-size: var(--step--1);
+  line-height: 1.3;
+}
+.week-tile-where {
+  opacity: 0.8;
+}
+.week-tile-next,
+.week-tile-more {
+  width: 12.5rem;
+  padding: 0.85rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+.week-next-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: var(--step--1);
+}
+.week-next-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.week-basis {
+  margin-top: 0.1rem;
+}
+
+/* ---------- Jobs that breathe, and swipe to tick ---------- */
+.job-line {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+}
+.job-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.1rem 1.1rem;
+  padding: 0 0 0.55rem calc(22px + 0.75rem);
+  margin-top: -0.2rem;
+}
+.job-actions .job-link {
+  padding: 0.3rem 0;
+}
+.job-pick {
+  padding-left: calc(22px + 0.75rem);
+}
+.job-text > span:first-child {
+  font-size: var(--step-0);
+}
+.swipe-row {
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+.swipe-body {
+  position: relative;
+  background: var(--row-bg, var(--surface));
+}
+.swipe-hint {
+  position: absolute;
+  left: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 1.3rem;
+  font-weight: 700;
+  transition: transform 0.15s ease;
+}
+.swipe-ready .swipe-hint {
+  transform: translateY(-50%) scale(1.35);
+}
+/* A tick pops a little. */
+.job input:checked {
+  animation: tick-pop 0.22s ease-out;
+}
+@keyframes tick-pop {
+  50% {
+    transform: scale(1.22);
+  }
+}
+
+/* ---------- Motion: Today settles in ---------- */
+.home-body > * {
+  animation: settle 0.42s ease-out both;
+}
+.home-body > :nth-child(2) {
+  animation-delay: 0.04s;
+}
+.home-body > :nth-child(3) {
+  animation-delay: 0.08s;
+}
+.home-body > :nth-child(4) {
+  animation-delay: 0.12s;
+}
+.home-body > :nth-child(n + 5) {
+  animation-delay: 0.16s;
+}
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-body > *,
+  .job input:checked {
+    animation: none;
+  }
+}
+
+/* ---------- Sheets you can pull ---------- */
+.phone-sheet {
+  transition: transform 0.18s ease;
+}
+.phone-sheet-head {
+  touch-action: none;
+}
+.phone-sheet-grip {
+  width: 40px;
+  height: 5px;
+}
+
+/* Desktop: the page is a column, not a full-width stack. */
+@media (min-width: 701px) {
+  .home-body {
+    max-width: 760px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  /* No swiping on a desktop: the week wraps onto rows instead. */
+  .week-cards {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+}
+/* Running behind: its three answers sit on one line where they fit. */
+.behind-card .button-row .btn {
+  min-height: 38px;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.92rem;
+}

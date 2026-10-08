@@ -13,6 +13,10 @@ import { saveStatus, type SaveStatus } from '../storage/local';
 import { resolveMode } from '../theme/apply';
 import type { Prefs, PrefsStore } from '../theme/prefs';
 import { latestNews, unseenNews } from '../content/whatsNew';
+import { momentFor } from '../calendar/moments';
+import { todayIso } from '../model/ids';
+import { PlantIcon } from './PlantIcon';
+import { useWeatherNow } from './useWeather';
 import { useApp } from './appContext';
 import { CompassNorth } from './CompassNorth';
 import { PlaceSearch } from './PlaceSearch';
@@ -50,6 +54,26 @@ export function GardenName({ name, class: cls = '' }: { name: string; class?: st
       {name}
       <Icon name="chevron" size={14} />
     </button>
+  );
+}
+
+// ---------- A moment in the garden's year ----------
+
+/** One warm line when something has just happened: the first frost, the first pick, midsummer. */
+export function MomentCard({ garden, plantOf }: { garden: Garden; plantOf: (id: string) => Plant }) {
+  const { weather } = useWeatherNow();
+  const m = momentFor(garden, plantOf, todayIso(), weather);
+  if (!m) return null;
+  return (
+    <section class={`card panel moment-card moment-${m.kind}`} aria-labelledby="moment-title">
+      {m.plantId && <PlantIcon plant={plantOf(m.plantId)} size={56} stage="harvesting" class="moment-art" />}
+      <div>
+        <h2 id="moment-title" class="moment-title">
+          {m.title}
+        </h2>
+        <p>{m.line}</p>
+      </div>
+    </section>
   );
 }
 
@@ -196,7 +220,7 @@ export function GardenCard({ garden, prefs, plants, plantOf }: { garden: Garden;
   return (
     <a
       href="#/plan"
-      class="card card-link garden-card"
+      class="card panel card-link garden-card"
       onClick={(e) => {
         e.preventDefault();
         app.go('plan');
@@ -274,7 +298,7 @@ export function WhatsNewCard({ prefs, prefsStore }: { prefs: Prefs; prefsStore: 
   const latest = unseen[0]!;
   const more = unseen.length - 1;
   return (
-    <section class="card news-card" aria-labelledby="news-card-title">
+    <section class="card panel news-card" aria-labelledby="news-card-title">
       <div class="card-head">
         <h2 id="news-card-title">What’s new</h2>
         <span class="news-badge">New</span>
@@ -304,10 +328,10 @@ export function BackupCard({ store, garden, prefs, prefsStore, now = new Date() 
   const days = daysSinceBackup(prefs.lastBackup, now);
   return (
     <section class="card backup-card" aria-labelledby="backup-title">
-      <h2 id="backup-title">Keep your garden safe</h2>
+      <h2 id="backup-title">Keep a copy</h2>
       <p class="muted">
-        Your garden is kept only in this browser, on this device. {days === null ? 'You haven’t downloaded a backup yet.' : `Your last backup was ${days} days ago.`} A backup file
-        lets you get it back, or move it to another device.
+        Your garden lives only in this browser. {days === null ? 'There’s no copy of it yet.' : `The last copy is ${days} days old.`} A copy keeps it safe, and moves it to another
+        device.
       </p>
       <button type="button" class="btn btn-primary" onClick={() => backUp(store, prefsStore)}>
         Download a backup

@@ -22,7 +22,7 @@ export function FrostCard({ garden, plantOf }: { garden: Garden; plantOf: (id: s
   const shown = [...new Set(names)];
   const rest = shown.length - NAMED;
   return (
-    <section class={`card frost-card frost-${warning.night.level}`} aria-labelledby="frost-title" role="status">
+    <section class={`card panel frost-card frost-${warning.night.level}`} aria-labelledby="frost-title" role="status">
       <h2 id="frost-title">{frostHeadline(warning, today)}</h2>
       <p>{frostAdvice(warning)}</p>
       <p class="muted small">
@@ -46,7 +46,7 @@ export function UvCard({ garden }: { garden: Garden }) {
   const uv = uvOn(weather, today, garden.latitude, garden.longitude);
   if (!showsUv(uv, today)) return null;
   return (
-    <section class={`card uv-card uv-${uv.band}`} aria-labelledby="uv-title">
+    <section class={`card uv-card uv-${uv.band} ${uv.band === 'moderate' ? '' : 'panel'}`} aria-labelledby="uv-title">
       <h2 id="uv-title">
         UV {UV_LABEL[uv.band].toLowerCase()} today ({uv.index})
       </h2>

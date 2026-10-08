@@ -826,7 +826,7 @@ Decided:
 | --- | --- | --- | --- |
 | 11a. Room to see | Sun views maximise the plan, the sun bar's chips become a drop-down, camera or library for photos, UV, which way windowsills and shed places face; clear several or all beds, copy and paste a plant; two bug fixes | ~1.5 wk | Built 8 Oct 2026 |
 | 11b. Your gardens | More than one garden, switching between them, and deleting everything to start again | ~1 wk | Built 8 Oct 2026 |
-| 12. A new look | 12a mock-ups (you choose) → 12b build: a phone-first redesign, This week as cards, and the new voice | ~3 wk | |
+| 12. A new look | 12a mock-ups (you choose) → 12b build: a phone-first redesign, This week as cards, and the new voice | ~3 wk | Built 8 Oct 2026, without mock-ups |
 | 13. From plot to plate | Recipes, storing and preserving, a kitchen card for this week, harvest worth in £ | ~2 wk + writing | |
 | 14. Feeding | Fertiliser types, prices, what each plant likes, feed jobs | ~1.5 wk | |
 | 15. 500 plants, and varieties | +250 plants in batches of 50, a variety model, the seed tin | ~4 wk of data (alongside 13–14) | |
@@ -941,35 +941,69 @@ Tests: new `tests/gardens.test.ts`:
 - **Deleting everything:** every key this app keeps goes, and nothing else.
 - **Fresh starts:** new gardens in the same place or not; starting again with all or none ticked; what goes, counted.
 
-### Release 12 — A new look (planned)
-**12a, mock-ups.** A page with three directions at 390 px: Today, the plan, a plant card, Seedlings, and a job written in the new voice. You choose, or mix.
-- **Moving away from what reads as AI:**
-  - a pill or bordered card around everything;
-  - even spacing everywhere;
-  - long explanatory sentences;
-  - generic icons;
-  - too many words.
-- **Moving towards a crafted feel:**
-  - strong typography and a real type scale;
-  - illustration and photography leading;
-  - bottom sheets with drag handles;
-  - swipe gestures;
-  - motion, and haptics where phones have them;
+### Release 12 — A new look (as built)
+**No mock-ups (12a), on your say-so (8 Oct 2026).** I chose the direction: **a garden notebook rather than a stack of boxes.**
+- **What it moved away from:**
+  - every part of Today a bordered, rounded card of equal weight;
+  - outlined secondary buttons;
+  - job rows squeezed by links on the right;
+  - long sentences.
+- **What it moved to:**
+  - type, space and a fine rule doing the work;
+  - panels only for what needs you now;
+  - pictures leading the week;
   - fewer, warmer words.
 
-**12b, build** the chosen direction:
-- **Theme and styles:** `src/theme/looks.ts` tokens and `src/styles.css`, in sections. The five looks stay, re-expressed in the new direction.
-- **Today:** This week as swipeable cards at the top (`src/ui/WeekCard.tsx`, `src/ui/views/Home.tsx`). Each card shows the plant's picture, what to do, and when.
-- **Moving about:**
-  - sheets that pull up and down (`PhoneSheet`, `Dock`);
-  - swipe to tick a job;
-  - a fresh set of icons (`src/ui/icons.tsx`).
-- **The voice:**
-  - `docs/voice.md`: warm and unhurried, gardening as a pleasure rather than a chore ("Pinch out the side shoots: a few minutes with the tomatoes is one of summer's quiet jobs.").
-  - We don't name or imitate any real person.
-  - The screen words are rewritten in that voice, release by release, starting with Today, jobs and stage advice (`stageTips`, `src/content/seasons.ts`).
-- **Small seasonal moments** on Today, e.g. the first frost or the first pick.
-- **Tests:** words (extended for the voice's banned words), contrast for any new colours; then screenshots of every main screen at 390 px and on a desktop.
+Each of the five looks keeps its own colours, fonts and corners, re-expressed through the same structure: Heritage and Minimal keep their ruled sections, and the week's cards take each look's "selected" colour (sage in Cottage, deep green in Allotment, near-black in Modern).
+
+- **Type and shape** (`src/styles.css`, "Release 12: a new look"):
+  - a type scale (`--step--1` to `--step-4`) and spacing steps;
+  - bigger section titles and month titles;
+  - secondary buttons are a tone (`--surface2`), not an outline;
+  - cards lose their outlines everywhere.
+- **Today as a page** (`src/ui/views/Home.tsx`):
+  - **Order:** a moment, frost, UV, seedlings ready to go out, this week, getting started, running behind, this month, then the rest.
+  - **Sections:** sit on the page, divided by a rule.
+  - **Panels:** frost, high UV, seedlings ready, the moment, What's new and the garden at a glance. They're tinted, with no outline.
+  - **Motion:** the parts settle in one after another (off with reduced motion).
+  - **Desktop:** Today is a 760 px column.
+- **This week as cards** (`src/ui/WeekCard.tsx`):
+  - **Each card:** when ("Tomorrow"), the plant's picture at the stage it's reaching, what to do ("Harden off", "Plant out", "Ready to pick"), and the plant and bed. Tap it to see it on the plan.
+  - **Order:** things to do first. Next week waits at the end of the row.
+  - **Swiping:** sideways with snap on a phone. On a desktop the cards wrap onto rows instead.
+- **Jobs** (`src/ui/Jobs.tsx`):
+  - "Picked some?", "Show" and "Sow in the shed" sit under the job's words, not squeezed beside them.
+  - **Swipe a job right to tick it** (`useSwipeToTick`): the row follows your finger, a ✓ grows past 72 px, and up and down still scrolls.
+  - Ticking gives a short buzz where the phone can (`navigator.vibrate`), and the tick box pops.
+- **Sheets:** the plan's details sheet on a phone can be pulled by its handle: up to open, down to fold it away or close it.
+- **Icons** (`src/ui/icons.tsx`): new, garden-made tab icons drawn with a finer line:
+  - Today: the sun coming up over the ground;
+  - Garden: a raised bed with plants;
+  - Seedlings: a sprout in a pot;
+  - Plants: a leaf with its veins;
+  - the journal: an open notebook;
+  - the month: a calendar page with a sprig.
+- **The voice** (`docs/voice.md`): a friend who's been gardening for years, with a mug of tea; warm, unhurried, specific. Words to leave out, never naming or imitating a real person, and shapes for jobs, headings, moments and warnings.
+  - `tests/words.test.ts` now also fails filler and machine-friendly words, exclamation marks, and the names of well-known gardeners.
+  - **Rewritten:**
+    - the job headings ("Sow under cover", "Keep an eye on", "Ready to pick", "Tuck in for winter", "Clear and compost");
+    - the week's verbs;
+    - the general advice for each stage (`stageTips`);
+    - the backup card ("Keep a copy").
+  - The months' lines were already in the voice.
+- **Moments** (`src/calendar/moments.ts`, pure), one at a time on Today:
+  - the first frost of autumn (forecast in the next few days, none since August);
+  - the first pick of a crop this year, for three days;
+  - the day or three after your average last frost;
+  - midsummer and midwinter.
+- **Checked:** screenshots at 390 px of Today (all five looks, and Cottage dark), the plan, a plant card and Seedlings, and Today on a desktop.
+- **Not done:**
+  - **Words elsewhere:** the screens outside Today, the jobs and the stage advice are still in the old words; they move to the voice release by release.
+  - **Plant data:** its own stage tips are unchanged.
+  - **Icons:** only the tab and journal icons were redrawn.
+  - **Swiping:** no swipe gestures yet beyond jobs and the week.
+
+Tests: new `tests/moments.test.ts` (an ordinary day; the first frost and not a second; the first pick, and not after three days or a second; last year's picks don't count; the last frost passing; midsummer and midwinter; one at a time). `tests/words.test.ts` extended for the voice. Contrast: no new colours.
 
 ### Release 13 — From plot to plate (planned)
 - **Data:**
