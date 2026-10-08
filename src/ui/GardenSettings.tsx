@@ -386,7 +386,8 @@ const REMINDER_TEXT: Record<ReminderStatus, string> = {
   unsupported: 'This browser can’t show notifications. Today shows frost and this week’s jobs when you open the app.',
 };
 
-type ReminderKey = 'reminders' | 'weeklyNudge';
+type ReminderKey = 'reminders' | 'weeklyNudge' | 'uvReminders';
+const REMINDER_KEYS: ReminderKey[] = ['reminders', 'weeklyNudge', 'uvReminders'];
 
 /** Frost warnings and the week's jobs with the app closed, where the browser allows: it checks now and then in the background. */
 function Reminders({ prefsStore }: { prefsStore: PrefsStore }) {
@@ -398,7 +399,7 @@ function Reminders({ prefsStore }: { prefsStore: PrefsStore }) {
       prefsStore.set({ [key]: false });
       setStatus(null);
       // Stop checking once neither is wanted.
-      if (!prefs[key === 'reminders' ? 'weeklyNudge' : 'reminders']) await disableReminders().catch(() => undefined);
+      if (!REMINDER_KEYS.some((k) => k !== key && prefs[k])) await disableReminders().catch(() => undefined);
       return;
     }
     const result = await enableReminders().catch((): ReminderStatus => 'unsupported');
@@ -421,6 +422,11 @@ function Reminders({ prefsStore }: { prefsStore: PrefsStore }) {
         <span>This week’s jobs, on Mondays</span>
       </label>
       <p class="muted small">What there is to sow, harden off or plant out that week. Nothing is sent anywhere for this.</p>
+      <label class="check-row">
+        <input type="checkbox" checked={prefs.uvReminders} onChange={toggle('uvReminders')} />
+        <span>Sun cream reminders</span>
+      </label>
+      <p class="muted small">On mornings from April to September when the UV is high: sun cream, a hat, and shade in the middle of the day. It checks the forecast the same way as frost warnings.</p>
       <label class="check-row">
         <input type="checkbox" checked={prefs.weeding} onChange={(e) => prefsStore.set({ weeding: (e.currentTarget as HTMLInputElement).checked })} />
         <span>Weeding reminders</span>

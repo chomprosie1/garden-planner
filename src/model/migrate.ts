@@ -1,7 +1,7 @@
 // Brings saved gardens and plants from older versions up to the current shape.
 // Bump SCHEMA_VERSION whenever the saved shape changes, and add a step here.
 
-export const SCHEMA_VERSION = 13;
+export const SCHEMA_VERSION = 14;
 
 type Raw = Record<string, unknown>;
 
@@ -75,6 +75,11 @@ export function migrateGarden(raw: unknown): unknown {
     // v13 added weeds you keep (keep) and plants you're still waiting on (snoozeUntil) to plantings, both optional. Nothing to convert.
     g = { ...g, schemaVersion: 13 };
     version = 13;
+  }
+  if (version === 13) {
+    // v14 added which way a shed place's window faces (facing), optional. Nothing to convert.
+    g = { ...g, schemaVersion: 14 };
+    version = 14;
   }
   return g;
 }

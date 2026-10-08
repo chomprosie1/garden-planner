@@ -34,12 +34,14 @@ import {
   updateTray,
   type Spot,
 } from '../../lifecycle/shed';
+import { facesAWay, isSunLover, LEGGY_UNDER_HOURS, placeSun, placeSunText, sunniestPlace } from '../../lifecycle/shedSun';
 import { currentStage } from '../../lifecycle/stages';
 import { featureLabel } from '../../model/features';
 import { todayIso } from '../../model/ids';
 import { updateGarden, type Store } from '../../model/store';
-import { CONTAINERS, SHED_PLACE_KINDS, type Container, type Garden, type Plant, type ShedPlace, type ShedPlaceKind, type Tray, type TrayStage } from '../../model/types';
+import { CONTAINERS, FACINGS, SHED_PLACE_KINDS, type Container, type Facing, type Garden, type Plant, type ShedPlace, type ShedPlaceKind, type Tray, type TrayStage } from '../../model/types';
 import { useApp } from '../appContext';
+import { CompassFacing } from '../CompassNorth';
 import { useIsPhone } from '../hooks';
 import { PlantIcon } from '../PlantIcon';
 import { TrayArt } from '../TrayArt';
@@ -90,6 +92,8 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
   }, [trays, selected]);
 
   const move = (id: string, to: Spot) => commit((g) => moveTray(g, id, to));
+  const month = Number(today.slice(5, 7));
+  const year = Number(today.slice(0, 4));
 
   return (
     <div class="page shed-page">
@@ -144,6 +148,12 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
         <SowForm
           plants={plants}
           places={places}
+          sunOf={(id) => {
+            const pl = places.find((x) => x.id === id);
+            return pl ? placeSun(garden, pl, month, year) : null;
+          }}
+          sunniest={sunniestPlace(garden, month, year)}
+          month={month}
           initial={sowing || null}
           onCancel={() => setSowing(null)}
           onSow={(plant, o) => {
@@ -260,6 +270,8 @@ function PlaceScene({ place, garden, plantOf, selected, select, move, commit, to
   const [over, setOver] = useState<string | null>(null);
   const count = traysOf(garden).filter((t) => t.placeId === place.id).length;
   const climate = placeClimate(garden, place);
+  const month = Number(today.slice(5, 7));
+  const sun = placeSun(garden, place, month, Number(today.slice(0, 4)));
   const linked = place.featureId ? garden.features.find((f) => f.id === place.featureId && climateOf(f)) : undefined;
   return (
     <section class={`shed-place shed-${place.kind}`} aria-label={place.name}>
@@ -270,6 +282,13 @@ function PlaceScene({ place, garden, plantOf, selected, select, move, commit, to
         </span>
         <PlaceMenu place={place} empty={count === 0} commit={commit} garden={garden} />
       </header>
+      {sun !== null && (
+        <p class={`small shed-sun ${sun < LEGGY_UNDER_HOURS ? 'shed-sun-low' : 'muted'}`}>
+          Faces {place.facing}. {placeSunText(sun, month)}
+          {sun < LEGGY_UNDER_HOURS ? ': seedlings here may grow leggy, reaching for the light. Turn them each day, or move them somewhere sunnier once they’re up.' : '.'}
+        </p>
+      )}
+      {facesAWay(place) && !place.facing && <p class="muted small shed-sun">Say which way it faces (Change), to see its sun.</p>}
       {climate && (
         <p class="muted small shed-climate">
           {linked ? `In ${featureLabel(linked)} on the plan: ` : 'Warmer than outside: '}
@@ -365,6 +384,22 @@ function PlaceMenu({ place, empty, commit, garden }: { place: ShedPlace; empty: 
             <input type="number" min={1} max={12} value={place.slots} onChange={(e) => commit((g) => updatePlace(g, place.id, { slots: Number((e.currentTarget as HTMLInputElement).value) || 1 }))} />
           </label>
         </div>
+        {facesAWay(place) && (
+          <>
+            <label class="field">
+              Its window faces
+              <select value={place.facing ?? ''} onChange={(e) => commit((g) => updatePlace(g, place.id, { facing: ((e.currentTarget as HTMLSelectElement).value || undefined) as Facing | undefined }))}>
+                <option value="">Not said</option>
+                {FACINGS.map((f) => (
+                  <option key={f} value={f}>
+                    {f[0]!.toUpperCase() + f.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <CompassFacing onSet={(facing) => commit((g) => updatePlace(g, place.id, { facing }))} />
+          </>
+        )}
         {covers.length > 0 && (
           <label class="field">
             On the plan
@@ -412,7 +447,20 @@ function AddPlace({ onAdd }: { onAdd: (kind: ShedPlaceKind) => void }) {
 
 // ---------- Sowing ----------
 
-function SowForm({ plants, places, initial, onSow, onCancel }: { plants: Plant[]; places: ShedPlace[]; initial: string | null; onSow: (p: Plant, o: { container: Container; count: number; placeId?: string; date: string }) => void; onCancel: () => void }) {
+interface SowProps {
+  plants: Plant[];
+  places: ShedPlace[];
+  /** A place's hours of sun this month, when it faces a way you've said. */
+  sunOf: (placeId: string) => number | null;
+  /** The sunniest place with room this month, for sun-lovers. */
+  sunniest: { place: ShedPlace; hours: number } | null;
+  month: number;
+  initial: string | null;
+  onSow: (p: Plant, o: { container: Container; count: number; placeId?: string; date: string }) => void;
+  onCancel: () => void;
+}
+
+function SowForm({ plants, places, sunOf, sunniest, month: sunMonth, initial, onSow, onCancel }: SowProps) {
   const month = new Date().getMonth() + 1;
   const groups = useMemo(() => {
     const cover = plants.filter(sownUnderCover);
@@ -427,6 +475,13 @@ function SowForm({ plants, places, initial, onSow, onCancel }: { plants: Plant[]
   const [container, setContainer] = useState<Container>(plant && plant.size.spreadMm && plant.size.spreadMm >= 400 ? 'pot-9cm' : 'module-tray');
   const [count, setCount] = useState(String(CONTAINER_COUNT[container]));
   const [placeId, setPlaceId] = useState('');
+  // Sun-lovers (tomatoes, peppers, basil) go in the sunniest place with room, unless you choose otherwise.
+  const lover = !!plant && isSunLover(plant) && !!sunniest;
+  useEffect(() => {
+    if (lover && sunniest) setPlaceId(sunniest.place.id);
+  }, [plantId]);
+  const placeHours = placeId ? sunOf(placeId) : null;
+  const leggy = placeHours !== null && placeHours < LEGGY_UNDER_HOURS;
   const [date, setDate] = useState(todayIso());
   const note = plant?.sowing?.find((s) => s.method !== 'direct');
   return (
@@ -503,6 +558,19 @@ function SowForm({ plants, places, initial, onSow, onCancel }: { plants: Plant[]
           <input type="date" value={date} onChange={(e) => setDate((e.currentTarget as HTMLInputElement).value || todayIso())} />
         </label>
       </div>
+      {leggy ? (
+        <p class="muted small shed-sow-sun">
+          {placeSunText(placeHours!, sunMonth)} there: seedlings may grow leggy.
+          {sunniest && sunniest.place.id !== placeId ? ` ${sunniest.place.name} gets more (about ${Math.round(sunniest.hours)} h).` : ''}
+        </p>
+      ) : (
+        lover &&
+        placeId === sunniest!.place.id && (
+          <p class="muted small shed-sow-sun">
+            {sunniest!.place.name} is your sunniest place, with {placeSunText(sunniest!.hours, sunMonth, true)}. {plant!.commonName} likes all the sun it can get.
+          </p>
+        )
+      )}
       <div class="button-row">
         <button type="submit" class="btn btn-primary" disabled={!plant}>
           Sow

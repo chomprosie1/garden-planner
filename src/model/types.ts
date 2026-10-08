@@ -45,7 +45,13 @@ export interface ShedPlace {
   slots: number;
   /** The greenhouse or cold frame on the plan this place is in, which it shares its climate with. */
   featureId?: string;
+  /** Which way its window faces, for the sun it gets. Absent: not said. */
+  facing?: Facing;
 }
+
+/** The eight compass points, clockwise from north. */
+export const FACINGS = ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'] as const;
+export type Facing = (typeof FACINGS)[number];
 
 export const CONTAINERS = ['module-tray', 'seed-tray', 'pot-9cm', 'pot-1l', 'root-trainer'] as const;
 export type Container = (typeof CONTAINERS)[number];

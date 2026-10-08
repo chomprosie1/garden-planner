@@ -824,7 +824,7 @@ Decided:
 
 | Release | What | Size | Status |
 | --- | --- | --- | --- |
-| 11a. Room to see | Sun views maximise the plan, the sun bar's chips become a drop-down, camera or library for photos, UV, which way windowsills and shed places face; clear several or all beds, copy and paste a plant; two bug fixes | ~1.5 wk | |
+| 11a. Room to see | Sun views maximise the plan, the sun bar's chips become a drop-down, camera or library for photos, UV, which way windowsills and shed places face; clear several or all beds, copy and paste a plant; two bug fixes | ~1.5 wk | Built 8 Oct 2026 |
 | 11b. Your gardens | More than one garden, switching between them, and deleting everything to start again | ~1 wk | |
 | 12. A new look | 12a mock-ups (you choose) → 12b build: a phone-first redesign, This week as cards, and the new voice | ~3 wk | |
 | 13. From plot to plate | Recipes, storing and preserving, a kitchen card for this week, harvest worth in £ | ~2 wk + writing | |
@@ -834,49 +834,65 @@ Decided:
 | 17. Walk through it | First-person walking in 3D, leaves you can recognise, frost and lawn by season | ~2 wk | |
 | 18. Later from the review | Nature calendar and how good the garden is for pollinators, voice logging, water forecast, next year drafted (crop rotation), same-spot timelapse | Split as needed | |
 
-### Release 11a — Room to see (planned)
-- **Sun and shade use the whole screen.**
-  - **When on:** while Sun hours or Shade is on, the Simple/Advanced switch, lock and undo fold into the ⋯ menu, and the dock folds to one "Tools ▴" handle along the bottom. Tap or pull it up to bring the dock back. On a phone, the year slider shrinks to its date and play.
-  - **When off:** everything comes back.
-  - **Files:** `src/ui/views/Plan.tsx` (`bottom`, toolbar), `src/ui/Dock.tsx`, `src/styles.css`.
-- **The sun bar's Midsummer / Midwinter / Today chips become one "Day: Today ▾" drop-down,** like `LensPicker` (`src/ui/SunBar.tsx`).
-- **Photos:**
-  - two clear buttons wherever a photo can be added: **Take a photo** (`capture="environment"`, touch screens only) and **Choose a photo**;
-  - **Files:** `src/ui/Photo.tsx`, used by the journal, notes and "What's happened?".
-- **UV:**
-  - `src/weather/uv.ts` (pure).
-  - **Live:** with weather on, it asks Open-Meteo for daily `uv_index_max` and hourly `uv_index` (added to `src/weather/openMeteo.ts`).
-  - **Otherwise:** a clear-sky estimate from the sun's height at the garden (`src/sun/position.ts`), labelled "on a sunny day at this time of year".
-  - **Bands:** Low, Moderate, High, Very high and Extreme, with the advice for each, e.g. at High: "Factor 30+, a hat, and shade from 11 to 3"; at Very high: "factor 50".
-  - **On Today:** a UV card from April to September when it's Moderate or above.
-  - **Reminder:** a "Sun cream reminders" switch next to Frost warnings, using `ReminderKeeper` and the service worker.
+### Release 11a — Room to see (as built, schema 14)
+- **Sun and shade use the whole screen** (`src/ui/views/Plan.tsx`):
+  - While Sun hours or Shade is on, the Simple/Advanced switch, the lock and undo move into the ⋯ menu ("Undo", "Lock the layout", "Switch to Simple").
+  - The dock folds to a **Tools ▴** handle along the bottom (`ToolsHandle` in `src/ui/Dock.tsx`). Tap it or pull it up for the dock; "Tuck the tools away ▾" puts it back. It folds again each time sun or shade is turned on.
+  - On a phone, the year slider shrinks to the week, play and Today (`compact` in `src/ui/YearScrubber.tsx`).
+- **The sun bar's day** is one drop-down (`src/ui/SunBar.tsx`): "Day: Today (8 October)", Midsummer and Midwinter with their dates, and the week from the timeline when it's none of those.
+- **Photos** (`PhotoInput` in `src/ui/Photo.tsx`): **Take a photo** (`capture="environment"`, on touch screens only) and **Choose a photo**, for notes, the journal and a planting's "What's happened?".
+- **UV** (`src/weather/uv.ts`, pure):
+  - **Bands:** the WHO's, Low to Extreme, with advice for each (factor 30+, a hat and shade from 11 to 3 at High; factor 50 from Very high).
+  - **Live:** the forecast now asks Open-Meteo for each day's `uv_index_max` (`src/weather/openMeteo.ts`). Kept weather from before has none, and still loads.
+  - **Otherwise:** a sunny day's highest, from the sun at solar noon, using Madronich's fit with 330 Dobson units of ozone: about 8 in London at midsummer, 3–4 at the equinoxes and under 1 at midwinter. It's labelled "on a sunny day at this time of year".
+  - **On Today:** a UV card from April to September at Moderate or above, in the warning colours from High (`UvCard` in `src/ui/WeatherCards.tsx`).
+  - **Reminder:** "Sun cream reminders" beside Frost warnings (`uvReminders` in prefs). The service worker checks the forecast on mornings from April to September and says so once a day when it's 6 or more (`public/sw.js`).
 - **Which way it faces:**
-  - `ShedPlace.facing` (8 compass points), set from a picker or the phone's compass (`src/geometry/compass.ts`, `CompassNorth`).
-  - `src/lifecycle/shedSun.ts`: hours of direct sun through a window facing that way, each month, from the sun's path. It only counts sun within ±80° of the facing and above the horizon.
-  - **In Seedlings:** each windowsill and shelf says "About 5 h of sun in April", and sowing suggests the sunniest place for sun-lovers (tomatoes, peppers, basil). A north sill warns about leggy seedlings.
-  - Schema 14, with a migration test.
-- **Tests:**
-  - new `tests/room.test.ts` (UV bands, the clear-sky estimate against known UK values, sun hours by facing and month, where to put each plant, schema 14);
-  - words, weather, shed and prefs;
-  - screenshots of the plan in Sun hours at 390 px.
+  - `ShedPlace.facing`: one of eight compass points (`FACINGS` in `src/model/types.ts`). Schema 14, nothing to convert.
+  - Set it in a place's Change menu, from a list or with the phone's compass (`CompassFacing`, sharing the compass reading with `CompassNorth`).
+  - **The sun through a window** (`src/lifecycle/shedSun.ts`, pure): it counts minutes, every 5, while the sun is up and within 80° of straight out of the window, on the 15th of the month. Walls and trees outside aren't known, so it's the most the window could get.
+    - Only windowsills, shelves and propagators face a way. Greenhouse benches and cold frames are glass all round.
+  - **In Seedlings:** each place says "Faces south. About 9 h of sun in April." Under 3 hours it warns that seedlings may grow leggy, and what to do.
+  - **Sowing:** sun-lovers (anything needing full sun outside: tomatoes, peppers, basil) go in the sunniest place with room, and the form says why. A shady choice says it may grow leggy, and names somewhere sunnier.
+- **Clear beds** (`src/ui/ClearBeds.tsx`, "Clear beds…" in the plan's ⋯ menu when anything is growing):
+  - A checklist of every bed, lawn, pot and planter with something on it, in two groups, with All and None, all ticked to start.
+  - **Everything in them,** or **only what's finished this season** (`isFinished` in `src/lifecycle/projection.ts`: the timeline has its clearing due by tomorrow, where it puts anything overdue).
+  - The button names what goes ("Clear 2 places (3 plantings)"). It's one undo step, and what grew there is kept under "Grown here before" (`clearBeds` in `src/planting/place.ts`).
+  - Changed from the plan: there's no selecting several beds on the plan itself, so "Clear 3 beds" on the action pill became the checklist, which also works on a phone.
+- **Copy and paste a plant** (`src/planting/place.ts`):
+  - `copyOfPlanting` keeps the plant, size, layout, count and planned sowing date. It drops the stages, sowing date, picks, batch and snoozing: it's a new planting. Notes stay with the original.
+  - `placeCopy` finds the nearest spot that fits. It searches outwards in rings, half a plant's room apart, for a spot where every plant is in the same bed and none is closer to another than their spacing (or a big plant's spread). It says no when there's no room.
+  - **Duplicate** on a planting's action pill and Ctrl+D put one beside it.
+  - **Copy** in a planting's ⋯ menu or Ctrl+C keeps it on a clipboard in memory (`src/ui/clipboard.ts`), never stored.
+  - **Paste:** with something copied, a bed or lawn's action pill shows **Paste here** (where it was tapped, or the middle). Ctrl+V pastes where the pointer is, or into the selected bed, or beside the original.
+- **Bug, the looks on a phone:** in Settings they wrap into two columns of smaller cards on a phone, all in view.
+- **Bug, ground layers in 3D:** each flat layer's material now has a `polygonOffset` by its layer and is drawn in layer order (`renderOrder`), so the top one always wins. The camera's near plane moved from 0.1 m to 0.3 m. The fallback (cutting lower polygons by the ones above) wasn't needed.
+- **Also:**
+  - The ⋯ menu nudges itself back on screen when its button is near the left edge (a phone's second toolbar row in sun and shade).
+  - New camera and paste icons, and copy and paste in the shortcuts list.
+- **Checked:** screenshots at 390 × 844 in headless Edge of:
+  - the plan in Sun hours, tucked, with the tools up, and its menu;
+  - Clear beds;
+  - Settings' looks;
+  - Seedlings (south and north sills, and sowing tomatoes in April);
+  - Today's UV card in June;
+  - the journal's photo buttons.
 
-**Also in 11a (added 8 Oct 2026):**
-- **Clear several beds, or all of them.**
-  - **Today:** one bed at a time, with "Clear this bed" in the details (`src/ui/Inspector.tsx`, `clearBed` in `src/planting/place.ts`). What grew there is kept under "Grown here before".
-  - **Several:** with more than one bed selected, the action pill offers "Clear 3 beds".
-  - **All:** "Clear all beds…" in the ⋯ menu asks what to clear: everything, or only what's finished (an end-of-season tidy). It also asks whether pots and containers count. It names how many plants will go before you confirm.
-  - **Model:** `clearBeds(g, ids, date, { finishedOnly })` in `src/planting/place.ts`. It's one undo step, with an Undo on the toast, and it keeps the history the same way `clearBed` does.
-- **Copy and paste a plant.**
-  - **Select a plant:** the action pill gains **Copy** (Ctrl+C) and **Duplicate** (Ctrl+D), as beds already have (`duplicateFeature` in `src/model/features.ts`).
-  - **Paste:** Ctrl+V, or on a phone tap a bed or a gap and choose "Paste here". A single plant, row or block keeps its plant, size and layout, and goes in at the nearest spot that fits (`src/planting/place.ts`). Spacing and companion rules are checked as for a new planting.
-  - **Copied:** the plant, size, layout and planned dates. **Not copied:** its stages so far, journal, photos and picks. It's a new planting.
-  - **Model:** `duplicatePlanting(g, id, at?)` beside `duplicateFeature`. The clipboard lives in the app's memory, not in storage.
-- **Bug: the looks don't wrap on a phone.** In Settings they're one row you scroll sideways (`.settings .look-picker` in `src/styles.css`), so on a phone most of them are off the edge and it isn't obvious there are more. On narrow screens, show them all at once instead: two columns of smaller cards, or a short list with each look's name beside a strip of its colours. Release 12 re-expresses the looks, so keep this fix small.
-- **Bug: in 3D, a lower ground layer shows through the one on top.** Paving over a lawn, at some angles (low, or zoomed out), lets the lawn flicker through. Flat things are lifted only 2 mm, plus 1.5 mm a layer (`src/three/view.ts`, the flats loop), which is too little for the depth buffer at a distance.
-  - **Fix:** give each layer's material a `polygonOffset` by its layer, and draw them in layer order (`renderOrder`). Check the camera's near plane isn't tighter than it needs to be.
-  - If that isn't enough, cut each flat's polygon by the ones above it, so only the top layer exists to be drawn.
-  - **Check by hand:** paving over a lawn, a path across a lawn, and a pond in a lawn, from a low angle and zoomed right out, on a phone and a desktop.
-- **Tests:** full suite (place.ts); new cases in `tests/planting.test.ts` (clear several, clear all, finished only, history kept, one undo step; copy and paste lands in a gap, keeps size and layout, drops history, refuses a bed with no room); `tests/three.test.ts` (layer order); words; screenshots of Settings and the 3D bug at 390 px.
+  3D was checked from above and standing in it, on a phone and a desktop.
+  - The 3D bug didn't show in headless Edge before the fix either (its software renderer has a more precise depth buffer than a phone's GPU). The fix is still to be checked on a phone.
+- **Not done:**
+  - Hourly UV ("UV now"): the card and reminder use the day's highest.
+  - Selecting several beds on the plan at once.
+  - A place's facing only changes the advice, not its seedlings' timings.
+
+Tests:
+- New `tests/room.test.ts`:
+  - **UV:** bands; the clear-sky estimate against UK values; the forecast's UV, or the estimate without it; UV in the URL; old and broken kept weather; when the card shows; the reminder snapshot.
+  - **Window sun:** by facing and season (south gets all of a winter day, north none); which places face a way; the sunniest place with room; the leggy warning.
+  - **Schema 14.**
+- `tests/planting.test.ts`:
+  - **Clearing:** several beds; plantings already cleared; only what's finished.
+  - **Copying:** copies keep size and layout and drop history; duplicating beside the original, clear of every plant; pasting a row into another bed, wholly inside it; no room, and nowhere to grow.
 
 ### Release 11b — Your gardens (planned)
 - **More than one garden.**

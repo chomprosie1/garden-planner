@@ -35,7 +35,10 @@ export function loadWeather(storage: Storage | null = safe()): Weather | null {
       isNums(w.rain) &&
       w.tmax.length === w.tmin.length &&
       w.tmax.length === w.rain.length;
-    return ok ? w : null;
+    if (!ok) return null;
+    // UV came later: kept weather without it, or with it gone wrong, is still good without it.
+    if (w.uv !== undefined && !(isNums(w.uv) && w.uv.length === w.tmax.length)) delete w.uv;
+    return w;
   } catch {
     return null;
   }

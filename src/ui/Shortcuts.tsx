@@ -29,6 +29,8 @@ const GROUPS: { title: string; keys: [string, string][] }[] = [
       ['Arrow keys', 'Nudge what’s selected by 10 mm (100 mm with Shift)'],
       ['Delete', 'Delete what’s selected'],
       ['Ctrl + D', 'Duplicate what’s selected'],
+      ['Ctrl + C', 'Copy the selected plant'],
+      ['Ctrl + V', 'Paste it where the pointer is, or in the selected bed'],
       ['Alt', 'While dragging: no snapping, guides or 15° steps'],
       ['Esc', 'Stop drawing, or clear the selection'],
     ],

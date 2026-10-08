@@ -1,7 +1,7 @@
 // A "⋯" button that opens a short menu: the actions you need now and then,
 // kept out of the way of the ones you use all the time.
 
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { Icon, type IconName } from './icons';
 
 export interface MenuItem {
@@ -16,6 +16,16 @@ export interface MenuItem {
 export function MoreMenu({ items, label = 'More' }: { items: MenuItem[]; label?: string }) {
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
+  const list = useRef<HTMLDivElement>(null);
+
+  // The menu opens leftwards from the button; where the button sits near the left edge (a phone's second toolbar row), nudge it back on screen.
+  useLayoutEffect(() => {
+    const el = list.current;
+    if (!open || !el) return;
+    el.style.transform = '';
+    const left = el.getBoundingClientRect().left;
+    if (left < 8) el.style.transform = `translateX(${8 - left}px)`;
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -40,7 +50,7 @@ export function MoreMenu({ items, label = 'More' }: { items: MenuItem[]; label?:
         <Icon name="more" />
       </button>
       {open && (
-        <div class="more-menu-list" role="menu">
+        <div ref={list} class="more-menu-list" role="menu">
           {items.map((item) => (
             <button
               key={item.label}

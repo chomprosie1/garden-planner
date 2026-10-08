@@ -15,6 +15,7 @@ import {
   PLANT_SIZES,
   PLANT_FORMS,
   SHED_PLACE_KINDS,
+  FACINGS,
   SKETCH_COLOURS,
   SKETCH_KINDS,
   SOWING_METHODS,
@@ -159,6 +160,7 @@ export function validateGarden(g: unknown): string[] {
         const ok = isObject(pl) && isStr(pl.id) && oneOf(SHED_PLACE_KINDS, pl.kind) && isStr(pl.name) && Number.isInteger(pl.shelves) && (pl.shelves as number) >= 1 && Number.isInteger(pl.slots) && (pl.slots as number) >= 1;
         need(ok, `shedPlaces[${i}] needs an id, a kind, a name, and shelves and slots of 1 or more.`);
         need(!isObject(pl) || pl.featureId === undefined || isStr(pl.featureId), `shedPlaces[${i}].featureId must be text.`);
+        need(!isObject(pl) || pl.facing === undefined || oneOf(FACINGS, pl.facing), `shedPlaces[${i}].facing must be a compass point, such as south-east.`);
         if (ok) placeIds.add(pl.id as string);
       });
   }

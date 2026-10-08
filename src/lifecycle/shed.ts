@@ -93,8 +93,8 @@ export function addPlace(g: Garden, place: ShedPlace): Garden {
   return { ...g, shedPlaces: [...placesOf(g), place] };
 }
 
-/** Changes a place's name, size, or the greenhouse or cold frame it's in. Trays that no longer fit move to the first free spaces. */
-export function updatePlace(g: Garden, id: string, patch: Partial<Pick<ShedPlace, 'name' | 'shelves' | 'slots' | 'featureId'>>): Garden {
+/** Changes a place's name, size, which way it faces, or the greenhouse or cold frame it's in. Trays that no longer fit move to the first free spaces. */
+export function updatePlace(g: Garden, id: string, patch: Partial<Pick<ShedPlace, 'name' | 'shelves' | 'slots' | 'featureId' | 'facing'>>): Garden {
   const shedPlaces = placesOf(g).map((p) => (p.id === id ? { ...p, ...patch, shelves: Math.max(1, Math.min(8, patch.shelves ?? p.shelves)), slots: Math.max(1, Math.min(12, patch.slots ?? p.slots)) } : p));
   let next: Garden = { ...g, shedPlaces };
   const place = shedPlaces.find((p) => p.id === id);

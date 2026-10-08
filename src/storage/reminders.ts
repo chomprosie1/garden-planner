@@ -1,7 +1,7 @@
 // Reminders while the app is closed: the app keeps a note of where the garden
 // is, what's tender and outside, and the jobs for the next few weeks, for the
 // service worker (public/sw.js) to check now and then: frost against the
-// forecast, and once a week, what there is to do. Only on browsers that allow
+// forecast, once a week what there is to do, and sun cream on a high UV day. Only on browsers that allow
 // it (Chrome and Edge on Android, for an installed app); elsewhere Today shows
 // both when you open the app.
 
@@ -43,15 +43,18 @@ export interface Snapshot {
   items: Watched[];
   /** The weekly jobs reminder, if it's on: one for each of the next few weeks. */
   weeks: WeekNudge[];
+  /** Sun cream reminders are on. */
+  uv: boolean;
 }
 
 /** What the service worker is given: only what each reminder that's on needs. */
-export const snapshot = (frost: boolean, lat: number, lon: number, items: Watched[], weeks: WeekNudge[] | null): Snapshot => ({
+export const snapshot = (frost: boolean, lat: number, lon: number, items: Watched[], weeks: WeekNudge[] | null, uv = false): Snapshot => ({
   on: frost,
   lat: Math.round(lat * 100) / 100,
   lon: Math.round(lon * 100) / 100,
   items: frost ? items : [],
   weeks: weeks ?? [],
+  uv,
 });
 
 /** Keeps the note the service worker checks. */

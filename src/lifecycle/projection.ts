@@ -337,6 +337,13 @@ export function stageIn(steps: Step[], date: string): Projected {
 export const stageOn = (plant: Plant, pl: Planting, g: Garden, date: string, today: string, weather: Weather | null = null): Projected => stageIn(timeline(plant, pl, g, today, weather), date);
 
 /**
+ * True when a planting's season is over (an annual crop that's done), though it's still on the plan: its clearing is due
+ * by tomorrow, where the timeline puts anything overdue.
+ */
+export const isFinished = (plant: Plant, pl: Planting, g: Garden, today: string, weather: Weather | null = null): boolean =>
+  !pl.removedOn && stageOn(plant, pl, g, addDays(today, 1), today, weather).stage === 'cleared';
+
+/**
  * The stage a growing planting has probably reached by a day (tomorrow, by default), when that's flowering or
  * harvesting and later than the stage you've marked. Earlier stages need you to look.
  */

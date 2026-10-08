@@ -4,6 +4,7 @@
 import type { ComponentChildren } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 import { useApp } from './appContext';
+import { copiedPlanting, copyPlanting } from './clipboard';
 import { hitEdge, hitFeature, hitPlanting, hitVertex } from '../canvas/hit';
 import { northCentre, NORTH_RADIUS, plantingHandles, planStyle, renderLive, renderStatic, rotateHandleAt, sketchTextPx, type Draft, type Focus, type Guide, type PlantDraft, type Scene, type Stroke, type TimeScene } from '../canvas/render';
 import { parseLength, snapPoint, snapStepFor, type SnapKind } from '../canvas/snap';
@@ -43,7 +44,7 @@ import { updateGarden, type Store } from '../model/store';
 import { stickerById, stickerFeature, type Sticker } from '../model/stickers';
 import type { Feature, FeatureKind, Garden, Plant, Planting, Point, SketchColour, SketchKind } from '../model/types';
 import { defaultFill, fillPlanting } from '../planting/fill';
-import { addPlanting, blockGrid, containerAt, deletePlanting, makePlanting, MAX_PLANTS, movePlanting, plantCount, plantPositions, rowCount, sizedPlant, spreadOf, updatePlanting, type Layout } from '../planting/place';
+import { addPlanting, blockGrid, containerAt, deletePlanting, duplicatePlanting, makePlanting, placeCopy, MAX_PLANTS, movePlanting, plantCount, plantPositions, rowCount, sizedPlant, spreadOf, updatePlanting, type Layout } from '../planting/place';
 import type { Finding } from '../planting/rules';
 import type { SunGrid } from '../sun/hours';
 import type { Sun } from '../sun/position';
@@ -219,6 +220,8 @@ export function geometryForTool(tool: Tool): 'area' | 'line' | 'circle' | null {
 export function PlanCanvas(props: PlanCanvasProps) {
   const app = useApp();
   const A = useRef(app);
+  /** Where the mouse last was over the plan, for pasting there. */
+  const pointerWorld = useRef<Point | null>(null);
   A.current = app;
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -1124,6 +1127,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
     }
 
     if (e.pointerType === 'mouse') {
+      pointerWorld.current = world;
       p.onHoverPoint?.(world);
       const g = garden();
       const h = hitPlanting(g, p.plantOf, world, tolMm(3))?.id ?? hitFeature(g, world, tolMm(6))?.id ?? null;
@@ -1312,7 +1316,51 @@ export function PlanCanvas(props: PlanCanvasProps) {
         return redraw();
       }
       if (e.ctrlKey || e.metaKey) {
-        if (key.toLowerCase() === 'd' && p.selected?.type === 'feature' && layoutEditable()) {
+        const letter = key.toLowerCase();
+        const plantsEditable = !p.readOnly && (p.edit === 'all' || p.edit === 'planting');
+        const sel = p.selected;
+        // Copy, paste and duplicate a planting. Text selected on the page is left for the browser to copy.
+        if (letter === 'c' && sel?.type === 'planting' && !getSelection()?.toString()) {
+          const pl = p.garden.plantings.find((x) => x.id === sel.id);
+          if (pl) {
+            copyPlanting(pl);
+            A.current.notify(`${p.plantOf(pl.plantId).commonName} copied. Point at a bed and press Ctrl+V to paste it there.`);
+          }
+          return;
+        }
+        if (letter === 'v' && plantsEditable && copiedPlanting()) {
+          e.preventDefault();
+          const copied = copiedPlanting()!;
+          const g = p.garden;
+          // Where the mouse is, if that's somewhere it can grow; or the bed that's picked; or beside the one it was copied from.
+          const over = pointerWorld.current && containerAt(g, pointerWorld.current) ? pointerWorld.current : null;
+          const picked = sel?.type === 'feature' ? g.features.find((f) => f.id === sel.id) : undefined;
+          const box = picked && picked.footprint.length >= 3 ? bounds(picked.footprint) : null;
+          const point: Point | undefined = over ?? (box ? [(box.minX + box.maxX) / 2, (box.minY + box.maxY) / 2] : undefined);
+          const made = { id: null as string | null };
+          commit((gg) => {
+            const copy = placeCopy(gg, copied, p.plantOf, point);
+            made.id = copy?.id ?? null;
+            return copy ? addPlanting(gg, copy) : gg;
+          });
+          const name = p.plantOf(copied.plantId).commonName;
+          if (made.id) p.setSelected({ type: 'planting', id: made.id });
+          else A.current.notify(`No room for ${name.toLowerCase()} there.`);
+          return;
+        }
+        if (letter === 'd' && sel?.type === 'planting' && plantsEditable) {
+          e.preventDefault();
+          const made = { id: null as string | null };
+          commit((g) => {
+            const [next, copy] = duplicatePlanting(g, sel.id, p.plantOf);
+            made.id = copy;
+            return next;
+          });
+          if (made.id) p.setSelected({ type: 'planting', id: made.id });
+          else A.current.notify(`No room for another ${p.plantOf(p.garden.plantings.find((x) => x.id === sel.id)?.plantId ?? '').commonName.toLowerCase()} in this bed.`);
+          return;
+        }
+        if (letter === 'd' && p.selected?.type === 'feature' && layoutEditable()) {
           e.preventDefault();
           const id = p.selected.id;
           const made = { id: null as string | null };

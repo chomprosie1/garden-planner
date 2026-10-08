@@ -63,6 +63,8 @@ export interface Prefs {
   reminders: boolean;
   /** Once a week, a reminder of the jobs for the week, where the browser allows. */
   weeklyNudge: boolean;
+  /** On days the UV is high (April to September), a morning reminder of sun cream and a hat, where the browser allows. */
+  uvReminders: boolean;
   /** The "Install the app" card on Today has been put away. */
   installHidden: boolean;
   /** The plan's tools: Simple (beds, pots, plants and trees, dropped and dragged) or Advanced (drawing, reshaping, sun and shade). */
@@ -100,6 +102,7 @@ export function defaultPrefs(): Prefs {
     seenTips: false,
     reminders: false,
     weeklyNudge: false,
+    uvReminders: false,
     installHidden: false,
     planMode: 'simple',
     weeding: true,
@@ -141,6 +144,7 @@ export function sanitisePrefs(raw: unknown): Prefs {
     seenTips: r.seenTips === true,
     reminders: r.reminders === true,
     weeklyNudge: r.weeklyNudge === true,
+    uvReminders: r.uvReminders === true,
     installHidden: r.installHidden === true,
     planMode: oneOf(['simple', 'advanced'] as const, r.planMode, d.planMode),
     weeding: r.weeding !== false,

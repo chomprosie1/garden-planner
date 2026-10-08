@@ -9,6 +9,10 @@ import {
   addPlanting,
   blockGrid,
   clearBed,
+  clearBeds,
+  copyOfPlanting,
+  duplicatePlanting,
+  placeCopy,
   containerAt,
   deletePlanting,
   makePlanting,
@@ -23,6 +27,7 @@ import {
   spacingStyle,
 } from '../src/planting/place';
 import { checkGarden, closest } from '../src/planting/rules';
+import { isFinished } from '../src/lifecycle/projection';
 import { sunHours } from '../src/sun/hours';
 
 const library = vegetables as Plant[];
@@ -356,5 +361,94 @@ describe('close spacing in beds', () => {
       const c = p.size.closeSpacingMm;
       if (c) expect(c, p.id).toBeLessThanOrEqual(p.size.rowSpacingMm ?? p.size.spacingMm);
     }
+  });
+});
+
+describe('clearing several beds, or all of them (release 11a)', () => {
+  const planted = () => {
+    const { g, a, b } = garden();
+    const lettuce = { ...one('lettuce', a, [1500, 1500]), sownOn: '2026-03-01' };
+    const tomato = { ...one('tomato', a, [3000, 1500]), sownOn: '2026-09-20' };
+    const carrots = row('carrot', b, [6200, 1200], [7800, 1200]);
+    return { g: addPlanting(addPlanting(addPlanting(g, lettuce), tomato), carrots), a, b, lettuce, tomato, carrots };
+  };
+
+  it('clears every bed ticked in one step, keeping what grew there as history', () => {
+    const { g, a, b } = planted();
+    const next = clearBeds(g, [a, b], '2026-10-08');
+    expect(next.plantings).toHaveLength(3);
+    expect(next.plantings.every((p) => p.removedOn === '2026-10-08')).toBe(true);
+    // Only the beds asked for.
+    const justA = clearBeds(g, [a], '2026-10-08');
+    expect(justA.plantings.filter((p) => p.removedOn).map((p) => p.featureId)).toEqual([a, a]);
+    // The same as clearing them one at a time.
+    expect(clearBeds(g, [a], '2026-10-08')).toEqual(clearBed(g, a, '2026-10-08'));
+  });
+
+  it('leaves plantings already cleared alone, and nothing to clear is no change', () => {
+    const { g, a, b } = planted();
+    const once = clearBeds(g, [a], '2026-09-01');
+    const twice = clearBeds(once, [a, b], '2026-10-08');
+    expect(twice.plantings.filter((p) => p.featureId === a).every((p) => p.removedOn === '2026-09-01')).toBe(true);
+    expect(clearBeds(g, [], '2026-10-08')).toBe(g);
+  });
+
+  it('can clear only what’s finished this season', () => {
+    const { g, a, b, lettuce, tomato } = planted();
+    const done = (pl: Planting) => isFinished(plant(pl.plantId), pl, g, '2026-10-08');
+    // A lettuce sown in March is long over by October; a tomato sown last month is not.
+    expect(done(lettuce)).toBe(true);
+    expect(done(tomato)).toBe(false);
+    const next = clearBeds(g, [a, b], '2026-10-08', done);
+    expect(next.plantings.find((p) => p.id === lettuce.id)!.removedOn).toBe('2026-10-08');
+    expect(next.plantings.find((p) => p.id === tomato.id)!.removedOn).toBeUndefined();
+  });
+});
+
+describe('copying and pasting a plant (release 11a)', () => {
+  it('a copy keeps the plant, size and layout, and none of its history', () => {
+    const { a } = garden();
+    const pl: Planting = { ...one('tomato', a, [1500, 1500]), size: 'large', sownOn: '2026-03-01', stage: 'harvesting', stageDates: { harvesting: '2026-08-01' }, picks: [{ date: '2026-08-02', grams: 300 }], sowBy: '2026-03-01' };
+    const c = copyOfPlanting(pl);
+    expect(c.id).not.toBe(pl.id);
+    expect(c.plantId).toBe('tomato');
+    expect(c.size).toBe('large');
+    expect(c.sowBy).toBe('2026-03-01');
+    expect(c.stage ?? c.stageDates ?? c.picks ?? c.sownOn).toBeUndefined();
+  });
+
+  it('duplicates beside the original, in the same bed, clear of every plant', () => {
+    const { g, a } = garden();
+    const t = one('tomato', a, [1500, 1500]);
+    const [next, id] = duplicatePlanting(addPlanting(g, t), t.id, plant);
+    const copy = next.plantings.find((p) => p.id === id)!;
+    expect(copy.featureId).toBe(a);
+    expect(containerAt(next, [copy.x, copy.y])!.id).toBe(a);
+    const gap = Math.hypot(copy.x - t.x, copy.y - t.y);
+    expect(gap).toBeGreaterThanOrEqual(plant('tomato').size.spacingMm * 0.95);
+    // Not further than it needs to be.
+    expect(gap).toBeLessThanOrEqual(plant('tomato').size.spacingMm * 1.6);
+  });
+
+  it('pastes a row into another bed, keeping its length, wholly inside it', () => {
+    const { g, a, b } = garden();
+    const r = row('carrot', a, [1200, 1300], [2400, 1300]);
+    const copy = placeCopy(addPlanting(g, r), r, plant, [6500, 1600])!;
+    expect(copy.featureId).toBe(b);
+    expect(copy.count).toBe(r.count);
+    expect(copy.endPoint![0] - copy.x).toBe(1200);
+    for (const q of plantPositions(copy, plant('carrot'))) expect(containerAt(g, q)!.id).toBe(b);
+  });
+
+  it('says no when there’s no room, or nowhere to grow', () => {
+    const { g, a } = garden();
+    // A bed full of courgettes.
+    let full = g;
+    for (let x = 1400; x <= 3600; x += 900) for (const y of [1400, 1900]) full = addPlanting(full, one('courgette', a, [x, y]));
+    const first = full.plantings[0]!;
+    expect(placeCopy(full, first, plant)).toBeNull();
+    expect(duplicatePlanting(full, first.id, plant)[1]).toBeNull();
+    // Off any bed: on bare ground with no lawn.
+    expect(placeCopy(g, one('tomato', a, [1500, 1500]), plant, [9000, 12000])).toBeNull();
   });
 });

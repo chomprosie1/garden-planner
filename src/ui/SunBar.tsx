@@ -58,22 +58,39 @@ export function SunBar({ view, today, date, setDate, minutes, setMinutes, playin
   const rise = Math.floor(toMinutes(day.sunrise, 0) / 5) * 5;
   const set = toMinutes(day.sunset, 24 * 60 - 1);
   const list = jumps(today);
+  // What the drop-down shows: today, a jump, or a week chosen on the timeline below.
+  const picked = iso(date) === iso(today) ? 'today' : (list.find((p) => iso(p.date) === iso(date))?.label ?? 'timeline');
   const legendMax = HOURS_STOPS[HOURS_STOPS.length - 1]![0];
 
   return (
     <section class="sun-bar" aria-label="Sun and shade">
       <div class="sun-row sun-jumps">
-        <span class="muted small">{date.day} {MONTHS[date.month - 1]}, on the timeline below. Jump to</span>
-        {list.map((p) => (
-          <button key={p.label} type="button" class="chip" aria-pressed={iso(p.date) === iso(date)} onClick={() => setDate(p.date)}>
-            {p.label}
-          </button>
-        ))}
-        {iso(date) !== iso(today) && (
-          <button type="button" class="chip" onClick={() => setDate(today)}>
-            Today
-          </button>
-        )}
+        <label class="lens-picker sun-day-picker">
+          <span class="visually-hidden">Day</span>
+          <select
+            value={picked}
+            onChange={(e) => {
+              const v = (e.currentTarget as HTMLSelectElement).value;
+              if (v === 'today') setDate(today);
+              else {
+                const j = list.find((p) => p.label === v);
+                if (j) setDate(j.date);
+              }
+            }}
+          >
+            <option value="today">Day: Today ({today.day} {MONTHS[today.month - 1]})</option>
+            {list.map((p) => (
+              <option key={p.label} value={p.label}>
+                Day: {p.label} ({p.date.day} {MONTHS[p.date.month - 1]})
+              </option>
+            ))}
+            {picked === 'timeline' && (
+              <option value="timeline">
+                Day: {date.day} {MONTHS[date.month - 1]}, from the timeline
+              </option>
+            )}
+          </select>
+        </label>
       </div>
 
       {view === 'shadows' ? (

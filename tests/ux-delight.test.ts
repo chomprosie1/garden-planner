@@ -176,7 +176,7 @@ describe('the weekly reminder', () => {
   it('gives the service worker only what each reminder that’s on needs', () => {
     const items = [{ name: 'Tomato in Veg bed', nightGain: 0 }];
     const weeks = weekNudges(sowing(), plant, '2027-04-01');
-    expect(snapshot(true, 53.81234, -1.55678, items, null)).toEqual({ on: true, lat: 53.81, lon: -1.56, items, weeks: [] });
+    expect(snapshot(true, 53.81234, -1.55678, items, null)).toEqual({ on: true, lat: 53.81, lon: -1.56, items, weeks: [], uv: false });
     expect(snapshot(false, 53.8, -1.55, items, weeks)).toMatchObject({ on: false, items: [], weeks });
   });
 

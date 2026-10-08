@@ -15,7 +15,8 @@ import { resolveMode } from '../../theme/apply';
 import { LOOKS } from '../../theme/looks';
 import type { Prefs, PrefsStore } from '../../theme/prefs';
 import { ActionPill } from '../ActionPill';
-import { Dock, type Drawer } from '../Dock';
+import { ClearBedsDialog } from '../ClearBeds';
+import { Dock, ToolsHandle, type Drawer } from '../Dock';
 import { FillPopover, type Placed } from '../FillPopover';
 import { useIsPhone } from '../hooks';
 import { Icon, type IconName } from '../icons';
@@ -130,6 +131,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const [settingUp, setSettingUp] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [threeD, setThreeD] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const mode = prefs.planMode;
   const simple = mode === 'simple';
   // The padlock is Advanced; in Simple nothing's ever stuck.
@@ -151,6 +153,9 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const [playing, setPlaying] = useState(false);
   const [hoverPoint, setHoverPoint] = useState<Point | null>(null);
   const [tapPoint, setTapPoint] = useState<Point | null>(null);
+  // Sun and shade use the whole screen: the dock tucks away into a handle, to pull back up.
+  const [toolsUp, setToolsUp] = useState(false);
+  useEffect(() => setToolsUp(false), [sunOn]);
 
   const hidePhotos = prefs.focus ?? LOOKS[prefs.look].focusByDefault;
   const showPhoto = prefs.photos === 'full' && !hidePhotos;
@@ -569,6 +574,13 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       >
         {inspector}
       </PhoneSheet>
+    ) : sunOn && !toolsUp ? (
+      <ToolsHandle up={() => setToolsUp(true)} />
+    ) : sunOn ? (
+      <>
+        <ToolsHandle down={() => setToolsUp(false)} />
+        {dock}
+      </>
     ) : (
       dock
     );
@@ -591,13 +603,23 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
           <button type="button" class="icon-btn" aria-label="Search everything" title="Search everything (Ctrl+K)" onClick={() => app.openSearch()}>
             <Icon name="search" />
           </button>
-          {modeSwitch}
-          {!simple && lockButton}
-          <button type="button" class="icon-btn" aria-label="Undo" title="Undo (Ctrl+Z)" disabled={!store.canUndo()} onClick={() => store.undo()}>
-            <Icon name="undo" />
-          </button>
+          {/* Sun and shade fold the switch, lock and undo into the menu, for room to see. */}
+          {!sunOn && modeSwitch}
+          {!simple && !sunOn && lockButton}
+          {!sunOn && (
+            <button type="button" class="icon-btn" aria-label="Undo" title="Undo (Ctrl+Z)" disabled={!store.canUndo()} onClick={() => store.undo()}>
+              <Icon name="undo" />
+            </button>
+          )}
           <MoreMenu
             items={[
+              ...(sunOn
+                ? [
+                    { label: 'Undo', icon: 'undo' as const, keys: 'Ctrl+Z', disabled: !store.canUndo(), onSelect: () => store.undo() },
+                    { label: locked ? 'Unlock the layout' : 'Lock the layout', icon: (locked ? 'unlock' : 'lock') as IconName, onSelect: toggleLock },
+                    { label: 'Switch to Simple', icon: 'plan' as const, onSelect: () => switchMode('simple') },
+                  ]
+                : []),
               { label: 'Redo', icon: 'redo', keys: 'Ctrl+Y', disabled: !store.canRedo(), onSelect: () => store.redo() },
               ...(!phone ? [{ label: 'Fit the garden to the screen', icon: 'fit' as const, keys: '0', onSelect: () => setFitSignal((n) => n + 1) }] : []),
               ...(phone ? [{ label: 'Details of the whole garden', icon: 'info' as const, onSelect: () => (setSelected(null), setSheetOpen(true)) }] : []),
@@ -605,6 +627,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
                 ? [{ label: hidePhotos ? 'Show photos around the plan' : 'Hide photos around the plan', icon: (hidePhotos ? 'image-off' : 'image') as IconName, keys: 'H', onSelect: () => prefsStore.set({ focus: !hidePhotos }) }]
                 : []),
               ...(!empty ? [{ label: 'See it in 3D', icon: 'cube' as const, onSelect: () => setThreeD(true) }] : []),
+              ...(growing ? [{ label: 'Clear beds…', icon: 'trash' as const, onSelect: () => setClearing(true) }] : []),
               { label: 'Share a picture of the plan', icon: 'share', onSelect: () => setSharing(true) },
               { label: 'Your garden: location and backups', icon: 'settings', onSelect: () => app.go('profile') },
             ]}
@@ -693,6 +716,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
                 unlock={toggleLock}
                 redrawBoundary={() => setTool('boundary')}
                 mode={mode}
+                tapped={tapPoint}
               />
               {placed && <FillPopover placed={placed} garden={garden} store={store} plantOf={plantOf} close={() => setPlaced(null)} />}
               {tool === 'select' && lens === 'none' && plants && (
@@ -755,6 +779,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               playing={yearPlaying}
               setPlaying={setYearPlaying}
               phone={phone}
+              compact={phone && sunOn}
               share={() => {
                 setYearPlaying(false);
                 setSharing(true);
@@ -785,6 +810,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
           close={() => setThreeD(false)}
         />
       )}
+      {clearing && plants && <ClearBedsDialog garden={garden} store={store} plantOf={plantOf} close={() => setClearing(false)} />}
       {sharing && timelines && <ShareDialog garden={garden} plantOf={plantOf} ideaOf={ideaOf} timelines={timelines} date={when} look={prefs.look} mode={colourMode} close={() => setSharing(false)} />}
     </div>
   );

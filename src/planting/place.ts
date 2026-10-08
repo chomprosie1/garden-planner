@@ -264,6 +264,78 @@ export function restorePlanting(g: Garden, id: string): Garden {
 export const clearBed = (g: Garden, featureId: string, date: string): Garden =>
   harvestPlantings(g, g.plantings.filter((p) => p.featureId === featureId).map((p) => p.id), date);
 
+/**
+ * Clears several beds at once, as one undo step: every planting in them is marked harvested on the date, and stays in
+ * each bed's history. With `only`, just the plantings it picks (what's finished, for an end-of-season tidy).
+ */
+export function clearBeds(g: Garden, featureIds: string[], date: string, only?: (pl: Planting) => boolean): Garden {
+  const beds = new Set(featureIds);
+  return harvestPlantings(g, g.plantings.filter((p) => beds.has(p.featureId) && isActive(p) && (!only || only(p))).map((p) => p.id), date);
+}
+
+// ---------- Copy and paste ----------
+
+/** What a copy keeps: the plant, its size, layout and planned sowing. Not its stages, picks, batch or notes: it's a new planting. */
+export function copyOfPlanting(pl: Planting): Planting {
+  const { stage: _s, stageDates: _d, sownOn: _o, removedOn: _r, batch: _b, picks: _p, snoozeUntil: _z, ...rest } = pl;
+  return { ...rest, id: newId('p') };
+}
+
+/** How much room each plant of a planting wants: its spacing, or a big single plant's spread. */
+function roomOf(pl: Planting, plant: Plant): number {
+  const sized = sizedPlant(plant, pl);
+  return (pl.layout ?? 'single') === 'single' ? Math.max(sized.size.spacingMm, spreadOf(sized)) : plant.size.spacingMm;
+}
+
+/**
+ * Where a copy of a planting can go: the nearest spot to `at` (by default, beside the original), in the bed or ground
+ * there, where every one of its plants is in that bed and none sits closer to another plant than their spacing.
+ * Returns the copy, moved there, or null when there's no room.
+ */
+export function placeCopy(g: Garden, pl: Planting, plantOf: (id: string) => Plant, at?: Point): Planting | null {
+  const bed = at ? containerAt(g, at) : (g.features.find((f) => f.id === pl.featureId) ?? null);
+  if (!bed || bed.footprint.length < 3) return null;
+  const plant = plantOf(pl.plantId);
+  const room = roomOf(pl, plant);
+  const mine = plantPositions(pl, plant);
+  // The plants already there, each with the room it wants.
+  const others = g.plantings
+    .filter((o) => o.featureId === bed.id && isActive(o))
+    .flatMap((o) => {
+      const op = plantOf(o.plantId);
+      const r = roomOf(o, op);
+      return plantPositions(o, op).map((q) => ({ q, r }));
+    });
+  const xs = bed.footprint.map((q) => q[0]);
+  const ys = bed.footprint.map((q) => q[1]);
+  const step = Math.max(50, Math.round(room / 2));
+  const rings = Math.min(80, Math.ceil(Math.hypot(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) / step) + 1);
+  const [ax, ay] = at ? [at[0] - pl.x, at[1] - pl.y] : [0, 0];
+  // The corners first, then every plant: a block that's off the edge is ruled out quickly.
+  const ends = mine.length > 2 ? [mine[0]!, mine[mine.length - 1]!] : [];
+  const fits = (dx: number, dy: number) => {
+    const inBed = (q: Point) => containerAt(g, [q[0] + dx, q[1] + dy])?.id === bed.id;
+    if (!ends.every(inBed) || !mine.every(inBed)) return false;
+    return mine.every(([x, y]) => others.every((o) => Math.hypot(x + dx - o.q[0], y + dy - o.q[1]) >= ((room + o.r) / 2) * 0.95));
+  };
+  for (let r = at ? 0 : 1; r <= rings; r++) {
+    // Round this ring, nearest first.
+    const ring: Point[] = [];
+    for (let i = -r; i <= r; i++)
+      for (let j = -r; j <= r; j++) if (Math.max(Math.abs(i), Math.abs(j)) === r) ring.push([ax + i * step, ay + j * step]);
+    ring.sort((a, b) => Math.hypot(a[0] - ax, a[1] - ay) - Math.hypot(b[0] - ax, b[1] - ay));
+    for (const [dx, dy] of ring) if (fits(dx, dy)) return { ...shiftPlanting(copyOfPlanting(pl), dx, dy), featureId: bed.id };
+  }
+  return null;
+}
+
+/** Copies a planting into the nearest spot that fits (beside it, or by `at`). Returns the garden and the copy's id, or null for no room. */
+export function duplicatePlanting(g: Garden, id: string, plantOf: (id: string) => Plant, at?: Point): [Garden, string | null] {
+  const pl = g.plantings.find((p) => p.id === id);
+  const copy = pl ? placeCopy(g, pl, plantOf, at) : null;
+  return copy ? [addPlanting(g, copy), copy.id] : [g, null];
+}
+
 /** A row with a different number of plants; the ends stay where they are. */
 export function setRowCount(g: Garden, id: string, count: number): Garden {
   const n = Math.max(1, Math.min(MAX_PLANTS, Math.round(count)));

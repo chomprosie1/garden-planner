@@ -21,11 +21,13 @@ interface Props {
   playing: boolean;
   setPlaying: (p: boolean) => void;
   phone: boolean;
+  /** Just the week and play, for room to see (a phone in sun and shade). */
+  compact?: boolean;
   /** Share a picture of the week, or a timelapse of the year. */
   share: () => void;
 }
 
-export function YearScrubber({ today, date, setDate, playing, setPlaying, phone, share }: Props) {
+export function YearScrubber({ today, date, setDate, playing, setPlaying, phone, compact = false, share }: Props) {
   const week = weeksFrom(today, date);
   const at = useRef(week);
   at.current = week;
@@ -59,6 +61,24 @@ export function YearScrubber({ today, date, setDate, playing, setPlaying, phone,
   }
   const label = week === 0 ? 'This week' : `${phone ? '' : 'Week of '}${shortDate(date)} ${date.slice(0, 4)}`;
   const when = week === 0 ? '' : week < 0 ? `${-week} ${week === -1 ? 'week' : 'weeks'} ago` : `in ${week} ${week === 1 ? 'week' : 'weeks'}`;
+
+  if (compact)
+    return (
+      <section class="year-scrubber year-compact" aria-label="The garden through the year">
+        <button type="button" class="icon-btn year-play" aria-label={playing ? 'Pause' : 'Play the year'} aria-pressed={playing} onClick={() => setPlaying(!playing)}>
+          <Icon name={playing ? 'pause' : 'play'} size={18} />
+        </button>
+        <div class="year-head">
+          <strong>{label}</strong>
+          {when && <span class="muted small year-when">{when}</span>}
+          {week !== 0 && (
+            <button type="button" class="link-btn year-today" onClick={() => setDate(today)}>
+              Today
+            </button>
+          )}
+        </div>
+      </section>
+    );
 
   return (
     <section class="year-scrubber" aria-label="The garden through the year">

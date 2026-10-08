@@ -17,6 +17,22 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-08-room-to-see',
+    date: '2026-10-08',
+    title: 'Room to see, sun cream and sunny windowsills',
+    items: [
+      'Sun hours and Shade now use the whole screen. The tools tuck into a handle along the bottom: tap it or pull it up to bring them back. Undo, the lock and Simple are in the ⋯ menu while they’re on.',
+      'Midsummer, Midwinter and Today are now one “Day” drop-down above the sun.',
+      'Adding a photo to a note or a plant: “Take a photo” opens the camera on a phone, and “Choose a photo” picks one you’ve already taken.',
+      'From April to September, Today shows the UV when it’s moderate or higher, with what to wear. With this year’s weather on it’s the forecast’s; otherwise it’s a sunny day’s at this time of year. Turn on sun cream reminders in Your garden.',
+      'Say which way a windowsill or shelf faces (or use your phone’s compass) and Seedlings shows its hours of sun. Tomatoes, peppers and basil go in your sunniest place, and a north-facing sill warns of leggy seedlings.',
+      'Clear beds from the ⋯ menu on the plan: tick one, several or all of your beds and pots, and clear everything in them, or only what’s finished this season.',
+      'Copy a plant (Ctrl+C, or Copy in its details) and paste it into another bed: pick the bed and tap “Paste here”, or press Ctrl+V over it. The duplicate button (Ctrl+D) puts another one beside it. Both find the nearest spot with room.',
+      'Fixed: on a phone, the looks in Settings now wrap into two columns instead of running off the edge. In 3D, paving or a path over a lawn no longer lets the lawn show through.',
+    ],
+    tryIt: { label: 'Open Seedlings', view: 'shed' },
+  },
+  {
     id: '2026-10-07-3d',
     date: '2026-10-07',
     title: 'Your garden in 3D',

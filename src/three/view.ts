@@ -190,7 +190,8 @@ export class GardenView {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    this.camera = new THREE.PerspectiveCamera(40, 1, 0.1, 2000);
+    // A near plane no closer than it needs to be keeps the depth buffer sharp for the flat layers on the ground.
+    this.camera = new THREE.PerspectiveCamera(40, 1, 0.3, 2000);
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.12;
@@ -293,7 +294,9 @@ export class GardenView {
     ground.receiveShadow = true;
     add(ground);
 
-    // Flat things, each a little above the one before, so they never flicker into each other.
+    // Flat things, each a little above the one before. A few millimetres isn't enough for the depth buffer from far off or
+    // low down (paving over a lawn let the lawn flicker through), so each layer is also drawn in order and pulled towards
+    // the camera by its layer: the one on top always wins.
     s.flats.forEach((f, i) => {
       const lift = 0.002 + i * 0.0015;
       let mat: THREE.Material;
@@ -303,7 +306,11 @@ export class GardenView {
         const m = f.material as Material;
         mat = std({ map: this.texture(`${tk}:${m}`, () => tileTexture((c) => drawMaterialTile(c, m, P, mode), MATERIAL_TILE_MM[m] * M)) });
       }
+      mat.polygonOffset = true;
+      mat.polygonOffsetFactor = -(i + 1);
+      mat.polygonOffsetUnits = -(i + 1) * 4;
       const mesh = new THREE.Mesh(flatGeometry(f.polygon, lift), mat);
+      mesh.renderOrder = i + 1;
       mesh.receiveShadow = true;
       add(mesh, { name: f.name });
     });

@@ -9,10 +9,11 @@ import { deleteFeatures, duplicateFeature, featureLabel, geometryOf, MATERIAL_LA
 import { todayIso } from '../model/ids';
 import { asTree, treeSizeText, treeType } from '../model/trees';
 import { updateGarden, type Store } from '../model/store';
-import { MATERIALS, PLANT_SIZES, type Feature, type PlantSize, type Garden, type Material, type Plant } from '../model/types';
-import { canHold, canResize, deletePlanting, updatePlanting, plantCount, setPlantingSize, setRowCount, SIZE_FACTOR, SIZE_LABEL, spreadOf } from '../planting/place';
+import { MATERIALS, PLANT_SIZES, type Feature, type PlantSize, type Garden, type Material, type Plant, type Point } from '../model/types';
+import { canHold, canResize, containerAt, deletePlanting, duplicatePlanting, placeCopy, updatePlanting, plantCount, setPlantingSize, setRowCount, SIZE_FACTOR, SIZE_LABEL, spreadOf } from '../planting/place';
 import { setStage } from '../lifecycle/stages';
 import { useApp } from './appContext';
+import { useCopied } from './clipboard';
 import { Icon } from './icons';
 import { deletedMessage } from './PlanCanvas';
 import { pillHasExtras, type PlanMode } from './planMode';
@@ -34,11 +35,17 @@ interface Props {
   redrawBoundary: () => void;
   /** Simple leaves out typed sizes, curved edges and edging. */
   mode?: PlanMode;
+  /** Where the bed was last tapped, for "Paste here". */
+  tapped?: Point | null;
 }
+
+/** The middle of an outline, as a place to start looking for room. */
+const centreOf = (pts: Point[]): Point => [pts.reduce((a, p) => a + p[0], 0) / pts.length, pts.reduce((a, p) => a + p[1], 0) / pts.length];
 
 const fmt = (mm: number) => (mm >= 1000 ? `${+(mm / 1000).toFixed(2)} m` : `${Math.round(mm / 10)} cm`);
 
-export function ActionPill({ pillRef, target, garden, store, plantOf, locked, more, plantHere, select, unlock, redrawBoundary, mode = 'advanced' }: Props) {
+export function ActionPill({ pillRef, target, garden, store, plantOf, locked, more, plantHere, select, unlock, redrawBoundary, mode = 'advanced', tapped = null }: Props) {
+  const copied = useCopied();
   const app = useApp();
   const [sizing, setSizing] = useState(false);
   const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
@@ -96,6 +103,24 @@ export function ActionPill({ pillRef, target, garden, store, plantOf, locked, mo
               set={(s) => commit((g) => setPlantingSize(g, pl.id, s))}
             />
           )}
+          <button
+            type="button"
+            class="pill-icon"
+            aria-label={`Duplicate ${plant.commonName}`}
+            title="Duplicate (Ctrl+D)"
+            onClick={() => {
+              const made = { id: null as string | null };
+              commit((g) => {
+                const [next, id] = duplicatePlanting(g, pl.id, plantOf);
+                made.id = id;
+                return next;
+              });
+              if (made.id) select({ type: 'planting', id: made.id });
+              else app.notify(`No room for another ${plant.commonName.toLowerCase()} in this bed.`);
+            }}
+          >
+            <Icon name="copy" size={18} />
+          </button>
           <button type="button" class="pill-icon" aria-label={`About ${plant.commonName}`} title="About" onClick={() => app.openPlant(plant.id)}>
             <Icon name="info" size={18} />
           </button>
@@ -117,7 +142,27 @@ export function ActionPill({ pillRef, target, garden, store, plantOf, locked, mo
     }
   } else if (target?.type === 'feature') {
     const f = garden.features.find((x) => x.id === target.id);
-    if (f) content = <FeatureActions f={f} garden={garden} commit={commit} locked={locked} sizing={sizing} setSizing={setSizing} plantHere={plantHere} select={select} unlock={unlock} extras={pillHasExtras(mode)} />;
+    if (f) {
+      // Something copied, and a bed to put it in: "Paste here", where the bed was tapped or in its middle.
+      const paste =
+        copied && canHold(f)
+          ? () => {
+              const inside = tapped && containerAt(garden, tapped)?.id === f.id ? tapped : centreOf(f.footprint);
+              const made = { id: null as string | null };
+              commit((g) => {
+                const copy = placeCopy(g, copied, plantOf, inside);
+                made.id = copy?.id ?? null;
+                return copy ? { ...g, plantings: [...g.plantings, copy] } : g;
+              });
+              const name = plantOf(copied.plantId).commonName;
+              if (made.id) {
+                select({ type: 'planting', id: made.id });
+                app.notify(`${name} pasted into ${featureLabel(f)}.`, { undo: true });
+              } else app.notify(`No room for ${name.toLowerCase()} in ${featureLabel(f)}.`);
+            }
+          : null;
+      content = <FeatureActions f={f} garden={garden} commit={commit} locked={locked} sizing={sizing} setSizing={setSizing} plantHere={plantHere} paste={paste} select={select} unlock={unlock} extras={pillHasExtras(mode)} />;
+    }
   } else if (target?.type === 'boundary') {
     content = (
       <>
@@ -159,7 +204,7 @@ function SizeButton({ size, describe, set }: { size: PlantSize | null; describe:
   );
 }
 
-function FeatureActions({ f, garden, commit, locked, sizing, setSizing, plantHere, select, unlock, extras }: { f: Feature; garden: Garden; commit: (fn: (g: Garden) => Garden) => void; locked: boolean; sizing: boolean; setSizing: (b: boolean) => void; plantHere: () => void; select: (t: Target | null) => void; unlock: () => void; extras: boolean }) {
+function FeatureActions({ f, garden, commit, locked, sizing, setSizing, plantHere, paste, select, unlock, extras }: { f: Feature; garden: Garden; commit: (fn: (g: Garden) => Garden) => void; locked: boolean; sizing: boolean; setSizing: (b: boolean) => void; plantHere: () => void; paste: (() => void) | null; select: (t: Target | null) => void; unlock: () => void; extras: boolean }) {
   const app = useApp();
   const rect = !f.smooth && geometryOf(f) === 'area' ? rectInfo(f.footprint) : null;
   const circle = f.circle;
@@ -212,6 +257,11 @@ function FeatureActions({ f, garden, commit, locked, sizing, setSizing, plantHer
       {canHold(f) && (
         <button type="button" class="pill-btn pill-primary" onClick={plantHere}>
           Plant
+        </button>
+      )}
+      {paste && (
+        <button type="button" class="pill-btn" title="Paste the plant you copied here" onClick={paste}>
+          <Icon name="paste" size={16} /> Paste here
         </button>
       )}
       {locked ? (

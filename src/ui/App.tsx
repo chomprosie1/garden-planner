@@ -309,7 +309,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
           </div>
         )}
         {shortcuts && <Shortcuts close={() => setShortcuts(false)} />}
-        {prefs.onboarded && <ReminderKeeper garden={garden} userPlants={userPlants} frost={prefs.reminders} weekly={prefs.weeklyNudge} />}
+        {prefs.onboarded && <ReminderKeeper garden={garden} userPlants={userPlants} frost={prefs.reminders} weekly={prefs.weeklyNudge} uv={prefs.uvReminders} />}
         {wrapping && <WrappedHost garden={garden} userPlants={userPlants} close={() => setWrapping(false)} />}
         {searching && <CommandSearch garden={garden} userPlants={userPlants} locked={prefs.layoutLocked} run={run} close={() => setSearching(false)} />}
       </div>

@@ -1,6 +1,6 @@
 // The app's service worker: it opens offline, and (where the browser allows,
 // for an installed app) checks the forecast now and then and warns of frost,
-// and once a week says what there is to do.
+// once a week says what there is to do, and reminds about sun cream when the UV is high.
 // Plain JavaScript, served as it is from public/.
 
 const APP = 'garden-planner-app-v1';
@@ -148,8 +148,35 @@ async function weekCheck() {
   await self.registration.showNotification(nudge.title, { body: nudge.body, icon: 'icons/icon-192.png', tag: 'week', data: { url: './#/today' } });
 }
 
+/** On a morning from April to September when the forecast's UV is high (6 or more): sun cream and a hat. Once a day. */
+async function uvCheck() {
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  if (month < 4 || month > 9 || now.getHours() < 7 || now.getHours() >= 14) return;
+  const state = await caches.open(STATE);
+  const saved = await state.match(SNAPSHOT);
+  if (!saved) return;
+  const snap = await saved.json();
+  if (!snap.uv) return;
+  const today = iso(now);
+  const told = `told-uv-${today}`;
+  if (await state.match(told)) return;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${snap.lat}&longitude=${snap.lon}&daily=uv_index_max&timezone=Europe%2FLondon&forecast_days=1`;
+  const reply = await (await fetch(url)).json();
+  const uv = reply && reply.daily && reply.daily.uv_index_max && reply.daily.uv_index_max[0];
+  if (typeof uv !== 'number' || Math.round(uv) < 6) return;
+  await state.put(told, new Response('1'));
+  const level = Math.round(uv);
+  await self.registration.showNotification(level >= 8 ? 'UV very high today' : 'UV high today', {
+    body: `Up to ${level} around midday. ${level >= 8 ? 'Factor 50' : 'Factor 30+'}, a hat, and shade from 11 to 3.`,
+    icon: 'icons/icon-192.png',
+    tag: `uv-${today}`,
+    data: { url: './#/today' },
+  });
+}
+
 self.addEventListener('periodicsync', (event) => {
-  if (event.tag === 'frost-check') event.waitUntil(Promise.all([frostCheck().catch(() => undefined), weekCheck().catch(() => undefined)]));
+  if (event.tag === 'frost-check') event.waitUntil(Promise.all([frostCheck().catch(() => undefined), weekCheck().catch(() => undefined), uvCheck().catch(() => undefined)]));
 });
 
 self.addEventListener('notificationclick', (event) => {

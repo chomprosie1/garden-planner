@@ -59,6 +59,7 @@ import { currentStage, sowingOf, STAGE_LABEL, stageDate } from '../lifecycle/sta
 import { deleteBlob, saveBlob } from '../storage/idb';
 import { areaHours, averageHours, lightBand, type SunGrid } from '../sun/hours';
 import { useApp } from './appContext';
+import { copyPlanting } from './clipboard';
 import { BehindActions, Causes } from './BehindCard';
 import { behindOf, behindText } from '../lifecycle/behind';
 import { FindingsList } from './Findings';
@@ -1144,6 +1145,15 @@ function PlantingPanel(props: Props & { pl: Planting }) {
           <MoreMenu
             label="More for this planting"
             items={[
+              {
+                label: 'Copy, to paste in another bed',
+                icon: 'copy',
+                keys: 'Ctrl+C',
+                onSelect: () => {
+                  copyPlanting(pl);
+                  app.notify(`${plant.commonName} copied. Pick a bed or pot and choose Paste, or press Ctrl+V over it.`);
+                },
+              },
               status !== 'cleared'
                 ? {
                     label: 'Mark as cleared',

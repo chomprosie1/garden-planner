@@ -8,7 +8,7 @@ import { spacingStyle } from '../../planting/place';
 import { LOOKS } from '../../theme/looks';
 import type { Prefs, PrefsStore, View } from '../../theme/prefs';
 import { BackupCard, GardenCard, GardenName, JournalCard, SaveIndicator, SetupCard, WhatsNewCard } from '../HomeCards';
-import { FrostCard } from '../WeatherCards';
+import { FrostCard, UvCard } from '../WeatherCards';
 import { WeekCard } from '../WeekCard';
 import { SeasonCard } from '../Wrapped';
 import { InstallCard } from '../Install';
@@ -129,6 +129,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
 
       <div class="home-body">
         {plants && <FrostCard garden={garden} plantOf={plantOf} />}
+        <UvCard garden={garden} />
         <SetupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} />
         {plants && <ReadyCard store={store} garden={garden} plantOf={plantOf} />}
         {plants && <BehindCard store={store} garden={garden} plantOf={plantOf} />}

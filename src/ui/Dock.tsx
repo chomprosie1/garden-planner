@@ -2,7 +2,7 @@
 // structures, and precise drawing. Drag a sticker onto the plan, or tap it to
 // drop it in the middle of the view.
 
-import { useMemo, useState } from 'preact/hooks';
+import { useMemo, useRef, useState } from 'preact/hooks';
 import { canSowIn } from '../library/library';
 import { traysOf } from '../lifecycle/shed';
 import { newAppState } from '../model/defaults';
@@ -302,5 +302,42 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
         ))}
       </nav>
     </div>
+  );
+}
+
+/**
+ * While sun or shade is on, the dock folds to this handle along the bottom: tap it or pull it up for the tools, and
+ * tap or pull it down to tuck them away again.
+ */
+export function ToolsHandle({ up, down }: { up?: () => void; down?: () => void }) {
+  const start = useRef<number | null>(null);
+  const pulled = useRef(false);
+  const act = up ?? down!;
+  return (
+    <button
+      type="button"
+      class={`tools-handle ${up ? '' : 'tools-handle-open'}`}
+      aria-expanded={!up}
+      onPointerDown={(e) => {
+        start.current = e.clientY;
+        (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+      }}
+      onPointerUp={(e) => {
+        const from = start.current;
+        start.current = null;
+        // A pull of a finger's width the right way counts; anything else is a tap, handled by the click.
+        if (from !== null && Math.abs(e.clientY - from) > 24 && (up ? e.clientY < from : e.clientY > from)) {
+          pulled.current = true;
+          act();
+        }
+      }}
+      onClick={() => {
+        if (pulled.current) return void (pulled.current = false);
+        act();
+      }}
+    >
+      <span class="tools-handle-grip" aria-hidden="true" />
+      {up ? 'Tools ▴' : 'Tuck the tools away ▾'}
+    </button>
   );
 }

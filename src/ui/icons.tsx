@@ -42,6 +42,8 @@ const PATHS = {
   close: 'M6 6l12 12M18 6 6 18',
   cube: 'M12 3l8 4.5v9L12 21l-8-4.5v-9zM12 12l8-4.5M12 12v9M12 12 4 7.5',
   film: 'M4 5h16v14H4zM4 9h16M4 15h16M8 5v4M16 5v4M8 15v4M16 15v4',
+  camera: 'M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+  paste: 'M8 4h8v3H8zM6 5H5v16h14V5h-1M9 12h6M9 16h4',
 } as const;
 
 export type IconName = keyof typeof PATHS;

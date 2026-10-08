@@ -1,7 +1,8 @@
 // Fetching the weather from Open-Meteo (open-meteo.com): free for personal,
 // non-commercial use, with no key. Only the garden's place, rounded to about a
 // kilometre, is sent. Two requests: the past year from the archive (it runs a
-// few days behind), and the last week with the next fortnight's forecast.
+// few days behind), and the last week with the next fortnight's forecast,
+// which also has each day's highest UV.
 // Weather data by Open-Meteo.com, CC BY 4.0.
 
 import { addDays } from '../model/dates';
@@ -18,7 +19,7 @@ export function weatherUrls(lat: number, lon: number, today: string): { archive:
   const at = `latitude=${roundPlace(lat)}&longitude=${roundPlace(lon)}`;
   return {
     archive: `https://archive-api.open-meteo.com/v1/archive?${at}&start_date=${addDays(today, -PAST_DAYS)}&end_date=${addDays(today, -6)}&daily=${DAILY}&timezone=${ZONE}`,
-    forecast: `https://api.open-meteo.com/v1/forecast?${at}&daily=${DAILY}&timezone=${ZONE}&past_days=10&forecast_days=${FORECAST_DAYS}`,
+    forecast: `https://api.open-meteo.com/v1/forecast?${at}&daily=${DAILY},uv_index_max&timezone=${ZONE}&past_days=10&forecast_days=${FORECAST_DAYS}`,
   };
 }
 

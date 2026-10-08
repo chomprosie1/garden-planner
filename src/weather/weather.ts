@@ -14,6 +14,8 @@ export interface Weather {
   tmin: (number | null)[];
   /** Rain (and snow, as water), mm. */
   rain: (number | null)[];
+  /** Each day's highest UV index, from the forecast only (the archive has none). Missing in weather kept before it was fetched. */
+  uv?: (number | null)[];
   /** The day it was fetched: from here on it's the forecast. */
   today: string;
   /** When it was fetched, ISO date and time. */
@@ -32,7 +34,7 @@ export interface DayWeather {
 /** Rounded to about a kilometre: close enough for the weather, and no closer than it needs to be. */
 export const roundPlace = (n: number) => Math.round(n * 100) / 100;
 
-type Daily = Map<string, Partial<DayWeather>>;
+type Daily = Map<string, Partial<DayWeather & { uv: number }>>;
 
 const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 
@@ -48,14 +50,17 @@ export function parseDaily(json: unknown): Daily {
   const max = pick('temperature_2m_max');
   const min = pick('temperature_2m_min');
   const rain = pick('precipitation_sum');
+  const uv = pick('uv_index_max');
   const out: Daily = new Map();
   time.forEach((t, i) => {
     if (typeof t !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(t)) return;
-    const day: Partial<DayWeather> = {};
+    const day: Partial<DayWeather & { uv: number }> = {};
     const [a, b, r] = [num(max[i]), num(min[i]), num(rain[i])];
     if (a !== null) day.max = a;
     if (b !== null) day.min = b;
     if (r !== null) day.rain = r;
+    const u = num(uv[i]);
+    if (u !== null) day.uv = u;
     out.set(t, day);
   });
   return out;
@@ -74,12 +79,15 @@ export function makeWeather(replies: Daily[], today: string, fetchedAt: string, 
   const first = dayNumber(days[0]!);
   const n = dayNumber(days[days.length - 1]!) - first + 1;
   const w: Weather = { from: days[0]!, tmax: [], tmin: [], rain: [], today, fetchedAt, lat, lon };
+  const uv: (number | null)[] = [];
   for (let i = 0; i < n; i++) {
     const v = all.get(fromDayNumber(first + i));
     w.tmax.push(v?.max ?? null);
     w.tmin.push(v?.min ?? null);
     w.rain.push(v?.rain ?? null);
+    uv.push(v?.uv ?? null);
   }
+  if (uv.some((u) => u !== null)) w.uv = uv;
   return w;
 }
 

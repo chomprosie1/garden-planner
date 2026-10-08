@@ -1,5 +1,5 @@
 // Photos on notes: one shown from this device (tap it to see it big), and a
-// button to add one from the camera or the photo library.
+// pair of buttons to add one: take it with the camera, or choose one already taken.
 
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { photoUrl, savePhoto } from '../storage/photos';
@@ -31,11 +31,31 @@ export function Photo({ id, alt, class: cls = '' }: { id: string; alt: string; c
   );
 }
 
-/** "Add a photo": the camera or the photo library on a phone, a file on a computer. Gives the kept photo's id. */
+/** Touch screens have a camera to hand; a computer only gets "Choose a photo". */
+const touch = () => typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+
+/** "Take a photo" with the camera (touch screens), or "Choose a photo" already taken. Gives the kept photo's id. */
 export function PhotoInput({ value, onChange }: { value: string | null; onChange: (id: string | null) => void }) {
-  const input = useRef<HTMLInputElement>(null);
+  const camera = useRef<HTMLInputElement>(null);
+  const library = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+  const [canCapture] = useState(touch);
+  const add = async (e: Event) => {
+    const el = e.currentTarget as HTMLInputElement;
+    const file = el.files?.[0];
+    el.value = '';
+    if (!file) return;
+    setBusy(true);
+    setProblem(null);
+    try {
+      onChange(await savePhoto(file));
+    } catch {
+      setProblem('That photo couldn’t be added. Try another, or a JPEG.');
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
     <div class="photo-input">
       {value ? (
@@ -45,32 +65,23 @@ export function PhotoInput({ value, onChange }: { value: string | null; onChange
             Remove photo
           </button>
         </div>
+      ) : busy ? (
+        <p class="muted small">Adding the photo…</p>
       ) : (
-        <button type="button" class="btn" disabled={busy} onClick={() => input.current?.click()}>
-          <Icon name="image" size={18} /> {busy ? 'Adding…' : 'Add a photo'}
-        </button>
+        <div class="photo-buttons">
+          {canCapture && (
+            <button type="button" class="btn" onClick={() => camera.current?.click()}>
+              <Icon name="camera" size={18} /> Take a photo
+            </button>
+          )}
+          <button type="button" class="btn" onClick={() => library.current?.click()}>
+            <Icon name="image" size={18} /> Choose a photo
+          </button>
+        </div>
       )}
       {problem && <p class="muted small">{problem}</p>}
-      <input
-        ref={input}
-        type="file"
-        accept="image/*"
-        hidden
-        onChange={async (e) => {
-          const file = (e.currentTarget as HTMLInputElement).files?.[0];
-          (e.currentTarget as HTMLInputElement).value = '';
-          if (!file) return;
-          setBusy(true);
-          setProblem(null);
-          try {
-            onChange(await savePhoto(file));
-          } catch {
-            setProblem('That photo couldn’t be added. Try another, or a JPEG.');
-          } finally {
-            setBusy(false);
-          }
-        }}
-      />
+      <input ref={camera} type="file" accept="image/*" capture="environment" hidden onChange={add} />
+      <input ref={library} type="file" accept="image/*" hidden onChange={add} />
     </div>
   );
 }
