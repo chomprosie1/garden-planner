@@ -827,7 +827,7 @@ Decided:
 | 11a. Room to see | Sun views maximise the plan, the sun bar's chips become a drop-down, camera or library for photos, UV, which way windowsills and shed places face; clear several or all beds, copy and paste a plant; two bug fixes | ~1.5 wk | Built 8 Oct 2026 |
 | 11b. Your gardens | More than one garden, switching between them, and deleting everything to start again | ~1 wk | Built 8 Oct 2026 |
 | 12. A new look | 12a mock-ups (you choose) → 12b build: a phone-first redesign, This week as cards, and the new voice | ~3 wk | Built 8 Oct 2026, without mock-ups |
-| 13. From plot to plate | Recipes, storing and preserving, a kitchen card for this week, harvest worth in £ | ~2 wk + writing | |
+| 13. From plot to plate | Recipes, storing and preserving, a kitchen card for this week, harvest worth in £ | ~2 wk + writing | Built 8 Oct 2026 |
 | 14. Feeding | Fertiliser types, prices, what each plant likes, feed jobs | ~1.5 wk | |
 | 15. 500 plants, and varieties | +250 plants in batches of 50, a variety model, the seed tin | ~4 wk of data (alongside 13–14) | |
 | 16. Inspire me | Tap an empty area, give a budget, a time and effort; it suggests what would grow (folds in "What grows here?") | ~1.5 wk | |
@@ -1005,17 +1005,37 @@ Each of the five looks keeps its own colours, fonts and corners, re-expressed th
 
 Tests: new `tests/moments.test.ts` (an ordinary day; the first frost and not a second; the first pick, and not after three days or a second; last year's picks don't count; the last frost passing; midsummer and midwinter; one at a time). `tests/words.test.ts` extended for the voice. Contrast: no new colours.
 
-### Release 13 — From plot to plate (planned)
+### Release 13 — From plot to plate (as built)
+- **Data** (`data/kitchen/`, all written for the app, in its voice):
+  - **For every crop** (`vegetables.json`, `herbs.json`, `fruit.json`; all 138 that crop): how to store it, how to keep it for later, how to use it, the ways it keeps (fridge, somewhere cool, room temperature, left in the ground, freezes, dries, pickles, jam or jelly, chutney, sauce), and a rough UK shop price a kilo (autumn 2026).
+  - **Changed from the plan:** it's kept beside the plants, by plant id, rather than as `Plant.kitchen`. The 250 plant files stay untouched, and it loads only when needed, as its own small file. Your own plants have no kitchen notes.
+  - **`recipes.json`:** 122 short, original recipes. Each has the crops it uses (main one first), its months, the time, how many it serves, the ingredients, and three or four steps. 86 crops have at least one.
+- **Logic** (`src/kitchen/recipes.ts`, pure):
+  - `croppingNow`: plantings ready to pick today or within six days (from the year's timeline), and crops picked in the last ten days.
+  - `recipesFor`: a few recipes using most of what's cropping (the main crop counts double, in season first). Each pick favours crops the others haven't used, so the beans aren't crowded out by three tomato recipes.
+  - `recipesWith`: a crop's recipes, in season first.
+  - `harvestWorth`: the year's picks at shop prices, in all and crop by crop.
+  - `poundsText` and `minutesText`.
+- **On screen** (`src/ui/Kitchen.tsx`):
+  - **In the kitchen this week** on Today, after This week: what's ready (with pictures), up to three recipes to open, and "about £26 of food from your garden this year, at shop prices. Most of it tomato."
+  - **Storing and recipes** on each crop's plant card: keeping it, for later, in the kitchen, how it keeps (quiet tags), up to four recipes, and its price.
+  - **What to do with it:** after logging a pick from a job, how it keeps and a recipe or two.
+  - **Your season, wrapped** gains "Your garden grew £143 of food, at shop prices".
+- **Checked:** screenshots at 390 px of Today's kitchen (closed and with a recipe open), the hint after a pick, and a tomato's card.
+- **Not done:**
+  - Kitchen notes for your own plants.
+  - Searching recipes.
+  - Saving favourite recipes.
+  - A shopping list for what a recipe needs beyond the garden.
+
+Tests: new `tests/kitchen.test.ts`:
 - **Data:**
-  - `data/kitchen/recipes.json`: about 100 short, original recipes, each with crops, season, time and serves.
-  - `Plant.kitchen`: how to store it (fridge, freeze, dry, clamp), preserve it (jam, pickle, chutney) and use it, plus a rough £ per kg.
-- **Logic:** `src/kitchen/recipes.ts` (pure) picks recipes for what's harvesting this week, from the timeline's projections and logged picks.
-- **On screen:**
-  - **In the kitchen this week** on Today;
-  - **Storing and recipes** on each plant card;
-  - after logging a pick, "What to do with it".
-- **Harvest worth:** "Your garden grew about £143 of food this year", on Today and a Wrapped card.
-- **Tests:** new `tests/kitchen.test.ts` (recipes match what's cropping, season and empty cases, worth totals); plants and words.
+  - every crop has kitchen notes, a sensible price and known ways of keeping, and nothing that isn't a crop has notes;
+  - 100+ recipes with unique ids and titles, real crops, months, times, servings, ingredients and three to five steps, with 80+ crops covered;
+  - the data's in the voice (no exclamation marks or filler).
+- **Cropping:** what's cropping (ready, picked lately; not cleared plantings or flowers).
+- **Recipes:** chosen across the crops, the same every time, in season first.
+- **Worth:** this year's picks only, most first; the rough wording; the Wrapped card.
 
 ### Release 14 — Feeding (planned)
 - **Data:** `data/feeds.json`, about 15 generic types:

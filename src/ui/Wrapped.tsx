@@ -10,13 +10,19 @@ import { drawWrappedCard, seasonStats, seasonYear, wrappedCards } from '../share
 import { photoUrl } from '../storage/photos';
 import { useApp } from './appContext';
 import { PlantIcon } from './PlantIcon';
+import { useKitchen } from './Kitchen';
+import { harvestWorth } from '../kitchen/recipes';
 import { canShareFiles, download } from './ShareDialog';
 
 export function WrappedDialog({ garden, plantOf, known, close }: { garden: Garden; plantOf: (id: string) => Plant; known: (id: string) => boolean; close: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const year = seasonYear(todayIso());
-  const cards = useMemo(() => wrappedCards(seasonStats(garden, year, known, (id) => plantOf(id).category === 'weed'), garden.name, (id) => plantOf(id).commonName), [garden, year]);
+  const kitchen = useKitchen();
+  const cards = useMemo(
+    () => wrappedCards(seasonStats(garden, year, known, (id) => plantOf(id).category === 'weed'), garden.name, (id) => plantOf(id).commonName, kitchen ? harvestWorth(garden, kitchen, year).pounds : 0),
+    [garden, year, kitchen],
+  );
   const [i, setI] = useState(0);
   const card = cards[i];
 

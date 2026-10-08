@@ -4,6 +4,8 @@ import type { Light, Plant, Sowing } from '../model/types';
 import { formatLength } from '../canvas/viewport';
 import { Icon } from './icons';
 import { PlantIcon } from './PlantIcon';
+import { PlantKitchen } from './Kitchen';
+import { unknownPlant } from '../planting/place';
 import { useApp } from './appContext';
 
 /** A new issue on the app's GitHub page, about this plant. */
@@ -255,6 +257,8 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
           </ul>
         </section>
       )}
+
+      <PlantKitchen plant={p} plantOf={(id) => byId.get(id) ?? unknownPlant(id)} />
 
       {p.weed && (
         <section class="plant-section">

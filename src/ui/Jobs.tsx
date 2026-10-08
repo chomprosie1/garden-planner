@@ -5,6 +5,7 @@ import { updateGarden, type Store } from '../model/store';
 import { PICK_SIZES, type Garden, type PickSize, type Plant } from '../model/types';
 import { PICK_LABEL } from '../planting/harvest';
 import { useApp } from './appContext';
+import { KitchenHint } from './Kitchen';
 import { groupJobs, JOB_LABEL, logPick, toggleJob, type Job } from '../calendar/jobs';
 
 /** How far a job is swiped to tick it, px. */
@@ -129,8 +130,10 @@ export function jobsDoneCount(garden: Garden, month: number, year: number): numb
 // ---------- Jobs for your own plants ----------
 
 /** One job: "Carrot in Veg bed (2 rows)", with any advice underneath. */
-function PlantJob({ job, done, onToggle, onPick }: { job: Job; done?: boolean; onToggle?: () => void; onPick?: (size: PickSize) => void }) {
+function PlantJob({ job, done, onToggle, onPick, plantOf }: { job: Job; done?: boolean; onToggle?: () => void; onPick?: (size: PickSize) => void; plantOf?: (id: string) => Plant }) {
   const [picking, setPicking] = useState(false);
+  /** Just picked: what to do with it, from the kitchen. */
+  const [picked, setPicked] = useState(false);
   const text = (
     <span class="job-text">
       <span>
@@ -190,12 +193,13 @@ function PlantJob({ job, done, onToggle, onPick }: { job: Job; done?: boolean; o
       {picking && onPick && (
         <span class="happened-chips job-pick" role="group" aria-label={`How much ${job.plant.toLowerCase()} did you pick?`}>
           {PICK_SIZES.map((size) => (
-            <button key={size} type="button" class="chip" onClick={() => (onPick(size), setPicking(false))}>
+            <button key={size} type="button" class="chip" onClick={() => (onPick(size), setPicking(false), setPicked(true))}>
               {PICK_LABEL[size]}
             </button>
           ))}
         </span>
       )}
+      {picked && plantOf && <KitchenHint plantId={job.plantId} plantOf={plantOf} />}
     </>
   );
 }
@@ -215,6 +219,7 @@ export function PlantJobs({ jobs, garden, store, limit, plantOf }: { jobs: Job[]
               <SwipeRow key={job.key} {...(store ? { onTick: () => store.apply(updateGarden((g) => toggleJob(g, job, todayIso(), plantOf))) } : {})}>
                 <PlantJob
                   job={job}
+                  {...(plantOf ? { plantOf } : {})}
                   done={done.has(job.key)}
                   {...(store ? { onToggle: () => store.apply(updateGarden((g) => toggleJob(g, job, todayIso(), plantOf))) } : {})}
                   {...(store && job.kind === 'harvest' && job.plantingIds.length

@@ -17,6 +17,19 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-08-kitchen',
+    date: '2026-10-08',
+    title: 'From plot to plate',
+    items: [
+      'In the kitchen this week, on Today: what’s ready to pick, and a few recipes that use it. Tap one for what goes in and what to do.',
+      'Over 120 short recipes of our own, from slow-roasted tomatoes to rhubarb and ginger crumble, each in season.',
+      'Every crop’s card in Plants now says how to store it, how to keep it for later (freezing, drying, jam or chutney), how to use it, and its recipes.',
+      'Log a pick and you’ll see what to do with it, straight away.',
+      'What your garden grew, in pounds: Today shows roughly what this year’s picks would have cost in the shops, and so does your season, wrapped.',
+    ],
+    tryIt: { label: 'Open Today', view: 'home' },
+  },
+  {
     id: '2026-10-08-new-look',
     date: '2026-10-08',
     title: 'A new look, and a warmer word or two',

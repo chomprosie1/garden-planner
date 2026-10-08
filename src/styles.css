@@ -5518,3 +5518,139 @@ h2 {
   padding: 0.3rem 0.85rem;
   font-size: 0.92rem;
 }
+
+/* ---------- Release 13: from plot to plate ---------- */
+.kitchen-crops {
+  list-style: none;
+  margin: 0.5rem 0 0.4rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+}
+.kitchen-crops li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+.recipes {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+  margin-top: 0.4rem;
+}
+.recipe {
+  border-bottom: 1px solid var(--border);
+}
+.recipe summary {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 52px;
+  padding: 0.4rem 0;
+  cursor: pointer;
+  list-style: none;
+}
+.recipe summary::-webkit-details-marker {
+  display: none;
+}
+.recipe summary::after {
+  content: '+';
+  margin-left: auto;
+  font-size: 1.3rem;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+.recipe[open] summary::after {
+  transform: rotate(45deg);
+}
+.recipe-art {
+  flex: none;
+}
+.recipe-name {
+  display: flex;
+  flex-direction: column;
+}
+.recipe-name strong {
+  font-family: var(--font-display);
+  font-size: var(--step-0, 1rem);
+}
+.recipe-body {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0 0 0.9rem calc(30px + 0.7rem);
+}
+.recipe-ingredients {
+  margin: 0;
+  padding-left: 1.1rem;
+  columns: 2 12rem;
+  column-gap: 1.5rem;
+}
+.recipe-ingredients li {
+  break-inside: avoid;
+}
+.recipe-method {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.kitchen-worth {
+  margin-top: 0.8rem;
+}
+.kitchen-worth-big {
+  font-family: var(--font-display);
+  font-size: var(--step-2, 1.5rem);
+  font-weight: 700;
+  margin-right: 0.15rem;
+}
+.kitchen-facts {
+  margin: 0;
+  display: grid;
+  gap: 0.15rem 1rem;
+}
+.kitchen-facts dt {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 0.4rem;
+}
+.kitchen-facts dd {
+  margin: 0;
+}
+.kitchen-keeps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+/* Facts, not buttons: a quiet tag. */
+.chip-static {
+  cursor: default;
+  min-height: 28px;
+  padding: 0.1rem 0.65rem;
+  border-color: transparent;
+  background: var(--surface2);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.kitchen-hint {
+  margin: 0.3rem 0 0.7rem calc(22px + 0.75rem);
+  padding: 0.7rem 0.9rem 0.2rem;
+  border-radius: var(--radius);
+  background: var(--selected-bg);
+  color: var(--selected-text);
+}
+.kitchen-hint .muted {
+  color: inherit;
+  opacity: 0.85;
+}
+.kitchen-hint .recipe:last-child {
+  border-bottom: 0;
+}

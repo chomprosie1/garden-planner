@@ -73,7 +73,8 @@ const SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'O
 const day = (iso: string) => `${Number(iso.slice(8, 10))} ${SHORT[Number(iso.slice(5, 7)) - 1]}`;
 
 /** The cards for a season: only the ones there's something to say on. None if nothing was grown. */
-export function wrappedCards(s: SeasonStats, gardenName: string, name: (id: string) => string): WrappedCard[] {
+/** worth: what the year's picks would have cost in the shops, £ (src/kitchen/recipes.ts, harvestWorth). */
+export function wrappedCards(s: SeasonStats, gardenName: string, name: (id: string) => string, worth = 0): WrappedCard[] {
   if (!s.plantings) return [];
   const cards: WrappedCard[] = [
     { eyebrow: `${s.year} in ${gardenName}`, big: String(s.plantings), line: `${s.plantings === 1 ? 'planting' : 'plantings'}, of ${s.crops.length} ${s.crops.length === 1 ? 'crop' : 'crops'}` },
@@ -83,6 +84,7 @@ export function wrappedCards(s: SeasonStats, gardenName: string, name: (id: stri
     const top = s.top[0]!;
     cards.push({ eyebrow: 'Picked this year', big: formatWeight(s.grams), line: s.top.length > 1 ? `Most of all: ${name(top.plantId).toLowerCase()}, ${formatWeight(top.grams)}` : name(top.plantId) });
   }
+  if (worth >= 1) cards.push({ eyebrow: 'Your garden grew', big: `£${Math.round(worth).toLocaleString('en-GB')}`, line: 'of food, at shop prices' });
   if (s.busiest) cards.push({ eyebrow: 'Busiest month', big: MONTHS[s.busiest.month - 1]!, line: `${s.busiest.count} things sown, planted, picked or noted` });
   const best = s.photos[0];
   if (best) cards.push({ eyebrow: 'A moment from the year', big: '', line: best.text || day(best.date), photo: best.photo });

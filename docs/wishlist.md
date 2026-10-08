@@ -54,7 +54,7 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Nature calendar: what's in flower for bees each month, with gaps filled ("Nothing for bees in March: crocus?") | Review, 7 Oct 2026 | S–M | Planned in release 18 |
 | Same-spot photo timelapse: the last photo shown faintly over the camera to line up, stitched into a real timelapse | Review, 7 Oct 2026 | M | Planned in release 18 |
 | Seed tin: varieties, seeds left, sow-by dates and a packet photo; suggestions start with seeds you have | Review, 7 Oct 2026 | M | Planned in release 15, with varieties. Scanning a packet would need a server, so that waits for beta testing |
-| Harvest worth in pounds: "Your garden grew £143 of food this year" | Review, 7 Oct 2026 | S | Planned in release 13, From plot to plate |
+| Harvest worth in pounds: "Your garden grew £143 of food this year" | Review, 7 Oct 2026 | S | Built in release 13 |
 | Logging by voice: "Picked a bowl of beans", "Sowed carrots in the veg bed" | Review, 7 Oct 2026 | S | Planned in release 18 |
 | Sync and shared gardens (a household, allotment partners, a whole allotment site) | Review, 7 Oct 2026 | L | Parked until beta testing. Needs a server: a business decision first (see the cost ladder in the MVP plan) |
 | Ask the garden: questions and photos of a sick plant, answered with this garden's own sun, stage and weather | Review, 7 Oct 2026 | L | Parked until beta testing. Needs a server and a vision model. The natural paid tier |
@@ -69,7 +69,7 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | A UI that feels crafted, not AI-made, and nicer on a phone | You, 7 Oct 2026 | L | Built in release 12 (no mock-ups, on your say-so) |
 | This week more prominent, as cards | You, 7 Oct 2026 | S | Built in release 12 |
 | A lifestyle feel, and a warm voice that makes the jobs a pleasure | You, 7 Oct 2026 | M | Started in release 12 (Today, jobs, stage advice; docs/voice.md), then screen by screen |
-| Harvest to the kitchen: recipes, storing and preserving, seasonal recipes from what’s growing | You, 7 Oct 2026 | L | Planned in release 13 |
+| Harvest to the kitchen: recipes, storing and preserving, seasonal recipes from what’s growing | You, 7 Oct 2026 | L | Built in release 13 |
 | Fertilisers: the common types, rough prices, what each plant likes | You, 7 Oct 2026 | M | Planned in release 14 |
 | A library of at least 500 plants, with varieties of the same plant | You, 7 Oct 2026 | L | Planned in release 15 |
 | Inspiration for empty areas, by budget, time frame and effort | You, 7 Oct 2026 | M | Planned in release 16 |
@@ -86,3 +86,4 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Select several beds on the plan at once (to clear, move or delete them together) | Build, release 11a | M | Clear beds uses a checklist for now |
 | A look for each garden | Build, release 11b | S | The look is the same for every garden for now |
 | Move a bed from one garden to another | Build, release 11b | S | Plants already can: copy one, open the other garden and paste it (the clipboard stays when you switch) |
+| Kitchen notes for your own plants, and searching and saving recipes | Build, release 13 | S | The kitchen covers the library's crops |
