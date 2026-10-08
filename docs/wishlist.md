@@ -61,11 +61,11 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | A winter habit (evergreen, deciduous, dies back) on the plant form for your own plants | Build, release 10 | S | Your own plants go by their category for now |
 | 3D: walk round inside it, frost and a greener lawn by season, sketches, leafier tree canopies | Build, release 10 | M | Planned in release 17, Walk through it |
 | The year slider’s month letters overlap where the year changes, on a phone | Build, release 10 | S | Seen in the release 10 screenshots; it was already so |
-| Sun hours and shade use the whole screen: the toolbar and dock tuck away, to pull back up | You, 7 Oct 2026 | S | Planned in release 11 |
-| The sun bar’s day chips as a drop-down | You, 7 Oct 2026 | S | Planned in release 11 |
-| Photos in the journal: take one with the camera, or choose one already taken | You, 7 Oct 2026 | S | Planned in release 11 |
-| UV reminders: live where possible, otherwise a sunny day’s level for the time of year; factor 50 and a hat when it’s high | You, 7 Oct 2026 | S | Planned in release 11 |
-| Which way windowsills and shed places face, and their sun, deciding what goes where | You, 7 Oct 2026 | S | Planned in release 11 |
+| Sun hours and shade use the whole screen: the toolbar and dock tuck away, to pull back up | You, 7 Oct 2026 | S | Planned in release 11a |
+| The sun bar’s day chips as a drop-down | You, 7 Oct 2026 | S | Planned in release 11a |
+| Photos in the journal: take one with the camera, or choose one already taken | You, 7 Oct 2026 | S | Planned in release 11a |
+| UV reminders: live where possible, otherwise a sunny day’s level for the time of year; factor 50 and a hat when it’s high | You, 7 Oct 2026 | S | Planned in release 11a |
+| Which way windowsills and shed places face, and their sun, deciding what goes where | You, 7 Oct 2026 | S | Planned in release 11a |
 | A UI that feels crafted, not AI-made, and nicer on a phone | You, 7 Oct 2026 | L | Planned in release 12, mock-ups first |
 | This week more prominent, as cards | You, 7 Oct 2026 | S | Planned in release 12 |
 | A lifestyle feel, and a warm voice that makes the jobs a pleasure | You, 7 Oct 2026 | M | Planned in release 12, then screen by screen |
@@ -75,3 +75,10 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Inspiration for empty areas, by budget, time frame and effort | You, 7 Oct 2026 | M | Planned in release 16 |
 | Walk through the garden in 3D | You, 7 Oct 2026 | M | Planned in release 17 |
 | Leaves you can recognise in 3D | You, 7 Oct 2026 | S | Planned in release 17 |
+| Clear beds one at a time, several, or all | You, 8 Oct 2026 | S | Planned in release 11a. One at a time is already there |
+| Copy and paste a plant | You, 8 Oct 2026 | S | Planned in release 11a. Beds can already be duplicated |
+| Bug: the looks don't wrap in Settings on a phone; think again about how they're shown | You, 8 Oct 2026 | S | Planned in release 11a |
+| Bug: in 3D, where ground layers overlap (paving over a lawn), the lower one shows through at some angles | You, 8 Oct 2026 | S | Planned in release 11a |
+| Create a new garden | You, 8 Oct 2026 | M | Planned in release 11b, with switching between gardens |
+| Delete everything and start again, with a careful way through it | You, 8 Oct 2026 | S | Planned in release 11b: gentler choices first, choose what to keep, save a copy, hold to confirm, 30 days to bring it back |
+| How good the garden is for bees and other pollinators | You, 8 Oct 2026 | M | Planned in release 18 with the nature calendar; the plant data comes in release 15 |

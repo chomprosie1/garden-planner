@@ -806,6 +806,14 @@ From your feedback after release 10:
 - inspiration for empty areas;
 - walking through the garden in 3D, with leaves you can recognise.
 
+Added on 8 Oct 2026:
+- clearing several beds, or all of them, at once;
+- copying and pasting a plant;
+- more than one garden;
+- deleting everything and starting again, with a careful way through it;
+- two bugs: the looks don't wrap in Settings on a phone, and paving over a lawn shows the lawn through it in 3D at some angles;
+- how good the garden is for bees and other pollinators.
+
 The ideas from the review of 7 Oct 2026 (in the wishlist) are folded in where they fit.
 
 Decided:
@@ -816,16 +824,17 @@ Decided:
 
 | Release | What | Size | Status |
 | --- | --- | --- | --- |
-| 11. Room to see | Sun views maximise the plan, the sun bar's chips become a drop-down, camera or library for photos, UV, which way windowsills and shed places face | ~1 wk | |
+| 11a. Room to see | Sun views maximise the plan, the sun bar's chips become a drop-down, camera or library for photos, UV, which way windowsills and shed places face; clear several or all beds, copy and paste a plant; two bug fixes | ~1.5 wk | |
+| 11b. Your gardens | More than one garden, switching between them, and deleting everything to start again | ~1 wk | |
 | 12. A new look | 12a mock-ups (you choose) → 12b build: a phone-first redesign, This week as cards, and the new voice | ~3 wk | |
 | 13. From plot to plate | Recipes, storing and preserving, a kitchen card for this week, harvest worth in £ | ~2 wk + writing | |
 | 14. Feeding | Fertiliser types, prices, what each plant likes, feed jobs | ~1.5 wk | |
 | 15. 500 plants, and varieties | +250 plants in batches of 50, a variety model, the seed tin | ~4 wk of data (alongside 13–14) | |
 | 16. Inspire me | Tap an empty area, give a budget, a time and effort; it suggests what would grow (folds in "What grows here?") | ~1.5 wk | |
 | 17. Walk through it | First-person walking in 3D, leaves you can recognise, frost and lawn by season | ~2 wk | |
-| 18. Later from the review | Nature calendar, voice logging, water forecast, next year drafted (crop rotation), same-spot timelapse | Split as needed | |
+| 18. Later from the review | Nature calendar and how good the garden is for pollinators, voice logging, water forecast, next year drafted (crop rotation), same-spot timelapse | Split as needed | |
 
-### Release 11 — Room to see (planned)
+### Release 11a — Room to see (planned)
 - **Sun and shade use the whole screen.**
   - **When on:** while Sun hours or Shade is on, the Simple/Advanced switch, lock and undo fold into the ⋯ menu, and the dock folds to one "Tools ▴" handle along the bottom. Tap or pull it up to bring the dock back. On a phone, the year slider shrinks to its date and play.
   - **When off:** everything comes back.
@@ -850,6 +859,52 @@ Decided:
   - new `tests/room.test.ts` (UV bands, the clear-sky estimate against known UK values, sun hours by facing and month, where to put each plant, schema 14);
   - words, weather, shed and prefs;
   - screenshots of the plan in Sun hours at 390 px.
+
+**Also in 11a (added 8 Oct 2026):**
+- **Clear several beds, or all of them.**
+  - **Today:** one bed at a time, with "Clear this bed" in the details (`src/ui/Inspector.tsx`, `clearBed` in `src/planting/place.ts`). What grew there is kept under "Grown here before".
+  - **Several:** with more than one bed selected, the action pill offers "Clear 3 beds".
+  - **All:** "Clear all beds…" in the ⋯ menu asks what to clear: everything, or only what's finished (an end-of-season tidy). It also asks whether pots and containers count. It names how many plants will go before you confirm.
+  - **Model:** `clearBeds(g, ids, date, { finishedOnly })` in `src/planting/place.ts`. It's one undo step, with an Undo on the toast, and it keeps the history the same way `clearBed` does.
+- **Copy and paste a plant.**
+  - **Select a plant:** the action pill gains **Copy** (Ctrl+C) and **Duplicate** (Ctrl+D), as beds already have (`duplicateFeature` in `src/model/features.ts`).
+  - **Paste:** Ctrl+V, or on a phone tap a bed or a gap and choose "Paste here". A single plant, row or block keeps its plant, size and layout, and goes in at the nearest spot that fits (`src/planting/place.ts`). Spacing and companion rules are checked as for a new planting.
+  - **Copied:** the plant, size, layout and planned dates. **Not copied:** its stages so far, journal, photos and picks. It's a new planting.
+  - **Model:** `duplicatePlanting(g, id, at?)` beside `duplicateFeature`. The clipboard lives in the app's memory, not in storage.
+- **Bug: the looks don't wrap on a phone.** In Settings they're one row you scroll sideways (`.settings .look-picker` in `src/styles.css`), so on a phone most of them are off the edge and it isn't obvious there are more. On narrow screens, show them all at once instead: two columns of smaller cards, or a short list with each look's name beside a strip of its colours. Release 12 re-expresses the looks, so keep this fix small.
+- **Bug: in 3D, a lower ground layer shows through the one on top.** Paving over a lawn, at some angles (low, or zoomed out), lets the lawn flicker through. Flat things are lifted only 2 mm, plus 1.5 mm a layer (`src/three/view.ts`, the flats loop), which is too little for the depth buffer at a distance.
+  - **Fix:** give each layer's material a `polygonOffset` by its layer, and draw them in layer order (`renderOrder`). Check the camera's near plane isn't tighter than it needs to be.
+  - If that isn't enough, cut each flat's polygon by the ones above it, so only the top layer exists to be drawn.
+  - **Check by hand:** paving over a lawn, a path across a lawn, and a pond in a lawn, from a low angle and zoomed right out, on a phone and a desktop.
+- **Tests:** full suite (place.ts); new cases in `tests/planting.test.ts` (clear several, clear all, finished only, history kept, one undo step; copy and paste lands in a gap, keeps size and layout, drops history, refuses a bed with no room); `tests/three.test.ts` (layer order); words; screenshots of Settings and the 3D bug at 390 px.
+
+### Release 11b — Your gardens (planned)
+- **More than one garden.**
+  - **Today:** there's one garden, in `localStorage` under `garden-planner:state` (`src/storage/local.ts`).
+  - **Storage:**
+    - an index of gardens (id, name, last opened) and the open garden's id;
+    - each garden under its own key;
+    - the old key moved across on first load, with a test.
+    - Photos (`src/storage/photos.ts`) and reminders (`src/storage/reminders.ts`) are tied to their garden.
+    - Your own plants, the look and Simple/Advanced stay app-wide.
+  - **New garden:** from a garden switcher at the top of Settings, or the garden's name in the ⋯ menu. It runs the start ("Where are you growing?") again. Where you are and your frost dates are offered from the garden you're in.
+  - **Switching:** a list with each garden's name, a small picture of its plan and when it was last opened. Rename and delete live here. Reminders and Today follow the open garden.
+  - **Files:** saving and opening a file (`src/storage/file.ts`) works on the open garden. Opening a file asks whether to replace this garden or add it as a new one.
+- **Delete everything and start again.** A careful way through it, with a way back:
+  1. **Find it:** at the bottom of Settings, "Start again…", away from everything else.
+  2. **Offer the gentler choices first:** "Clear all beds" (11a) keeps the layout, and "New garden" keeps this one. Many people who reach for Start again want one of these.
+  3. **Say what goes:** the plan, plantings, journal, photos, picks and jobs, with counts ("312 photos").
+  4. **Ask what to keep,** all ticked by default:
+     - your own plants;
+     - your wish list;
+     - where you are and your frost dates;
+     - your look.
+  5. **Save a copy first:** the main button downloads the garden as a file. "Skip" is smaller.
+  6. **Confirm:** hold the button for two seconds. It works on a phone and is hard to do by accident, unlike typing the garden's name.
+  7. **A way back:** the old garden is hidden, not wiped, for 30 days. "Bring back the garden you cleared" shows in Settings until then. Then it and its photos are really removed.
+  8. **Start:** the start runs again, filled in with what you kept.
+  - **Delete this garden** (from the switcher) and **delete everything** (every garden, for handing a phone on) go the same way. Delete everything has no 30-day way back, and it says so.
+- **Tests:** full suite (storage/file.ts); the old single garden moved into the index; switching keeps each garden's own data apart; start again keeps what's ticked and drops the rest; the hidden garden comes back intact and is gone after 30 days. `local.ts` and `photos.ts` have no tests, so check these by hand: two gardens with photos, delete one, the other's photos are still there. Words; screenshots of the switcher and each Start again step at 390 px.
 
 ### Release 12 — A new look (planned)
 **12a, mock-ups.** A page with three directions at 390 px: Today, the plan, a plant card, Seedlings, and a job written in the new voice. You choose, or mix.
@@ -917,6 +972,7 @@ Decided:
   - +250 species in five batches of 50 (vegetables and salads, herbs, fruit, flowers and perennials, shrubs and climbers);
   - 3–6 varieties for the 25 most-grown crops, e.g. tomatoes (cordon, bush, cherry, beefsteak), potatoes (first early, second early, maincrop), peas (early, maincrop, mangetout);
   - each with art, germination days, growth days, winter habit, feeding and kitchen data, and a plant family for crop rotation;
+  - `Plant.pollinators` for every plant, old and new: how good its flowers are for pollinators (none, some or good), who visits (bees, hoverflies, butterflies, moths) and its flowering months, for release 18;
   - all unchecked.
 - **Seed tin** (from the review): your seed packets (variety, how many, sow-by date, a photo), "You have seeds for this" in suggestions, and a price per packet to feed Inspire me.
 - **Tests:** plants, art and three (every plant draws); variety inheritance and override tests.
@@ -945,7 +1001,14 @@ Decided:
 
 ### Release 18 — Later from the review (planned)
 To be split into releases as we get there:
-- nature calendar (bees each month);
+- **nature calendar and pollinators** (bees each month):
+  - **How bee-friendly is it?** A card on Today and in Wrapped:
+    - how many months have something in flower for pollinators;
+    - how much of the planted area feeds them;
+    - the gaps, by month, with plants to fill each ("Nothing for bees in March: crocus or pussy willow?").
+  - **Small tips:** let a few herbs and leeks flower, leave some dandelions and clover (weeds' `wildlife` notes), and No Mow May for the lawn.
+  - **Logic:** `src/nature/pollinators.ts` (pure), from `Plant.pollinators` (release 15) and the timeline's projections, so the months follow what's actually in flower.
+  - It might grow into its own release;
 - voice logging;
 - water forecast with water butts;
 - next year drafted, with crop rotation (using the plant families from release 15);
