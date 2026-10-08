@@ -273,6 +273,7 @@ export function blobsInUse(s: Kv | null = safe()): { photos: Set<string>; traces
       continue;
     }
     for (const n of g.notes) if (n.photo) photos.add(n.photo);
+    for (const k of g.seeds ?? []) if (k.photo) photos.add(k.photo);
     if (g.trace) traces.add(traceKeyOf(e));
   }
   return { photos, traces };

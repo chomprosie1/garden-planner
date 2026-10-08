@@ -17,6 +17,19 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-09-500-plants',
+    date: '2026-10-09',
+    title: '500 plants, kinds to grow, and a seed tin',
+    items: [
+      'Twice as many plants: 250 more, from kai lan and oca to cobnuts, hawthorn hedges, ferns and fifty more herbs.',
+      'Kinds to grow for 25 favourite crops: cherry, bush and beefsteak tomatoes, first early and maincrop potatoes, sugar snap peas, butternut squash and more. Each has its own months and size, and is on its plant’s card under Kinds to grow.',
+      'A seed tin in Seedlings: keep your packets there, with how many seeds are left, when to sow them by, what they cost and a photo of the packet. It tells you when a packet is getting old.',
+      'Plants you have seed for are marked in Plants, and the plan’s plant tray has an In the seed tin list. Sowing in the shed takes the seeds out of the packet.',
+      'Every plant’s card now says which family it’s in, for rotating crops, and how good its flowers are for bees and other pollinators.',
+    ],
+    tryIt: { label: 'Open the seed tin', view: 'shed' },
+  },
+  {
     id: '2026-10-09-feeding',
     date: '2026-10-09',
     title: 'Feeding',

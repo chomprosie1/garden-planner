@@ -3,7 +3,7 @@
 // log a pick, and what the year's harvest would have cost in the shops.
 
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import { croppingNow, harvestWorth, KEEP_LABEL, minutesText, poundsText, recipesFor, recipesWith, type Kitchen, type Recipe } from '../kitchen/recipes';
+import { cropOf, croppingNow, harvestWorth, KEEP_LABEL, minutesText, poundsText, recipesFor, recipesWith, type Kitchen, type Recipe } from '../kitchen/recipes';
 import { todayIso } from '../model/ids';
 import type { Garden, Plant } from '../model/types';
 import { PlantIcon } from './PlantIcon';
@@ -68,7 +68,7 @@ export function KitchenCard({ garden, plantOf }: { garden: Garden; plantOf: (id:
   const month = Number(today.slice(5, 7));
   const crops = useMemo(() => (kitchen ? croppingNow(garden, plantOf, kitchen, today, weather) : []), [kitchen, garden, plantOf, today, weather]);
   const recipes = useMemo(() => (kitchen ? recipesFor(crops, month, kitchen.recipes) : []), [kitchen, crops, month]);
-  const worth = useMemo(() => (kitchen ? harvestWorth(garden, kitchen, Number(today.slice(0, 4))) : null), [kitchen, garden, today]);
+  const worth = useMemo(() => (kitchen ? harvestWorth(garden, kitchen, Number(today.slice(0, 4)), plantOf) : null), [kitchen, garden, today, plantOf]);
   if (!kitchen || (!crops.length && !worth?.pounds)) return null;
   return (
     <section class="card kitchen-card" aria-labelledby="kitchen-title">
@@ -107,10 +107,11 @@ export function KitchenCard({ garden, plantOf }: { garden: Garden; plantOf: (id:
 /** On a plant's card: how to store it, keep it and use it, and its recipes. Nothing for plants that don't crop. */
 export function PlantKitchen({ plant, plantOf }: { plant: Plant; plantOf: (id: string) => Plant }) {
   const kitchen = useKitchen();
-  const k = kitchen?.crops[plant.id];
-  if (!kitchen || !k) return null;
+  const crop = kitchen ? cropOf(kitchen, plant.id, plantOf) : null;
+  const k = crop ? kitchen!.crops[crop] : undefined;
+  if (!kitchen || !crop || !k) return null;
   const month = new Date().getMonth() + 1;
-  const recipes = recipesWith(plant.id, kitchen.recipes, month).slice(0, 4);
+  const recipes = recipesWith(crop, kitchen.recipes, month).slice(0, 4);
   return (
     <section class="plant-section plant-kitchen" aria-labelledby="plant-kitchen-title">
       <h2 id="plant-kitchen-title">Storing and recipes</h2>
@@ -144,10 +145,11 @@ export function PlantKitchen({ plant, plantOf }: { plant: Plant; plantOf: (id: s
 /** After logging a pick: what to do with it. How it keeps, and a recipe or two. */
 export function KitchenHint({ plantId, plantOf }: { plantId: string; plantOf: (id: string) => Plant }) {
   const kitchen = useKitchen();
-  const k = kitchen?.crops[plantId];
-  if (!kitchen || !k) return null;
+  const crop = kitchen ? cropOf(kitchen, plantId, plantOf) : null;
+  const k = crop ? kitchen!.crops[crop] : undefined;
+  if (!kitchen || !crop || !k) return null;
   const month = new Date().getMonth() + 1;
-  const recipes = recipesWith(plantId, kitchen.recipes, month).slice(0, 2);
+  const recipes = recipesWith(crop, kitchen.recipes, month).slice(0, 2);
   return (
     <div class="kitchen-hint" role="status">
       <p>

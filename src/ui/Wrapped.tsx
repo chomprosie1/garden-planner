@@ -20,7 +20,7 @@ export function WrappedDialog({ garden, plantOf, known, close }: { garden: Garde
   const year = seasonYear(todayIso());
   const kitchen = useKitchen();
   const cards = useMemo(
-    () => wrappedCards(seasonStats(garden, year, known, (id) => plantOf(id).category === 'weed'), garden.name, (id) => plantOf(id).commonName, kitchen ? harvestWorth(garden, kitchen, year).pounds : 0),
+    () => wrappedCards(seasonStats(garden, year, known, (id) => plantOf(id).category === 'weed'), garden.name, (id) => plantOf(id).commonName, kitchen ? harvestWorth(garden, kitchen, year, plantOf).pounds : 0),
     [garden, year, kitchen],
   );
   const [i, setI] = useState(0);

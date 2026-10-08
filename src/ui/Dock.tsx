@@ -129,7 +129,7 @@ const DRAW_TOOLS: { tool: Tool; label: string }[] = [
   { tool: 'other', label: 'Other' },
 ];
 
-type PlantFilter = 'now' | 'mine' | 'list' | 'shed' | 'all' | 'weeds';
+type PlantFilter = 'now' | 'mine' | 'list' | 'tin' | 'shed' | 'all' | 'weeds';
 
 interface Props {
   open: Drawer | null;
@@ -160,19 +160,21 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
     if (!plants) return [];
     const q = query.trim().toLowerCase();
     if (q) return plants.filter((p) => `${p.commonName} ${p.latinName ?? ''}`.toLowerCase().includes(q));
-    if (filter === 'now') return plants.filter((p) => canSowIn(p, month));
+    if (filter === 'now') return plants.filter((p) => !p.varietyOf && canSowIn(p, month));
     if (filter === 'mine') return plants.filter((p) => p.userAdded);
     if (filter === 'list') return [...new Set(garden.wishlist)].map(plantOf);
-    if (filter === 'all') return plants.filter((p) => p.category !== 'weed');
+    if (filter === 'tin') return [...new Set((garden.seeds ?? []).filter((k) => k.count !== 0).map((k) => k.plantId))].map(plantOf);
+    if (filter === 'all') return plants.filter((p) => p.category !== 'weed' && !p.varietyOf);
     if (filter === 'weeds') return plants.filter((p) => p.category === 'weed');
     return [];
-  }, [plants, query, filter, month, garden.wishlist]);
+  }, [plants, query, filter, month, garden.wishlist, garden.seeds]);
   const filters: [PlantFilter, string, number][] = [
-    ['now', 'Sow or plant now', plants ? plants.filter((p) => canSowIn(p, month)).length : 0],
+    ['now', 'Sow or plant now', plants ? plants.filter((p) => !p.varietyOf && canSowIn(p, month)).length : 0],
     ['shed', 'In the shed', trays.length],
     ['list', 'Want to grow', garden.wishlist.length],
+    ['tin', 'In the seed tin', new Set((garden.seeds ?? []).filter((k) => k.count !== 0).map((k) => k.plantId)).size],
     ['mine', 'Your plants', plants ? plants.filter((p) => p.userAdded).length : 0],
-    ['all', 'All plants', plants?.length ?? 0],
+    ['all', 'All plants', plants ? plants.filter((p) => p.category !== 'weed' && !p.varietyOf).length : 0],
     ['weeds', 'Weeds', plants ? plants.filter((p) => p.category === 'weed').length : 0],
   ];
 

@@ -1,6 +1,6 @@
-import { monthRanges } from '../library/library';
+import { monthRanges, varietiesOf } from '../library/library';
 import { growthText } from '../lifecycle/growth';
-import type { Light, Plant, Sowing } from '../model/types';
+import type { Light, Plant, Pollinators, Sowing } from '../model/types';
 import { formatLength } from '../canvas/viewport';
 import { Icon } from './icons';
 import { PlantIcon } from './PlantIcon';
@@ -37,6 +37,30 @@ export const CATEGORY_LABEL: Record<Plant['category'], string> = {
   weed: 'Weed',
 };
 
+/** Everyday names for the families crop rotation and most gardeners talk about. */
+const FAMILY_NAME: Record<string, string> = {
+  Brassicaceae: 'the cabbage family',
+  Fabaceae: 'the pea and bean family',
+  Solanaceae: 'the potato and tomato family',
+  Amaryllidaceae: 'the onion family',
+  Apiaceae: 'the carrot family',
+  Cucurbitaceae: 'the squash family',
+  Amaranthaceae: 'the beet and spinach family',
+  Asteraceae: 'the daisy family',
+  Lamiaceae: 'the mint family',
+  Rosaceae: 'the rose family',
+  Poaceae: 'the grass family',
+  Ericaceae: 'the heather family',
+};
+
+/** "Good for bees and hoverflies, June to August." */
+export function pollinatorText(x: Pollinators): string {
+  if (x.rating === 'none') return 'Little for pollinators: picked before it flowers, or flowers they can’t get into.';
+  const who = x.visitors ?? [];
+  const list = who.length > 1 ? `${who.slice(0, -1).join(', ')} and ${who.at(-1)}` : who[0];
+  return `${x.rating === 'good' ? 'Good' : 'Some food'} for ${list}, ${monthRanges(x.months ?? [], true).replaceAll('–', ' to ')}.`;
+}
+
 const LETTERS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 
 /** A row of twelve months with the active ones filled. Screen readers get the range in words. */
@@ -71,6 +95,8 @@ interface Props {
   /** Plantings of this plant on the plan, to jump to. */
   where?: { id: string; label: string }[];
   onShow?: (plantingId: string) => void;
+  /** Packets in your seed tin for it, in words. */
+  seeds?: string[];
   /** Opens the one-at-a-time plant check at this plant. */
   onCheck?: () => void;
   /** Show whether the notes are checked, the draft warning and the source: for whoever keeps the plant data. */
@@ -78,11 +104,13 @@ interface Props {
   month: number;
 }
 
-export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPlant, sowing, where, onShow, onCheck, month, editor = false }: Props) {
+export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPlant, sowing, where, onShow, onCheck, month, seeds, editor = false }: Props) {
   const app = useApp();
   const c = p.conditions;
   const s = p.size;
   const growth = growthText(p);
+  const parent = p.varietyOf ? byId.get(p.varietyOf) : undefined;
+  const kinds = p.varietyOf ? [] : varietiesOf([...byId.values()], p.id);
   const neighbours = (ids: string[]) =>
     ids.map((id) => byId.get(id)).filter((x): x is Plant => !!x);
 
@@ -97,6 +125,14 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
             {p.commonName}
           </h1>
           {p.latinName && <p class="latin">{p.latinName}</p>}
+          {parent && (
+            <p class="small variety-of">
+              A kind of{' '}
+              <button type="button" class="link-btn" onClick={() => open(parent.id)}>
+                {parent.commonName.toLowerCase()}
+              </button>
+            </p>
+          )}
         </div>
         <div class="badges">
           <span class="badge">{CATEGORY_LABEL[p.category]}</span>
@@ -168,6 +204,13 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
         </p>
       )}
 
+      {seeds && seeds.length > 0 && (
+        <p class="seed-have">
+          <span class="muted">In your seed tin: </span>
+          {seeds.join('; ')}.
+        </p>
+      )}
+
       <section class="plant-section">
         <h2>At a glance</h2>
         <dl class="glance">
@@ -214,6 +257,21 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
               )}
             </dd>
           </div>
+          {p.family && (
+            <div>
+              <dt>Family</dt>
+              <dd>
+                {p.family}
+                {FAMILY_NAME[p.family] ? `, ${FAMILY_NAME[p.family]}` : ''}
+              </dd>
+            </div>
+          )}
+          {p.pollinators && (
+            <div>
+              <dt>Pollinators</dt>
+              <dd>{pollinatorText(p.pollinators)}</dd>
+            </div>
+          )}
           {(s.heightMm || s.spreadMm) && (
             <div>
               <dt>Size</dt>
@@ -255,6 +313,22 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
                 <strong>{growth.label}.</strong> {growth.text}
               </li>
             )}
+          </ul>
+        </section>
+      )}
+
+      {kinds.length > 0 && (
+        <section class="plant-section" aria-labelledby="plant-kinds-title">
+          <h2 id="plant-kinds-title">Kinds to grow</h2>
+          <ul class="plain-list kinds-list">
+            {kinds.map((k) => (
+              <li key={k.id}>
+                <button type="button" class="link-btn" onClick={() => open(k.id)}>
+                  {k.variety}
+                </button>
+                {k.lookOutFor?.[0] && k.lookOutFor[0] !== p.lookOutFor?.[0] ? <span class="muted">: {k.lookOutFor[0]}</span> : null}
+              </li>
+            ))}
           </ul>
         </section>
       )}

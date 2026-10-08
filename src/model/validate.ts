@@ -9,6 +9,8 @@ import {
   EDGINGS,
   FEED_NEEDS,
   FEED_TIMES,
+  POLLINATOR_KINDS,
+  POLLINATOR_RATINGS,
   LEAF_SHAPES,
   LIGHT_LEVELS,
   MATERIALS,
@@ -154,6 +156,20 @@ export function validateGarden(g: unknown): string[] {
 
   const monthDay = (v: unknown) => v === undefined || (isStr(v) && /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(v));
   need(monthDay(g.lastFrost) && monthDay(g.firstFrost), 'frost dates must be MM-DD.');
+  if (g.seeds !== undefined) {
+    if (!Array.isArray(g.seeds)) errors.push('seeds must be a list.');
+    else
+      g.seeds.forEach((k, i) => {
+        const at = `seeds[${i}]`;
+        if (!isObject(k)) return errors.push(`${at} is not an object.`);
+        need(isStr(k.id) && isStr(k.plantId) && isStr(k.addedOn), `${at} needs an id, a plant and the date it was added.`);
+        need(k.name === undefined || (isStr(k.name) && k.name.length <= 80), `${at}.name must be text.`);
+        need(k.count === undefined || (Number.isInteger(k.count) && (k.count as number) >= 0), `${at}.count must be a whole number.`);
+        need(k.sowBy === undefined || (isStr(k.sowBy) && /^\d{4}-(0[1-9]|1[0-2])$/.test(k.sowBy)), `${at}.sowBy must be a year and month.`);
+        need(k.photo === undefined || (isStr(k.photo) && /^[\w-]{1,40}$/.test(k.photo)), `${at}.photo must be a photo's id.`);
+        need(k.price === undefined || (isNum(k.price) && k.price >= 0 && k.price < 1000), `${at}.price must be in pounds.`);
+      });
+  }
   need(g.feedShelf === undefined || (Array.isArray(g.feedShelf) && g.feedShelf.every((f) => isStr(f) && /^[a-z0-9-]{1,40}$/.test(f))), 'feedShelf must be a list of feed ids.');
   const placeIds = new Set<string>();
   if (g.shedPlaces !== undefined) {
@@ -282,6 +298,19 @@ export function validatePlant(p: unknown): string[] {
       'weed needs how it spreads (seed, roots or both) and how to remove it.',
     );
   need(p.category !== 'weed' || p.weed !== undefined, 'a weed needs its weed details.');
+  if (p.family !== undefined) need(isStr(p.family) && /^[A-Z][a-z]+aceae$/.test(p.family), 'family must be a botanical family, such as Brassicaceae.');
+  if (p.pollinators !== undefined) {
+    const x = p.pollinators;
+    need(
+      isObject(x) &&
+        oneOf(POLLINATOR_RATINGS, x.rating) &&
+        (x.rating === 'none'
+          ? x.visitors === undefined && x.months === undefined
+          : Array.isArray(x.visitors) && x.visitors.length > 0 && x.visitors.every((v) => oneOf(POLLINATOR_KINDS, v)) && isMonths(x.months) && (x.months as number[]).length > 0),
+      'pollinators need a rating (none, some or good), and for some or good, who visits and the months.',
+    );
+  }
+  if (p.varietyOf !== undefined) need(isStr(p.varietyOf) && isStr(p.variety) && (p.variety as string).trim().length > 0, 'a variety needs the plant it is a variety of and its name.');
   if (p.feeding !== undefined) {
     const f = p.feeding;
     need(

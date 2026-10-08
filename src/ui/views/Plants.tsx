@@ -16,6 +16,8 @@ import { Icon } from '../icons';
 import { CATEGORY_LABEL, LIGHT_LABEL, PlantCard } from '../PlantCard';
 import { PlantForm } from '../PlantForm';
 import { PlantIcon } from '../PlantIcon';
+import { packetsFor, packetText } from '../../planting/seeds';
+import { unknownPlant } from '../../planting/place';
 
 interface Props {
   store: Store;
@@ -52,6 +54,8 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
     clearOpen?.();
   }, [openId]);
   const byId = useMemo(() => new Map(plants.map((p) => [p.id, p])), [plants]);
+  const plantOf = (id: string) => byId.get(id) ?? unknownPlant(id);
+  const hasSeed = (p: Plant) => !!garden.seeds?.length && packetsFor(garden, p, plantOf).length > 0;
   const [wantOnly, setWantOnly] = useState(false);
   const results = useMemo(() => {
     const found = filterPlants(plants, filter);
@@ -147,6 +151,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
               <span class="plant-row-meta small muted">
                 {LIGHT_LABEL[p.conditions.light]} · {formatLength(p.size.spacingMm)}
               </span>
+              {hasSeed(p) && <span class="badge badge-seed">Seed</span>}
               {p.userAdded ? <span class="badge badge-own">Yours</span> : editor && !p.verified && <span class="dot-warn" title="Not yet checked" aria-label="Not yet checked" />}
             </button>
             <Heart store={store} garden={garden} plant={p} />
@@ -171,6 +176,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
         open={(id) => setPanel({ kind: 'card', id })}
         onPlant={() => app.plantIt(current.id)}
         where={whereGrowing(current.id)}
+        seeds={packetsFor(garden, current, plantOf).map((k) => packetText(k, plantOf(k.plantId)))}
         onShow={(plantingId) => app.showOnPlan({ type: 'planting', id: plantingId })}
         editor={editor}
         {...(editor && checkPlant && !current.userAdded && !current.verified ? { onCheck: () => checkPlant(current.id) } : {})}

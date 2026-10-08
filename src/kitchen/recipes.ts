@@ -54,6 +54,13 @@ export interface Kitchen {
   recipes: Recipe[];
 }
 
+/** The crop a plant's kitchen notes and recipes are under: its own id, or for a variety, its parent's. */
+export function cropOf(kitchen: Kitchen, id: string, plantOf?: (id: string) => Plant): string | null {
+  if (kitchen.crops[id]) return id;
+  const parent = plantOf?.(id).varietyOf;
+  return parent && kitchen.crops[parent] ? parent : null;
+}
+
 /** How far ahead "this week" looks for crops coming ready, and how far back a pick counts. */
 const AHEAD_DAYS = 6;
 const PICKED_DAYS = 10;
@@ -65,10 +72,11 @@ const PICKED_DAYS = 10;
 export function croppingNow(g: Garden, plantOf: (id: string) => Plant, kitchen: Kitchen, today: string, weather: Weather | null = null): string[] {
   const out: string[] = [];
   const add = (id: string) => {
-    if (kitchen.crops[id] && !out.includes(id)) out.push(id);
+    const crop = cropOf(kitchen, id, plantOf);
+    if (crop && !out.includes(crop)) out.push(crop);
   };
   for (const pl of g.plantings) {
-    if (pl.removedOn || !kitchen.crops[pl.plantId]) continue;
+    if (pl.removedOn || !cropOf(kitchen, pl.plantId, plantOf)) continue;
     const picked = (pl.picks ?? []).some((k) => k.date <= today && dayNumber(today) - dayNumber(k.date) <= PICKED_DAYS);
     if (picked) {
       add(pl.plantId);
@@ -123,9 +131,10 @@ export interface CropWorth {
 }
 
 /** What a year's picks would have cost in the shops: in all, and crop by crop, most first. */
-export function harvestWorth(g: Garden, kitchen: Kitchen, year: number): { pounds: number; crops: CropWorth[] } {
+export function harvestWorth(g: Garden, kitchen: Kitchen, year: number, plantOf?: (id: string) => Plant): { pounds: number; crops: CropWorth[] } {
+  const price = (id: string) => kitchen.crops[cropOf(kitchen, id, plantOf) ?? '']?.kg ?? 0;
   const crops = picksIn(g, year)
-    .map((t) => ({ plantId: t.plantId, grams: t.grams, pounds: (t.grams / 1000) * (kitchen.crops[t.plantId]?.kg ?? 0) }))
+    .map((t) => ({ plantId: t.plantId, grams: t.grams, pounds: (t.grams / 1000) * price(t.plantId) }))
     .filter((c) => c.pounds > 0)
     .sort((a, b) => b.pounds - a.pounds);
   return { pounds: crops.reduce((a, c) => a + c.pounds, 0), crops };

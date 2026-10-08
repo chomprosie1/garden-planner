@@ -7,16 +7,57 @@ import { newUserPlantId } from '../model/ids';
 
 let cache: Promise<Plant[]> | null = null;
 
-/** Every library plant, loaded once. */
+/** Every library plant, with the varieties of the most-grown crops, loaded once. */
 export function loadLibrary(): Promise<Plant[]> {
   if (!cache) {
     const files = import.meta.glob<Plant[]>('../../data/plants/*.json', { import: 'default' });
-    cache = Promise.all(Object.values(files).map((load) => load())).then((lists) =>
-      lists.flat().sort((a, b) => a.commonName.localeCompare(b.commonName)),
+    const varieties = import('../../data/varieties.json').then((m) => m.default as VarietyEntry[]);
+    cache = Promise.all([Promise.all(Object.values(files).map((load) => load())), varieties]).then(([lists, kinds]) =>
+      withVarieties(lists.flat(), kinds).sort((a, b) => a.commonName.localeCompare(b.commonName)),
     );
   }
   return cache;
 }
+
+// ---------- Varieties ----------
+
+/**
+ * A variety as written in data/varieties.json: its own id and name, the plant it's a variety of, and only what
+ * differs. Conditions, size, drawing, cropping, growth and stage advice are merged a level deep; the rest replaces.
+ */
+export type VarietyEntry = Omit<Partial<Plant>, 'conditions' | 'size' | 'art' | 'cropping' | 'growth'> & {
+  id: string;
+  varietyOf: string;
+  variety: string;
+  commonName: string;
+  conditions?: Partial<Plant['conditions']>;
+  size?: Partial<Plant['size']>;
+  art?: Partial<NonNullable<Plant['art']>>;
+  cropping?: Partial<NonNullable<Plant['cropping']>>;
+  growth?: Partial<NonNullable<Plant['growth']>>;
+};
+
+const MERGED = ['conditions', 'size', 'art', 'cropping', 'growth', 'stageTips'] as const;
+
+/** A variety: its parent, with what it says otherwise. Always library data, never checked until it is. */
+export function mergeVariety(parent: Plant, v: VarietyEntry): Plant {
+  const out = { ...parent, ...v, verified: false, userAdded: false } as Plant;
+  delete out.lastChecked;
+  const loose = out as unknown as Record<string, unknown>;
+  for (const k of MERGED) if (v[k] && parent[k]) loose[k] = { ...(parent[k] as object), ...(v[k] as object) };
+  return out;
+}
+
+/** The library's plants with their varieties added. A variety whose parent is missing is left out. */
+export function withVarieties(species: Plant[], varieties: VarietyEntry[]): Plant[] {
+  const byId = new Map(species.map((p) => [p.id, p]));
+  return [...species, ...varieties.flatMap((v) => (byId.has(v.varietyOf) ? [mergeVariety(byId.get(v.varietyOf)!, v)] : []))];
+}
+
+export const isVariety = (p: Plant) => !!p.varietyOf;
+
+/** A plant's varieties, in order of name. */
+export const varietiesOf = (plants: Plant[], id: string) => plants.filter((p) => p.varietyOf === id).sort((a, b) => a.commonName.localeCompare(b.commonName));
 
 /** Library and your own plants together; your own come first when names tie. */
 export function allPlants(library: Plant[], userPlants: Plant[]): Plant[] {
@@ -46,11 +87,13 @@ export function filterPlants(plants: Plant[], f: PlantFilter): Plant[] {
     if (f.category !== 'all' && p.category !== f.category) return false;
     // Weeds are only listed when you ask for them: by the Weeds filter, or by name.
     if (f.category === 'all' && p.category === 'weed' && words.length === 0) return false;
+    // Varieties are listed on their plant's card, and found by name.
+    if (p.varietyOf && words.length === 0) return false;
     if (f.light !== 'all' && p.conditions.light !== f.light) return false;
     if (f.sowMonth !== null && !canSowIn(p, f.sowMonth)) return false;
     if (f.checkedOnly && !p.verified && !p.userAdded) return false;
     if (words.length === 0) return true;
-    const hay = fold(`${p.commonName} ${p.latinName ?? ''}`);
+    const hay = fold(`${p.commonName} ${p.variety ?? ''} ${p.latinName ?? ''}`);
     return words.every((w) => hay.includes(w));
   });
 }

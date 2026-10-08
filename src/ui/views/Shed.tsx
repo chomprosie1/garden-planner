@@ -46,6 +46,8 @@ import { useIsPhone } from '../hooks';
 import { PlantIcon } from '../PlantIcon';
 import { TrayArt } from '../TrayArt';
 import { FeedShelf } from '../FeedShelf';
+import { SeedTin } from '../SeedTin';
+import { packetsFor, packetText, seedsOf, useSeeds } from '../../planting/seeds';
 import { usePlants } from '../usePlants';
 
 const TRAY_DRAG = 'application/x-garden-tray';
@@ -61,9 +63,10 @@ interface Props {
   clearSow?: () => void;
 }
 
-type ShedPage = 'trays' | 'feeds';
+type ShedPage = 'trays' | 'seeds' | 'feeds';
 const SHED_PAGES: [ShedPage, string][] = [
   ['trays', 'Trays'],
+  ['seeds', 'Seed tin'],
   ['feeds', 'Feed shelf'],
 ];
 /** The part of the shed you were last in, while the app's open. */
@@ -140,6 +143,7 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
         ))}
       </div>
 
+      {page === 'seeds' && plants && <SeedTin store={store} garden={garden} plants={plants} plantOf={plantOf} />}
       {page === 'feeds' && plants && <FeedShelf store={store} garden={garden} plantOf={plantOf} />}
 
       {page === 'trays' && (
@@ -174,6 +178,8 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
           {sowing !== null && plants && (
             <SowForm
               plants={plants}
+              garden={garden}
+              plantOf={plantOf}
               places={places}
               sunOf={(id) => {
                 const pl = places.find((x) => x.id === id);
@@ -188,7 +194,9 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
                 commit((g) => {
                   const [next, id] = sowInTray(g, plant, o);
                   made = id;
-                  return next;
+                  // Seeds sown come out of the packet in the tin, if there is one.
+                  const packet = packetsFor(next, plant, plantOf).find((k) => k.count !== undefined);
+                  return packet ? useSeeds(next, packet.id, o.count) : next;
                 });
                 setSowing(null);
                 if (made) setSelected(made);
@@ -477,6 +485,8 @@ function AddPlace({ onAdd }: { onAdd: (kind: ShedPlaceKind) => void }) {
 // ---------- Sowing ----------
 
 interface SowProps {
+  garden: Garden;
+  plantOf: (id: string) => Plant;
   plants: Plant[];
   places: ShedPlace[];
   /** A place's hours of sun this month, when it faces a way you've said. */
@@ -489,16 +499,18 @@ interface SowProps {
   onCancel: () => void;
 }
 
-function SowForm({ plants, places, sunOf, sunniest, month: sunMonth, initial, onSow, onCancel }: SowProps) {
+function SowForm({ plants, garden, plantOf, places, sunOf, sunniest, month: sunMonth, initial, onSow, onCancel }: SowProps) {
   const month = new Date().getMonth() + 1;
   const groups = useMemo(() => {
     const cover = plants.filter(sownUnderCover);
+    const tin = new Set(seedsOf(garden).filter((k) => k.count !== 0).map((k) => k.plantId));
     return [
+      { label: 'From your seed tin', list: plants.filter((p) => tin.has(p.id)) },
       { label: 'Sow under cover now', list: cover.filter((p) => p.sowing!.some((s) => s.method !== 'direct' && s.months.includes(month))) },
       { label: 'Sow under cover later', list: cover.filter((p) => !p.sowing!.some((s) => s.method !== 'direct' && s.months.includes(month))) },
       { label: 'Other plants', list: plants.filter((p) => !sownUnderCover(p)) },
     ];
-  }, [plants]);
+  }, [plants, garden]);
   const [plantId, setPlantId] = useState(initial ?? groups[0]!.list[0]?.id ?? plants[0]?.id ?? '');
   const plant = plants.find((p) => p.id === plantId);
   const [container, setContainer] = useState<Container>(plant && plant.size.spreadMm && plant.size.spreadMm >= 400 ? 'pot-9cm' : 'module-tray');
@@ -541,6 +553,9 @@ function SowForm({ plants, places, sunOf, sunniest, month: sunMonth, initial, on
           </select>
         </label>
       </div>
+      {plant && packetsFor(garden, plant, plantOf).length > 0 && (
+        <p class="small seed-have">In your seed tin: {packetsFor(garden, plant, plantOf).map((k) => packetText(k, plantOf(k.plantId))).join('; ')}.</p>
+      )}
       {plant && (
         <p class="muted small">
           {note ? `Sow under cover ${note.months.length ? `in ${monthNames(note.months)}` : ''}${note.depthMm ? `, about ${note.depthMm >= 10 ? `${note.depthMm / 10} cm` : `${note.depthMm} mm`} deep` : ''}. ${note.notes ?? ''}` : 'Usually sown outside or bought as plants, but you can start it in the shed.'}

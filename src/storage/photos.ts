@@ -48,8 +48,8 @@ export async function photoUrl(id: string): Promise<string | null> {
 export const loadPhoto = (id: string) => loadBlob(PREFIX + id);
 export const putPhoto = (id: string, blob: Blob) => saveBlob(PREFIX + id, blob);
 
-/** The photos the garden's notes use. */
-export const photoIds = (g: Garden): Set<string> => new Set(g.notes.flatMap((n) => (n.photo ? [n.photo] : [])));
+/** The photos the garden uses: on its notes, and of the seed packets in its tin. */
+export const photoIds = (g: Garden): Set<string> => new Set([...g.notes.flatMap((n) => (n.photo ? [n.photo] : [])), ...(g.seeds ?? []).flatMap((p) => (p.photo ? [p.photo] : []))]);
 
 /** Which kept blobs no garden uses: photos no note has, and trace photos of gardens that are gone. */
 export function unusedBlobs(keys: string[], used: { photos: Set<string>; traces: Set<string> }): string[] {

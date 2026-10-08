@@ -33,6 +33,27 @@ export interface Garden {
   firstFrost?: string;
   /** Feeds you have in, by id from data/feeds.json. */
   feedShelf?: string[];
+  /** The seed tin: packets of seed you have. */
+  seeds?: SeedPacket[];
+}
+
+/** A packet of seed in the tin. */
+export interface SeedPacket {
+  id: string;
+  /** The plant, or a variety of it. */
+  plantId: string;
+  /** The name on the packet: "Sungold". */
+  name?: string;
+  /** Roughly how many seeds are left. */
+  count?: number;
+  /** Sow by, "YYYY-MM", from the packet. */
+  sowBy?: string;
+  /** A photo of the packet, by id; the picture itself stays in this browser. */
+  photo?: string;
+  /** What the packet cost, in pounds. */
+  price?: number;
+  /** When it went in the tin, ISO date. */
+  addedOn: string;
 }
 
 export const SHED_PLACE_KINDS = ['shelves', 'windowsill', 'propagator', 'greenhouse-bench', 'cold-frame'] as const;
@@ -306,6 +327,14 @@ export interface Plant {
   weed?: WeedInfo;
   /** How hungry it is, which feeds it likes when, and what to keep away from it. */
   feeding?: Feeding;
+  /** Its botanical family, "Brassicaceae": plants of a family share pests and diseases, which crop rotation keeps apart. */
+  family?: string;
+  /** How good its flowers are for bees and other pollinators, who visits, and when. */
+  pollinators?: Pollinators;
+  /** A variety of another plant, by its id: it has everything of that plant's except what it says otherwise. */
+  varietyOf?: string;
+  /** The variety's name: "Cherry", "First early". */
+  variety?: string;
   image?: { url: string; credit: string; licence: string; sourceUrl: string }; // PD, CC0, CC BY or CC BY-SA only
   source?: string;
   lastChecked?: string; // ISO date
@@ -355,6 +384,18 @@ export interface Feeding {
   steps: FeedStep[];
   /** What to keep away from it, and why: "Fresh manure: the roots fork." */
   avoid?: string[];
+}
+
+/** How good a plant's flowers are for pollinators: none (picked before flowering, or flowers they can't get into), some, or good. */
+export const POLLINATOR_RATINGS = ['none', 'some', 'good'] as const;
+export const POLLINATOR_KINDS = ['bees', 'hoverflies', 'butterflies', 'moths'] as const;
+
+export interface Pollinators {
+  rating: (typeof POLLINATOR_RATINGS)[number];
+  /** Who visits most. Absent when the rating is none. */
+  visitors?: (typeof POLLINATOR_KINDS)[number][];
+  /** The months it's in flower for them. Absent when the rating is none. */
+  months?: number[];
 }
 
 export interface Growth {

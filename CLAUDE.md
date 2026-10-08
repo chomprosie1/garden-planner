@@ -18,7 +18,7 @@ This is still a proof of concept. Test what a change could break, not everything
    - `src/lifecycle/stages.ts` and `src/lifecycle/projection.ts`
 4. **Always:**
    - words on screen changed: run `tests/words.test.ts`;
-   - `data/plants/*.json` changed: run `tests/plants.test.ts` and `tests/art.test.ts`;
+   - `data/plants/*.json` or `data/varieties.json` changed: run `tests/plants.test.ts`, `tests/art.test.ts`, `tests/varieties.test.ts` and `tests/feeding.test.ts`;
    - a schema change: add a migration test;
    - colours changed: run `tests/contrast.test.ts`.
 5. **End of a release:** one full `npm test` and `npm run build` (CI runs both again on push). Take screenshots in a 390 px frame only of the screens the release changed. Skip the browser for logic-only changes.
@@ -35,9 +35,11 @@ This is still a proof of concept. Test what a change could break, not everything
 | `canvas/*` (hit, snap, viewport, render) | plan, sun, usability |
 | `planting/place`, `planting/fill`, `planting/rules` | planting, arrange, start, jobs, drawing |
 | `planting/kits`, `planting/batches`, `planting/harvest` | ux-first-minute, weather, ux-daily, ux-delight |
-| `library/*`, `data/plants/*.json` | plants, art, usability |
+| `library/*`, `data/plants/*.json`, `data/varieties.json` | plants, art, three, varieties, feeding, kitchen, usability |
 | `art/*` | art |
-| `calendar/jobs` | jobs, stages, shed, microclimate, weather |
+| `calendar/jobs` | jobs, stages, shed, microclimate, weather, feeding |
+| `feeding/*`, `data/feeds.json` | feeding, stages, on-track |
+| `planting/seeds` | varieties |
 | `calendar/week` | ux-daily, ux-delight |
 | `lifecycle/stages`, `lifecycle/happened` | stages, art, warmth, ux-daily |
 | `lifecycle/shed` | shed, microclimate, warmth |

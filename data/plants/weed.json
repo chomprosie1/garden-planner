@@ -30,6 +30,8 @@
       "flowering": true,
       "perennial": true
     },
+    "family": "Asteraceae",
+    "pollinators": { "rating": "good", "visitors": ["bees", "hoverflies"], "months": [3, 4, 5, 6] },
     "art": {
       "form": "rosette",
       "leaf": "lobed",
@@ -74,6 +76,8 @@
       "flowering": true,
       "perennial": true
     },
+    "family": "Convolvulaceae",
+    "pollinators": { "rating": "some", "visitors": ["bees"], "months": [6, 7, 8, 9] },
     "art": {
       "form": "climber",
       "leaf": "broad",
@@ -117,6 +121,8 @@
       "flowering": true,
       "perennial": true
     },
+    "family": "Apiaceae",
+    "pollinators": { "rating": "good", "visitors": ["hoverflies", "bees"], "months": [5, 6, 7] },
     "art": {
       "form": "clump",
       "leaf": "lobed",
@@ -160,6 +166,8 @@
       "flowering": true,
       "perennial": true
     },
+    "family": "Poaceae",
+    "pollinators": { "rating": "none" },
     "art": {
       "form": "grass",
       "leaf": "strap",
@@ -201,6 +209,8 @@
       "flowering": true,
       "perennial": true
     },
+    "family": "Ranunculaceae",
+    "pollinators": { "rating": "some", "visitors": ["hoverflies", "bees"], "months": [5, 6, 7, 8] },
     "art": {
       "form": "sprawl",
       "leaf": "lobed",
@@ -245,6 +255,8 @@
       "flowering": true,
       "perennial": true
     },
+    "family": "Urticaceae",
+    "pollinators": { "rating": "none" },
     "art": {
       "form": "upright",
       "leaf": "broad",
@@ -286,6 +298,8 @@
       "flowering": true,
       "perennial": true
     },
+    "family": "Rosaceae",
+    "pollinators": { "rating": "good", "visitors": ["bees", "butterflies"], "months": [6, 7, 8] },
     "art": {
       "form": "shrub",
       "leaf": "lobed",
@@ -331,6 +345,8 @@
       "flowering": true,
       "perennial": true
     },
+    "family": "Polygonaceae",
+    "pollinators": { "rating": "none" },
     "art": {
       "form": "rosette",
       "leaf": "broad",
@@ -383,6 +399,8 @@
       "flowering": true,
       "perennial": false
     },
+    "family": "Brassicaceae",
+    "pollinators": { "rating": "some", "visitors": ["hoverflies", "bees"], "months": [2, 3, 4, 5, 6, 7, 8, 9, 10] },
     "art": {
       "form": "rosette",
       "leaf": "round",
@@ -434,6 +452,8 @@
       "flowering": true,
       "perennial": false
     },
+    "family": "Asteraceae",
+    "pollinators": { "rating": "some", "visitors": ["hoverflies", "bees"], "months": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] },
     "art": {
       "form": "upright",
       "leaf": "feathery",
@@ -485,6 +505,8 @@
       "flowering": true,
       "perennial": false
     },
+    "family": "Caryophyllaceae",
+    "pollinators": { "rating": "some", "visitors": ["hoverflies", "bees"], "months": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] },
     "art": {
       "form": "sprawl",
       "leaf": "round",
@@ -530,6 +552,8 @@
       "flowering": true,
       "perennial": true
     },
+    "family": "Equisetaceae",
+    "pollinators": { "rating": "none" },
     "art": {
       "form": "upright",
       "leaf": "needle",
@@ -571,6 +595,8 @@
       "flowering": true,
       "perennial": true
     },
+    "family": "Fabaceae",
+    "pollinators": { "rating": "good", "visitors": ["bees"], "months": [6, 7, 8, 9] },
     "art": {
       "form": "sprawl",
       "leaf": "round",
@@ -619,6 +645,8 @@
       "flowering": true,
       "perennial": true
     },
+    "family": "Asteraceae",
+    "pollinators": { "rating": "some", "visitors": ["hoverflies", "bees"], "months": [3, 4, 5, 6, 7, 8, 9, 10] },
     "art": {
       "form": "rosette",
       "leaf": "round",
@@ -664,6 +692,8 @@
       "flowering": true,
       "perennial": false
     },
+    "family": "Geraniaceae",
+    "pollinators": { "rating": "some", "visitors": ["bees"], "months": [5, 6, 7, 8, 9] },
     "art": {
       "form": "mound",
       "leaf": "lobed",
@@ -708,6 +738,8 @@
       "flowering": true,
       "perennial": true
     },
+    "family": "Onagraceae",
+    "pollinators": { "rating": "good", "visitors": ["bees"], "months": [6, 7, 8, 9] },
     "art": {
       "form": "upright",
       "leaf": "strap",
@@ -760,6 +792,8 @@
       "flowering": true,
       "perennial": false
     },
+    "family": "Brassicaceae",
+    "pollinators": { "rating": "some", "visitors": ["hoverflies", "bees"], "months": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] },
     "art": {
       "form": "rosette",
       "leaf": "lobed",
@@ -807,6 +841,8 @@
       "flowering": true,
       "perennial": false
     },
+    "family": "Amaranthaceae",
+    "pollinators": { "rating": "none" },
     "art": {
       "form": "upright",
       "leaf": "broad",
@@ -853,6 +889,8 @@
       "flowering": true,
       "perennial": true
     },
+    "family": "Oxalidaceae",
+    "pollinators": { "rating": "some", "visitors": ["bees"], "months": [5, 6, 7, 8, 9, 10] },
     "art": {
       "form": "sprawl",
       "leaf": "round",
@@ -904,6 +942,8 @@
       "flowering": true,
       "perennial": false
     },
+    "family": "Poaceae",
+    "pollinators": { "rating": "none" },
     "art": {
       "form": "grass",
       "leaf": "strap",
@@ -945,6 +985,8 @@
       "flowering": true,
       "perennial": true
     },
+    "family": "Ranunculaceae",
+    "pollinators": { "rating": "some", "visitors": ["bees"], "months": [2, 3, 4, 5] },
     "art": {
       "form": "rosette",
       "leaf": "round",

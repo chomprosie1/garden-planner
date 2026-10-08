@@ -829,7 +829,7 @@ Decided:
 | 12. A new look | 12a mock-ups (you choose) → 12b build: a phone-first redesign, This week as cards, and the new voice | ~3 wk | Built 8 Oct 2026, without mock-ups |
 | 13. From plot to plate | Recipes, storing and preserving, a kitchen card for this week, harvest worth in £ | ~2 wk + writing | Built 8 Oct 2026 |
 | 14. Feeding | Fertiliser types, prices, what each plant likes, feed jobs | ~1.5 wk | Built 9 Oct 2026 |
-| 15. 500 plants, and varieties | +250 plants in batches of 50, a variety model, the seed tin | ~4 wk of data (alongside 13–14) | |
+| 15. 500 plants, and varieties | +250 plants in batches of 50, a variety model, the seed tin | ~4 wk of data (alongside 13–14) | Built 9 Oct 2026 |
 | 16. Inspire me | Tap an empty area, give a budget, a time and effort; it suggests what would grow (folds in "What grows here?") | ~1.5 wk | |
 | 17. Walk through it | First-person walking in 3D, leaves you can recognise, frost and lawn by season | ~2 wk | |
 | 18. Later from the review | Nature calendar and how good the garden is for pollinators, voice logging, water forecast, next year drafted (crop rotation), same-spot timelapse | Split as needed | |
@@ -1081,20 +1081,45 @@ Tests: new `tests/feeding.test.ts`:
 - **Advice:** the stage tips and running behind.
 - **The shelf:** a season's feeding and its cost, the shelf and what stands in, and the schema 15 migration.
 
-### Release 15 — 500 plants, and varieties (planned)
-- **Model:**
-  - `Plant.varietyOf` (a parent id) and `Plant.variety` (the variety's name);
-  - a variety inherits everything from its parent and overrides only what differs: days to crop, height, habit (cordon or bush), sowing months, hardiness, disease resistance.
-  - `src/library/library.ts` merges them.
-  - Plantings can use a variety id; the parent stays valid. Schema 15 if plantings need it, with a migration test.
-- **Data:**
-  - +250 species in five batches of 50 (vegetables and salads, herbs, fruit, flowers and perennials, shrubs and climbers);
-  - 3–6 varieties for the 25 most-grown crops, e.g. tomatoes (cordon, bush, cherry, beefsteak), potatoes (first early, second early, maincrop), peas (early, maincrop, mangetout);
-  - each with art, germination days, growth days, winter habit, feeding and kitchen data, and a plant family for crop rotation;
-  - `Plant.pollinators` for every plant, old and new: how good its flowers are for pollinators (none, some or good), who visits (bees, hoverflies, butterflies, moths) and its flowering months, for release 18;
-  - all unchecked.
-- **Seed tin** (from the review): your seed packets (variety, how many, sow-by date, a photo), "You have seeds for this" in suggestions, and a price per packet to feed Inspire me.
-- **Tests:** plants, art and three (every plant draws); variety inheritance and override tests.
+### Release 15 — 500 plants, and varieties (as built, schema 16)
+- **Data** (all drafted and unchecked):
+  - **+250 species** in five batches of 50, appended to `data/plants/*.json` in their one-key-a-line style:
+    - **vegetables and salads:** oriental greens (kai lan, komatsuna, tatsoi, choy sum), perennial vegetables (Good King Henry, perennial kale and broccoli, sea beet, Turkish rocket, Babington leek, walking onion), Andean roots (oca, yacon, ulluco, mashua), salads (purslane, ice plant, agretti, buck's horn plantain, wild rocket), greenhouse crops (habanero, watermelon, bitter melon, luffa, pepino) and more;
+    - **herbs:** more basils and mints, sweet cicely, angelica, caraway, Vietnamese coriander, mitsuba, wild garlic, comfrey (for comfrey tea), saffron, liquorice, and herbs grown for the garden and the bees rather than the kitchen (these have no harvest, so no kitchen notes);
+    - **fruit and nuts:** hybrid berries, cranberry and lingonberry, elder, sea buckthorn, aronia, serviceberry, hazel, walnut, sweet chestnut, almond, citrus and olive in pots, persimmon, pawpaw, akebia and more;
+    - **flowers and perennials:** shade plants, ferns, grasses, prairie perennials, spring bulbs, nerine, canna and begonia;
+    - **shrubs and climbers:** hedging (yew, beech, hornbeam, privet, laurels, hawthorn), heathers, Japanese maple, magnolia, witch hazel, jasmines, Virginia creeper, hop and more.
+  - Each has conditions, size, sowing and planting months, harvest or flower months, days to crop for annuals, germination days, pests in the library's own words, winter habit, feeding, family, pollinators and a drawing. Every new crop has kitchen notes (134 more, with prices).
+  - **Changed from the plan:** spacing is capped at 3 m like the rest of the library, so big trees (walnut, sweet chestnut) are sized on the plan rather than by spacing.
+  - **Families** (`Plant.family`) for all 521 plants, from the Latin genus, for crop rotation in release 18. The card shows everyday names for the main ones ("Solanaceae, the potato and tomato family").
+  - **Pollinators** (`Plant.pollinators`) for all 521: none, some or good; who visits (bees, hoverflies, butterflies, moths); and the months. Crops picked before they flower are "none"; double bedding flowers are "some" or "none".
+- **Varieties** (`data/varieties.json`): 81 kinds of 25 crops (tomato, potato, pea, broad, French and runner beans, carrot, onion, garlic, lettuce, cabbage, courgette, winter squash, cucumber, chilli, sweet pepper, beetroot, radish, leek, kale, strawberry, raspberry, apple, sweetcorn, chicory).
+  - Generic kinds (cherry, bush, first early, sugar snap, butternut, autumn-fruiting), not named cultivars.
+  - `Plant.varietyOf` and `Plant.variety`. A variety has everything of its plant's except what it says; conditions, size, drawing, cropping, growth and stage advice merge a level deep (`mergeVariety` and `withVarieties` in `src/library/library.ts`).
+  - Plantings use a variety's id like any plant's, so no schema change was needed for them.
+  - Kept out of the plain lists (Plants, the plan's tray) and found by name; the plant's card lists them under **Kinds to grow**, and a variety's card says "A kind of tomato".
+  - The kitchen uses the parent's notes, recipes and price (`cropOf` in `src/kitchen/recipes.ts`).
+- **The seed tin** (`Garden.seeds`, schema 16; `src/planting/seeds.ts`, pure):
+  - packets of a plant or a variety: the name on the packet, roughly how many seeds are left, sow by (year and month), the price and a photo;
+  - a packet of a variety counts as seed for its plant, and the other way round;
+  - getting old: "Sow it soon" within three months of its date, "Past its date" after;
+  - **Seed tin**, a third part of the Seedlings page: add, change, sow from or throw out a packet;
+  - "In your seed tin" on a plant's card and in the sowing form, a **Seed** tag in Plants, and an **In the seed tin** list in the plan's plant tray;
+  - sowing in the shed takes the seeds out of the packet;
+  - `seedPrice` gives the cheapest packet's price, for Inspire me;
+  - packet photos are kept with the garden's other photos, so they're backed up and never tidied away.
+- **Checked:** screenshots at 390 px of the seed tin, adding a packet, a tomato's kinds and a cherry tomato's card.
+- **Not done:**
+  - Checking the new data on the Check the plants page (it shows each card, so the new fields are there to check).
+  - Named cultivars, and the disease resistance of particular kinds.
+  - Varieties of your own plants (a copy of a library plant still works as before).
+
+Tests: new `tests/varieties.test.ts`:
+- **The library:** 500 or more plants besides weeds; every plant has a family and pollinators, and bad ones are refused.
+- **Varieties:** 25 crops with their kinds, all valid and drawn from above and the side; inheritance and overrides, merging a level deep; a variety of a missing plant left out, and the parent unchanged; hidden from the plain list but found by name; their own jobs; the parent's kitchen notes and price.
+- **The seed tin:** adding, changing and throwing out; packets for a plant and its varieties; the price; getting old; seeds used by sowing; photos kept; the schema 16 migration and bad packets refused.
+
+Also changed: `tests/kitchen.test.ts` allows prices up to £400 a kilo (wasabi is about £300), and `tests/plants.test.ts` expects yardlong beans in a search for beans.
 
 ### Release 16 — Inspire me (planned)
 - **Asking:** tap an empty bed, a gap or an empty area of lawn (or **Inspire me** on Today), then answer three questions:

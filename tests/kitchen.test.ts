@@ -26,7 +26,8 @@ describe('the kitchen data', () => {
       expect(k, p.id).toBeTruthy();
       for (const line of [k!.store, k!.preserve, k!.use]) expect(line.length, p.id).toBeGreaterThan(8);
       expect(k!.kg, p.id).toBeGreaterThan(0.5);
-      expect(k!.kg, p.id).toBeLessThan(50);
+      // Wasabi is the dearest, at about £300 a kilo.
+      expect(k!.kg, p.id).toBeLessThan(400);
       expect(k!.keeps.length, p.id).toBeGreaterThan(0);
       for (const x of k!.keeps) expect(KEEPS, `${p.id}: ${x}`).toContain(x);
     }
