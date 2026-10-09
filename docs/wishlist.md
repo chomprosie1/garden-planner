@@ -87,3 +87,15 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | A look for each garden | Build, release 11b | S | The look is the same for every garden for now |
 | Move a bed from one garden to another | Build, release 11b | S | Plants already can: copy one, open the other garden and paste it (the clipboard stays when you switch) |
 | Kitchen notes for your own plants, and searching and saving recipes | Build, release 13 | S | The kitchen covers the library's crops |
+| Help for every key feature, planned by the risk of people giving up | You, 9 Oct 2026 | L | Planned in releases 19 (the first session) and 23 (the rest) |
+| A fig wouldn't go in a pot | You, 9 Oct 2026 | S | Fixed 9 Oct 2026: any plant dropped on a small pot could miss it when zoomed out |
+| Several plants in one pot, discouraging overcrowding and poor companions | You, 9 Oct 2026 | M | Planned in release 21 |
+| Warn when a pot is too small for its plant | You, 9 Oct 2026 | S | Planned in release 21 |
+| Potting on: moving a plant to a bigger pot, or out into a bed | You, 9 Oct 2026 | M | Planned in release 21 |
+| Trees from the Trees list in pots (olive, Japanese maple, bay) | Build, fix of 9 Oct 2026 | S | Planned in release 21 |
+| Cardboard as a weed suppressant; weed membrane discouraged | You, 9 Oct 2026 | M | Planned in release 22 |
+| Seedlings' sowing list: sow now first, grouped by kind, weeds hidden unless you ask | You, 9 Oct 2026 | S | Planned in release 22 |
+| A welcome screen on launch: a short pause with a quote and the version, then into the garden, tasks, your garden's page or What's new | You, 9 Oct 2026 | M | Planned in release 20 |
+| More photos for each month | You, 9 Oct 2026 | M | Three more a month planned in release 20; then batches towards ten a month |
+| Quotes shaped by the person and their garden | You, 9 Oct 2026 | M | Wishlist: generic quotes for now, as decided; would need a short "about you" |
+| Reasons to come back beyond the garden itself | You, 9 Oct 2026 | M | Wishlist: to think about after release 20 |

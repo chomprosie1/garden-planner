@@ -832,7 +832,7 @@ Decided:
 | 15. 500 plants, and varieties | +250 plants in batches of 50, a variety model, the seed tin | ~4 wk of data (alongside 13–14) | Built 9 Oct 2026 |
 | 16. Inspire me | Tap an empty area, give a budget, a time and effort; it suggests what would grow (folds in "What grows here?") | ~1.5 wk | Built 9 Oct 2026 |
 | 17. Walk through it | First-person walking in 3D, leaves you can recognise, frost and lawn by season | ~2 wk | Built 9 Oct 2026 |
-| 18. Later from the review | Nature calendar and how good the garden is for pollinators, voice logging, water forecast, next year drafted (crop rotation), same-spot timelapse | Split as needed | |
+| 18. Later from the review | Nature calendar and how good the garden is for pollinators, voice logging, water forecast, next year drafted (crop rotation), same-spot timelapse | Split as needed | After the fourth round (releases 19 to 23) |
 
 ### Release 11a — Room to see (as built, schema 14)
 - **Sun and shade use the whole screen** (`src/ui/views/Plan.tsx`):
@@ -1162,7 +1162,7 @@ Tests: `tests/three.test.ts`, new:
 - **Walking:** what you can and can't walk through (open lawn, paths, under a canopy; beds, the shed, the fence, a pot, a trunk); stopping at a fence and sliding along it; never stepping through a thin fence; a start you can stand on, also with a shed in the way; walking towards a tapped spot, as far as you can or not at all; staying near the garden.
 - **Leaves and the season:** each tree's leaf shape, and a fruit tree's; the lawn by season; frost through a winter day, none in summer or under glass; sketches in the scene.
 
-### Release 18 — Later from the review (planned)
+### Release 18 — Later from the review (planned, after the fourth round)
 To be split into releases as we get there:
 - **nature calendar and pollinators** (bees each month):
   - **How bee-friendly is it?** A card on Today and in Wrapped:
@@ -1180,6 +1180,116 @@ To be split into releases as we get there:
 ### Notes for this round
 - **Checking the data:** 500 unchecked plants plus feeding and kitchen data is a lot to check. The "Check the plants" page will gain feeding and kitchen sections, and checking stays the gate before marketing.
 - **Prices** are rough ranges with a date, shown as "about".
+
+---
+
+## The fourth round: releases 19 to 23 (added 9 Oct 2026)
+From your feedback after releases 16 and 17:
+- help for every key feature, planned by the risk of people giving up;
+- a fig that wouldn't go in a pot;
+- several plants in one pot, discouraging overcrowding and poor companions;
+- a warning when a pot is too small for its plant, such as a large fig in a small pot;
+- potting on;
+- cardboard as a weed suppressant, and weed membrane discouraged (not organic, and it breaks into fibres);
+- a clearer sowing list in Seedlings: what to sow now first, grouped by kind, with weeds hidden unless you ask;
+- a welcome screen on launch with a short pause, a quote and the version number, and ways straight into the garden, your tasks, your garden's page and What's new;
+- more photos for each month, so Today doesn't look the same all month.
+
+Decided:
+- **The pot bug first**, on its own, straight to `main`.
+- **This round comes before release 18.**
+- **Ordered by the risk of people dropping off:** the first session first, then the first week, then depth.
+- **Photos:** a few more per month to start, growing towards ten per month in later batches.
+- **The welcome screen:** on every launch, with a pause of 1 to 5 seconds that you can skip after a second.
+- **Quotes:** generic and inspiring, not shaped by the person or their garden.
+
+| Release | What | Size | Status |
+| --- | --- | --- | --- |
+| Fix. Plants go in small pots | A plant dropped on a small pot goes in it; fruit trees in pots stand on its soil in 3D | Small | Built 9 Oct 2026 |
+| 19. Help, the first minute | Help pages and search; first-session topics; "Stuck?" nudges at the three riskiest moments | ~1 wk | |
+| 20. Welcome | A welcome screen with a loading pause, a quote and the version; more photos for each month | ~1 wk + photos | |
+| 21. Pots, properly | Several plants to a pot, crowding and companions, pots too small, potting on, trees in pots | ~1.5 wk | |
+| 22. Sowing and cardboard | Seedlings' sowing list by now and by kind, weeds hidden; cardboard for weeds, membrane discouraged | ~1 wk | |
+| 23. Help for the rest | First-week and deeper help topics, with links from each screen | ~1 wk | |
+
+### Fix — Plants go in small pots (as built)
+- **What was wrong:** not trees in particular, but any plant dropped on a small pot.
+  - Drag-and-drop on a computer and the phone's crosshair snapped the point (to a corner, or to a grid of 50 cm to 1 m when zoomed out) before looking for a pot. A 30–40 cm pot was easily missed, and the plant went on the lawn beside it.
+  - Tapping with the Plant tool already used the point as tapped, which is why it worked.
+- **The fix:** `plantingPoint` in `src/planting/place.ts` keeps the point as dropped when snapping would carry it out of the pot or bed it was over. It's used by the drop, the crosshair, and the Plant tool's taps.
+- **3D:** a fruit tree in a pot or raised bed stands on its soil (`Tree3.baseMm`), not on the ground inside it.
+- **Found while looking, for release 21:**
+  - several plants in a pot already work, but get bed-style spacing warnings;
+  - nothing warns that a 3 m fig is in a 30 cm pot;
+  - trees from the Trees list (olive, Japanese maple and so on) are drawn features, not plants, so they can't go in a pot at all.
+- **Checked:** a fig dragged onto a 30 cm pot in a 20 m garden, zoomed right out, at 390 px: it's in the pot.
+- **Tests:** `tests/planting.test.ts` (a drop on the pot stays in it when snapping would miss it; a drop that misses still snaps); `tests/three.test.ts` (a fig in a pot stands on its soil, an apple on the lawn on the ground).
+
+### Release 19 — Help, the first minute (planned)
+- **Where help lives:**
+  - `src/content/help.ts` (content only): topics, each with a title, the screen it belongs to, 3 to 6 short steps written for a phone and for a computer, and related topics;
+  - a **Help** page (a new view, `help`), from the ⋯ menus and Settings;
+  - topics found by search (`src/ui/search.ts`, Ctrl+K);
+  - a small "?" on each key screen opens its topic.
+- **Topics, ranked by the risk of people giving up:**
+  - **Tier 1, the first session** (written in this release): setting up (place, size, starter kit); drawing the plan (boundary, beds, pots, moving, resizing, tracing a photo); adding plants (drag, tap, rows and blocks, pots).
+  - **Tier 2, the first week** (release 23): Today and This week, and ticking jobs off; sowing in Seedlings; sun and shade; undo, saving and backups.
+  - **Tier 3, depth** (release 23): the year slider, 3D and walking, Inspire me; the kitchen and picks, feeding, the seed tin; several gardens, sharing, notes and photos.
+- **"Stuck?" nudges at the three riskiest moments,** each opening its topic:
+  - the plan still empty a minute after setting up;
+  - a plant that misses every bed ("nowhere to plant");
+  - Seedlings opened for the first time with nothing sown.
+- **Definition of done** gains a line: a new feature ships with its help topic.
+- **In the voice** of `docs/voice.md`: short steps, verb first, no code words.
+- **Tests:** new `tests/help.test.ts` (every topic points to a real screen and real related topics; every topic has phone and computer steps). `tests/words.test.ts` covers the words.
+
+### Release 20 — Welcome (planned)
+- **A welcome screen on every launch:**
+  - not the very first (setting up runs then), and not when the app is opened by a link or reminder to a particular screen;
+  - the month's photo and the garden's name;
+  - a gentle progress bar for between 1 and 5 seconds, chosen at random, while the plant library loads behind it. After a second, a tap goes straight in;
+  - then: **Enter my garden** (the plan), **See my tasks** (This week on Today), **About me** (your garden's page), **What's new**, or **Continue** (Today);
+  - with reduced motion, no animation.
+- **A quote while it loads:** `src/content/quotes.ts`, about 60 short lines of our own, inspiring and generic, unattributed, by season with some for any time of year. The same line isn't shown twice running (remembered on this device).
+  - **They mustn't sound machine-written.** Rules, added to `docs/voice.md`: concrete things over big ideas (frost on a cabbage, a ball of string, a robin on the fork handle); no paired dashes, no lists of three adjectives, no "journey" or "in a world where", no exclamation marks, no rhetorical questions, no names.
+  - `tests/quotes.test.ts` checks length, the banned shapes, repeats, and every season covered.
+  - **You read them all before release.** Sounding human is a judgement, not a test.
+- **The version number** at the foot of the loading screen and in Settings ("Version 0.20.0 · 9 Oct 2026"), from `package.json` through Vite's `define`. It goes up with each release: 0.release.fix.
+- **Photos:** three more for each month (about 36), added with `tools/add-photo.ts`, each licence checked (CC0, CC BY or CC BY-SA, as now). Today and the welcome screen take turns through the month's photos. `tests/photos.test.ts`: at least four a month, every licence valid.
+- **Risk to watch:** a pause on every launch could put off people who open the app daily. Hence the skip after a second, and no pause for links straight to a screen.
+
+### Release 21 — Pots, properly (planned)
+- **Several plants in a pot:**
+  - the pot's panel lists what's in it;
+  - a plant dropped into a pot with something in it goes beside it;
+  - checks in pot words: "Too crowded: the basil and the tomato need about 45 cm across; this pot is 30 cm"; and the usual "kept apart" check, said as "in the same pot".
+- **Pots too small,** a new kind of check:
+  - a rule of thumb from the plant's spread, height and kind (annual, perennial, shrub, tree), rather than new data for every plant. For example, a fig or olive wants a pot about 45 to 50 cm across;
+  - shown with the pot's size and rough volume ("about 15 litres");
+  - the rule's figures are checked against a named source (RHS advice on growing in containers) before release, as the ways of working say.
+- **Potting on:**
+  - **Pot on** for a plant in a pot: into a bigger pot already on the plan, into a new pot of the suggested size placed beside it, or out into a bed;
+  - it moves the planting and adds a note ("Potted on into a 45 cm pot, 3 Apr"), with the notes we have, so the save format doesn't change;
+  - the too-small check offers it.
+- **Trees in pots:** a tree from the Trees list dropped on a pot is planted as its library plant where there is one (olive, Japanese maple, bay), or it says why not.
+- **Tests:** new `tests/pots.test.ts` (crowding, companions in one pot, too small, potting on, trees dropped on pots); planting.
+
+### Release 22 — Sowing and cardboard (planned)
+- **Seedlings' sowing list** (`SowForm` in `src/ui/views/Shed.tsx`):
+  - the long drop-down becomes a picker: **Sow now** first, larger and with pictures; then Vegetables, Herbs, Fruit, Flowers, Shrubs and Trees as chips; a search box; and **Later** and **Everything else** folded away;
+  - **Show weeds,** unticked to begin with, here and wherever weeds are offered for planting.
+- **Cardboard for weeds:**
+  - a new ground, `cardboard`, drawn as brown sheets; you plant through it, so it counts as soft ground;
+  - advice: lay it over the weeds, overlap the edges, wet it and mulch on top; it rots down in a few months;
+  - a job when it should have rotted, which needs the day it was laid (`Feature.laidOn`): a change to the save format, so on a branch with a preview, with a migration test.
+- **Weed membrane discouraged:** never offered. Where weeds and ground are discussed (weed advice, cardboard's help), one calm line: plastic membrane isn't organic and breaks into fibres in the soil; cardboard does the job and rots away.
+  - Changes to `data/plants/weed.json` are drafts, and their `source` lines say so.
+- **Tests:** the sowing groups (now first, weeds hidden); cardboard, its job and the migration.
+
+### Release 23 — Help for the rest (planned)
+- The first-week and depth topics (tiers 2 and 3), with "?" links on those screens.
+- Help checked on a phone and a computer.
+- Help search tuned to the words people would type.
 
 ---
 
@@ -1209,6 +1319,7 @@ garden-planner/
 - It is checked once on your phone.
 - The MVP doc and this plan are updated if anything changed.
 - Anything someone using the app would notice gets a **What's new** entry in `src/content/whatsNew.ts`, newest first with a new id: what they can now do and where to find it, in plain English, with no stage numbers or code.
+- From release 19: a new feature ships with its help topic in `src/content/help.ts`.
 
 ## Ways of working (added 9 Oct 2026)
 From a review of how the last two releases were built. These apply from release 16 on.
