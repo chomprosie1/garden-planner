@@ -4,6 +4,7 @@
 import type { AppState, Light, Plant, PlantCategory } from '../model/types';
 import type { Change } from '../model/store';
 import { newUserPlantId } from '../model/ids';
+import { isEasy } from './order';
 
 let cache: Promise<Plant[]> | null = null;
 
@@ -71,6 +72,8 @@ export interface PlantFilter {
   /** Only plants you can sow or plant out in this month (1 to 12). */
   sowMonth: number | null;
   checkedOnly: boolean;
+  /** Only plants the RHS calls easy to grow (src/library/order.ts). */
+  easyOnly?: boolean;
 }
 
 export const emptyFilter: PlantFilter = { query: '', category: 'all', light: 'all', sowMonth: null, checkedOnly: false };
@@ -92,6 +95,7 @@ export function filterPlants(plants: Plant[], f: PlantFilter): Plant[] {
     if (f.light !== 'all' && p.conditions.light !== f.light) return false;
     if (f.sowMonth !== null && !canSowIn(p, f.sowMonth)) return false;
     if (f.checkedOnly && !p.verified && !p.userAdded) return false;
+    if (f.easyOnly && !isEasy(p)) return false;
     if (words.length === 0) return true;
     const hay = fold(`${p.commonName} ${p.variety ?? ''} ${p.latinName ?? ''}`);
     return words.every((w) => hay.includes(w));

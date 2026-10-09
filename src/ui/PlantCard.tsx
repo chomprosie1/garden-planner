@@ -8,6 +8,7 @@ import { PlantKitchen } from './Kitchen';
 import { PlantFeeding } from './FeedShelf';
 import { unknownPlant } from '../planting/place';
 import { useApp } from './appContext';
+import { EASY, isEasy } from '../library/order';
 
 /** A new issue on the app's GitHub page, about this plant. */
 export const reportUrl = (p: Plant) =>
@@ -136,6 +137,11 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
         </div>
         <div class="badges">
           <span class="badge">{CATEGORY_LABEL[p.category]}</span>
+          {isEasy(p) && (
+            <span class="badge badge-ok" title={EASY[p.id] ?? EASY[p.varietyOf ?? '']}>
+              Easy to start
+            </span>
+          )}
           {p.userAdded ? (
             <span class="badge badge-own">Your plant</span>
           ) : !editor ? null : p.verified ? (

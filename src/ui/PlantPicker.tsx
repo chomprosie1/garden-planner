@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'preact/hooks';
 import { formatLength } from '../canvas/viewport';
 import { canSowIn, emptyFilter, filterPlants } from '../library/library';
+import { beginnerOrder } from '../library/order';
 import type { Plant } from '../model/types';
 import { rowSpacingOf, spreadOf, type Layout } from '../planting/place';
 import { PLANT_DRAG_TYPE } from './PlanCanvas';
@@ -33,7 +34,10 @@ export function PlantPicker({ plants, plantId, setPlantId, layout, setLayout, gr
   const [query, setQuery] = useState('');
   const [thisMonth, setThisMonth] = useState(false);
   const results = useMemo(
-    () => filterPlants(plants ?? [], { ...emptyFilter, query, sowMonth: thisMonth ? month : null }),
+    () => {
+      const found = filterPlants(plants ?? [], { ...emptyFilter, query, sowMonth: thisMonth ? month : null });
+      return query.trim() ? found : beginnerOrder(found);
+    },
     [plants, query, thisMonth, month],
   );
   const chosen = plants?.find((p) => p.id === plantId);
@@ -109,7 +113,7 @@ export function PlantPicker({ plants, plantId, setPlantId, layout, setLayout, gr
               }}
               onClick={() => setPlantId(p.id)}
             >
-              <PlantIcon plant={p} size={28} />
+              <PlantIcon plant={p} size={28} view="side" />
               <span class="pick-name">{p.commonName}</span>
               <span class="small muted">
                 {formatLength(p.size.spacingMm)}

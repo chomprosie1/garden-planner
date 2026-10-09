@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-09-good-start',
+    date: '2026-10-09',
+    title: 'Off to a good start',
+    items: [
+      'The plants most people grow now come first in the plant lists, so tomatoes, lettuce and potatoes are easy to find, and the rest follow A to Z.',
+      'Easy to start: a new choice in the plant lists for the crops and herbs the RHS calls easy, such as radishes, peas, potatoes and courgettes.',
+      'Plants in the lists are drawn from the side, as they stand, so a tomato, a sweet pea and garlic are easy to tell apart.',
+      'Starter kits for autumn: garlic, broad beans, onion sets and spring bulbs. The kits that can go in soonest are offered first.',
+      'On a phone, the year slider under the plan folds to one line for more room. Tap the arrow to open it.',
+      'Your garden is safer: the app asks the browser to keep it, says whether it agreed, and on a phone a backup can go straight to Files or to you.',
+    ],
+    tryIt: { label: 'Open the plan', view: 'plan' },
+  },
+  {
     id: '2026-10-09-set-ground-walk-start',
     date: '2026-10-09',
     title: 'Easier tapping on the lawn, and a walk from the middle',

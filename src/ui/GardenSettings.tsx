@@ -3,11 +3,12 @@ import { updateGarden, type Store } from '../model/store';
 import type { Garden } from '../model/types';
 import { todayIso } from '../model/ids';
 import type { PrefsStore } from '../theme/prefs';
-import { downloadFile, parseFileText, type ParseResult } from '../storage/file';
+import { backupFile, downloadFile, parseFileText, type ParseResult } from '../storage/file';
 import { addGarden } from '../storage/gardens';
 import { flushSave } from '../storage/local';
 import { fromDataUrl, loadPhoto, photoIds, putPhoto, toDataUrl } from '../storage/photos';
 import { Icon } from './icons';
+import { isInstalled, isIosSafari } from './Install';
 import { estimateFrost, frostDates, inYear, short } from '../lifecycle/shed';
 import { averagesAt, referenceAverages, seasonDays, stationNames, yearDegreeDays, yearSoFar } from '../climate/warmth';
 import { ATTRIBUTION } from '../weather/openMeteo';
@@ -24,18 +25,89 @@ interface Props {
   prefsStore?: PrefsStore;
 }
 
+/** Every photo on a note, as data, for a backup made with photos. */
+async function gatherPhotos(store: Store): Promise<Record<string, string>> {
+  const photos: Record<string, string> = {};
+  for (const id of photoIds(store.get().garden)) {
+    const blob = await loadPhoto(id).catch(() => undefined);
+    if (blob) photos[id] = await toDataUrl(blob);
+  }
+  return photos;
+}
+
 /** Downloads a backup file and remembers when, for the reminder on Home. With photos, it carries every photo on a note too. */
 export async function backUp(store: Store, prefsStore?: PrefsStore, withPhotos = false) {
-  let photos: Record<string, string> | undefined;
-  if (withPhotos) {
-    photos = {};
-    for (const id of photoIds(store.get().garden)) {
-      const blob = await loadPhoto(id).catch(() => undefined);
-      if (blob) photos[id] = await toDataUrl(blob);
+  downloadFile(store.get(), withPhotos ? await gatherPhotos(store) : undefined);
+  prefsStore?.set({ lastBackup: todayIso() });
+}
+
+let shareable: boolean | null = null;
+
+/** Whether a phone or tablet can hand a backup to its share sheet (Save to Files, Drive, email). Worked out once. */
+export const canShareBackup = () => {
+  if (shareable === null) {
+    try {
+      shareable = matchMedia('(pointer: coarse)').matches && !!navigator.canShare?.({ files: [new File(['{}'], 'garden.json', { type: 'application/json' })] });
+    } catch {
+      shareable = false;
     }
   }
-  downloadFile(store.get(), photos);
-  prefsStore?.set({ lastBackup: todayIso() });
+  return shareable;
+};
+
+/**
+ * Hands a backup to the share sheet, to save to Files or send somewhere, and remembers it as a backup once shared.
+ * Nothing waits before the share, so the tap still counts. If the share sheet refuses it, it downloads instead.
+ */
+export async function shareBackup(store: Store, prefsStore?: PrefsStore) {
+  const file = backupFile(store.get());
+  try {
+    await navigator.share({ files: [file], title: store.get().garden.name });
+    prefsStore?.set({ lastBackup: todayIso() });
+  } catch (e) {
+    // Cancelled: nothing was saved, so the reminder stays. Anything else: download it after all.
+    if ((e as Error).name === 'AbortError') return;
+    downloadFile(store.get());
+    prefsStore?.set({ lastBackup: todayIso() });
+  }
+}
+
+/**
+ * Whether the garden is safe here: what the browser said when asked to keep it, and on an iPhone in Safari (not on
+ * the home screen), that Safari can clear it after weeks without a visit.
+ */
+export function KeptNote({ kept }: { kept: 'kept' | 'not-kept' | 'unknown' | null }) {
+  if (isIosSafari() && !isInstalled())
+    return (
+      <p class="small">
+        Safari can clear what a website keeps if it isn’t visited for a few weeks, and your garden with it. Put it on your home screen (Share, then Add to Home
+        Screen) to keep it, and keep a copy too.
+      </p>
+    );
+  if (kept === 'kept') return <p class="muted small">This browser has agreed to keep your garden, so it won’t clear it to make space.</p>;
+  if (kept === 'not-kept') return <p class="small">This browser hasn’t promised to keep your garden if it runs short of space, so a copy matters more.</p>;
+  return null;
+}
+
+/** The note, following the preferences, so it changes as soon as the browser answers. */
+function LiveKeptNote({ prefsStore }: { prefsStore: PrefsStore }) {
+  return <KeptNote kept={usePrefs(prefsStore).storageKept} />;
+}
+
+/** Download, and on a phone that can, the share sheet too (Save to Files, Drive, email). */
+export function BackupButtons({ store, prefsStore, primary = true }: { store: Store; prefsStore?: PrefsStore; primary?: boolean }) {
+  return (
+    <>
+      <button type="button" class={`btn ${primary ? 'btn-primary' : ''}`} onClick={() => backUp(store, prefsStore)}>
+        Download a backup
+      </button>
+      {canShareBackup() && (
+        <button type="button" class="btn" title="Save it to Files, or send it to yourself" onClick={() => shareBackup(store, prefsStore)}>
+          Save or share a copy
+        </button>
+      )}
+    </>
+  );
 }
 
 type Message = { kind: 'ok' | 'error'; lines: string[] } | null;
@@ -168,10 +240,9 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
           Your garden is saved automatically, but only in this browser on this device. Clearing your browsing data would delete it. Download a backup now and then
           to keep it safe, or to move it to another device.{photoCount > 0 ? ' Photos make a backup much bigger, so they’re only in one made with photos.' : ''}
         </p>
+        {prefsStore && <LiveKeptNote prefsStore={prefsStore} />}
         <div class="button-row">
-          <button type="button" class="btn btn-primary" onClick={() => backUp(store, prefsStore)}>
-            Download a backup
-          </button>
+          <BackupButtons store={store} prefsStore={prefsStore} />
           {photoCount > 0 && (
             <button type="button" class="btn" onClick={() => backUp(store, prefsStore, true)}>
               With photos ({photoCount})

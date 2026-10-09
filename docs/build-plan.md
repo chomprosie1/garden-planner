@@ -1350,7 +1350,125 @@ Tests:
 - `tests/three.test.ts`: the walk starts near the middle, beside a bed in the middle, inside an L-shaped garden, at a saved spot, and not at a saved spot something has since been built on;
 - `tests/prefs.test.ts`: good walk starts kept and bad ones dropped.
 
-### Release 23 — Help for the rest (planned)
+## The fifth round: depth and trust, releases 24 to 29 (added 9 Oct 2026)
+From the root-and-branch review of 9 Oct 2026 ([product-review.md](product-review.md)). You've tested each release as it was built, and two other people are using it with good feedback, so there's no focus-group test: your testing and theirs go in the mismatch log.
+
+Decided:
+- **The pitch:** the grow-your-own planner for UK gardens and allotments, from seed to plate. Not a garden-design tool.
+- **Pricing, when it comes:** free, then an annual Grower tier of about £19.99, perhaps with a founder's lifetime price. Nothing is charged before the core plants are checked, sync exists and gate 3 passes.
+- **Order:** everything in the review's Enhance and Add (4A and 4B) first, as releases 24 to 28 with the data track alongside; then its Remove and Change (4C and 4D) as release 29; then release 23, help, for the screens as they now are.
+- **Parked, with no work:** 3D walking, the timelapse, voice logging, the same-spot timelapse, adding more plants.
+
+| Release | What | Review | Size | Status |
+| --- | --- | --- | --- | --- |
+| 24. Off to a good start | Plants in a beginner's order and an Easy chip; kits for every season; recognisable plants in the pickers; more plan on a phone; keeping the garden safe | A2–A5 | ~1.5 wk | Built 9 Oct 2026 |
+| 25. Build the garden | A house and everyday things; garden shapes, including an L with a side return; tap a length to type it; a tape measure; straighten a photo | B1, B2, B6 | ~1.5 wk | |
+| 26. Along the fence | Climbers along fences and walls, with trellis, arch and obelisk; soil for the garden and each bed; shade from over the fence | B3–B5 | ~1.5 wk | |
+| 27. Next year | Next year drafted, with crop rotation; a shopping list; watering in dry spells; the open job fixes | B7–B9, A6 | ~2 wk | |
+| 28. Listening | A feedback form in the app; private counts of opens, first plant and return visits | B10, B11 | ~3 evenings | |
+| Data track | Check the core 150 plants, in batches of 15 that you confirm | A1 | ~2 wk of evenings, alongside | |
+| 29. Trim and tidy | The welcome once a day with no pause; UV out of the way; stale prices; unchecked plants under "More plants"; onboarding's default kit and landing; a shorter Getting started; Report a mistake to the form | C1, C2, C4, C5, D4–D6 | ~1 wk | |
+| 23. Help for the rest | Help for the screens as they now are | D3 | ~1 wk | |
+| Later | A business decision: sync and accounts, the paid tier, hosting off GitHub Pages, commercial weather terms | B12, D7 | L | |
+
+### Release 24 — Off to a good start (as built)
+- **Plants in a beginner's order** (`beginnerOrder` and `POPULAR` in `src/library/order.ts`, pure):
+  - 58 plants most beginners grow, most-grown first: the first-run favourites, the easy crops and the kits' plants, more common veg, fruit, then flowers. The rest follow, A to Z;
+  - used by the dock's plant drawer (Sow or plant now, Easy to start, All plants), the Plants page, the plant picker and the sowing picker's groups. A search keeps its own order, and the seed tin stays A to Z (it's your own seed).
+  - In October the drawer now opens on mint, sweet peas, garlic, onions, broad beans and spring bulbs, not Abelia and Achocha.
+- **Easy to start** (`EASY` and `isEasy`): 16 crops and herbs, each one the RHS calls easy on its own grow-your-own page, quoted in the code (checked 9 Oct 2026): beetroot, peas, courgettes, lettuce, radishes, potatoes, French, runner and broad beans, garlic, tomatoes, strawberries, onions, chard, mint and chives. A variety counts when its plant does.
+  - A chip in the dock and on the Plants page, and an "Easy to start" badge on the plant card, with the RHS's words as its tooltip.
+  - **Changed from the plan:** no flowers. No RHS page found called a particular flower easy, so none is claimed.
+- **Kits for every season** (`src/planting/kits.ts`): five autumn kits, one for each space:
+  - **Bulbs and garlic** (balcony);
+  - **Autumn planting** (patio): garlic, broad beans and onion sets, with tulips and daffodils in pots;
+  - **Autumn bed**;
+  - **Bulbs and autumn veg** (garden): bulbs along the border, alliums and broad beans in the beds;
+  - **Autumn on the plot** (allotment): alliums, broad beans and raspberry canes, the other beds left for spring.
+
+  `kitsFor(space, month, plantOf)` puts first the kits with the largest share of plants that can go in this month or next. Onboarding and "Where are you growing?" both use it, so October offers the autumn kit first and April the summer ones. A garden started in October with the autumn kit has seven jobs for the month.
+- **Recognisable plants in the pickers:** `PlantIcon` takes `view="side"`, the side-on drawing made for 3D (`drawPlantSide`), fitted to a square by the plant's height and spread. It's used in the dock's plant grid, the Plants list, the onboarding favourites, the sowing picker and the plant picker. The plan, and the shed's trays, keep the drawing from above.
+- **More plan on a phone:** on the plan (not in sun or shade), the year slider starts folded to one line: play, the week, share, and an arrow to open it. Open, it has an arrow to fold it again. The sun views stay folded as before, now with share too.
+- **Keeping the garden safe:**
+  - **The browser asked to keep it** (`src/storage/persist.ts`): once there's something worth keeping, `navigator.storage.persist`. A no is asked again a week later (Chrome grants it as a site is used, or once it's installed); a yes is never asked again. What it said is kept in the preferences (`storageKept`, `storageAsked`). Not in Firefox, which asks you out loud: it isn't asked unprompted at launch;
+  - **A plain line** in Your garden → Backups and on Today's Keep a copy card: that the browser agreed, or that it hasn't promised, so a copy matters more. On an iPhone in Safari, not on the home screen, it says Safari can clear what a site keeps after a few weeks without a visit, and how to put it on the home screen. The install card says so too;
+  - **Save or share a copy:** on a phone or tablet whose browser can share a file, the share sheet (Save to Files, Drive, email), beside Download a backup. Shared, it counts as a backup; cancelled, it doesn't; refused, it downloads instead (`backupFile` in `src/storage/file.ts`, `shareBackup` in `src/ui/GardenSettings.tsx`);
+  - **Changed from the plan:** the monthly backup reminder already existed (30 days, or none yet), so it was kept.
+- **Help:** Adding plants (Easy to start, the order) and Setting up (autumn kits, backups).
+- **Version** 0.24.0.
+- **Checked:** at 390 px:
+  - onboarding in October, with the autumn kit first and the favourites drawn from the side;
+  - Today with that kit (seven jobs: broad beans, garlic, onion sets, crocuses and more), and the Keep a copy card with its line and Save or share a copy;
+  - the plan with the year slider folded and open;
+  - the dock's plant drawer in October, and Easy to start.
+
+  No errors in the console.
+- **Noticed, not changed:** on a phone, the job chips and plant counts crowd over small beds when the whole garden is in view; they sort themselves out zoomed in.
+
+Tests: new `tests/good-start.test.ts`:
+- the order (every id real and once; favourites first; the rest A to Z; the list given left alone);
+- the easy list (every id real, each with an RHS quote; varieties; the filter);
+- kits (something to plant in October first for every space; summer kits first in April; the plain order without a month; each autumn kit planted, valid);
+- keeping it safe (when to ask, never after a yes, again a week after a no, the preferences kept and cleaned, a backup file named and read back).
+
+### Release 25 — Build the garden (planned)
+- **A house and everyday things** (new stickers in Trees and structures, `src/model/stickers.ts`):
+  - **House** (a building, two storeys, about 7 m to the ridge), and a house along the bottom edge in the Garden and Patio layouts, as the house usually is;
+  - **water butt**, **gate**, **bench**, **table and chairs**, **bins**, **washing line**, **steps**, **bird bath**, **bird feeder** and **bee hotel**.
+  - Each has a real size and height, so the sun views and 3D use them.
+- **Garden shapes** (`src/model/spaces.ts`): in onboarding and "Where are you growing?", after the space, a shape: **rectangle**, **L with a side return** (the return's width and length), **wide and shallow**, **long and thin**, **corner plot**. Each makes the boundary; in Simple the boundary's corners can be dragged.
+- **Tap a length to type it:** the length tags on a selected shape take a tap and a typed length, in Advanced; in Simple, a rectangle's width and depth.
+- **A tape measure:** "Measure" in the ⋯ menu: tap two points, and the distance shows on the plan until you close it. Nothing is saved.
+- **Straighten a photo before tracing:** tap four corners of something rectangular in the photo and give its size; the photo is straightened and scaled (the aerial spike's 30 lines).
+- **Model:** the new stickers use the existing kinds where they can (building, other, fence), so no schema change unless the gate needs one.
+- **Tests:** every new sticker's size and kind; each shape's boundary (area, corners); the L's return as asked; typed lengths on the right edge; the tape measure's distance; straightening four corners.
+
+### Release 26 — Along the fence (planned)
+- **Climbers along fences and walls:**
+  - a fence, wall or hedge can hold plants along it, on the side you drop them (`canHold`, `containerAt` and `plantPositions` learn lines: a row along the line, spaced by the plant);
+  - trellis, arch and obelisk stickers that hold one climber each;
+  - climbers (clematis, honeysuckle, wisteria, star jasmine, climbing rose and the rest) and trained fruit offered first along a fence;
+  - drawn up the fence on the plan and in 3D.
+- **Soil:** the garden's soil (clay, loam, sandy, chalky, peaty, or not sure) in Your garden, with a change for each bed (pots default to compost), and pH if known. A plant whose soil doesn't suit gets a check, as light does.
+- **Shade from over the fence:** "Next door" in Trees and structures: a neighbour's tree or house outside the boundary, casting shade and drawn faintly.
+- **Model:** a schema change for plantings along a line (with a side) and for soil. On a branch with a preview, as the ways of working say.
+- **Tests:** placing along a fence (spacing, side, a fence too short), climbers offered first, soil checks, next door casting shade, the migration.
+
+### Release 27 — Next year (planned)
+- **Next year, drafted** (moved up from release 18): from this year's plantings, a draft of next year's plan:
+  - crop families rotated bed by bed (brassicas, legumes, potatoes and tomatoes, onions, roots), from `Plant.family`;
+  - what did well kept (picked, not running behind), what failed or ran behind dropped or moved;
+  - shown as a second plan to look at and change, then "Use this for next year", which adds planned plantings with next year's dates.
+- **A shopping list:** seeds, sets, plants, compost and feed for what's planned and on your Want to grow list, less what's in the seed tin; tick off as you buy; share it as text.
+- **Watering in dry spells:** with the weather on, a job to water pots and new plantings after a few dry, warm days, and none after rain.
+- **The open job fixes:** no harvest job for a direct sowing that never came up; check jobs by warmth where the plant has days.
+- **Model:** the shopping list's ticks, optional. A schema bump, so on a branch.
+- **Tests:** rotation by family across four beds, kept and dropped plantings, the shopping list's sums and the seed tin, watering after dry days and not after rain, the job fixes, the migration.
+
+### Release 28 — Listening (planned)
+- **A feedback form in the app:** in Settings and the ⋯ menu, a few lines and an optional email, sent with the app's version and the screen. Where it goes needs your choice first (a form service or an email address).
+- **Private counts:** opens, first plant placed, and coming back after 7 and 30 days, with no cookies and no personal data. Which service, and its cost, is your choice first; off until then.
+- **Report a mistake** on a plant card uses the form; the GitHub link stays for the plant editor.
+- **Tests:** what's sent (version, screen, no garden data), and nothing sent when counting is off.
+
+### Data track — Checking the core 150 plants (planned, alongside)
+- The 150 most-grown plants (the beginner's order from release 24), checked against the RHS and seed packets in batches of 15: sowing and planting months, spacing, light, hardiness, pests and controls.
+- For each batch I check against named sources and list every change, and you confirm. Then the plant is `verified: true`, with its sources and the date.
+- No new plants or varieties until the checking catches up.
+
+### Release 29 — Trim and tidy (planned)
+- **The welcome** at most once a day (the first launch of the day), with no forced pause.
+- **UV reminders** out of Today and Your garden into Settings → More, off by default.
+- **Prices:** the pounds in Feeding and the kitchen dropped, or marked clearly as rough; the harvest worth in Wrapped kept as fun.
+- **Unchecked plants** under "More plants (still being checked)" in the lists, until the data track reaches them.
+- **Onboarding:** a kit chosen by default (the one that can go in soonest), and after "Start growing", the plan with the first job highlighted.
+- **Today:** Getting started folds to one line ("2 of 6 done ›") after the first day.
+- **Report a mistake** goes to the form (after release 28).
+
+### Later — a business decision
+Sync and accounts (a household or allotment partner sharing a garden, iPhone push, gardens on every device), the paid tier, moving off GitHub Pages, and commercial terms for the weather. Each costs money and needs your decision; see the review's section 3.
+
+### Release 23 — Help for the rest (planned, after release 29)
 - The first-week and depth topics (tiers 2 and 3), with "?" links on those screens.
 - Help checked on a phone and a computer.
 - Help search tuned to the words people would type.

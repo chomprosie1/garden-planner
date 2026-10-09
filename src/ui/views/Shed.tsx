@@ -519,7 +519,7 @@ function SowTiles({ title, plants, picked, pick, folded = false, empty }: { titl
           {shown.map((p) => (
             <li key={p.id}>
               <button type="button" class="sow-tile" aria-pressed={picked === p.id} onClick={() => pick(p.id)}>
-                <PlantIcon plant={p} size={36} />
+                <PlantIcon plant={p} size={36} view="side" />
                 <span>{p.commonName}</span>
               </button>
             </li>

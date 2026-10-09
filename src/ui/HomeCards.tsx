@@ -20,7 +20,7 @@ import { useWeatherNow } from './useWeather';
 import { useApp } from './appContext';
 import { CompassNorth } from './CompassNorth';
 import { PlaceSearch } from './PlaceSearch';
-import { backUp, UseLocationButton } from './GardenSettings';
+import { backUp, BackupButtons, KeptNote, UseLocationButton } from './GardenSettings';
 import { Icon } from './icons';
 import { NoteForm, NoteList, noteAbout } from './NotesSection';
 import { backupDue, daysSinceBackup, setupSteps, type StepId } from './setup';
@@ -333,9 +333,10 @@ export function BackupCard({ store, garden, prefs, prefsStore, now = new Date() 
         Your garden lives only in this browser. {days === null ? 'There’s no copy of it yet.' : `The last copy is ${days} days old.`} A copy keeps it safe, and moves it to another
         device.
       </p>
-      <button type="button" class="btn btn-primary" onClick={() => backUp(store, prefsStore)}>
-        Download a backup
-      </button>
+      <KeptNote kept={prefs.storageKept} />
+      <div class="button-row">
+        <BackupButtons store={store} prefsStore={prefsStore} />
+      </div>
     </section>
   );
 }

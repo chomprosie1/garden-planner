@@ -3,6 +3,7 @@
 // (vegetables, herbs and so on) and by name. Weeds only when asked for: a few
 // people grow them on purpose, most don't. Pure.
 
+import { beginnerOrder } from '../library/order';
 import type { Plant } from '../model/types';
 
 export const SOW_KINDS = [
@@ -55,13 +56,15 @@ const byName = (a: Plant, b: Plant) => a.commonName.localeCompare(b.commonName);
 /** The sowing list, in its groups. Varieties show when you search for them, or have seed of them. */
 export function sowList(plants: Plant[], o: SowListOptions): SowList {
   const words = o.query.trim().toLowerCase();
-  const shown = plants
+  const found = plants
     .filter((p) => o.weeds || p.category !== 'weed')
     .filter((p) => !p.varietyOf || words || o.tin.has(p.id))
     .filter((p) => isKind(p, o.kind))
     .filter((p) => !words || `${p.commonName} ${p.latinName ?? ''}`.toLowerCase().includes(words))
     .sort(byName);
-  const tin = shown.filter((p) => o.tin.has(p.id));
+  // With nothing typed, the plants most beginners grow come first in each group; your own seed stays A to Z.
+  const shown = words ? found : beginnerOrder(found);
+  const tin = found.filter((p) => o.tin.has(p.id));
   // Seed in the tin shows once, at the top, not again in its group.
   const rest = shown.filter((p) => !o.tin.has(p.id));
   const cover = rest.filter(sownUnderCover);

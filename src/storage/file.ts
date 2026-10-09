@@ -63,14 +63,19 @@ export function parseFileText(text: string): ParseResult {
   }
 }
 
+/** The garden as a backup file, named after it and the day, with its photos if they're given. */
+export function backupFile(state: AppState, photos?: Record<string, string>): File {
+  const file: GardenFile = photos ? { ...toFile(state), photos } : toFile(state);
+  const slug = state.garden.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'garden';
+  return new File([JSON.stringify(file, null, 2)], `${slug}-${file.exportedAt.slice(0, 10)}${photos ? '-with-photos' : ''}.json`, { type: 'application/json' });
+}
+
 /** Starts a browser download of the garden as a JSON file, with its photos if they're given. */
 export function downloadFile(state: AppState, photos?: Record<string, string>): void {
-  const file: GardenFile = photos ? { ...toFile(state), photos } : toFile(state);
-  const blob = new Blob([JSON.stringify(file, null, 2)], { type: 'application/json' });
-  const slug = state.garden.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'garden';
+  const file = backupFile(state, photos);
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `${slug}-${file.exportedAt.slice(0, 10)}${photos ? '-with-photos' : ''}.json`;
+  a.href = URL.createObjectURL(file);
+  a.download = file.name;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }

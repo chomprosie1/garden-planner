@@ -41,9 +41,13 @@ export const HELP: HelpTopic[] = [
       'Choose a starter kit if one appeals, and tap a few favourites. They go on your list to grow, with sowing jobs when it’s time.',
       'Skipped it? On an empty plan, tap “Where are you growing?” to lay out a space at any time.',
     ],
-    notes: ['Everything it lays out can be moved, resized or deleted afterwards. Change the place or the frost dates later under Your garden.'],
+    notes: [
+      'Everything it lays out can be moved, resized or deleted afterwards. Change the place or the frost dates later under Your garden.',
+      'The kits that can go in soonest come first: in autumn, garlic, broad beans, onion sets and spring bulbs.',
+      'Your garden is kept in this browser. Keep a copy under Your garden → Backups; on a phone, Save or share a copy puts it in Files or sends it to you.',
+    ],
     related: ['drawing-the-plan', 'adding-plants'],
-    words: 'start begin new first postcode location town where balcony patio allotment kit onboarding',
+    words: 'start begin new first postcode location town where balcony patio allotment kit onboarding autumn backup copy safe lost',
   },
   {
     id: 'drawing-the-plan',
@@ -134,9 +138,10 @@ export const HELP: HelpTopic[] = [
     notes: [
       'A plant can’t go on paving, decking or a path. If it won’t go in, drop it inside a bed’s outline, zoomed in a little for small pots.',
       'Pick a planting for its jobs, its stages and when it should be ready.',
+      'New to it? “Easy to start” shows the crops and herbs the RHS calls easy, such as radishes, peas, potatoes and courgettes. The plants most people grow come first in the plant lists.',
     ],
     related: ['rows-and-blocks', 'plants-in-pots', 'moving-and-resizing'],
-    words: 'add plant put grow drop tray library vegetables flowers fill row missing nowhere go goes won’t isn’t paving',
+    words: 'add plant put grow drop tray library vegetables flowers fill row missing nowhere go goes won’t isn’t paving easy beginner first',
   },
   {
     id: 'rows-and-blocks',

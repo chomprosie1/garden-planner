@@ -37,10 +37,12 @@ export function daysSinceBackup(lastBackup: string | null, now = new Date()): nu
   return Math.round((today.getTime() - then.getTime()) / 86_400_000);
 }
 
+/** Something worth keeping: a boundary, anything on the plan, or a note. */
+export const worthKeeping = (g: Garden) => g.boundary.length >= 3 || g.features.length > 0 || g.plantings.length > 0 || g.notes.length > 0;
+
 /** A backup reminder is due when there's something worth keeping and none in the last 30 days. */
 export function backupDue(g: Garden, lastBackup: string | null, now = new Date()): boolean {
-  const worthKeeping = g.boundary.length >= 3 || g.features.length > 0 || g.plantings.length > 0 || g.notes.length > 0;
-  if (!worthKeeping) return false;
+  if (!worthKeeping(g)) return false;
   const days = daysSinceBackup(lastBackup, now);
   return days === null || days >= 30;
 }

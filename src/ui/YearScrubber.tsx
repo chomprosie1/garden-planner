@@ -23,11 +23,15 @@ interface Props {
   phone: boolean;
   /** Just the week and play, for room to see (a phone in sun and shade). */
   compact?: boolean;
+  /** Folded on a phone: opens the full slider. */
+  expand?: () => void;
+  /** Open on a phone: folds it back to one line, for more of the plan. */
+  fold?: () => void;
   /** Share a picture of the week, or a timelapse of the year. */
   share: () => void;
 }
 
-export function YearScrubber({ today, date, setDate, playing, setPlaying, phone, compact = false, share }: Props) {
+export function YearScrubber({ today, date, setDate, playing, setPlaying, phone, compact = false, expand, fold, share }: Props) {
   const week = weeksFrom(today, date);
   const at = useRef(week);
   at.current = week;
@@ -77,6 +81,16 @@ export function YearScrubber({ today, date, setDate, playing, setPlaying, phone,
             </button>
           )}
         </div>
+        <button type="button" class="icon-btn year-share" aria-label="Share a picture of this week" title="Share a picture, or a timelapse of the year" onClick={share}>
+          <Icon name="share" size={18} />
+        </button>
+        {expand && (
+          <button type="button" class="icon-btn year-fold" aria-label="Open the year slider" title="Move through the year" onClick={expand}>
+            <span class="year-fold-up" aria-hidden="true">
+              <Icon name="chevron" size={18} />
+            </span>
+          </button>
+        )}
       </section>
     );
 
@@ -122,6 +136,13 @@ export function YearScrubber({ today, date, setDate, playing, setPlaying, phone,
       <button type="button" class="icon-btn year-share" aria-label="Share a picture of this week" title="Share a picture, or a timelapse of the year" onClick={share}>
         <Icon name="share" size={18} />
       </button>
+      {fold && (
+        <button type="button" class="icon-btn year-fold" aria-label="Fold the year slider" title="More room for the plan" onClick={fold}>
+          <span class="year-fold-down" aria-hidden="true">
+            <Icon name="chevron" size={18} />
+          </span>
+        </button>
+      )}
     </section>
   );
 }

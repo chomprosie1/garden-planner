@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Heart } from '../Heart';
 import { blankPlant, copyAsUserPlant, deleteUserPlant, emptyFilter, filterPlants, saveUserPlant, type PlantFilter } from '../../library/library';
+import { beginnerOrder } from '../../library/order';
 import { featureLabel } from '../../model/features';
 import { currentStage, STAGE_LABEL } from '../../lifecycle/stages';
 import { useApp } from '../appContext';
@@ -58,7 +59,9 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
   const hasSeed = (p: Plant) => !!garden.seeds?.length && packetsFor(garden, p, plantOf).length > 0;
   const [wantOnly, setWantOnly] = useState(false);
   const results = useMemo(() => {
-    const found = filterPlants(plants, filter);
+    // With nothing typed, the plants most beginners grow come first; a search keeps its own order.
+    const matched = filterPlants(plants, filter);
+    const found = filter.query.trim() ? matched : beginnerOrder(matched);
     return wantOnly ? found.filter((p) => garden.wishlist.includes(p.id)) : found;
   }, [plants, filter, wantOnly, garden.wishlist]);
 
@@ -117,6 +120,9 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
           <Icon name="heart" size={15} filled={wantOnly} />
           Want to grow ({new Set(garden.wishlist).size})
         </button>
+        <button type="button" class="chip" aria-pressed={!!filter.easyOnly} title="Crops and herbs the RHS calls easy to grow" onClick={() => setFilter({ ...filter, easyOnly: !filter.easyOnly })}>
+          Easy to start
+        </button>
         <label class="check">
           <input type="checkbox" checked={filter.sowMonth !== null} onChange={(e) => setFilter({ ...filter, sowMonth: (e.currentTarget as HTMLInputElement).checked ? month : null })} />
           Sow or plant this month
@@ -143,7 +149,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
         {results.map((p) => (
           <li key={p.id}>
             <button type="button" class="plant-row" aria-current={current?.id === p.id ? 'true' : undefined} onClick={() => setPanel({ kind: 'card', id: p.id })}>
-              <PlantIcon plant={p} size={34} />
+              <PlantIcon plant={p} size={34} view="side" />
               <span class="plant-row-main">
                 <span class="plant-row-name">{p.commonName}</span>
                 {p.latinName && <span class="latin small">{p.latinName}</span>}

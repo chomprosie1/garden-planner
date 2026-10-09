@@ -4973,6 +4973,17 @@ button.plan-chip:hover {
   gap: 0.5rem;
   flex: 1;
 }
+/* On a phone the year slider folds to one line for more of the plan; the chevron opens or folds it. */
+.year-fold-up,
+.year-fold-down {
+  display: inline-flex;
+}
+.year-fold-up {
+  transform: rotate(-90deg);
+}
+.year-fold-down {
+  transform: rotate(90deg);
+}
 /* UV on Today: a plain card at Moderate, the warning colours from High. */
 .uv-card h2 {
   margin: 0 0 0.3rem;

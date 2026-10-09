@@ -30,7 +30,7 @@ export function catchInstallPrompt(): void {
 export const isInstalled = () => matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
 
 /** An iPhone or iPad in Safari, which installs from the Share menu. */
-const isIosSafari = () => /iphone|ipad|ipod/i.test(navigator.userAgent) && !/crios|fxios|edgios/i.test(navigator.userAgent);
+export const isIosSafari = () => /iphone|ipad|ipod/i.test(navigator.userAgent) && !/crios|fxios|edgios/i.test(navigator.userAgent);
 
 export function InstallCard({ hidden, prefsStore }: { hidden: boolean; prefsStore: PrefsStore }) {
   const [prompt, setPrompt] = useState(saved);
@@ -65,6 +65,7 @@ export function InstallCard({ hidden, prefsStore }: { hidden: boolean; prefsStor
         </div>
       ) : (
         <>
+          <p class="muted">It keeps your garden safe too: Safari can clear what a website keeps if it isn’t visited for a few weeks.</p>
           <p>
             Tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>.
           </p>

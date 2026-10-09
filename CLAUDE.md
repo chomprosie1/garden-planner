@@ -34,8 +34,8 @@ This is still a proof of concept. Test what a change could break, not everything
 | `model/features`, `model/stickers`, `model/spaces` | depth, arrange, start, ux-first-minute |
 | `canvas/*` (hit, snap, viewport, render) | plan, sun, usability |
 | `planting/place`, `planting/fill`, `planting/rules` | planting, arrange, start, jobs, drawing |
-| `planting/kits`, `planting/batches`, `planting/harvest` | ux-first-minute, weather, ux-daily, ux-delight |
-| `library/*`, `data/plants/*.json`, `data/varieties.json` | plants, art, three, varieties, feeding, kitchen, usability |
+| `planting/kits`, `planting/batches`, `planting/harvest` | ux-first-minute, weather, ux-daily, ux-delight, good-start |
+| `library/*`, `data/plants/*.json`, `data/varieties.json` | plants, art, three, varieties, feeding, kitchen, usability, good-start |
 | `art/*` | art |
 | `calendar/jobs` | jobs, stages, shed, microclimate, weather, feeding |
 | `feeding/*`, `data/feeds.json` | feeding, stages, on-track |
@@ -47,6 +47,7 @@ This is still a proof of concept. Test what a change could break, not everything
 | `lifecycle/frostWatch` | weather, ux-delight |
 | `climate/*` | microclimate, warmth, weather |
 | `weather/*`, `storage/weatherCache` | weather, ux-first-minute |
+| `storage/persist`, `lifecycle/sowList` | good-start, sowing-cardboard |
 | `sun/*` | sun, planting, drawing |
 | `theme/*`, `content/seasons` | prefs, contrast, depth, ux, usability |
 | `content/photos` | photos |

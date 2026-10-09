@@ -106,7 +106,7 @@ export function SpaceDialog({ make, close, plantOf }: { make: (c: SpaceChoice, k
   const ref = useRef<HTMLDialogElement>(null);
   const [choice, setChoice] = useState<SpaceChoice | null>(null);
   const [kit, setKit] = useState<Kit | null>(null);
-  const kits = choice && plantOf ? kitsFor(choice.space) : [];
+  const kits = choice && plantOf ? kitsFor(choice.space, new Date().getMonth() + 1, plantOf) : [];
   useEffect(() => {
     const d = ref.current;
     if (d && !d.open) d.showModal();

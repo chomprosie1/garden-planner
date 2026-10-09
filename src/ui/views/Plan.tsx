@@ -153,6 +153,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const todayIso = isoOf(today);
   const [when, setWhen] = useState(todayIso);
   const [yearPlaying, setYearPlaying] = useState(false);
+  // On a phone the year slider starts folded to one line, for more of the plan; it opens with a tap.
+  const [yearOpen, setYearOpen] = useState(false);
   const sunDate = useMemo(() => calendarOf(when), [when]);
   const setSunDate = (d: CalendarDate) => setWhen(isoOf(d));
   const [minutes, setMinutes] = useState(clock.hour * 60 + clock.minute);
@@ -831,7 +833,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               playing={yearPlaying}
               setPlaying={setYearPlaying}
               phone={phone}
-              compact={phone && sunOn}
+              compact={phone && (sunOn || !yearOpen)}
+              {...(phone && !sunOn ? (yearOpen ? { fold: () => setYearOpen(false) } : { expand: () => setYearOpen(true) }) : {})}
               share={() => {
                 setYearPlaying(false);
                 setSharing(true);

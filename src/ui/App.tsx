@@ -30,6 +30,9 @@ import { Welcome } from './Welcome';
 import { Profile } from './views/Profile';
 import { WrappedHost } from './WrappedHost';
 import { ReminderKeeper } from './ReminderKeeper';
+import { worthKeeping } from './setup';
+import { askToKeep, asksOutLoud, shouldAskToKeep } from '../storage/persist';
+import { todayIso } from '../model/ids';
 
 /** The four tabs: what's to do, the garden itself, seedlings in the shed, and plants to grow. */
 const NAV: { view: View; label: string; icon: IconName }[] = [
@@ -164,6 +167,15 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
     if (p.seenMonth !== null) actions.notify(`Welcome to ${seasonFor(month).name}. Your jobs for the month are on Home.`);
     prefsStore.set({ seenMonth: month });
   }, [prefsStore, prefs.onboarded, welcoming]);
+
+  // Once there's something worth keeping, ask the browser to keep it, so it isn't cleared (src/storage/persist.ts).
+  const keepIt = worthKeeping(garden);
+  useEffect(() => {
+    const p = prefsStore.get();
+    const today = todayIso();
+    if (asksOutLoud() || !shouldAskToKeep(keepIt, p.storageKept, p.storageAsked, today)) return;
+    void askToKeep().then((kept) => prefsStore.set({ storageKept: kept, storageAsked: today }));
+  }, [keepIt, prefsStore]);
 
   // A reminder or a link to a screen while the welcome is up goes straight there.
   useEffect(() => {

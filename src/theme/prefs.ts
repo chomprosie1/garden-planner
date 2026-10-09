@@ -62,6 +62,9 @@ export interface Prefs {
   seenTips: boolean;
   /** "Stuck?" notes already offered, by id: shown once and never again. */
   stuckSeen: string[];
+  /** Whether the browser agreed to keep this site's storage (so the garden isn't cleared), and the day it was asked. */
+  storageKept: 'kept' | 'not-kept' | 'unknown' | null;
+  storageAsked: string | null;
   /** Where each garden's walk in 3D starts, by the garden's id, when you've chosen: the spot and which way you face. On this device only. */
   walkFrom: Record<string, { at: [number, number]; heading: number }>;
   /** The line shown on the loading screen last time, so the next one is different. */
@@ -111,6 +114,8 @@ export function defaultPrefs(): Prefs {
     seenTips: false,
     stuckSeen: [],
     walkFrom: {},
+    storageKept: null,
+    storageAsked: null,
     lastQuote: null,
     reminders: false,
     weeklyNudge: false,
@@ -170,6 +175,8 @@ export function sanitisePrefs(raw: unknown): Prefs {
     seenTips: r.seenTips === true,
     stuckSeen: Array.isArray(r.stuckSeen) ? r.stuckSeen.filter((x): x is string => typeof x === 'string') : [],
     walkFrom: walkFromOf(r.walkFrom),
+    storageKept: r.storageKept === 'kept' || r.storageKept === 'not-kept' || r.storageKept === 'unknown' ? r.storageKept : null,
+    storageAsked: typeof r.storageAsked === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.storageAsked) ? r.storageAsked : null,
     lastQuote: typeof r.lastQuote === 'string' ? r.lastQuote : null,
     reminders: r.reminders === true,
     weeklyNudge: r.weeklyNudge === true,

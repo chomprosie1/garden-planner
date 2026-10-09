@@ -4,6 +4,7 @@
 
 import { useMemo, useRef, useState } from 'preact/hooks';
 import { canSowIn } from '../library/library';
+import { beginnerOrder, isEasy } from '../library/order';
 import { traysOf } from '../lifecycle/shed';
 import { newAppState } from '../model/defaults';
 import { KINDS } from '../model/features';
@@ -129,7 +130,7 @@ const DRAW_TOOLS: { tool: Tool; label: string }[] = [
   { tool: 'other', label: 'Other' },
 ];
 
-type PlantFilter = 'now' | 'mine' | 'list' | 'tin' | 'shed' | 'all' | 'weeds';
+type PlantFilter = 'now' | 'easy' | 'mine' | 'list' | 'tin' | 'shed' | 'all' | 'weeds';
 
 interface Props {
   open: Drawer | null;
@@ -160,16 +161,18 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
     if (!plants) return [];
     const q = query.trim().toLowerCase();
     if (q) return plants.filter((p) => `${p.commonName} ${p.latinName ?? ''}`.toLowerCase().includes(q));
-    if (filter === 'now') return plants.filter((p) => !p.varietyOf && canSowIn(p, month));
+    if (filter === 'now') return beginnerOrder(plants.filter((p) => !p.varietyOf && canSowIn(p, month)));
+    if (filter === 'easy') return beginnerOrder(plants.filter((p) => !p.varietyOf && isEasy(p)));
     if (filter === 'mine') return plants.filter((p) => p.userAdded);
     if (filter === 'list') return [...new Set(garden.wishlist)].map(plantOf);
     if (filter === 'tin') return [...new Set((garden.seeds ?? []).filter((k) => k.count !== 0).map((k) => k.plantId))].map(plantOf);
-    if (filter === 'all') return plants.filter((p) => p.category !== 'weed' && !p.varietyOf);
+    if (filter === 'all') return beginnerOrder(plants.filter((p) => p.category !== 'weed' && !p.varietyOf));
     if (filter === 'weeds') return plants.filter((p) => p.category === 'weed');
     return [];
   }, [plants, query, filter, month, garden.wishlist, garden.seeds]);
   const filters: [PlantFilter, string, number][] = [
     ['now', 'Sow or plant now', plants ? plants.filter((p) => !p.varietyOf && canSowIn(p, month)).length : 0],
+    ['easy', 'Easy to start', plants ? plants.filter((p) => !p.varietyOf && isEasy(p)).length : 0],
     ['shed', 'In the shed', trays.length],
     ['list', 'Want to grow', garden.wishlist.length],
     ['tin', 'In the seed tin', new Set((garden.seeds ?? []).filter((k) => k.count !== 0).map((k) => k.plantId)).size],
@@ -237,7 +240,7 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
                           onClick={() => onPlant(p.id)}
                           title={`${p.commonName}: drag onto a bed, or tap then tap a bed`}
                         >
-                          <PlantIcon plant={p} size={40} />
+                          <PlantIcon plant={p} size={40} view="side" />
                           <span class="sticker-label">{p.commonName}</span>
                         </button>
                       </li>

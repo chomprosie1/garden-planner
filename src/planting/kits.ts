@@ -5,6 +5,7 @@
 // few weeks apart. Pure functions: garden in, garden out.
 
 import { toggleWishlist } from '../calendar/jobs';
+import { canSowIn } from '../library/library';
 import { nextInMonths } from '../lifecycle/projection';
 import { sowingOf } from '../lifecycle/stages';
 import { addDays } from '../model/dates';
@@ -113,9 +114,74 @@ export const KITS: Kit[] = [
       { items: [block('strawberry')] },
     ],
   },
+  // For autumn: what goes in from September to November, so a garden started then has something to do.
+  {
+    id: 'autumn-balcony',
+    space: 'balcony',
+    title: 'Bulbs and garlic',
+    blurb: 'Crocuses and tulips in the trough for spring, daffodils in one pot and garlic in the other.',
+    beds: [{ items: [block('crocus'), block('tulip')], split: 'side' }, { items: [one('daffodil')] }, { items: [one('garlic')] }],
+  },
+  {
+    id: 'autumn-patio',
+    space: 'patio',
+    title: 'Autumn planting',
+    blurb: 'Garlic, broad beans and onion sets in the raised bed, and tulips and daffodils in pots for spring.',
+    beds: [{ items: [row('garlic'), row('broad-bean'), row('onion')] }, { items: [one('tulip')] }, { items: [one('daffodil')] }],
+  },
+  {
+    id: 'autumn-bed',
+    space: 'bed',
+    title: 'Autumn bed',
+    blurb: 'Garlic, broad beans and onion sets, planted this autumn for some of the first crops next year.',
+    beds: [{ items: [row('garlic'), row('garlic'), row('broad-bean'), row('broad-bean'), row('onion')] }],
+  },
+  {
+    id: 'autumn-garden',
+    space: 'garden',
+    title: 'Bulbs and autumn veg',
+    blurb: 'Spring bulbs along the border, garlic and onion sets in one bed, broad beans in the other.',
+    beds: [
+      { items: [block('crocus'), block('daffodil'), block('tulip'), block('ornamental-allium')], split: 'side' },
+      { items: [row('garlic'), row('garlic'), row('onion'), row('onion')] },
+      { items: [row('broad-bean'), row('broad-bean')] },
+    ],
+  },
+  {
+    id: 'autumn-allotment',
+    space: 'allotment',
+    title: 'Autumn on the plot',
+    blurb: 'Garlic and onion sets, autumn broad beans, and raspberry canes; the other beds wait for spring.',
+    beds: [
+      { items: [] },
+      { items: [row('onion'), row('onion'), row('garlic'), row('garlic')] },
+      { items: [row('broad-bean'), row('broad-bean')] },
+      { items: [] },
+      { items: [] },
+      { items: [] },
+      { items: [] },
+      { items: [block('raspberry')] },
+    ],
+  },
 ];
 
-export const kitsFor = (space: Space): Kit[] => KITS.filter((k) => k.space === space);
+/**
+ * The kits for a space. Given the month and the plants, the kits with the most that can be sown or planted this month
+ * or next come first, so a garden started in October is offered garlic before tomatoes.
+ */
+export function kitsFor(space: Space, month?: number, plantOf?: (id: string) => Plant | null): Kit[] {
+  const kits = KITS.filter((k) => k.space === space);
+  if (!month || !plantOf) return kits;
+  const soon = (k: Kit) => {
+    const ids = kitPlants(k);
+    const ready = ids.filter((id) => {
+      const p = plantOf(id);
+      return !!p && (canSowIn(p, month) || canSowIn(p, (month % 12) + 1));
+    });
+    return ids.length ? ready.length / ids.length : 0;
+  };
+  return [...kits].sort((a, b) => soon(b) - soon(a));
+}
 
 /** Every plant a kit uses, once each. */
 export const kitPlants = (kit: Kit): string[] => [...new Set(kit.beds.flatMap((b) => b.items.map((i) => i.plant)))];

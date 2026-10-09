@@ -51,7 +51,7 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
   const empty = before.boundary.length === 0 && before.features.length === 0;
   const steps: Step[] = empty ? ['where', 'space', 'grow'] : ['where', 'grow'];
   const current = steps[step - 1];
-  const kits = choice ? kitsFor(choice.space) : [];
+  const kits = choice && plants ? kitsFor(choice.space, month, (id) => byId.get(id) ?? null) : [];
 
   const finish = (skipped = false) => {
     if (!skipped) {
@@ -147,7 +147,7 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
             <div class="favourites" role="group" aria-label="Plants you’d like to grow">
               {FAVOURITES.filter((id) => byId.has(id)).map((id) => (
                 <button key={id} type="button" class="chip favourite" aria-pressed={picked.has(id)} onClick={() => toggle(id)}>
-                  <PlantIcon plant={byId.get(id)!} size={22} />
+                  <PlantIcon plant={byId.get(id)!} size={22} view="side" />
                   {byId.get(id)!.commonName}
                 </button>
               ))}
