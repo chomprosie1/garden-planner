@@ -1,5 +1,6 @@
 import { PHOTOS } from '../../content/photos';
 import { SEASONS } from '../../content/seasons';
+import { versionText } from '../../content/version';
 import type { Store } from '../../model/store';
 import type { Garden } from '../../model/types';
 import { FONT_CREDITS } from '../../theme/fonts';
@@ -208,6 +209,7 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
       </details>
 
       <StartAgainCard store={store} prefsStore={prefsStore} garden={garden} />
+      <p class="muted small app-version">{versionText()}</p>
     </div>
   );
 }

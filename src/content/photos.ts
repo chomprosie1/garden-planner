@@ -25,8 +25,15 @@ export interface SeasonPhoto {
 
 export const PHOTOS: SeasonPhoto[] = manifest as SeasonPhoto[];
 
-export function photoForMonth(month: number): SeasonPhoto | undefined {
-  return PHOTOS.find((p) => p.month === month);
+export const photosForMonth = (month: number): SeasonPhoto[] => PHOTOS.filter((p) => p.month === month);
+
+/**
+ * The month's photo for a day of the month: a month's photos take turns, a different one each day, so Today and the
+ * welcome screen show the same one all day and something new tomorrow.
+ */
+export function photoForMonth(month: number, day = new Date().getDate()): SeasonPhoto | undefined {
+  const list = photosForMonth(month);
+  return list.length ? list[(Math.max(1, day) - 1) % list.length] : undefined;
 }
 
 /** Base family of a licence: "CC BY-SA 2.0" → "CC BY-SA". Matches tools/add-photo.ts. */

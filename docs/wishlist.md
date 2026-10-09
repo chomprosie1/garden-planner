@@ -95,7 +95,7 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Trees from the Trees list in pots (olive, Japanese maple, bay) | Build, fix of 9 Oct 2026 | S | Planned in release 21 |
 | Cardboard as a weed suppressant; weed membrane discouraged | You, 9 Oct 2026 | M | Planned in release 22 |
 | Seedlings' sowing list: sow now first, grouped by kind, weeds hidden unless you ask | You, 9 Oct 2026 | S | Planned in release 22 |
-| A welcome screen on launch: a short pause with a quote and the version, then into the garden, tasks, your garden's page or What's new | You, 9 Oct 2026 | M | Planned in release 20 |
-| More photos for each month | You, 9 Oct 2026 | M | Three more a month planned in release 20; then batches towards ten a month |
+| A welcome screen on launch: a short pause with a quote and the version, then into the garden, tasks, your garden's page or What's new | You, 9 Oct 2026 | M | Built in release 20 |
+| More photos for each month | You, 9 Oct 2026 | M | Four a month since release 20; batches towards ten a month still to come |
 | Quotes shaped by the person and their garden | You, 9 Oct 2026 | M | Wishlist: generic quotes for now, as decided; would need a short "about you" |
 | Reasons to come back beyond the garden itself | You, 9 Oct 2026 | M | Wishlist: to think about after release 20 |

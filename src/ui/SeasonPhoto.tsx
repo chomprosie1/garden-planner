@@ -5,13 +5,15 @@ interface Props {
   month: number;
   sizes: string;
   class?: string;
+  /** The day of the month, which of the month's photos it is: they take turns. Absent: today. */
+  day?: number;
   /** Shows the credit button over the photo. Off where a caption shows it instead. */
   credit?: boolean;
 }
 
 /** The month's photo at the right size for the screen, or the month's colour if there is none yet. */
-export function SeasonPhoto({ month, sizes, class: cls = '', credit = true }: Props) {
-  const photo = photoForMonth(month);
+export function SeasonPhoto({ month, day, sizes, class: cls = '', credit = true }: Props) {
+  const photo = photoForMonth(month, day);
   if (!photo) return <div class={`season-photo season-photo-empty ${cls}`} aria-hidden="true" />;
   return (
     <div class={`season-photo ${cls}`} style={{ backgroundColor: photo.colour }}>

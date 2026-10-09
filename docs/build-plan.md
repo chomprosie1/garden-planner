@@ -1207,7 +1207,7 @@ Decided:
 | --- | --- | --- | --- |
 | Fix. Plants go in small pots | A plant dropped on a small pot goes in it; fruit trees in pots stand on its soil in 3D | Small | Built 9 Oct 2026 |
 | 19. Help, the first minute | Help pages and search; first-session topics; "Stuck?" nudges at the three riskiest moments | ~1 wk | Built 9 Oct 2026 |
-| 20. Welcome | A welcome screen with a loading pause, a quote and the version; more photos for each month | ~1 wk + photos | |
+| 20. Welcome | A welcome screen with a loading pause, a quote and the version; more photos for each month | ~1 wk + photos | Built 9 Oct 2026 |
 | 21. Pots, properly | Several plants to a pot, crowding and companions, pots too small, potting on, trees in pots | ~1.5 wk | |
 | 22. Sowing and cardboard | Seedlings' sowing list by now and by kind, weeds hidden; cardboard for weeds, membrane discouraged | ~1 wk | |
 | 23. Help for the rest | First-week and deeper help topics, with links from each screen | ~1 wk | |
@@ -1255,20 +1255,32 @@ Also changed:
 - Back retraces the way you came through Settings, Help and the other sub-pages (a trail, where there was one "previous" page), and a topic opened from elsewhere goes Back there;
 - the "Stuck?" notes offered are kept in the device's preferences (`stuckSeen`), not storage of their own.
 
-### Release 20 — Welcome (planned)
-- **A welcome screen on every launch:**
-  - not the very first (setting up runs then), and not when the app is opened by a link or reminder to a particular screen;
-  - the month's photo and the garden's name;
-  - a gentle progress bar for between 1 and 5 seconds, chosen at random, while the plant library loads behind it. After a second, a tap goes straight in;
-  - then: **Enter my garden** (the plan), **See my tasks** (This week on Today), **About me** (your garden's page), **What's new**, or **Continue** (Today);
-  - with reduced motion, no animation.
-- **A quote while it loads:** `src/content/quotes.ts`, about 60 short lines of our own, inspiring and generic, unattributed, by season with some for any time of year. The same line isn't shown twice running (remembered on this device).
-  - **They mustn't sound machine-written.** Rules, added to `docs/voice.md`: concrete things over big ideas (frost on a cabbage, a ball of string, a robin on the fork handle); no paired dashes, no lists of three adjectives, no "journey" or "in a world where", no exclamation marks, no rhetorical questions, no names.
-  - `tests/quotes.test.ts` checks length, the banned shapes, repeats, and every season covered.
-  - **You read them all before release.** Sounding human is a judgement, not a test.
-- **The version number** at the foot of the loading screen and in Settings ("Version 0.20.0 · 9 Oct 2026"), from `package.json` through Vite's `define`. It goes up with each release: 0.release.fix.
-- **Photos:** three more for each month (about 36), added with `tools/add-photo.ts`, each licence checked (CC0, CC BY or CC BY-SA, as now). Today and the welcome screen take turns through the month's photos. `tests/photos.test.ts`: at least four a month, every licence valid.
-- **Risk to watch:** a pause on every launch could put off people who open the app daily. Hence the skip after a second, and no pause for links straight to a screen.
+### Release 20 — Welcome (as built)
+- **A welcome on every launch** (`src/ui/Welcome.tsx`, rules in `src/ui/launch.ts`):
+  - shown when the app opens at its start or at Today (as the home-screen icon opens it); not the very first time (setting up runs then), and not for a link to a particular screen. Reminders now open `#/today/reminder`, so a reminder goes straight to Today;
+  - the month's photo and the garden's name, in the same full-screen style as the first-run welcome;
+  - a progress bar for a pause of 1 to 5 seconds, chosen at random each launch, while the plant library loads behind it. It waits for the plants, but never more than 8 seconds. After a second, a tap (or Enter) goes straight in;
+  - then **Enter my garden** (the plan), **See my tasks** (this month's jobs), **About my garden** (your garden's page), **What's new** (marked New when there's something unseen), or **Continue to Today**. Esc continues to Today;
+  - with reduced motion, the bar doesn't animate;
+  - it follows the photo settings: the month pinned in Settings, and a plain green background with photos off;
+  - while it's up, the keyboard shortcuts (even undo) wait, the "Welcome to October" note waits until you're in, and a reminder or link to a screen goes straight through;
+  - the choices settle for a moment before they take a tap, so a second tap to hurry the pause can't pick one by accident.
+  - **Changed from the plan:** "See my tasks" opens the month's jobs, not Today, so it's a different place from Continue; "About me" is labelled **About my garden**, as the page is about the garden.
+- **A line to read while it loads** (`src/content/quotes.ts`): 60 short lines of our own, unattributed, 12 for each season and 12 for any time. The season follows the month, and the line shown last is never shown next (`lastQuote` in the device's preferences).
+  - Rules added to `docs/voice.md`: things rather than ideas, true advice, a little dry humour; no "It isn't X. It's Y.", no questions, exclamation marks or paired dashes, no "journey", "magic", "nurture" and the like, no names.
+  - Two drafts broke the "isn't X. It's Y." rule and were rewritten before the test went in.
+  - **Not done from the plan:** you reading them before release. You asked for it built and pushed, so they're live; they're easy to change in one file.
+- **The version** ("Version 0.20.0 · 9 Oct 2026") at the foot of the welcome and of Settings: from `package.json` and the build day (the local day, not UTC), through Vite's `define` (`src/content/version.ts`). `package.json` is now 0.20.0; it goes up with each release, 0.release.fix.
+- **Photos:** 36 more from Wikimedia Commons, three for each month, so every month has four (48 in all). Each added with `tools/add-photo.ts`, which reads the licence and author from Commons and refuses anything not public domain, CC0, CC BY or CC BY-SA.
+  - The tool now adds a photo to its month rather than replacing the month's photo.
+  - A month's photos take turns, a different one each day (`photoForMonth(month, day)`), so Today and the welcome show the same one all day.
+  - **The size budget held:** ten candidates (busy scenes such as whole borders and an allotment) couldn't be compressed within it, so simpler photos were chosen instead. The budget wasn't raised.
+  - Chosen by looking at each on a contact sheet: UK gardens where possible (walled gardens, Geograph photos), and close-ups of the month's plants and crops.
+- **Checked:** screenshots at 390 px of the loading pause with its line, the choices, and Settings' version; "See my tasks" opens the month's jobs; a contact sheet of all 36 new photos as built.
+
+Tests:
+- new `tests/welcome.test.ts`: when the welcome shows (start, Today) and when it doesn't (a screen, a reminder, help); the pause between 1 and 5 seconds, skippable after one; the version matches `package.json`; quotes: at least 10 for each season, no repeats, short, ending in a full stop, without the banned shapes and words, naming no one, and never the same line twice running;
+- `tests/photos.test.ts`: **changed the rule** "at most one photo per month" to "at least four for every month, each used once", because you asked for more photos each month (9 Oct 2026); and the month's photos take turns by day.
 
 ### Release 21 — Pots, properly (planned)
 - **Several plants in a pot:**

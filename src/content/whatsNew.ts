@@ -17,6 +17,17 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-09-welcome',
+    date: '2026-10-09',
+    title: 'A welcome, and more photos',
+    items: [
+      'Opening the app now starts with the month’s photo, your garden’s name and a line to read while your plants load. Tap after a second to go straight in.',
+      'Then choose where to start: your garden, this month’s jobs, your garden’s page, What’s new, or carry on to Today. Opening a reminder still goes straight to Today.',
+      'Four photos for each month instead of one, taking turns a day at a time: robins and snowdrops in January, foxgloves and strawberries in June, holly and a snowy walled garden in December.',
+      'The app’s version is at the foot of the welcome and of Settings, so you can see when it’s been updated.',
+    ],
+  },
+  {
     id: '2026-10-09-help',
     date: '2026-10-09',
     title: 'Help',

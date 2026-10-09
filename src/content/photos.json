@@ -21,6 +21,69 @@
     "changes": "Resized and compressed from the original."
   },
   {
+    "id": "m01-return-of-robin-23936181",
+    "month": 1,
+    "title": "Return Of Robin",
+    "alt": "A robin perched among bare winter twigs, its orange breast bright against a red wall",
+    "author": "Daniel Colquitt",
+    "licence": "CC BY-SA 3.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Return_Of_Robin_(23936181).jpeg",
+    "focus": [
+      68,
+      45
+    ],
+    "colour": "#7f696f",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m01-rosa-beverly-20211226-133520",
+    "month": 1,
+    "title": "Rosa Beverly 20211226 133520",
+    "alt": "A rose hip and its sepals furred with white hoar frost against snow",
+    "author": "Salicyna",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Rosa_Beverly_20211226_133520.jpg",
+    "focus": [
+      45,
+      50
+    ],
+    "colour": "#6e83a0",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m01-snowdrops-explored-32989917538",
+    "month": 1,
+    "title": "Snowdrops -explored-",
+    "alt": "A clump of white snowdrops nodding above bare winter soil",
+    "author": "Conall from Downpatrick, Northern Ireland",
+    "licence": "CC BY 2.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by/2.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Snowdrops_-explored-_(32989917538).jpg",
+    "focus": [
+      50,
+      40
+    ],
+    "colour": "#677163",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
     "id": "m02-audley-end-garden-snowdrops-geograph-org",
     "month": 2,
     "title": "Audley End Garden, Snowdrops",
@@ -34,6 +97,69 @@
       50
     ],
     "colour": "#626046",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m02-2019-03-11-15-19-21-naturalized-purple-c",
+    "month": 2,
+    "title": "2019-03-11 15 19 21 Naturalized purple crocuses in a lawn along Terrace Boulevard near Dunmore Avenue in the Parkway Village section of Ewing, Mercer County, New Jersey",
+    "alt": "Purple crocuses open wide among fallen brown leaves, showing their orange centres",
+    "author": "Famartin",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:2019-03-11_15_19_21_Naturalized_purple_crocuses_in_a_lawn_along_Terrace_Boulevard_near_Dunmore_Avenue_in_the_Parkway_Village_section_of_Ewing,_Mercer_County,_New_Jersey.jpg",
+    "focus": [
+      50,
+      50
+    ],
+    "colour": "#7c5b56",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m02-hellebore-in-nybg-70027",
+    "month": 2,
+    "title": "Hellebore in NYBG (70027)",
+    "alt": "A dusky pink hellebore flower and its buds rising from leaf litter in late winter",
+    "author": "Rhododendrites",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Hellebore_in_NYBG_(70027).jpg",
+    "focus": [
+      50,
+      45
+    ],
+    "colour": "#5e4d4b",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m02-at-dunham-massey-2024-014-snowdrops",
+    "month": 2,
+    "title": "At Dunham Massey 2024 014 - Snowdrops",
+    "alt": "Snowdrops pushing up through a bed of fallen brown leaves",
+    "author": "Photograph by Mike Peel ( www.mikepeel.net ).",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:At_Dunham_Massey_2024_014_-_Snowdrops.jpg",
+    "focus": [
+      50,
+      45
+    ],
+    "colour": "#766d4f",
     "widths": [
       640,
       1280,
@@ -63,6 +189,69 @@
     "changes": "Resized and compressed from the original."
   },
   {
+    "id": "m03-primroses-117185104",
+    "month": 3,
+    "title": "Primroses",
+    "alt": "Pale yellow primroses flowering in a cluster among their crinkled leaves",
+    "author": "Andy / Andrew Fogg from near Cambridge, UK",
+    "licence": "CC BY 2.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by/2.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Primroses_(117185104).jpg",
+    "focus": [
+      45,
+      55
+    ],
+    "colour": "#556131",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m03-tomato-seedlings-3805",
+    "month": 3,
+    "title": "Tomato-seedlings-3805",
+    "alt": "Tomato seedlings in pots and trays on a sunny windowsill, waiting to be potted on",
+    "author": "User:Vmenkov",
+    "licence": "CC BY-SA 3.0",
+    "licenceUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tomato-seedlings-3805.jpg",
+    "focus": [
+      45,
+      55
+    ],
+    "colour": "#6e8682",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m03-feeringbury-manor-magnolia-feering-essex",
+    "month": 3,
+    "title": "Feeringbury Manor magnolia, Feering Essex England",
+    "alt": "Deep pink magnolia buds opening on bare branches in early spring",
+    "author": "Acabashi",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Feeringbury_Manor_magnolia,_Feering_Essex_England.jpg",
+    "focus": [
+      50,
+      50
+    ],
+    "colour": "#5a5537",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
     "id": "m04-apple-trees-in-blossom-geograph-org-uk-7",
     "month": 4,
     "title": "Apple trees in blossom",
@@ -84,6 +273,69 @@
     "changes": "Resized and compressed from the original."
   },
   {
+    "id": "m04-prinknash-abbey-walled-garden-red-and-or",
+    "month": 4,
+    "title": "Prinknash Abbey Walled Garden red and orange tulips Upton St Leonards Gloucestershire England 01",
+    "alt": "Red and orange tulips lit by the sun against a dark green background",
+    "author": "Acabashi",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Prinknash_Abbey_Walled_Garden_red_and_orange_tulips_Upton_St_Leonards_Gloucestershire_England_01.jpg",
+    "focus": [
+      45,
+      50
+    ],
+    "colour": "#5d5423",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m04-in-the-walled-garden-royden-park-43",
+    "month": 4,
+    "title": "In the Walled Garden, Royden Park (43)",
+    "alt": "A single orange and yellow tulip open wide, close up in a walled garden",
+    "author": "Rept0n1x",
+    "licence": "CC BY-SA 3.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:In_the_Walled_Garden,_Royden_Park_(43).JPG",
+    "focus": [
+      50,
+      50
+    ],
+    "colour": "#977734",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m04-in-the-walled-garden-royden-park-40",
+    "month": 4,
+    "title": "In the Walled Garden, Royden Park (40)",
+    "alt": "A red tulip streaked with yellow, open to show its dark centre",
+    "author": "Rept0n1x",
+    "licence": "CC BY-SA 3.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:In_the_Walled_Garden,_Royden_Park_(40).JPG",
+    "focus": [
+      50,
+      50
+    ],
+    "colour": "#e68482",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
     "id": "m05-tulips-in-the-long-garden-13930964127",
     "month": 5,
     "title": "Tulips in the Long Garden",
@@ -97,6 +349,69 @@
       50
     ],
     "colour": "#b0a437",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m05-pryor-s-wood-bluebells-2017-04-26-4",
+    "month": 5,
+    "title": "Pryor's Wood Bluebells 2017-04-26-4",
+    "alt": "A carpet of bluebells under beech trees in fresh spring leaf",
+    "author": "Colin",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Pryor%27s_Wood_Bluebells_2017-04-26-4.jpg",
+    "focus": [
+      50,
+      50
+    ],
+    "colour": "#686361",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m05-allium-cultivars-wassertropfen-stacked-2",
+    "month": 5,
+    "title": "Allium (cultivars) Wassertropfen stacked-20250503-RM-151823",
+    "alt": "A round purple allium flower head beaded with raindrops",
+    "author": "Reinhold Möller Ermell",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Allium_(cultivars)_Wassertropfen_stacked-20250503-RM-151823.jpg",
+    "focus": [
+      50,
+      50
+    ],
+    "colour": "#4c5a2d",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m05-allium-atropurpureum-2012",
+    "month": 5,
+    "title": "Allium atropurpureum 2012",
+    "alt": "A starry purple allium flower head on a long stem",
+    "author": "JLPC",
+    "licence": "CC BY-SA 3.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Allium_atropurpureum_2012.jpg",
+    "focus": [
+      50,
+      50
+    ],
+    "colour": "#696e57",
     "widths": [
       640,
       1280,
@@ -126,6 +441,69 @@
     "changes": "Resized and compressed from the original."
   },
   {
+    "id": "m06-foxgloves-easton-lodge-gardens-walled-ga",
+    "month": 6,
+    "title": "Foxgloves Easton Lodge Gardens walled garden Little Easton Essex England 01",
+    "alt": "Tall purple and white foxgloves against an old garden wall",
+    "author": "Acabashi",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Foxgloves_Easton_Lodge_Gardens_walled_garden_Little_Easton_Essex_England_01.jpg",
+    "focus": [
+      50,
+      45
+    ],
+    "colour": "#746646",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m06-strawberries-growing-on-a-bush",
+    "month": 6,
+    "title": "Strawberries growing on a bush",
+    "alt": "Strawberry plants with ripening red fruit hanging over a mulched row",
+    "author": "AlphaLemur",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Strawberries_growing_on_a_bush.jpg",
+    "focus": [
+      50,
+      65
+    ],
+    "colour": "#768d48",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m06-vann-garden-white-foxglove-geograph-5807",
+    "month": 6,
+    "title": "Vann Garden- White foxglove (geograph 5807363)",
+    "alt": "A tall white foxglove in flower against the shade of the trees",
+    "author": "Michael Garlick",
+    "licence": "CC BY-SA 2.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Vann_Garden-_White_foxglove_(geograph_5807363).jpg",
+    "focus": [
+      45,
+      45
+    ],
+    "colour": "#2f362a",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
     "id": "m07-sweet-pea-week-at-easton-walled-garden-g",
     "month": 7,
     "title": "Sweet pea week at Easton Walled Garden",
@@ -139,6 +517,69 @@
       50
     ],
     "colour": "#7c876d",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m07-bee-on-lavender-unsplash",
+    "month": 7,
+    "title": "Bee on lavender (Unsplash)",
+    "alt": "A bumblebee feeding on a spike of purple lavender",
+    "author": "Jenna Lee jenna2980",
+    "licence": "CC0",
+    "licenceUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Bee_on_lavender_(Unsplash).jpg",
+    "focus": [
+      60,
+      40
+    ],
+    "colour": "#50533c",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m07-courgette-flower-5964757245",
+    "month": 7,
+    "title": "Courgette flower",
+    "alt": "A wide yellow courgette flower open among the big leaves of the plant",
+    "author": "Ruth Hartnup from Vancouver, Canada",
+    "licence": "CC BY 2.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by/2.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Courgette_flower_(5964757245).jpg",
+    "focus": [
+      50,
+      50
+    ],
+    "colour": "#5f7419",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m07-runner-beans-in-an-allotment-geograph-or",
+    "month": 7,
+    "title": "Runner beans in an allotment",
+    "alt": "A tall wall of runner beans in red flower on canes at an allotment",
+    "author": "Ben Harris",
+    "licence": "CC BY-SA 2.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Runner_beans_in_an_allotment_-_geograph.org.uk_-_529643.jpg",
+    "focus": [
+      45,
+      50
+    ],
+    "colour": "#7f886c",
     "widths": [
       640,
       1280,
@@ -168,6 +609,69 @@
     "changes": "Resized and compressed from the original."
   },
   {
+    "id": "m08-cherry-tomatoes-from-the-garden-12085644",
+    "month": 8,
+    "title": "Cherry Tomatoes From The Garden",
+    "alt": "A truss of ripe orange cherry tomatoes hanging from the plant in the sun",
+    "author": "Rob Bertholf",
+    "licence": "CC BY 3.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by/3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cherry_Tomatoes_From_The_Garden_(120856447).jpeg",
+    "focus": [
+      60,
+      45
+    ],
+    "colour": "#716b31",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m08-fresh-picked-tomatoes-from-connie-s-gard",
+    "month": 8,
+    "title": "Fresh Picked Tomatoes From Connie S Garden",
+    "alt": "A box heaped with freshly picked red tomatoes set down on the grass",
+    "author": "Rob Bertholf",
+    "licence": "CC BY 3.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by/3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Fresh_Picked_Tomatoes_From_Connie_S_Garden_(120857137).jpeg",
+    "focus": [
+      55,
+      50
+    ],
+    "colour": "#7c5b5a",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m08-ightham-mote-the-herbaceous-border-6-dah",
+    "month": 8,
+    "title": "Ightham Mote, The Herbaceous Border 6, dahlia",
+    "alt": "Round orange pompom dahlias in a late summer border",
+    "author": "Michael Garlick",
+    "licence": "CC BY-SA 2.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ightham_Mote,_The_Herbaceous_Border_6,_dahlia_-_geograph.org.uk_-_6279030.jpg",
+    "focus": [
+      50,
+      50
+    ],
+    "colour": "#655533",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
     "id": "m09-feeringbury-manor-pink-michaelmas-daisy-",
     "month": 9,
     "title": "Feeringbury Manor pink Michaelmas daisy, Feering Essex England 2",
@@ -181,6 +685,69 @@
       50
     ],
     "colour": "#563e51",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m09-apples-on-tree-2011-g1",
+    "month": 9,
+    "title": "Apples on tree 2011 G1",
+    "alt": "Red and green apples hanging thickly on a branch against a blue sky",
+    "author": "George Chernilevsky",
+    "licence": "Public domain",
+    "licenceUrl": "https://commons.wikimedia.org/wiki/File:Apples_on_tree_2011_G1.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Apples_on_tree_2011_G1.jpg",
+    "focus": [
+      45,
+      45
+    ],
+    "colour": "#878868",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m09-b-tte-grythengen-epler",
+    "month": 9,
+    "title": "Bøtte Grythengen epler",
+    "alt": "Someone holding a pink bucket full of freshly picked apples over the grass",
+    "author": "Øyvind Holmstad",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:B%C3%B8tte_Grythengen_epler.jpg",
+    "focus": [
+      55,
+      45
+    ],
+    "colour": "#6c6f49",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m09-dried-onions-8139493251",
+    "month": 9,
+    "title": "Dried onions",
+    "alt": "Dried onions and shallots heaped in a sack after harvest",
+    "author": "flowcomm",
+    "licence": "CC BY 2.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by/2.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dried_onions_(8139493251).jpg",
+    "focus": [
+      50,
+      50
+    ],
+    "colour": "#906d53",
     "widths": [
       640,
       1280,
@@ -210,6 +777,69 @@
     "changes": "Resized and compressed from the original."
   },
   {
+    "id": "m10-autumn-in-the-paradise-garden-rhs-bridge",
+    "month": 10,
+    "title": "Autumn in The Paradise Garden - RHS Bridgewater",
+    "alt": "A shrub blazing scarlet among grasses and late flowers in an autumn border",
+    "author": "Anthony Parkes",
+    "licence": "CC BY-SA 2.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Autumn_in_The_Paradise_Garden_-_RHS_Bridgewater_-_geograph.org.uk_-_7902514.jpg",
+    "focus": [
+      40,
+      50
+    ],
+    "colour": "#8f786f",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m10-apfelkiste",
+    "month": 10,
+    "title": "Apfelkiste",
+    "alt": "A big green crate brimming with red apples in an orchard",
+    "author": "Erwin Lindemann",
+    "licence": "Public domain",
+    "licenceUrl": "https://commons.wikimedia.org/wiki/File:Apfelkiste.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Apfelkiste.jpg",
+    "focus": [
+      50,
+      40
+    ],
+    "colour": "#4e5538",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m10-autumn-crocus-at-feeringbury-manor-feeri",
+    "month": 10,
+    "title": "Autumn crocus at Feeringbury Manor, Feering Essex England 2",
+    "alt": "Pale violet autumn crocuses flowering in the grass",
+    "author": "Acabashi",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Autumn_crocus_at_Feeringbury_Manor,_Feering_Essex_England_2.jpg",
+    "focus": [
+      50,
+      50
+    ],
+    "colour": "#495733",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
     "id": "m11-autumn-leaves-caversham-court-reading",
     "month": 11,
     "title": "Autumn Leaves - Caversham Court - Reading",
@@ -231,6 +861,69 @@
     "changes": "Resized and compressed from the original."
   },
   {
+    "id": "m11-cow-parsley-with-frost-1",
+    "month": 11,
+    "title": "Cow parsley with frost 1",
+    "alt": "The dry seed heads of cow parsley standing in front of bare winter woodland",
+    "author": "W.carter",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cow_parsley_with_frost_1.jpg",
+    "focus": [
+      50,
+      50
+    ],
+    "colour": "#5b5c58",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m11-japanese-fall-landscape-45390582835",
+    "month": 11,
+    "title": "Japanese Fall Landscape",
+    "alt": "Clipped evergreens and trees in orange and red autumn colour on a misty morning",
+    "author": "G. Lamar",
+    "licence": "CC BY 2.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by/2.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Japanese_Fall_Landscape_(45390582835).jpg",
+    "focus": [
+      60,
+      50
+    ],
+    "colour": "#49402e",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m11-misty-november-morning-8170211353",
+    "month": 11,
+    "title": "Misty November morning",
+    "alt": "A misty November morning across fields and trees in autumn colour",
+    "author": "Ian Gratton from Sutton-n-Craven, North Yorkshire, England",
+    "licence": "CC BY 2.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by/2.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Misty_November_morning_(8170211353).jpg",
+    "focus": [
+      50,
+      50
+    ],
+    "colour": "#959693",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
     "id": "m12-frost-on-grass",
     "month": 12,
     "title": "Frost on grass",
@@ -244,6 +937,69 @@
       50
     ],
     "colour": "#848987",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m12-holly-berries-geograph-org-uk-4227299",
+    "month": 12,
+    "title": "Holly Berries",
+    "alt": "Clusters of red holly berries among glossy, spiny dark green leaves",
+    "author": "Bob Harvey",
+    "licence": "CC BY-SA 2.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Holly_Berries_-_geograph.org.uk_-_4227299.jpg",
+    "focus": [
+      55,
+      50
+    ],
+    "colour": "#7e746c",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m12-rosenkohl-kopf-froschschaden-nach-9-c-jo",
+    "month": 12,
+    "title": "Rosenkohl Kopf Froschschaden nach -9°C-Josef Schlaghecken",
+    "alt": "Looking down into a Brussels sprout plant, its leaves marked by hard frost",
+    "author": "Schlaghecken Josef",
+    "licence": "CC BY 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Rosenkohl_Kopf_Froschschaden_nach_-9%C2%B0C-Josef_Schlaghecken.jpg",
+    "focus": [
+      50,
+      45
+    ],
+    "colour": "#5d735e",
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "changes": "Resized and compressed from the original."
+  },
+  {
+    "id": "m12-rockliffe-gardens-in-the-snow-geograph-o",
+    "month": 12,
+    "title": "Rockliffe Gardens in the snow",
+    "alt": "A walled garden under snow, with a snowman on the lawn and snowy evergreens behind",
+    "author": "Marathon",
+    "licence": "CC BY-SA 2.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Rockliffe_Gardens_in_the_snow_-_geograph.org.uk_-_2793155.jpg",
+    "focus": [
+      50,
+      60
+    ],
+    "colour": "#7c8490",
     "widths": [
       640,
       1280,

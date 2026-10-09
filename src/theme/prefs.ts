@@ -62,6 +62,8 @@ export interface Prefs {
   seenTips: boolean;
   /** "Stuck?" notes already offered, by id: shown once and never again. */
   stuckSeen: string[];
+  /** The line shown on the loading screen last time, so the next one is different. */
+  lastQuote: string | null;
   /** Warn of frost while the app's closed, where the browser allows (it checks the forecast in the background). */
   reminders: boolean;
   /** Once a week, a reminder of the jobs for the week, where the browser allows. */
@@ -106,6 +108,7 @@ export function defaultPrefs(): Prefs {
     plantEditor: false,
     seenTips: false,
     stuckSeen: [],
+    lastQuote: null,
     reminders: false,
     weeklyNudge: false,
     uvReminders: false,
@@ -150,6 +153,7 @@ export function sanitisePrefs(raw: unknown): Prefs {
     plantEditor: r.plantEditor === true,
     seenTips: r.seenTips === true,
     stuckSeen: Array.isArray(r.stuckSeen) ? r.stuckSeen.filter((x): x is string => typeof x === 'string') : [],
+    lastQuote: typeof r.lastQuote === 'string' ? r.lastQuote : null,
     reminders: r.reminders === true,
     weeklyNudge: r.weeklyNudge === true,
     uvReminders: r.uvReminders === true,

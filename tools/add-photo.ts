@@ -126,7 +126,8 @@ async function main() {
     changes: 'Resized and compressed from the original.',
   };
   const list = JSON.parse(readFileSync(MANIFEST, 'utf8')) as (typeof entry)[];
-  const next = [...list.filter((p) => p.month !== month && p.id !== id), entry].sort((a, b) => a.month - b.month);
+  // Several photos a month, which take turns: a new one joins its month, and one with the same id is replaced.
+  const next = [...list.filter((p) => p.id !== id), entry].sort((a, b) => a.month - b.month);
   writeFileSync(MANIFEST, JSON.stringify(next, null, 2) + '\n');
   console.log(`✓ ${id}: "${title}" by ${author}, ${licence}. Sizes: ${widths.join(', ')}. Colour ${colour}.`);
 }

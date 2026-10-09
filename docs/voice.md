@@ -41,3 +41,16 @@ These read as filler, or as a machine trying to sound friendly. `tests/words.tes
 | An empty state | What it is, then what to do | "Nothing planned for this week. A good time to weed and water." |
 | A button | What happens | "Plant out", "Show on the plan", "Pick some" |
 | A warning | What, when, what to do | "Frost likely early on Thursday. Fleece the dahlias tonight." |
+
+## The loading screen's lines (`src/content/quotes.ts`)
+
+Short, hopeful lines to read while the app loads: our own, never anyone's, and never attributed. They should sound like something a gardener said over the fence, not a poster.
+
+- **Things, not ideas.** Frost on a cabbage, a ball of string, a robin on the fork handle, a barrow of compost. "Most of gardening is noticing" earns its place by being short; most lines need a thing in them.
+- **A little dry humour is welcome.** "Pick courgettes small and often, or turn your back and find a marrow."
+- **True.** The advice in a line is real advice, said plainly.
+- **Not these shapes:** "It isn't X. It's Y." or "Not X, but Y"; three adjectives in a row; a question; an exclamation mark; paired dashes.
+- **Not these words:** journey, magic, soul, nurture, embrace, tapestry, testament, whisper, dream, promise, miracle, cherish.
+- **No names,** real or made up.
+
+`tests/welcome.test.ts` checks the length, the shapes and the words. Whether a line sounds like a person wrote it is for a person to judge: read them aloud.

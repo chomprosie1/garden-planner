@@ -35,7 +35,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
   const year = now.getFullYear();
   const season = seasonFor(month);
   const photoMonth = prefs.photoMonth === 'auto' ? month : prefs.photoMonth;
-  const photo = photoForMonth(photoMonth);
+  const photo = photoForMonth(photoMonth, now.getDate());
   // Subtle or no photos: every look uses the quiet band layout.
   const layout = prefs.photos === 'full' ? LOOKS[prefs.look].home : 'band';
   // Jobs for your own plants when you have any; otherwise the general UK jobs.
@@ -62,7 +62,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
     <div class={`home home-${layout}`}>
       {layout === 'hero' || layout === 'sheet' ? (
         <header class="home-hero">
-          <SeasonPhoto month={photoMonth} sizes="(max-width: 700px) 100vw, 900px" class="home-hero-photo" />
+          <SeasonPhoto month={photoMonth} day={now.getDate()} sizes="(max-width: 700px) 100vw, 900px" class="home-hero-photo" />
           <div class="home-top on-photo">
             <GardenName name={garden.name} class="garden-label" />
             {settingsButton}
@@ -77,7 +77,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
           </div>
           {photo && (
             <figure class="print">
-              <SeasonPhoto month={photoMonth} sizes="(max-width: 700px) 92vw, 640px" credit={false} />
+              <SeasonPhoto month={photoMonth} day={now.getDate()} sizes="(max-width: 700px) 92vw, 640px" credit={false} />
               <figcaption>
                 <PhotoCredit photo={photo} inline />
               </figcaption>
@@ -92,7 +92,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
         </header>
       ) : layout === 'packet' ? (
         <header class="home-packet">
-          <SeasonPhoto month={photoMonth} sizes="(max-width: 700px) 100vw, 900px" class="packet-photo" credit={false} />
+          <SeasonPhoto month={photoMonth} day={now.getDate()} sizes="(max-width: 700px) 100vw, 900px" class="packet-photo" credit={false} />
           <div class="home-top on-photo">
             <GardenName name={garden.name} class="sign" />
             {settingsButton}
@@ -122,7 +122,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
           <p class="month-line">{season.line}</p>
           {prefs.photos !== 'off' && photo && (
             <>
-              <SeasonPhoto month={photoMonth} sizes="(max-width: 700px) 92vw, 640px" class="band-photo" credit={false} />
+              <SeasonPhoto month={photoMonth} day={now.getDate()} sizes="(max-width: 700px) 92vw, 640px" class="band-photo" credit={false} />
               <PhotoCredit photo={photo} inline />
             </>
           )}

@@ -25,6 +25,8 @@ import { Settings } from './views/Settings';
 import { Shed } from './views/Shed';
 import { WhatsNew } from './views/WhatsNew';
 import { Help } from './views/Help';
+import { welcomesAt } from './launch';
+import { Welcome } from './Welcome';
 import { Profile } from './views/Profile';
 import { WrappedHost } from './WrappedHost';
 import { ReminderKeeper } from './ReminderKeeper';
@@ -66,6 +68,8 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   const [searching, setSearching] = useState(false);
   const [shedSow, setShedSow] = useState<string | null>(null);
   const [wrapping, setWrapping] = useState(false);
+  // The welcome, on a launch: not the very first (setting up runs then), nor a link or reminder to a particular screen.
+  const [welcoming, setWelcoming] = useState(() => prefs.onboarded && welcomesAt(location.hash));
   const weather = useWeatherFeed(garden, prefs.weather && prefs.onboarded);
 
   /**
@@ -126,6 +130,8 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   // Keyboard: Ctrl+K to search, undo/redo everywhere, H for photos on the plan, ? for the list of shortcuts.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // Nothing behind the welcome: no undoing a change you can't see.
+      if (welcoming) return;
       if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setSearching(true);
@@ -147,19 +153,40 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
     };
     addEventListener('keydown', onKey);
     return () => removeEventListener('keydown', onKey);
-  }, [store, prefsStore, view]);
+  }, [store, prefsStore, view, welcoming]);
 
   // A short welcome the first time the app opens in a new month.
   useEffect(() => {
     const month = new Date().getMonth() + 1;
     const p = prefsStore.get();
-    if (!p.onboarded || p.seenMonth === month) return;
+    // Not while the welcome is up: the note would be lost behind it.
+    if (!p.onboarded || p.seenMonth === month || welcoming) return;
     if (p.seenMonth !== null) actions.notify(`Welcome to ${seasonFor(month).name}. Your jobs for the month are on Home.`);
     prefsStore.set({ seenMonth: month });
-  }, [prefsStore, prefs.onboarded]);
+  }, [prefsStore, prefs.onboarded, welcoming]);
+
+  // A reminder or a link to a screen while the welcome is up goes straight there.
+  useEffect(() => {
+    if (!welcoming) return;
+    const on = () => !welcomesAt(location.hash) && setWelcoming(false);
+    addEventListener('hashchange', on);
+    return () => removeEventListener('hashchange', on);
+  }, [welcoming]);
 
   // A second garden, or starting again, skips the welcome.
   if (!prefs.onboarded) return <Onboarding store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} go={navigate} again={gardenCount() > 1} />;
+  if (welcoming)
+    return (
+      <Welcome
+        gardenName={garden.name}
+        prefs={prefs}
+        prefsStore={prefsStore}
+        done={(v) => {
+          setWelcoming(false);
+          navigate(v);
+        }}
+      />
+    );
 
   // Back along the trail, without adding to it; Today if there is none.
   const back = () => {

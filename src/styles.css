@@ -5977,3 +5977,95 @@ h2 {
   width: min(24rem, calc(100% - 32px));
   z-index: 3;
 }
+
+/* ---------- Welcome on launch (release 20) ---------- */
+.launch {
+  min-height: 100dvh;
+}
+.launch:not(.launch-ready) {
+  cursor: default;
+}
+.launch-quote {
+  margin: 0.25rem 0 0.5rem;
+  padding: 0;
+  max-width: 30rem;
+}
+.launch-quote p {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  line-height: 1.4;
+}
+.launch-bar {
+  height: 4px;
+  width: min(18rem, 100%);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+  overflow: hidden;
+}
+.launch-fill {
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  background: #fff;
+  transform-origin: left center;
+  animation-name: launch-fill;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+.launch-fill-still {
+  animation: none;
+  opacity: 0.6;
+}
+@keyframes launch-fill {
+  from {
+    transform: scaleX(0.04);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.launch-skip {
+  margin: 0;
+  opacity: 0.85;
+}
+.launch-choices {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7rem;
+  margin-top: 0.4rem;
+}
+.launch-more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.launch-new {
+  margin-left: 0.4rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: #fff;
+  color: #2f3a26;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-shadow: none;
+}
+.launch .link-btn.launch-continue {
+  color: #fff;
+}
+.launch-version {
+  margin: 0.6rem 0 0;
+  font-size: 0.78rem;
+  opacity: 0.75;
+}
+.app-version {
+  text-align: center;
+  margin: 1rem 0 0;
+}
+.launch:not(.launch-settled) .launch-choices {
+  pointer-events: none;
+}
+.launch-plain {
+  background: #33472d;
+}

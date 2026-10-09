@@ -120,7 +120,7 @@ async function frostCheck() {
       body: `About ${Math.round(min)} °C early on ${day}. At risk: ${names.slice(0, 3).join(', ')}${names.length > 3 ? ` and ${names.length - 3} more` : ''}.`,
       icon: 'icons/icon-192.png',
       tag: `frost-${days[i]}`,
-      data: { url: './#/today' },
+      data: { url: './#/today/reminder' },
     });
     return;
   }
@@ -145,7 +145,7 @@ async function weekCheck() {
   const told = `told-week-${week}`;
   if (await state.match(told)) return;
   await state.put(told, new Response('1'));
-  await self.registration.showNotification(nudge.title, { body: nudge.body, icon: 'icons/icon-192.png', tag: 'week', data: { url: './#/today' } });
+  await self.registration.showNotification(nudge.title, { body: nudge.body, icon: 'icons/icon-192.png', tag: 'week', data: { url: './#/today/reminder' } });
 }
 
 /** On a morning from April to September when the forecast's UV is high (6 or more): sun cream and a hat. Once a day. */
@@ -171,7 +171,7 @@ async function uvCheck() {
     body: `Up to ${level} around midday. ${level >= 8 ? 'Factor 50' : 'Factor 30+'}, a hat, and shade from 11 to 3.`,
     icon: 'icons/icon-192.png',
     tag: `uv-${today}`,
-    data: { url: './#/today' },
+    data: { url: './#/today/reminder' },
   });
 }
 

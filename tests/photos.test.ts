@@ -4,16 +4,26 @@
 import { existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { ALLOWED_LICENCES, licenceFamily, PHOTOS } from '../src/content/photos';
+import { ALLOWED_LICENCES, licenceFamily, photoForMonth, PHOTOS, photosForMonth } from '../src/content/photos';
 
 const DIR = join(__dirname, '..', 'public', 'seasons');
 const BUDGET_KB = (w: number) => (w <= 640 ? 100 : w <= 1280 ? 200 : 350);
 
 describe('seasonal photos', () => {
-  it('has at most one photo per month', () => {
-    const months = PHOTOS.map((p) => p.month);
-    expect(new Set(months).size).toBe(months.length);
-    months.forEach((m) => expect(m >= 1 && m <= 12).toBe(true));
+  // Was "at most one photo per month" until release 20, when you asked for more variety (9 Oct 2026).
+  it('has at least four photos for every month, each used once', () => {
+    for (let m = 1; m <= 12; m++) expect(photosForMonth(m).length, `month ${m}`).toBeGreaterThanOrEqual(4);
+    expect(PHOTOS.every((p) => p.month >= 1 && p.month <= 12)).toBe(true);
+    expect(new Set(PHOTOS.map((p) => p.id)).size).toBe(PHOTOS.length);
+    expect(new Set(PHOTOS.map((p) => p.sourceUrl)).size).toBe(PHOTOS.length);
+  });
+
+  it('shows a month’s photos in turn, one a day, the same all day', () => {
+    const june = photosForMonth(6);
+    const days = Array.from({ length: june.length }, (_, i) => photoForMonth(6, i + 1)!.id);
+    expect(new Set(days).size).toBe(june.length);
+    expect(photoForMonth(6, june.length + 1)!.id).toBe(days[0]);
+    expect(photoForMonth(6, 3)).toBe(photoForMonth(6, 3));
   });
 
   for (const p of PHOTOS) {
