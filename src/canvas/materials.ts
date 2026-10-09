@@ -32,8 +32,8 @@ const shade = (c: string, k: number) => toHex(k > 0 ? mix(c, '#ffffff', k) : mix
 
 /** Natural colours for each material, light and dark, before they're tuned to the look. */
 const BASE: Record<Mode, Record<Exclude<Material, 'lawn' | 'soil'>, string>> = {
-  light: { gravel: '#cfc5b2', paving: '#cdc7bc', decking: '#b08a5e', bark: '#7d5a3c', meadow: '#a9bf72' },
-  dark: { gravel: '#625b50', paving: '#5b5750', decking: '#6e543a', bark: '#4c3726', meadow: '#4f6233' },
+  light: { gravel: '#cfc5b2', paving: '#cdc7bc', decking: '#b08a5e', bark: '#7d5a3c', meadow: '#a9bf72', cardboard: '#b9976a' },
+  dark: { gravel: '#625b50', paving: '#5b5750', decking: '#6e543a', bark: '#4c3726', meadow: '#4f6233', cardboard: '#6b5638' },
 };
 
 /** The main colour of a material in this look and mode. */
@@ -137,7 +137,7 @@ export function drawHedgeTile(c: CanvasRenderingContext2D, colour: string, mode:
 }
 
 /** The real-world size of one 64 px tile, mm. */
-export const MATERIAL_TILE_MM: Record<Material, number> = { lawn: 400, gravel: 300, paving: 1200, decking: 1200, bark: 400, meadow: 500, soil: 300 };
+export const MATERIAL_TILE_MM: Record<Material, number> = { lawn: 400, gravel: 300, paving: 1200, decking: 1200, bark: 400, meadow: 500, soil: 300, cardboard: 1000 };
 
 const T = 64;
 
@@ -251,6 +251,41 @@ export function drawMaterialTile(c: CanvasRenderingContext2D, m: Material, P: Pl
         c.lineTo(x, (i + 1) * board);
       }
       c.stroke();
+      return;
+    }
+    case 'cardboard': {
+      // Flattened boxes laid with their edges overlapping: a seam across and down the tile, and the faint ribs of
+      // the corrugation running along each sheet.
+      c.strokeStyle = dark;
+      c.globalAlpha = 0.18;
+      c.lineWidth = 1;
+      for (let y = 3; y < T; y += 4) {
+        c.beginPath();
+        c.moveTo(0, y);
+        c.lineTo(T * 0.62, y);
+        c.stroke();
+      }
+      for (let x = T * 0.62 + 3; x < T; x += 4) {
+        c.beginPath();
+        c.moveTo(x, 0);
+        c.lineTo(x, T);
+        c.stroke();
+      }
+      c.globalAlpha = 0.55;
+      c.lineWidth = 2;
+      c.beginPath();
+      c.moveTo(T * 0.62, 0);
+      c.lineTo(T * 0.62, T);
+      c.moveTo(0, T * 0.4);
+      c.lineTo(T * 0.62, T * 0.4);
+      c.stroke();
+      c.strokeStyle = light;
+      c.lineWidth = 1;
+      c.beginPath();
+      c.moveTo(T * 0.62 + 2, 0);
+      c.lineTo(T * 0.62 + 2, T);
+      c.stroke();
+      c.globalAlpha = 1;
       return;
     }
     case 'bark': {

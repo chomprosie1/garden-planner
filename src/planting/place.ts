@@ -13,7 +13,7 @@ export type Layout = NonNullable<Planting['layout']>;
 export const CONTAINER_KINDS: FeatureKind[] = ['bed', 'greenhouse', 'cold-frame', 'pot', 'planter'];
 
 /** Ground soft enough to plant in, as bulbs go in a lawn. Paving, decking and paths aren't. */
-export const SOFT_GROUND: Material[] = ['lawn', 'meadow', 'soil', 'bark', 'gravel'];
+export const SOFT_GROUND: Material[] = ['lawn', 'meadow', 'soil', 'bark', 'gravel', 'cardboard'];
 
 /** More than this in one planting is almost always a mistake, and slow to draw. */
 export const MAX_PLANTS = 5000;

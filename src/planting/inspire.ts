@@ -61,8 +61,8 @@ export interface Spot {
   until: string | null;
 }
 
-/** Ground that isn't dug: a lawn, a meadow, gravel or bark, for trees, shrubs and bulbs. A patch of bare soil is like a bed. */
-const isLawnish = (f: Feature) => f.kind === 'surface' && f.material !== 'soil';
+/** Ground that isn't dug: a lawn, a meadow, gravel or bark, for trees, shrubs and bulbs. Bare soil, or cardboard (planted through), is like a bed. */
+const isLawnish = (f: Feature) => f.kind === 'surface' && f.material !== 'soil' && f.material !== 'cardboard';
 
 /** The most open point of a lawn or patch: furthest from its edges and from anything planted in it. */
 function openPoint(g: Garden, f: Feature, plantOf: (id: string) => Plant): { at: Point; room: number } {

@@ -42,6 +42,8 @@ import { updateGarden, type Store } from '../../model/store';
 import { CONTAINERS, FACINGS, SHED_PLACE_KINDS, type Container, type Facing, type Garden, type Plant, type ShedPlace, type ShedPlaceKind, type Tray, type TrayStage } from '../../model/types';
 import { useApp } from '../appContext';
 import { HelpButton, HelpLink } from '../HelpLink';
+import { Icon } from '../icons';
+import { SOW_KINDS, sowList, type SowKind } from '../../lifecycle/sowList';
 import { CompassFacing } from '../CompassNorth';
 import { useIsPhone } from '../hooks';
 import { PlantIcon } from '../PlantIcon';
@@ -72,9 +74,6 @@ const SHED_PAGES: [ShedPage, string][] = [
 ];
 /** The part of the shed you were last in, while the app's open. */
 let lastPage: ShedPage = 'trays';
-
-/** Plants sown indoors or under cover: the ones the shed is for. */
-const sownUnderCover = (p: Plant) => !!p.sowing?.some((s) => s.method !== 'direct');
 
 export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }: Props) {
   const app = useApp();
@@ -504,19 +503,62 @@ interface SowProps {
   onCancel: () => void;
 }
 
+/** How many plants a group shows before "Show all". */
+const FIRST_TILES = 18;
+
+/** A group of plants to sow, as tiles with pictures; long groups show a few first, and some groups start folded. */
+function SowTiles({ title, plants, picked, pick, folded = false, empty }: { title: string; plants: Plant[]; picked: string; pick: (id: string) => void; folded?: boolean; empty?: string }) {
+  const [all, setAll] = useState(false);
+  const shown = all ? plants : plants.slice(0, FIRST_TILES);
+  const tiles =
+    plants.length === 0 ? (
+      empty ? <p class="muted small">{empty}</p> : null
+    ) : (
+      <>
+        <ul class="sow-tiles">
+          {shown.map((p) => (
+            <li key={p.id}>
+              <button type="button" class="sow-tile" aria-pressed={picked === p.id} onClick={() => pick(p.id)}>
+                <PlantIcon plant={p} size={36} />
+                <span>{p.commonName}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+        {plants.length > FIRST_TILES && !all && (
+          <button type="button" class="link-btn small" onClick={() => setAll(true)}>
+            Show all {plants.length}
+          </button>
+        )}
+      </>
+    );
+  if (folded)
+    return (
+      <details class="sow-group">
+        <summary>
+          {title} <span class="muted small">({plants.length})</span>
+        </summary>
+        {tiles}
+      </details>
+    );
+  return (
+    <section class="sow-group" aria-label={title}>
+      <h3 class="sow-group-title">{title}</h3>
+      {tiles}
+    </section>
+  );
+}
+
 function SowForm({ plants, garden, plantOf, places, sunOf, sunniest, month: sunMonth, initial, onSow, onCancel }: SowProps) {
   const month = new Date().getMonth() + 1;
-  const groups = useMemo(() => {
-    const cover = plants.filter(sownUnderCover);
-    const tin = new Set(seedsOf(garden).filter((k) => k.count !== 0).map((k) => k.plantId));
-    return [
-      { label: 'From your seed tin', list: plants.filter((p) => tin.has(p.id)) },
-      { label: 'Sow under cover now', list: cover.filter((p) => p.sowing!.some((s) => s.method !== 'direct' && s.months.includes(month))) },
-      { label: 'Sow under cover later', list: cover.filter((p) => !p.sowing!.some((s) => s.method !== 'direct' && s.months.includes(month))) },
-      { label: 'Other plants', list: plants.filter((p) => !sownUnderCover(p)) },
-    ];
-  }, [plants, garden]);
-  const [plantId, setPlantId] = useState(initial ?? groups[0]!.list[0]?.id ?? plants[0]?.id ?? '');
+  const [kind, setKind] = useState<SowKind>('all');
+  const [query, setQuery] = useState('');
+  const [weeds, setWeeds] = useState(false);
+  const tin = useMemo(() => new Set(seedsOf(garden).filter((k) => k.count !== 0).map((k) => k.plantId)), [garden]);
+  const list = useMemo(() => sowList(plants, { month, kind, query, weeds, tin }), [plants, month, kind, query, weeds, tin]);
+  // Changing the filter starts each group short again.
+  const filterKey = `${kind}|${query}|${weeds}`;
+  const [plantId, setPlantId] = useState(initial || list.tin[0]?.id || list.now[0]?.id || plants[0]?.id || '');
   const plant = plants.find((p) => p.id === plantId);
   const [container, setContainer] = useState<Container>(plant && plant.size.spreadMm && plant.size.spreadMm >= 400 ? 'pot-9cm' : 'module-tray');
   const [count, setCount] = useState(String(CONTAINER_COUNT[container]));
@@ -539,25 +581,34 @@ function SowForm({ plants, garden, plantOf, places, sunOf, sunniest, month: sunM
       }}
     >
       <h2>Sow seeds</h2>
-      <div class="shed-sow-plant">
-        {plant && <PlantIcon plant={plant} size={44} />}
-        <label class="field">
-          Plant
-          <select value={plantId} onChange={(e) => setPlantId((e.currentTarget as HTMLSelectElement).value)}>
-            {groups.map((g) =>
-              g.list.length ? (
-                <optgroup key={g.label} label={g.label}>
-                  {g.list.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.commonName}
-                    </option>
-                  ))}
-                </optgroup>
-              ) : null,
-            )}
-          </select>
+      <div class="sow-pick">
+        <label class="dock-search sow-search">
+          <Icon name="search" size={16} />
+          <span class="visually-hidden">Find a plant</span>
+          <input value={query} placeholder="Find a plant" onInput={(e) => setQuery((e.currentTarget as HTMLInputElement).value)} />
         </label>
+        <div class="choice-row" role="radiogroup" aria-label="Kind of plant">
+          {SOW_KINDS.map((k) => (
+            <button key={k.id} type="button" role="radio" class="chip" aria-checked={kind === k.id} onClick={() => setKind(k.id)}>
+              {k.label}
+            </button>
+          ))}
+        </div>
+        <label class="check small">
+          <input type="checkbox" checked={weeds} onChange={(e) => setWeeds((e.currentTarget as HTMLInputElement).checked)} />
+          Show weeds
+        </label>
+        {list.tin.length > 0 && <SowTiles key={`tin|${filterKey}`} title="From your seed tin" plants={list.tin} picked={plantId} pick={setPlantId} />}
+        <SowTiles key={`now|${filterKey}`} title={`Sow under cover now, in ${MONTH_NAMES[month - 1]}`} plants={list.now} picked={plantId} pick={setPlantId} empty="Nothing of this kind to sow under cover this month. Try Later, or another kind." />
+        <SowTiles key={`later|${filterKey}`} title="Later in the year" plants={list.later} picked={plantId} pick={setPlantId} folded />
+        <SowTiles key={`other|${filterKey}`} title="Everything else: usually sown outside or bought as plants" plants={list.other} picked={plantId} pick={setPlantId} folded />
       </div>
+      {plant && (
+        <div class="shed-sow-plant">
+          <PlantIcon plant={plant} size={44} />
+          <strong>{plant.commonName}</strong>
+        </div>
+      )}
       {plant && packetsFor(garden, plant, plantOf).length > 0 && (
         <p class="small seed-have">In your seed tin: {packetsFor(garden, plant, plantOf).map((k) => packetText(k, plantOf(k.plantId))).join('; ')}.</p>
       )}

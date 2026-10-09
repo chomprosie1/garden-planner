@@ -42,6 +42,7 @@ export const STICKERS: Sticker[] = [
   { id: 'paving', group: 'ground', label: 'Patio', size: rect(3000, 2400), kind: 'surface', shape: { rect: [3000, 2400] }, material: 'paving' },
   { id: 'decking', group: 'ground', label: 'Decking', size: rect(3000, 2400), kind: 'surface', shape: { rect: [3000, 2400] }, material: 'decking' },
   { id: 'bark', group: 'ground', label: 'Bark chips', size: rect(2000, 1000), kind: 'surface', shape: { rect: [2000, 1000] }, material: 'bark' },
+  { id: 'cardboard', group: 'ground', label: 'Cardboard over weeds', size: rect(2000, 1200), kind: 'surface', shape: { rect: [2000, 1200] }, material: 'cardboard' },
   { id: 'path', group: 'ground', label: 'Path', size: '3 m', kind: 'path', shape: { line: 3000 }, material: 'gravel' },
   { id: 'pond', group: 'ground', label: 'Pond', size: rect(1500, 1000), kind: 'water', shape: { rect: [1500, 1000] } },
   { id: 'shed', group: 'build', label: 'Shed', size: rect(2400, 1800), kind: 'building', shape: { rect: [2400, 1800] } },

@@ -47,6 +47,7 @@ export const MATERIAL_LABEL: Record<Material, string> = {
   bark: 'Bark chips',
   meadow: 'Wildflower meadow',
   soil: 'Bare soil',
+  cardboard: 'Cardboard',
 };
 
 /** Kinds that can swap with each other without redrawing: same geometry. */
@@ -388,4 +389,9 @@ export function resizeRect(points: Point[], w: number, h: number): Point[] | nul
 /** Everything drawn, for fitting the view. */
 export function gardenBounds(g: Garden): Bounds | null {
   return bounds([...g.boundary, ...g.features.flatMap((f) => f.footprint), ...(g.sketches ?? []).flatMap((k) => k.points)]);
+}
+
+/** Changing what a surface or path is made of: cardboard keeps the day it was laid while it stays cardboard; anything else forgets it. The day is set when it goes down, not when it's drawn. */
+export function materialPatch(f: Feature, material: Material | undefined): Partial<Feature> {
+  return { material, laidOn: material === 'cardboard' && f.material === 'cardboard' ? f.laidOn : undefined };
 }

@@ -18,6 +18,7 @@ import {
   KINDS,
   kindsWithGeometry,
   MATERIAL_LABEL,
+  materialPatch,
   pivotOf,
   placeLabel,
   rectInfo,
@@ -279,7 +280,14 @@ function TreeTypePicker({ f, set }: { f: Feature; set: (patch: Partial<Feature>)
 /** Bulbs in a lawn, wildflowers in gravel: what's planted on a stretch of ground, to pick one. */
 function GrowingOnGround({ garden, f, plantOf, setSelected }: { garden: Garden; f: Feature; plantOf: (id: string) => Plant; setSelected: (t: Target | null) => void }) {
   const growing = garden.plantings.filter((p) => p.featureId === f.id && !p.removedOn);
-  if (!growing.length) return <p class="muted small">Plants can go here too: bulbs in a lawn, or a tree. Drop one from Plants below the plan.</p>;
+  if (!growing.length)
+    return (
+      <p class="muted small">
+        {f.material === 'cardboard'
+          ? 'Plant through it, into the mulch on top: drop plants onto it from Plants below the plan, as on a bed.'
+          : 'Plants can go here too: bulbs in a lawn, or a tree. Drop one from Plants below the plan.'}
+      </p>
+    );
   return (
     <Section id="growing" title={`Growing here (${growing.length})`}>
       <ul class="layer-list">
@@ -389,6 +397,7 @@ function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf
       )}
 
       {(f.kind === 'surface' || f.kind === 'path') && <MaterialPicker f={f} set={set} />}
+      {f.kind === 'surface' && f.material === 'cardboard' && !embedded && <CardboardAdvice f={f} set={set} />}
       {!embedded && isSoftGround(f) && <GrowingOnGround garden={garden} f={f} plantOf={plantOf} setSelected={setSelected} />}
       {!embedded && isSoftGround(f) && (
         <div class="button-row">
@@ -505,18 +514,50 @@ function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf
   );
 }
 
+/**
+ * Cardboard laid over weeds: how to lay it (RHS, "No-dig gardening"), when it was laid and when to check it, and a
+ * word on plastic weed membrane (a case study in Frontiers in Environmental Science, 2021; Garden Organic).
+ */
+function CardboardAdvice({ f, set }: { f: Feature; set: (patch: Partial<Feature>) => void }) {
+  return (
+    <Section id="cardboard" title="Cardboard over weeds">
+      <ul class="tips">
+        <li>Take off any tape and staples, and leave out shiny printed card.</li>
+        <li>Lay it two layers thick, the sheets overlapping so weeds can’t push up between them, and wet it well.</li>
+        <li>Cover it with a thick mulch of compost or well-rotted manure. You can plant straight into the mulch, through a slit in the card.</li>
+        <li>Pull any weed that finds a gap. Deep-rooted ones such as bindweed can take more than one season.</li>
+      </ul>
+      <label class="field">
+        Laid on
+        <input type="date" value={f.laidOn ?? ''} onChange={(e) => set({ laidOn: (e.currentTarget as HTMLInputElement).value || undefined })} />
+      </label>
+      {!f.laidOn && (
+        <button type="button" class="btn" onClick={() => set({ laidOn: todayIso() })}>
+          Laid it today
+        </button>
+      )}
+      <p class="muted small">
+        It rots down over several months.{' '}
+        {f.laidOn ? 'There’s a job to check it about six months after it was laid.' : 'Say when it’s down, and a job will remind you to check it about six months on.'}
+      </p>
+      <p class="assumption">Cardboard rots away and feeds the soil. Plastic weed membrane doesn’t: it isn’t organic, and as it ages it breaks into tiny plastic fibres in the soil.</p>
+    </Section>
+  );
+}
+
 /** What a surface or path is made of, as a row of swatches. */
 function MaterialPicker({ f, set }: { f: Feature; set: (patch: Partial<Feature>) => void }) {
   const path = f.kind === 'path';
   const current = f.material ?? (path ? null : 'lawn');
-  const options: (Material | null)[] = path ? [null, ...MATERIALS.filter((m) => m !== 'meadow')] : [...MATERIALS];
+  // A path isn't meadow or cardboard: neither is walked on.
+  const options: (Material | null)[] = path ? [null, ...MATERIALS.filter((m) => m !== 'meadow' && m !== 'cardboard')] : [...MATERIALS];
   return (
     <fieldset class="choice">
       <legend>Made of</legend>
       <div class="material-picker">
         {options.map((m) => (
           <label key={m ?? 'plain'} class="material-option">
-            <input type="radio" name={`material-${f.id}`} checked={current === m} onChange={() => set({ material: m ?? undefined })} />
+            <input type="radio" name={`material-${f.id}`} checked={current === m} onChange={() => set(materialPatch(f, m ?? undefined))} />
             <span class={`material-swatch material-${m ?? 'plain'}`} aria-hidden="true" />
             <span>{m ? MATERIAL_LABEL[m] : 'Plain'}</span>
           </label>

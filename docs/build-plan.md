@@ -1209,7 +1209,7 @@ Decided:
 | 19. Help, the first minute | Help pages and search; first-session topics; "Stuck?" nudges at the three riskiest moments | ~1 wk | Built 9 Oct 2026 |
 | 20. Welcome | A welcome screen with a loading pause, a quote and the version; more photos for each month | ~1 wk + photos | Built 9 Oct 2026 |
 | 21. Pots, properly | Several plants to a pot, crowding and companions, pots too small, potting on, trees in pots | ~1.5 wk | Built 9 Oct 2026 |
-| 22. Sowing and cardboard | Seedlings' sowing list by now and by kind, weeds hidden; cardboard for weeds, membrane discouraged | ~1 wk | |
+| 22. Sowing and cardboard | Seedlings' sowing list by now and by kind, weeds hidden; cardboard for weeds, membrane discouraged | ~1 wk | Built 9 Oct 2026 |
 | 23. Help for the rest | First-week and deeper help topics, with links from each screen | ~1 wk | |
 
 ### Fix — Plants go in small pots (as built)
@@ -1306,17 +1306,25 @@ Tests: new `tests/pots.test.ts`:
 - **potting on:** the choices offered; into a new pot (valid garden, a note, the old pot kept, no warning after), clear of a window box; into a pot on the plan beside what's there; into a bed; stages, dates and picks kept;
 - **trees:** the library plant for a tree by id or name, and none for a birch.
 
-### Release 22 — Sowing and cardboard (planned)
-- **Seedlings' sowing list** (`SowForm` in `src/ui/views/Shed.tsx`):
-  - the long drop-down becomes a picker: **Sow now** first, larger and with pictures; then Vegetables, Herbs, Fruit, Flowers, Shrubs and Trees as chips; a search box; and **Later** and **Everything else** folded away;
-  - **Show weeds,** unticked to begin with, here and wherever weeds are offered for planting.
-- **Cardboard for weeds:**
-  - a new ground, `cardboard`, drawn as brown sheets; you plant through it, so it counts as soft ground;
-  - advice: lay it over the weeds, overlap the edges, wet it and mulch on top; it rots down in a few months;
-  - a job when it should have rotted, which needs the day it was laid (`Feature.laidOn`): a change to the save format, so on a branch with a preview, with a migration test.
-- **Weed membrane discouraged:** never offered. Where weeds and ground are discussed (weed advice, cardboard's help), one calm line: plastic membrane isn't organic and breaks into fibres in the soil; cardboard does the job and rots away.
-  - Changes to `data/plants/weed.json` are drafts, and their `source` lines say so.
-- **Tests:** the sowing groups (now first, weeds hidden); cardboard, its job and the migration.
+### Release 22 — Sowing and cardboard (as built, schema 17)
+- **Seedlings' sowing list** (`SowForm` in `src/ui/views/Shed.tsx`, groups in `src/lifecycle/sowList.ts`, pure):
+  - the long drop-down is now a picker with pictures: a search box; **All, Vegetables, Herbs, Fruit, Flowers, Shrubs, Trees** as chips (fruit trees count as trees); **From your seed tin** when there's seed in it; **Sow under cover now, in October** first; then **Later in the year** and **Everything else** folded away, each with a count. Long groups show 18 first, with "Show all";
+  - **Show weeds,** unticked to begin with. Varieties show when searched for, or when there's seed of them in the tin. A plant with seed in the tin shows once, at the top;
+  - **Changed from the plan:** the plan's plant tray already kept weeds behind their own Weeds chip, so it's unchanged.
+- **Cardboard over weeds:**
+  - a new ground, `cardboard`, drawn as overlapping brown sheets with faint ribs; **Cardboard over weeds** (2 × 1.2 m) under Ground, in Simple too. You plant through it, so it counts as soft ground, and Inspire me treats it like bare soil;
+  - the day it was laid (`Feature.laidOn`): set in its panel, with **Laid it today** or a date, because drawing cardboard on a plan for next spring isn't laying it. Kept while it stays cardboard, dropped if it becomes something else (`materialPatch` in `src/model/features.ts`). Cardboard is for surfaces only: paths can't be made of it;
+  - its panel, from the RHS ("No-dig gardening", checked 9 Oct 2026): take off tape and staples and leave out shiny printed card; two layers, overlapping, wetted; a thick mulch of compost or manure on top, planted into straight away; pull any weed that finds a gap. Deep-rooted weeds can take more than a season (Charles Dowding's no-dig advice);
+  - **a job** to check it, from the month about six months after it was laid until it's ticked off (`cardboardJobs` in `src/calendar/jobs.ts`): six months or more is the figure in Seattle Public Utilities' sheet-mulching guide, as the RHS gives none. It isn't tied to a plant: it shows in the month's jobs with a **Show** link to the cardboard, and as a chip on it on the plan.
+- **Weed membrane discouraged:** never offered. One calm line in the cardboard panel, the cardboard help topic, What's new and every weed's card: plastic membrane isn't organic, and as it ages it breaks into tiny plastic fibres in the soil; cardboard rots away. From a case study in *Frontiers in Environmental Science* (2021) that found polypropylene fragments from landscape fabric in a garden after about seven years, and Garden Organic's work on plastics in soil.
+  - **Changed from the plan:** no changes to `data/plants/weed.json`; the line about cardboard and membrane is on the weed card itself, so no plant data was touched.
+- **Save format 17:** `laidOn` and the new material, both optional; the migration has nothing to convert. **On `main`, not a branch,** as you said for this release (9 Oct 2026).
+- **Help:** a new **Cardboard over weeds** topic; **Sowing in Seedlings** describes the picker.
+- **Checked:** at 390 px, the picker (all, and herbs in October with nothing to sow now); at 1280 px, cardboard added from Ground, its panel and advice.
+
+Tests: new `tests/sowing-cardboard.test.ts`:
+- **the sowing list:** what to sow under cover this month first, every plant in one group; weeds hidden unless asked; each kind (apples are trees, strawberries fruit); search, varieties when searched for, and the tin;
+- **cardboard:** soft ground, under Ground; the laid date kept, never made up, and dropped; the job from the sixth month until ticked off, saying where a named patch is, none without a date or on a path; schema 17, a bad date refused, and a schema 16 garden brought up to date.
 
 ### Release 23 — Help for the rest (planned)
 - The first-week and depth topics (tiers 2 and 3), with "?" links on those screens.

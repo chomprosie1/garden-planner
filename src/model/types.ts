@@ -146,7 +146,7 @@ export const FEATURE_KINDS = [
 export type FeatureKind = (typeof FEATURE_KINDS)[number];
 
 /** What a surface or path is made of. */
-export const MATERIALS = ['lawn', 'gravel', 'paving', 'decking', 'bark', 'meadow', 'soil'] as const;
+export const MATERIALS = ['lawn', 'gravel', 'paving', 'decking', 'bark', 'meadow', 'soil', 'cardboard'] as const;
 export type Material = (typeof MATERIALS)[number];
 
 export const EDGINGS = ['timber', 'brick', 'stone'] as const;
@@ -162,6 +162,8 @@ export interface Feature {
   footprint: Point[];
   /** What a surface or path is made of. */
   material?: Material;
+  /** When cardboard was laid, ISO date: it rots down over the months after, and a job says when to check it. */
+  laidOn?: string;
   /** Curved edges: an area's outline, or a line's centre line, runs as a smooth curve through its corners. */
   smooth?: boolean;
   /** The corners a curved area's outline passes through. Present only when `smooth` is set on an area. */

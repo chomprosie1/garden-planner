@@ -2856,6 +2856,9 @@ kbd {
 .material-soil {
   background: radial-gradient(circle, #6e4f3a 1px, transparent 1.5px) 0 0 / 4px 4px, var(--plan-bed-fill);
 }
+.material-cardboard {
+  background: linear-gradient(90deg, transparent 60%, #8a6c47 60% 66%, transparent 66%), repeating-linear-gradient(0deg, #b9976a 0 3px, #a8875c 3px 4px);
+}
 
 .sketch-bar {
   display: flex;
@@ -6068,4 +6071,61 @@ h2 {
 }
 .launch-plain {
   background: #33472d;
+}
+
+/* ---------- Sowing picker in Seedlings (release 22) ---------- */
+.sow-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.sow-search {
+  flex: none;
+  align-self: flex-start;
+  width: 100%;
+  max-width: 22rem;
+}
+.sow-group-title {
+  margin: 0.4rem 0 0.4rem;
+  font-size: 0.95rem;
+}
+.sow-group summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.35rem 0;
+}
+.sow-tiles {
+  list-style: none;
+  margin: 0 0 0.3rem;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+  gap: 0.4rem;
+}
+.sow-tile {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.45rem 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+}
+.sow-tile[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--selected-bg);
+  color: var(--selected-text);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.shed-sow-plant strong {
+  font-size: 1.05rem;
 }

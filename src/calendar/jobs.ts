@@ -10,7 +10,7 @@ import { feedDetail, feedingDue, isOnce, plantingFeedText } from '../feeding/sch
 import { addDays, frostDates, plantOutMonthsUnder } from '../lifecycle/shed';
 import { currentStage, pathFor, setStage, sowingOf, STAGE_LABEL, stageTips, suggestedStage } from '../lifecycle/stages';
 import { shortDate } from '../lifecycle/projection';
-import { placeLabel } from '../model/features';
+import { featureLabel, placeLabel } from '../model/features';
 import { runEnds } from '../library/library';
 import { STAGES, type Garden, type PickSize, type Plant, type Planting, type Stage } from '../model/types';
 import { addPick } from '../planting/harvest';
@@ -254,8 +254,44 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     if (plant.plantOutMonths?.includes(month) && !doneBefore(g, `plant-out:${plant.id}:2`, year, month)) add('plant-out', plant, 'on your Want to grow list', '', []);
   }
 
+  jobs.push(...cardboardJobs(g, month, year));
+
   const order = (k: JobKind) => JOB_KINDS.indexOf(k);
   return jobs.sort((a, b) => order(a.kind) - order(b.kind) || a.plant.localeCompare(b.plant) || a.where.localeCompare(b.where));
+}
+
+/**
+ * How long laid cardboard usually takes to rot down enough to plant into under a mulch: six months or more (Seattle
+ * Public Utilities' sheet-mulching guide). The RHS gives no figure.
+ */
+export const CARDBOARD_MONTHS = 6;
+
+/**
+ * A check on cardboard laid over weeds, from the month it's likely to have rotted down until it's ticked off. Not tied
+ * to a plant, and only once you've said when it was laid: a plan drawn ahead hasn't been laid yet.
+ */
+export function cardboardJobs(g: Garden, month: number, year: number): Job[] {
+  const out: Job[] = [];
+  const now = ym(year, month);
+  for (const f of g.features) {
+    if (f.kind !== 'surface' || f.material !== 'cardboard' || !f.laidOn) continue;
+    const due = addDays(f.laidOn, Math.round(CARDBOARD_MONTHS * 30.4)).slice(0, 7);
+    if (now < due) continue;
+    const prefix = `check:cardboard:${f.id}:`;
+    // Ticked in an earlier month: done. Ticked this month: it stays, ticked, until the month ends.
+    if (g.jobsDone.some((d) => d.key.startsWith(prefix) && d.key.slice(-7) < now)) continue;
+    out.push({
+      key: `${prefix}${now}`,
+      kind: 'check',
+      plantId: '',
+      plant: 'Cardboard',
+      where: `${f.name?.trim() ? `on ${featureLabel(f)}, ` : ''}laid ${shortDate(f.laidOn)}`,
+      detail: 'It’s usually soft enough to plant into by now. Push a trowel through it, and top up the mulch where the card shows.',
+      featureId: f.id,
+      plantingIds: [],
+    });
+  }
+  return out;
 }
 
 /** Jobs grouped by kind, skipping kinds with nothing to do. */

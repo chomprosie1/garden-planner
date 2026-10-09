@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { microclimateOf } from '../climate/microclimate';
 import { isNewSeason, nextStage, STAGE_ACTION } from '../lifecycle/stages';
-import { deleteFeatures, duplicateFeature, featureLabel, geometryOf, MATERIAL_LABEL, rectInfo, resizeRectAny, setSmooth, updateFeature, type Target } from '../model/features';
+import { deleteFeatures, duplicateFeature, featureLabel, geometryOf, MATERIAL_LABEL, materialPatch, rectInfo, resizeRectAny, setSmooth, updateFeature, type Target } from '../model/features';
 import { todayIso } from '../model/ids';
 import { asTree, treeSizeText, treeType } from '../model/trees';
 import { updateGarden, type Store } from '../model/store';
@@ -286,9 +286,9 @@ function FeatureActions({ f, garden, commit, locked, sizing, setSizing, plantHer
           {(f.kind === 'surface' || f.kind === 'path') && (
             <label class="pill-select">
               <span class="visually-hidden">Made of</span>
-              <select value={f.material ?? (f.kind === 'surface' ? 'lawn' : '')} onChange={(e) => commit((g) => updateFeature(g, f.id, { material: ((e.currentTarget as HTMLSelectElement).value || undefined) as Material | undefined }))}>
+              <select value={f.material ?? (f.kind === 'surface' ? 'lawn' : '')} onChange={(e) => commit((g) => updateFeature(g, f.id, materialPatch(f, ((e.currentTarget as HTMLSelectElement).value || undefined) as Material | undefined)))}>
                 {f.kind === 'path' && <option value="">Plain</option>}
-                {MATERIALS.filter((m) => f.kind === 'surface' || m !== 'meadow').map((m) => (
+                {MATERIALS.filter((m) => f.kind === 'surface' || (m !== 'meadow' && m !== 'cardboard')).map((m) => (
                   <option key={m} value={m}>
                     {MATERIAL_LABEL[m]}
                   </option>

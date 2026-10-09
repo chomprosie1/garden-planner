@@ -344,6 +344,7 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
             <li>Spreads {p.weed.spreads === 'seed' ? 'by seed' : p.weed.spreads === 'roots' ? 'by its roots' : 'by seed and by its roots'}.</li>
             {p.weed.wildlife && <li>{p.weed.wildlife}</li>}
             <li>{p.weed.removal}</li>
+            <li>A patch too big to clear by hand: lay cardboard over it with a thick mulch on top. It weakens most weeds, though deep-rooted ones can take more than a season. There’s no need for plastic weed membrane, which breaks into tiny fibres in the soil as it ages.</li>
           </ul>
         </section>
       )}

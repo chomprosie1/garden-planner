@@ -30,6 +30,7 @@ export const SIMPLE_STICKERS: readonly string[] = [
   'paving',
   'decking',
   'gravel',
+  'cardboard',
   'path',
   'pond',
   'shed',

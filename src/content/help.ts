@@ -188,7 +188,7 @@ export const HELP: HelpTopic[] = [
     tier: 2,
     steps: [
       'Open Seedlings and tap Sow seeds.',
-      'Choose the plant. Those to sow under cover now are listed first; anything in your seed tin is at the top.',
+      'Pick the plant. What to sow under cover this month comes first, then Later and Everything else. Narrow it with Vegetables, Herbs, Fruit and the rest, or search; seed in your tin is at the top. Weeds show only if you tick Show weeds.',
       'Pick the tray or pot, how many, and where it sits: a windowsill, a propagator or shelves.',
       'Each tray says when the seedlings should show, when to harden them off, and when they’re ready for the garden.',
       'When they’re ready, tap Plant out and then the bed they go in.',
@@ -196,6 +196,25 @@ export const HELP: HelpTopic[] = [
     notes: ['Seeds sown straight into the ground outside don’t need Seedlings: add them to a bed on the plan instead.'],
     related: ['adding-plants'],
     words: 'sow seeds seedlings shed tray module propagator windowsill indoors under cover germinate harden off plant out',
+  },
+  {
+    id: 'cardboard',
+    title: 'Cardboard over weeds',
+    summary: 'Clearing a weedy patch or a bit of lawn for a new bed, without digging.',
+    view: 'plan',
+    tier: 2,
+    steps: [
+      {
+        phone: 'Open Ground along the bottom of the plan and tap Cardboard over weeds. Drag it where it goes and pull its corners to size.',
+        computer: 'Open Ground along the bottom of the plan and drag Cardboard over weeds onto the patch. Pull its corners to size.',
+      },
+      'Outside, take off any tape and staples, lay the card two layers thick with the sheets overlapping, and wet it well.',
+      'Cover it with a thick mulch of compost or well-rotted manure. You can plant into the mulch straight away.',
+      'Once it’s down, pick the cardboard on the plan and tap Laid it today, or set the day you laid it. About six months on, a job reminds you to check it’s rotted down.',
+    ],
+    notes: ['Cardboard rots away and feeds the soil. Plastic weed membrane isn’t organic, and as it ages it breaks into tiny plastic fibres in the soil, so it isn’t offered here.'],
+    related: ['drawing-the-plan', 'adding-plants'],
+    words: 'cardboard weeds weed suppressant membrane fabric mulch no dig smother clear lawn new bed sheet',
   },
 ];
 

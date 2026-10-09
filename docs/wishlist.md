@@ -93,8 +93,8 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Warn when a pot is too small for its plant | You, 9 Oct 2026 | S | Built in release 21 |
 | Potting on: moving a plant to a bigger pot, or out into a bed | You, 9 Oct 2026 | M | Built in release 21 |
 | Trees from the Trees list in pots (olive, Japanese maple, bay) | Build, fix of 9 Oct 2026 | S | Built in release 21 |
-| Cardboard as a weed suppressant; weed membrane discouraged | You, 9 Oct 2026 | M | Planned in release 22 |
-| Seedlings' sowing list: sow now first, grouped by kind, weeds hidden unless you ask | You, 9 Oct 2026 | S | Planned in release 22 |
+| Cardboard as a weed suppressant; weed membrane discouraged | You, 9 Oct 2026 | M | Built in release 22 |
+| Seedlings' sowing list: sow now first, grouped by kind, weeds hidden unless you ask | You, 9 Oct 2026 | S | Built in release 22 |
 | A welcome screen on launch: a short pause with a quote and the version, then into the garden, tasks, your garden's page or What's new | You, 9 Oct 2026 | M | Built in release 20 |
 | More photos for each month | You, 9 Oct 2026 | M | Four a month since release 20; batches towards ten a month still to come |
 | Quotes shaped by the person and their garden | You, 9 Oct 2026 | M | Wishlist: generic quotes for now, as decided; would need a short "about you" |

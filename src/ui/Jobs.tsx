@@ -163,14 +163,16 @@ function PlantJob({ job, done, onToggle, onPick, plantOf, garden }: { job: Job; 
   );
   const app = useApp();
   const first = job.plantingIds[0];
-  // Jump to the planting on the plan, or to the plant's card for something on your sowing list. "Weed the beds" has neither.
-  const link = !first && !job.plantId ? null : (
+  // Jump to the planting on the plan, to the plant's card for something on your sowing list, or to the thing on the
+  // plan a job is about (cardboard to check). "Weed the beds" has none of these.
+  const onPlan = !first && !job.plantId && job.featureId ? job.featureId : null;
+  const link = !first && !job.plantId && !onPlan ? null : (
     <button
       type="button"
       class="job-link link-btn small"
-      onClick={() => (first ? app.showOnPlan({ type: 'planting', id: first }) : app.openPlant(job.plantId))}
+      onClick={() => (first ? app.showOnPlan({ type: 'planting', id: first }) : onPlan ? app.showOnPlan({ type: 'feature', id: onPlan }) : app.openPlant(job.plantId))}
     >
-      {first ? 'Show' : 'About'}
+      {first || onPlan ? 'Show' : 'About'}
       <span class="visually-hidden"> {job.plant}</span>
     </button>
   );

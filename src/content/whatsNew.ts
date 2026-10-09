@@ -17,6 +17,18 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-09-sowing-cardboard',
+    date: '2026-10-09',
+    title: 'Clearer sowing, and cardboard for weeds',
+    items: [
+      'Sowing in Seedlings now shows what to sow under cover this month first, as pictures, with Vegetables, Herbs, Fruit, Flowers, Shrubs and Trees to narrow it, and a search. Later and everything else are folded away below.',
+      'Weeds stay out of the sowing list unless you tick Show weeds.',
+      'Cardboard over weeds, under Ground: a way to clear a weedy patch or a bit of lawn without digging. Pick it on the plan for how to lay it. Once it’s down, say so, and a job about six months on reminds you to check it’s rotted down. You can plant through it, as on bare soil.',
+      'Plastic weed membrane isn’t offered: it isn’t organic, and as it ages it breaks into tiny plastic fibres in the soil. Cardboard does the job and rots away.',
+    ],
+    tryIt: { label: 'Open Seedlings', view: 'shed' },
+  },
+  {
     id: '2026-10-09-pots',
     date: '2026-10-09',
     title: 'Pots, properly',
