@@ -23,7 +23,7 @@ import type { TreeLeaf } from '../model/trees';
 import type { Material, Point } from '../model/types';
 import { LOOKS, type LookId, type Mode, type PlanPalette } from '../theme/looks';
 import { TRUNK_SHARE, type PlantGroup, type Scene3, type Solid, type Tree3 } from './scene';
-import { BODY_MM, EYE_MM, obstaclesOf, PACE_MM, step, walkStart, walkTowards, type Obstacle } from './walk';
+import { BODY_MM, EYE_MM, obstaclesOf, PACE_MM, step, walkStart, walkTowards, type Obstacle, type WalkSpot } from './walk';
 
 export type Preset = 'above' | 'standing';
 
@@ -857,11 +857,18 @@ export class GardenView {
     return !!this.walking;
   }
 
-  /** Walks into the garden at eye height, from the bottom of the plan looking up it. Plants are redrawn finer. */
-  startWalk(): void {
+  /** Where you're standing and which way you face, while walking. */
+  get walkSpot(): WalkSpot | null {
+    const w = this.walking;
+    const turn = 2 * Math.PI;
+    return w ? { at: [Math.round(w.at[0]), Math.round(w.at[1])], heading: ((w.heading % turn) + turn) % turn } : null;
+  }
+
+  /** Walks into the garden at eye height: where you chose to start, or the middle looking up the plan. Plants are redrawn finer. */
+  startWalk(saved?: WalkSpot | null): void {
     if (!this.last) return;
     this.glide = null;
-    const { at, heading } = walkStart(this.last.s, this.obstacles);
+    const { at, heading } = walkStart(this.last.s, this.obstacles, saved);
     this.walking = { at, heading, pitch: -0.12, target: null };
     this.controls.enabled = false;
     if (!this.detail) {

@@ -394,6 +394,46 @@ describe('walking through the garden', () => {
     expect(canStand(s2, obs2, start2.at)).toBe(true);
   });
 
+  it('starts in the middle of the garden, not at its bottom edge (release 22b)', () => {
+    const s = walkScene();
+    const obs = obstaclesOf(s);
+    const { at } = walkStart(s, obs);
+    // The sample garden is 10 × 8 m: the middle is (5000, 4000), on the lawn's top edge beside the path.
+    expect(Math.hypot(at[0] - 5000, at[1] - 4000)).toBeLessThanOrEqual(600);
+    // A bed right in the middle: the nearest spot clear of it.
+    const g = addFeature(sample().g, makeFeature('bed', { area: area(4000, 3000, 2000, 2000) }));
+    const s2 = scene(g);
+    const obs2 = obstaclesOf(s2);
+    const start2 = walkStart(s2, obs2);
+    expect(canStand(s2, obs2, start2.at)).toBe(true);
+    expect(Math.hypot(start2.at[0] - 5000, start2.at[1] - 4000)).toBeLessThan(2000);
+  });
+
+  it('starts inside an L-shaped garden, whose middle is outside it', () => {
+    // An L: a strip up the left side and a strip along the bottom. Its centre of area is in the gap.
+    const boundary: Point[] = [[0, 0], [12000, 0], [12000, 2000], [2000, 2000], [2000, 12000], [0, 12000]];
+    const g: Garden = { ...newGarden(), latitude: 52.5, longitude: -1.5, northRotationDeg: 0, boundary };
+    const s = scene(g);
+    const obs = obstaclesOf(s);
+    const { at } = walkStart(s, obs);
+    expect(at[0] <= 2000 || at[1] <= 2000).toBe(true);
+    expect(canStand(s, obs, at)).toBe(true);
+  });
+
+  it('starts where you chose, until something is built there', () => {
+    const s = walkScene();
+    const obs = obstaclesOf(s);
+    const saved = { at: [8000, 1500] as Point, heading: Math.PI };
+    expect(walkStart(s, obs, saved)).toEqual(saved);
+    const g = addFeature(sample().g, makeFeature('building', { area: area(7000, 500, 2000, 2000) }));
+    const s2 = scene(g);
+    const obs2 = obstaclesOf(s2);
+    const start = walkStart(s2, obs2, saved);
+    expect(start.at).not.toEqual(saved.at);
+    expect(canStand(s2, obs2, start.at)).toBe(true);
+    expect(start.heading).toBeCloseTo(Math.PI / 2);
+  });
+
   it('walks towards a tapped spot as far as it can, or not at all when blocked', () => {
     const s = walkScene();
     const obs = obstaclesOf(s);

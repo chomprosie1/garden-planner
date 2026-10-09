@@ -5,7 +5,7 @@ import type { ComponentChildren } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 import { useApp } from './appContext';
 import { copiedPlanting, copyPlanting } from './clipboard';
-import { hitEdge, hitFeature, hitPlanting, hitVertex } from '../canvas/hit';
+import { hitEdge, hitVertex, pickAt } from '../canvas/hit';
 import { northCentre, NORTH_RADIUS, plantingHandles, planStyle, renderLive, renderStatic, rotateHandleAt, sketchTextPx, type Draft, type Focus, type Guide, type PlantDraft, type Scene, type Stroke, type TimeScene } from '../canvas/render';
 import { parseLength, snapPoint, snapStepFor, type SnapKind } from '../canvas/snap';
 import { fit, pan, toScreen, toWorld, zoomAt, type Viewport } from '../canvas/viewport';
@@ -20,6 +20,8 @@ import {
   deleteFeatures,
   duplicateFeature,
   featureLabel,
+  freshTarget,
+  isSetGround,
   placeLabel,
   gardenBounds,
   insertVertex,
@@ -312,7 +314,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
       stroke: strokeScene,
       sketches: p.showSketches !== false,
       depth: p.depth !== false,
-      rotatable: p.selected?.type === 'feature' && p.tool === 'select' && layoutEditable() && !p.simple,
+      rotatable: p.selected?.type === 'feature' && p.tool === 'select' && layoutEditable() && !selectionSet() && !p.simple,
+      fixed: selectionSet(),
       reshape: !p.simple,
       guides: drag.current?.kind === 'move' ? guides.current : [],
       drawing: !!geometry || p.tool === 'plant' || p.tool === 'sketch',
@@ -409,6 +412,13 @@ export function PlanCanvas(props: PlanCanvasProps) {
     if (p.readOnly) return false;
     const edit = p.edit ?? 'layout';
     return edit === 'layout' || (edit === 'all' && !p.locked);
+  };
+
+  /** The selected thing is set ground: it shows its outline, but isn't moved, reshaped or deleted until it's unlocked. */
+  const selectionSet = () => {
+    const t = P.current.selected;
+    const f = t?.type === 'feature' ? garden().features.find((x) => x.id === t.id) : undefined;
+    return !!f && isSetGround(f, t);
   };
 
   /** The selected thing's box on screen. */
@@ -574,13 +584,13 @@ export function PlanCanvas(props: PlanCanvasProps) {
       } else {
         const f = makeFeature(p.tool as FeatureKind, { area: clean });
         commit((g) => addFeature(g, f));
-        drawn({ type: 'feature', id: f.id }, `${KINDS[f.kind].label} added.`);
+        drawn(freshTarget(f), `${KINDS[f.kind].label} added.`);
       }
       p.setTool('select');
     } else if (geometry === 'line' && clean.length >= 2) {
       const f = makeFeature(p.tool as FeatureKind, { line: clean });
       commit((g) => addFeature(g, f));
-      drawn({ type: 'feature', id: f.id }, `${KINDS[f.kind].label} added.`);
+      drawn(freshTarget(f), `${KINDS[f.kind].label} added.`);
       p.setTool('select');
     }
     p.setSelectedVertex(null);
@@ -593,7 +603,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
     if (radius < 50) return redraw();
     const f = makeFeature(p.tool as FeatureKind, { circle: { centre, radiusMm: radius } });
     commit((g) => addFeature(g, f));
-    drawn({ type: 'feature', id: f.id }, `${KINDS[f.kind].label} added.`);
+    drawn(freshTarget(f), `${KINDS[f.kind].label} added.`);
     p.setTool('select');
   };
 
@@ -605,7 +615,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const p = P.current;
     if (!p.crosshair && !p.phone) return p.setSelected(t);
     p.setSelected(null);
-    A.current.notify(`${text} Tap it to name it or change its size.`, { undo: true });
+    const ground = t.type === 'feature' && t.open;
+    A.current.notify(`${text} ${ground ? 'Tap it, then Unlock, to change its size.' : 'Tap it to name it or change its size.'}`, { undo: true });
   };
 
   const finishRect = (a: Point, b: Point) => {
@@ -633,13 +644,13 @@ export function PlanCanvas(props: PlanCanvasProps) {
       if (corners.length < 3 || !b || Math.min(b.maxX - b.minX, b.maxY - b.minY) < 100) return say('Draw all the way round the shape, back to where you started.');
       const f = makeFeature(p.tool as FeatureKind, { area: corners }, { smooth: true });
       commit((g) => addFeature(g, f));
-      drawn({ type: 'feature', id: f.id }, `${KINDS[f.kind].label} added.`);
+      drawn(freshTarget(f), `${KINDS[f.kind].label} added.`);
     } else if (geometry === 'line') {
       const line = simplify(pts, tol);
       if (line.length < 2 || distance(line[0]!, line[line.length - 1]!) < 100) return say('Draw along the whole line.');
       const f = makeFeature(p.tool as FeatureKind, { line }, { smooth: true });
       commit((g) => addFeature(g, f));
-      drawn({ type: 'feature', id: f.id }, `${KINDS[f.kind].label} added.`);
+      drawn(freshTarget(f), `${KINDS[f.kind].label} added.`);
     }
     p.setTool('select');
   };
@@ -753,7 +764,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
       zoomToPoints([[b.minX - pad, b.minY - pad], [b.maxX + pad, b.maxY + pad]]);
     }
     p.setTool('select');
-    p.setSelected({ type: 'feature', id: f.id });
+    p.setSelected(freshTarget(f));
     p.setSelectedVertex(null);
     say(`${st.label} added. Drag it into place; pull a corner to resize it.`);
   };
@@ -876,8 +887,10 @@ export function PlanCanvas(props: PlanCanvasProps) {
     }
     const touch = e.pointerType !== 'mouse';
     const tol = tolMm(touch ? 18 : 9);
+    // Handles on what's selected, unless it's set ground.
+    const shapeEdits = layoutEdits && !selectionSet();
     // The rotate handle above a selected shape.
-    if (p.selected?.type === 'feature' && layoutEdits && !p.simple) {
+    if (p.selected?.type === 'feature' && shapeEdits && !p.simple) {
       const id = p.selected.id;
       const f = g.features.find((x) => x.id === id);
       const at = f && !f.circle ? rotateHandleAt({ view: view.current }, f.footprint) : null;
@@ -887,7 +900,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
         return;
       }
     }
-    if (p.selected && layoutEdits) {
+    if (p.selected && shapeEdits) {
       const f = p.selected.type === 'feature' ? g.features.find((x) => x.id === (p.selected as { id: string }).id) : null;
       if (f?.circle) {
         const handle = toScreen(view.current, [f.circle.centre[0] + f.circle.radiusMm, f.circle.centre[1]]);
@@ -914,31 +927,27 @@ export function PlanCanvas(props: PlanCanvasProps) {
         return;
       }
     }
-    // What's already selected is what you drag, even with plants over it (a pot dropped on a row of lettuce).
-    const selectedId = p.selected?.type === 'feature' ? p.selected.id : null;
-    const selF = selectedId ? g.features.find((x) => x.id === selectedId) : undefined;
-    const onSelected = selF && hitFeature({ ...g, features: [selF] }, world, tolMm(touch ? 6 : 9)) ? selF : null;
-    // Otherwise plants sit on top of beds, so they're picked first, except when you're only drawing the layout.
-    const planting = edit === 'layout' || onSelected ? null : hitPlanting(g, p.plantOf, world, tolMm(touch ? 6 : 3));
-    if (planting) {
-      const wasSelected = p.selected?.type === 'planting' && p.selected.id === planting.id;
-      p.setSelected({ type: 'planting', id: planting.id });
+    // What's selected keeps its taps, except set ground; then plants, then beds and the rest (canvas/hit.ts).
+    const picked = pickAt(g, p.plantOf, world, { planting: tolMm(touch ? 6 : 3), feature: tolMm(touch ? 6 : 9) }, p.selected, edit === 'layout');
+    if (picked?.type === 'planting') {
+      const wasSelected = p.selected?.type === 'planting' && p.selected.id === picked.id;
+      p.setSelected(picked);
       p.setSelectedVertex(null);
       drag.current =
         !plantEdits || (touch && !wasSelected)
           ? { kind: 'pan', last: s, moved: false }
-          : { kind: 'movePlanting', id: planting.id, base: g, start: world, startScreen: s, moved: false };
+          : { kind: 'movePlanting', id: picked.id, base: g, start: world, startScreen: s, moved: false };
       return;
     }
-    const f = onSelected ?? hitFeature(g, world, tolMm(touch ? 6 : 9));
-    if (f) {
+    const f = picked?.type === 'feature' ? g.features.find((x) => x.id === picked.id) : undefined;
+    if (picked && f) {
       const wasSelected = p.selected?.type === 'feature' && p.selected.id === f.id;
-      p.setSelected({ type: 'feature', id: f.id });
+      p.setSelected(picked);
       p.setSelectedVertex(null);
       if (wasSelected && edit === 'all' && p.locked) say('The layout is locked. Unlock it with the padlock to move or reshape beds and paths.');
-      // On touch screens a first tap only selects, so panning never moves things by accident.
+      // On touch screens a first tap only selects, so panning never moves things by accident. Set ground never moves.
       drag.current =
-        !layoutEdits || (touch && !wasSelected)
+        !layoutEdits || isSetGround(f, picked) || (touch && !wasSelected)
           ? { kind: 'pan', last: s, moved: false }
           : { kind: 'move', id: f.id, base: g, start: world, startScreen: s, moved: false };
       return;
@@ -1153,7 +1162,9 @@ export function PlanCanvas(props: PlanCanvasProps) {
       pointerWorld.current = world;
       p.onHoverPoint?.(world);
       const g = garden();
-      const h = hitPlanting(g, p.plantOf, world, tolMm(3))?.id ?? hitFeature(g, world, tolMm(6))?.id ?? null;
+      // What a click here would pick, so the highlight never points at something else.
+      const t = pickAt(g, p.plantOf, world, { planting: tolMm(3), feature: tolMm(6) }, p.selected, !p.readOnly && (p.edit ?? 'layout') === 'layout');
+      const h = t && t.type !== 'boundary' ? t.id : null;
       if (h !== hover.current) {
         hover.current = h;
         redraw();
@@ -1263,7 +1274,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
   /** Adds a corner to the selected outline where the pointer is on one of its edges. */
   const insertCornerAt = (s: Point, tolPx: number): boolean => {
     const p = P.current;
-    if (!p.selected || !view.current) return false;
+    if (!p.selected || !view.current || selectionSet()) return false;
     const g = p.garden;
     const pts = pointsOf(g, p.selected);
     if (!pts) return false;
@@ -1383,7 +1394,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
           else A.current.notify(`No room for another ${p.plantOf(p.garden.plantings.find((x) => x.id === sel.id)?.plantId ?? '').commonName.toLowerCase()} in this bed.`);
           return;
         }
-        if (letter === 'd' && p.selected?.type === 'feature' && layoutEditable()) {
+        if (letter === 'd' && p.selected?.type === 'feature' && layoutEditable() && !selectionSet()) {
           e.preventDefault();
           const id = p.selected.id;
           const made = { id: null as string | null };
@@ -1392,7 +1403,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
             made.id = copy;
             return next;
           });
-          if (made.id) p.setSelected({ type: 'feature', id: made.id });
+          const f = p.garden.features.find((x) => x.id === id);
+          if (made.id && f) p.setSelected(freshTarget({ ...f, id: made.id }));
         }
         return;
       }
@@ -1401,6 +1413,11 @@ export function PlanCanvas(props: PlanCanvasProps) {
       if ((key === 'Delete' || key === 'Backspace') && p.selected) {
         const t = p.selected;
         if (edit === 'all' ? t.type !== 'planting' && !layoutEditable() : (t.type === 'planting') !== (edit === 'planting')) return;
+        if (selectionSet()) {
+          const f = p.garden.features.find((x) => x.id === (t as { id: string }).id);
+          if (f) say(`${featureLabel(f)} is set. Unlock it to delete it.`);
+          return;
+        }
         e.preventDefault();
         if (t.type === 'planting') {
           const pl = p.garden.plantings.find((x) => x.id === t.id);
@@ -1422,7 +1439,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
         }
         return;
       }
-      if (key.startsWith('Arrow') && ((p.selected?.type === 'feature' && layoutEditable()) || (p.selected?.type === 'planting' && (edit === 'planting' || edit === 'all')))) {
+      if (key.startsWith('Arrow') && ((p.selected?.type === 'feature' && layoutEditable() && !selectionSet()) || (p.selected?.type === 'planting' && (edit === 'planting' || edit === 'all')))) {
         e.preventDefault();
         const step = e.shiftKey ? 100 : 10;
         const dx = key === 'ArrowLeft' ? -step : key === 'ArrowRight' ? step : 0;

@@ -204,7 +204,20 @@ export function restack(g: Garden, id: string, to: 'top' | 'bottom'): Garden {
 
 // ---------- Points: the boundary, area outlines and line centre lines ----------
 
-export type Target = { type: 'boundary' } | { type: 'feature'; id: string } | { type: 'planting'; id: string };
+/** What's selected. `open` marks ground unlocked to move or reshape; it's screen state, never saved. */
+export type Target = { type: 'boundary' } | { type: 'feature'; id: string; open?: true } | { type: 'planting'; id: string };
+
+/** Ground: a lawn, patio, gravel, bark, meadow or cardboard, drawn under everything else. */
+export const isGround = (f: Feature) => f.kind === 'surface';
+
+/**
+ * Ground is set unless it's selected and unlocked: it stays put, and taps on the beds and plants on it reach them. Unlocked,
+ * it takes the taps inside its outline, as if on top (it's still drawn underneath), to move and reshape.
+ */
+export const isSetGround = (f: Feature, t: Target | null) => isGround(f) && !(t?.type === 'feature' && t.id === f.id && t.open);
+
+/** How to select a feature that's just been made: new ground is unlocked, so it can be sized straight away. */
+export const freshTarget = (f: Feature): Target => (isGround(f) ? { type: 'feature', id: f.id, open: true } : { type: 'feature', id: f.id });
 
 /** The editable points of a target: the boundary, an area's outline (or a curve's corners), or a line's centre line. */
 export function pointsOf(g: Garden, t: Target): Point[] | null {

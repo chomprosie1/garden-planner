@@ -86,9 +86,12 @@ export const HELP: HelpTopic[] = [
         computer: 'Scroll to zoom, drag an empty part of the plan to move around it, and press 0 to fit the whole garden.',
       },
     ],
-    notes: ['If beds won’t move, the layout may be locked: tap the padlock at the top (Advanced) to unlock it. Plants can always be moved.'],
+    notes: [
+      'If beds won’t move, the layout may be locked: tap the padlock at the top (Advanced) to unlock it. Plants can always be moved.',
+      'Ground (a lawn, patio, gravel and the like) is set once it’s placed, so the beds and plants on it are easy to pick. To move or reshape it, pick it where nothing’s on top and choose Unlock, then Set this ground when you’re done.',
+    ],
     related: ['drawing-the-plan', 'adding-plants'],
-    words: 'move drag pick select resize bigger smaller delete remove bin rotate zoom pinch pan lock padlock stuck',
+    words: 'move drag pick select resize bigger smaller delete remove bin rotate zoom pinch pan lock padlock unlock stuck ground lawn patio gravel set',
   },
   {
     id: 'tracing-a-photo',

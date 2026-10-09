@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { hitEdge, hitFeature, hitVertex } from '../src/canvas/hit';
+import vegetables from '../data/plants/vegetable.json';
+import { hitEdge, hitFeature, hitVertex, pickAt } from '../src/canvas/hit';
 import { parseLength, snapPoint, snapStepFor } from '../src/canvas/snap';
 import { fit, formatArea, formatLength, gridStep, scaleBarLength, toScreen, toWorld, zoomAt } from '../src/canvas/viewport';
 import { centroid, lineLength, polygonArea } from '../src/geometry/polygon';
@@ -20,7 +21,7 @@ import {
   updateFeature,
 } from '../src/model/features';
 import { createStore, updateGarden } from '../src/model/store';
-import type { Garden, Point } from '../src/model/types';
+import type { Garden, Plant, Planting, Point } from '../src/model/types';
 import { validateGarden } from '../src/model/validate';
 
 const garden = (): Garden => ({ ...newAppState().garden, boundary: rectPoints({ x: 0, y: 0, w: 10000, h: 14000 }) });
@@ -206,5 +207,49 @@ describe('hit testing', () => {
     expect(hitVertex(bed.footprint, [2030, 980], 50)).toBe(2);
     expect(hitEdge(bed.footprint, true, [1000, 20], 50)).toEqual({ index: 0, point: [1000, 0] });
     expect(hitEdge(bed.footprint, true, [1000, 500], 50)).toBeNull();
+  });
+});
+
+describe('what a tap picks: set ground (release 22b)', () => {
+  // A lawn with a bed of lettuce on it, and a pot on the bed.
+  const library = vegetables as Plant[];
+  const plantOf = (id: string) => library.find((p) => p.id === id)!;
+  const lawn = { ...makeFeature('surface', { area: rectPoints({ x: 0, y: 0, w: 8000, h: 6000 }) }), material: 'lawn' as const };
+  const bed = makeFeature('bed', { area: rectPoints({ x: 2000, y: 2000, w: 3000, h: 1200 }) });
+  const pot = makeFeature('pot', { circle: { centre: [4500, 2600], radiusMm: 200 } });
+  const lettuce: Planting = { id: 'pl-lettuce', plantId: 'lettuce', featureId: bed.id, x: 2500, y: 2600 };
+  const g: Garden = { ...[lawn, bed, pot].reduce(addFeature, garden()), plantings: [lettuce] };
+  const tol = { planting: 30, feature: 30 };
+  const tap = (p: Point, selected: Parameters<typeof pickAt>[4], layoutOnly = false) => pickAt(g, plantOf, p, tol, selected, layoutOnly);
+
+  it('reaches a bed or plant on the lawn, even with the lawn selected', () => {
+    const lawnSelected = { type: 'feature' as const, id: lawn.id };
+    expect(tap([3500, 2300], lawnSelected)).toEqual({ type: 'feature', id: bed.id });
+    expect(tap([2500, 2600], lawnSelected)).toEqual({ type: 'planting', id: lettuce.id });
+    expect(tap([3500, 2300], null)).toEqual({ type: 'feature', id: bed.id });
+  });
+
+  it('picks set ground where nothing is on it, and keeps it set', () => {
+    expect(tap([500, 500], null)).toEqual({ type: 'feature', id: lawn.id });
+    expect(tap([500, 500], { type: 'feature', id: lawn.id })).toEqual({ type: 'feature', id: lawn.id });
+  });
+
+  it('brings unlocked ground to the front, and keeps it unlocked', () => {
+    const open = { type: 'feature' as const, id: lawn.id, open: true as const };
+    expect(tap([3500, 2300], open)).toEqual(open);
+    expect(tap([2500, 2600], open)).toEqual(open);
+    expect(tap([500, 500], open)).toEqual(open);
+  });
+
+  it('still lets a selected pot be dragged off what is under it', () => {
+    const lettuceUnderPot: Planting = { ...lettuce, id: 'pl-under', x: 4500, y: 2600 };
+    const withPlant = { ...g, plantings: [lettuce, lettuceUnderPot] };
+    const sel = { type: 'feature' as const, id: pot.id };
+    expect(pickAt(withPlant, plantOf, [4500, 2600], tol, sel, false)).toEqual(sel);
+    expect(pickAt(withPlant, plantOf, [4500, 2600], tol, null, false)).toEqual({ type: 'planting', id: 'pl-under' });
+  });
+
+  it('skips plants when only the layout is being drawn', () => {
+    expect(tap([2500, 2600], null, true)).toEqual({ type: 'feature', id: bed.id });
   });
 });

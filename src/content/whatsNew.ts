@@ -17,6 +17,18 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-09-set-ground-walk-start',
+    date: '2026-10-09',
+    title: 'Easier tapping on the lawn, and a walk from the middle',
+    items: [
+      'A lawn, patio, gravel or other ground is now set once it’s placed: it stays put underneath, so tapping a bed or plant on it always picks the bed or plant, even if the lawn was picked first.',
+      'To move or reshape ground, pick it where nothing’s on top and choose Unlock. It comes to the front with its corners to drag. Choose Set this ground when you’re done.',
+      'New ground starts unlocked, so you can size it straight away.',
+      'Walking through the garden in 3D now starts in the middle, not at the bottom edge of the plan. Walk to a favourite spot and choose Start here next time to begin there instead.',
+    ],
+    tryIt: { label: 'Open the plan', view: 'plan' },
+  },
+  {
     id: '2026-10-09-sowing-cardboard',
     date: '2026-10-09',
     title: 'Clearer sowing, and cardboard for weeds',

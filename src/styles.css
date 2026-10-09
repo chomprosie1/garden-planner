@@ -4882,6 +4882,21 @@ button.plan-chip:hover {
   font-size: 0.85rem;
   pointer-events: none;
 }
+/* While walking: choose where the next walk starts. Top right, clear of the thumb pad and the hint. */
+.garden-3d-start {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  max-width: calc(100% - 1rem);
+}
+.garden-3d-start .chip {
+  background: var(--surface);
+}
+
 .garden-3d-label {
   position: absolute;
   transform: translate(-50%, calc(-100% - 12px));

@@ -1,7 +1,7 @@
 // What is under the pointer. All distances are in mm.
 
 import { distance, distanceToSegment, pointInPolygon } from '../geometry/polygon';
-import { centreLineOf } from '../model/features';
+import { centreLineOf, isSetGround, type Target } from '../model/features';
 import type { Feature, Garden, Plant, Planting, Point } from '../model/types';
 import { byHeight, isActive, plantingShape, sizedPlant, spreadOf } from '../planting/place';
 import { closest } from '../planting/rules';
@@ -68,4 +68,28 @@ export function hitPlanting(g: Garden, plantOf: (id: string) => Plant, p: Point,
     if (closest(plantingShape(pl, plant), { kind: 'point', p }).d <= spreadOf(plant) / 2 + toleranceMm) return pl;
   }
   return null;
+}
+
+/**
+ * What a tap picks, before the boundary: a planting or a feature, or null.
+ * - What's selected keeps the taps on it, even with plants over it (a pot dropped on a row of lettuce), so it can be
+ *   dragged. Set ground doesn't: a tap on a bed or plant on the lawn reaches it, with the lawn selected or not.
+ * - Otherwise plants sit on top of beds, so they're picked first, except when only the layout is being drawn.
+ * - Tapping the selected thing again keeps it as it was, so unlocked ground stays unlocked.
+ */
+export function pickAt(
+  g: Garden,
+  plantOf: (id: string) => Plant,
+  p: Point,
+  tol: { planting: number; feature: number },
+  selected: Target | null,
+  layoutOnly: boolean,
+): Target | null {
+  const sel = selected?.type === 'feature' ? g.features.find((x) => x.id === selected.id) : undefined;
+  if (sel && !isSetGround(sel, selected) && hits(sel, p, tol.feature)) return selected;
+  const planting = layoutOnly ? null : hitPlanting(g, plantOf, p, tol.planting);
+  if (planting) return { type: 'planting', id: planting.id };
+  const f = hitFeature(g, p, tol.feature);
+  if (!f) return null;
+  return sel?.id === f.id ? selected : { type: 'feature', id: f.id };
 }

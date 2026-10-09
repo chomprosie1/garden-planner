@@ -24,6 +24,15 @@ describe('prefs', () => {
     expect(p).not.toHaveProperty('extra');
   });
 
+  it('keeps good walk starts and drops bad ones', () => {
+    const p = sanitisePrefs({
+      walkFrom: { a: { at: [1200, 3400], heading: 1.5 }, b: { at: [1, 'x'], heading: 0 }, c: { at: [1, 2] }, d: null, e: { at: [1, 2, 3], heading: 0 }, f: { at: [Infinity, 2], heading: 0 } },
+    });
+    expect(p.walkFrom).toEqual({ a: { at: [1200, 3400], heading: 1.5 } });
+    expect(sanitisePrefs({ walkFrom: [1, 2] }).walkFrom).toEqual({});
+    expect(defaultPrefs().walkFrom).toEqual({});
+  });
+
   it('saves and reloads', () => {
     const storage = memoryStorage();
     createPrefsStore(storage).set({ look: 'heritage', photos: 'off' });

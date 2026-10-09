@@ -62,6 +62,8 @@ export interface Prefs {
   seenTips: boolean;
   /** "Stuck?" notes already offered, by id: shown once and never again. */
   stuckSeen: string[];
+  /** Where each garden's walk in 3D starts, by the garden's id, when you've chosen: the spot and which way you face. On this device only. */
+  walkFrom: Record<string, { at: [number, number]; heading: number }>;
   /** The line shown on the loading screen last time, so the next one is different. */
   lastQuote: string | null;
   /** Warn of frost while the app's closed, where the browser allows (it checks the forecast in the background). */
@@ -108,6 +110,7 @@ export function defaultPrefs(): Prefs {
     plantEditor: false,
     seenTips: false,
     stuckSeen: [],
+    walkFrom: {},
     lastQuote: null,
     reminders: false,
     weeklyNudge: false,
@@ -117,6 +120,19 @@ export function defaultPrefs(): Prefs {
     weeding: true,
     feeding: true,
   };
+}
+
+/** Walk starts kept as stored: each a spot of two finite numbers and a finite heading. Anything else is dropped. */
+function walkFromOf(v: unknown): Prefs['walkFrom'] {
+  const out: Prefs['walkFrom'] = {};
+  if (typeof v !== 'object' || v === null || Array.isArray(v)) return out;
+  for (const [id, spot] of Object.entries(v)) {
+    const s = spot as { at?: unknown; heading?: unknown } | null;
+    const at = s?.at;
+    if (Array.isArray(at) && at.length === 2 && at.every((n) => typeof n === 'number' && Number.isFinite(n)) && typeof s?.heading === 'number' && Number.isFinite(s.heading))
+      out[id] = { at: [at[0], at[1]], heading: s.heading };
+  }
+  return out;
 }
 
 /** Keeps known, valid fields from stored data and defaults the rest. */
@@ -153,6 +169,7 @@ export function sanitisePrefs(raw: unknown): Prefs {
     plantEditor: r.plantEditor === true,
     seenTips: r.seenTips === true,
     stuckSeen: Array.isArray(r.stuckSeen) ? r.stuckSeen.filter((x): x is string => typeof x === 'string') : [],
+    walkFrom: walkFromOf(r.walkFrom),
     lastQuote: typeof r.lastQuote === 'string' ? r.lastQuote : null,
     reminders: r.reminders === true,
     weeklyNudge: r.weeklyNudge === true,

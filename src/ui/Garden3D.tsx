@@ -9,6 +9,7 @@ import { sunDay, ukClock } from '../sun/position';
 import type { LookId, Mode } from '../theme/looks';
 import { buildScene } from '../three/scene';
 import type { GardenView, Preset } from '../three/view';
+import type { WalkSpot } from '../three/walk';
 import { canShareFiles, download } from './ShareDialog';
 import { Icon } from './icons';
 import { clockText } from './SunBar';
@@ -25,6 +26,9 @@ interface Props {
   look: LookId;
   mode: Mode;
   phone: boolean;
+  /** Where you chose to start walking in this garden, or null for the middle. */
+  walkFrom: WalkSpot | null;
+  setWalkFrom: (spot: WalkSpot | null) => void;
   close: () => void;
 }
 
@@ -85,7 +89,7 @@ function ThumbPad({ move }: { move: (forward: number, strafe: number) => void })
   );
 }
 
-export function Garden3D({ garden, plantOf, stageAt, today, date, setDate, look, mode, phone, close }: Props) {
+export function Garden3D({ garden, plantOf, stageAt, today, date, setDate, look, mode, phone, walkFrom, setWalkFrom, close }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const wrap = useRef<HTMLDivElement>(null);
   const view = useRef<GardenView | null>(null);
@@ -94,6 +98,7 @@ export function Garden3D({ garden, plantOf, stageAt, today, date, setDate, look,
   const [playing, setPlaying] = useState(false);
   const [label, setLabel] = useState<{ text: string; x: number; y: number } | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
   const down = useRef<{ x: number; y: number; lastX: number; lastY: number; dragging: boolean } | null>(null);
   const lastTap = useRef<{ t: number; x: number; y: number } | null>(null);
   const [walking, setWalking] = useState(false);
@@ -142,12 +147,17 @@ export function Garden3D({ garden, plantOf, stageAt, today, date, setDate, look,
     return () => removeEventListener('keydown', onKey);
   }, [close]);
 
-  // A name shows for a few seconds.
+  // A name shows for a few seconds, and so does a note about where the next walk starts.
   useEffect(() => {
     if (!label) return;
     const t = setTimeout(() => setLabel(null), 3500);
     return () => clearTimeout(t);
   }, [label]);
+  useEffect(() => {
+    if (!note) return;
+    const t = setTimeout(() => setNote(null), 4000);
+    return () => clearTimeout(t);
+  }, [note]);
 
   // Walking on a keyboard: W, A, S and D or the arrows. Up and down walk; left and right turn, or step sideways with A and D.
   useEffect(() => {
@@ -192,9 +202,19 @@ export function Garden3D({ garden, plantOf, stageAt, today, date, setDate, look,
     setWalking(false);
   };
   const walk = () => {
-    view.current?.startWalk();
+    view.current?.startWalk(walkFrom);
     setWalking(!!view.current?.isWalking);
     setLabel(null);
+  };
+  const startHere = () => {
+    const spot = view.current?.walkSpot;
+    if (!spot) return;
+    setWalkFrom(spot);
+    setNote('Your next walk starts here, facing this way.');
+  };
+  const startMiddle = () => {
+    setWalkFrom(null);
+    setNote('Your next walk starts in the middle of the garden.');
   };
   const share = async () => {
     setPlaying(false);
@@ -276,6 +296,18 @@ export function Garden3D({ garden, plantOf, stageAt, today, date, setDate, look,
           <canvas ref={canvas} class={`garden-3d-canvas${walking ? ' walking' : ''}`} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={() => (down.current = null)} />
         )}
         {walking && coarse && <ThumbPad move={(f, s) => view.current?.setMove(f, s, 0)} />}
+        {walking && (
+          <div class="garden-3d-start">
+            <button type="button" class="chip" onClick={startHere}>
+              Start here next time
+            </button>
+            {walkFrom && (
+              <button type="button" class="chip" onClick={startMiddle}>
+                Start from the middle
+              </button>
+            )}
+          </div>
+        )}
         {status === 'loading' && <p class="garden-3d-note">Building your garden in 3D…</p>}
         {status === 'none' && <p class="garden-3d-note">This browser can’t show 3D here, as it has 3D graphics (WebGL) turned off or missing. The plan and its share picture still work.</p>}
         {status === 'failed' && <p class="garden-3d-note">The 3D view couldn’t load. Check you’re online the first time you open it, then try again.</p>}
@@ -286,7 +318,8 @@ export function Garden3D({ garden, plantOf, stageAt, today, date, setDate, look,
         )}
         {status === 'ready' && (
           <p class="garden-3d-hint" role="status">
-            {message ??
+            {note ??
+              message ??
               (walking
                 ? coarse
                   ? 'Walk with the pad, drag to look round, tap the ground to walk there.'

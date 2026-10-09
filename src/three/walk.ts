@@ -3,7 +3,7 @@
 // garden millimetres, so they're tested without WebGL. src/three/view.ts moves
 // the camera with them.
 
-import { distanceToSegment, pointInPolygon } from '../geometry/polygon';
+import { centroid, distanceToSegment, pointInPolygon } from '../geometry/polygon';
 import type { Point } from '../model/types';
 import type { Scene3 } from './scene';
 
@@ -89,15 +89,43 @@ export function walk(s: Scene3, obstacles: Obstacle[], from: Point, to: Point): 
   return at;
 }
 
+/** Where you stand and which way you face (radians, 0 along the plan, anticlockwise). */
+export interface WalkSpot {
+  at: Point;
+  heading: number;
+}
+
+/** How far apart the rings are when looking for somewhere to stand near the middle, mm; wider in a big garden. */
+const RING_MM = 300;
+/** At most this many rings, so a big, crowded garden doesn't keep you waiting. */
+const MAX_RINGS = 40;
+
 /**
- * Where you start walking, and which way you face: in from the bottom edge of the plan, looking up it (as from the
- * house), at the nearest spot you can stand. Searches outwards if the middle is taken.
+ * Where you start walking, and which way you face:
+ * - where you chose to start, while you can still stand there;
+ * - otherwise in the middle of the garden, looking up the plan, at the nearest spot you can stand on its own ground
+ *   (so an L-shaped garden doesn't start you outside it);
+ * - otherwise in from the bottom edge of the plan, then a little outside it.
  */
-export function walkStart(s: Scene3, obstacles: Obstacle[]): { at: Point; heading: number } {
+export function walkStart(s: Scene3, obstacles: Obstacle[], saved?: WalkSpot | null): WalkSpot {
+  if (saved && canStand(s, obstacles, saved.at)) return { at: saved.at, heading: saved.heading };
   const { min, max } = s.bounds;
-  const cx = (min[0] + max[0]) / 2;
   const heading = Math.PI / 2;
-  // Inside the garden first, from just in from its bottom edge, then a little outside it.
+  const ground = s.ground.length >= 3 ? s.ground : null;
+  const [mx, my] = ground ? centroid(ground) : [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2];
+  const reach = Math.hypot(max[0] - min[0], max[1] - min[1]) / 2;
+  const gap = Math.max(RING_MM, reach / MAX_RINGS);
+  for (let r = 0; r <= reach; r += gap) {
+    const n = r === 0 ? 1 : Math.max(8, Math.round((2 * Math.PI * r) / gap));
+    for (let k = 0; k < n; k++) {
+      // Round each ring from straight down the plan (towards the house), so ties go that way.
+      const a = -Math.PI / 2 + (k * 2 * Math.PI) / n;
+      const p: Point = [Math.round(mx + r * Math.cos(a)), Math.round(my + r * Math.sin(a))];
+      if ((!ground || pointInPolygon(p, ground)) && canStand(s, obstacles, p)) return { at: p, heading };
+    }
+  }
+  const cx = (min[0] + max[0]) / 2;
+  // Inside the garden, from just in from its bottom edge, then a little outside it.
   for (const y of [min[1] + 600, min[1] + 1200, min[1] + 2000, min[1] - 600])
     for (let k = 0; k <= 40; k++) {
       const dx = (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 300;

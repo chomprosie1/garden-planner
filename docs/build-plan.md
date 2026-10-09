@@ -1147,7 +1147,7 @@ Tests: new `tests/inspire.test.ts`:
 ### Release 17 — Walk through it (as built)
 - **Done early (9 Oct 2026), after your feedback that the view was stuck turning round the middle:** two fingers (or a right-drag) move along the garden, and a double-tap glides the view to that spot and turns round it (`goTo` in `src/three/view.ts`). It stays over the garden, up to 3 m past its edges.
 - **Walking** (`src/three/walk.ts`, pure, and `src/three/view.ts`):
-  - **Walk** beside From above and Standing in it: eye height 1.6 m, starting in from the bottom of the plan looking up it, at the nearest spot you can stand;
+  - **Walk** beside From above and Standing in it: eye height 1.6 m, starting in from the bottom of the plan looking up it, at the nearest spot you can stand (from release 22b: the middle of the garden, or a spot you chose);
   - W, A, S and D or the arrow keys on a computer (up and down walk, left and right turn, A and D step sideways, Q and E turn), drag to look round, and tap or click the ground to walk there, turning to face the way you go; a thumb pad on a touch screen. A tap on anything else gives its name;
   - you can't walk through buildings, greenhouses, walls, fences, hedges, beds (with or without edging), pots, compost bins, ponds or tree trunks, and you keep about 15 cm from them, so a 30 cm path between beds is wide enough. Blocked straight on, you slide along whatever's in the way; a long step (a slow frame) is taken in strides, so it can't hop a fence; and if something grows up close to where you stand (moving the date on), any step away from it is allowed. You can walk up to 3 m past the garden's edge.
 - **Leaves you can recognise:**
@@ -1210,6 +1210,7 @@ Decided:
 | 20. Welcome | A welcome screen with a loading pause, a quote and the version; more photos for each month | ~1 wk + photos | Built 9 Oct 2026 |
 | 21. Pots, properly | Several plants to a pot, crowding and companions, pots too small, potting on, trees in pots | ~1.5 wk | Built 9 Oct 2026 |
 | 22. Sowing and cardboard | Seedlings' sowing list by now and by kind, weeds hidden; cardboard for weeds, membrane discouraged | ~1 wk | Built 9 Oct 2026 |
+| 22b. Set ground, and where a walk starts | Lawns and patios set, so beds and plants on them are easy to tap; walks start in the middle, or where you choose | Small | Built 9 Oct 2026 |
 | 23. Help for the rest | First-week and deeper help topics, with links from each screen | ~1 wk | |
 
 ### Fix — Plants go in small pots (as built)
@@ -1325,6 +1326,29 @@ Tests: new `tests/pots.test.ts`:
 Tests: new `tests/sowing-cardboard.test.ts`:
 - **the sowing list:** what to sow under cover this month first, every plant in one group; weeds hidden unless asked; each kind (apples are trees, strawberries fruit); search, varieties when searched for, and the tin;
 - **cardboard:** soft ground, under Ground; the laid date kept, never made up, and dropped; the job from the sixth month until ticked off, saying where a named patch is, none without a date or on a path; schema 17, a bad date refused, and a schema 16 garden brought up to date.
+
+### Release 22b — Set ground, and where a walk starts (as built)
+From your feedback after release 22: beds and plants on a lawn were hard to tap, and a walk began along the narrow strip beside the house.
+- **Why tapping was hard:** ground was already drawn underneath and picked last, but whatever was selected kept every tap inside its outline (so a pot can be dragged off the lettuce under it). Once the lawn had been picked, even by accident, it took every tap on the beds and plants on it, and on a phone a second tap dragged the lawn.
+- **Set ground** (`isGround`, `isSetGround` and `freshTarget` in `src/model/features.ts`; the tap rules moved into `pickAt` in `src/canvas/hit.ts`, so they're tested):
+  - all ground (lawn, patio, gravel, decking, bark, meadow, bare soil, cardboard) is **set**: it never keeps taps, so a bed or plant on it is always picked, and it can't be moved, resized, reshaped, rotated, nudged, duplicated or deleted. A drag on it moves the plan, and it shows its outline without handles;
+  - picked where nothing's on top, its bar shows Plant (where things grow in it), what it's made of, and **Unlock**. The side panel keeps its name, material, cardboard advice and Inspire me, with a line and an Unlock button in place of the size, kind, curved edges, Duplicate, Bring to front and Delete;
+  - **Unlock** brings it to the front for taps, with its handles, and its bar gets **Set this ground**. It's set again by that, by tapping empty space, or by picking anything else;
+  - new ground (from Ground, drawn, or duplicated while unlocked) starts unlocked, so it can be sized at once. On a phone the message after drawing says "Tap it, then Unlock, to change its size";
+  - whether it's unlocked is screen state on the selection (`Target.open`), so **the save format doesn't change**. The layout padlock (Advanced) still comes first.
+- **Where a walk starts** (`walkStart` in `src/three/walk.ts`):
+  - **the middle of the garden:** the nearest spot you can stand to the centre of its ground, searched in rings 30 cm apart and kept inside the boundary, so an L-shaped garden doesn't start you outside it. You face up the plan. The old start (in from the bottom edge) is the fallback;
+  - **Start here next time**, a chip while walking, saves where you stand and which way you face; **Start from the middle** clears it. A saved spot is used only while you can still stand there;
+  - kept in this device's preferences by the garden's id (`walkFrom` in `src/theme/prefs.ts`), not in the garden file, so it isn't carried to another device or into an exported file.
+- **Also:** a message in the 3D view ("Picture saved.") now goes after four seconds, where before it stayed.
+- **Help:** "Moving, resizing and deleting" gains a note on set ground.
+- **Version** 0.22.1.
+- **Checked:** at 390 px, a lawn under two beds: the lawn picked and set, then a tap on the Herbs bed picks the bed; the lawn unlocked (handles, sizes, Set this ground) keeps taps over a bed, and Set this ground sets it again; the 3D walk starts mid-lawn with Start here next time, which saves. No errors in the console. **Not done:** a check on a real phone.
+
+Tests:
+- `tests/plan.test.ts`: a tap on a bed or plant on a picked, set lawn picks it; bare lawn picks the lawn and keeps it set; unlocked ground keeps the taps over what's on it; a picked pot still keeps the taps over the lettuce under it; plants skipped while drawing the layout;
+- `tests/three.test.ts`: the walk starts near the middle, beside a bed in the middle, inside an L-shaped garden, at a saved spot, and not at a saved spot something has since been built on;
+- `tests/prefs.test.ts`: good walk starts kept and bad ones dropped.
 
 ### Release 23 — Help for the rest (planned)
 - The first-week and depth topics (tiers 2 and 3), with "?" links on those screens.

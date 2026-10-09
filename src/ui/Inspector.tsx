@@ -15,6 +15,8 @@ import {
   duplicateFeature,
   featureLabel,
   geometryOf,
+  freshTarget,
+  isSetGround,
   KINDS,
   kindsWithGeometry,
   MATERIAL_LABEL,
@@ -198,7 +200,7 @@ export function Inspector(props: Props) {
   const f = selected?.type === 'feature' ? garden.features.find((x) => x.id === selected.id) : undefined;
   if (f) {
     if (isContainer(f)) return <BedPanel {...props} bed={f} />;
-    return <FeaturePanel {...props} f={f} variant={props.sunLens ? 'sun' : 'layout'} />;
+    return <FeaturePanel {...props} f={f} variant={props.sunLens ? 'sun' : 'layout'} fixed={isSetGround(f, selected)} />;
   }
 
   if (selected?.type === 'boundary') {
@@ -305,7 +307,7 @@ function GrowingOnGround({ garden, f, plantOf, setSelected }: { garden: Garden; 
   );
 }
 
-function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf, embedded = false }: Shared & { f: Feature; variant: 'layout' | 'sun'; embedded?: boolean }) {
+function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf, embedded = false, fixed = false }: Shared & { f: Feature; variant: 'layout' | 'sun'; embedded?: boolean; /** Set ground: named and made of something, but not moved, reshaped or deleted until it's unlocked. */ fixed?: boolean }) {
   const app = useApp();
   const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
   const geometry = geometryOf(f);
@@ -375,7 +377,7 @@ function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf
           }}
         />
       </label>
-      {kindOptions.length > 1 && (
+      {kindOptions.length > 1 && !fixed && (
         <label class="field">
           Kind
           <select
@@ -415,7 +417,7 @@ function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf
           </select>
         </label>
       )}
-      {geometry !== 'circle' && (
+      {geometry !== 'circle' && !fixed && (
         <label class="check">
           <input type="checkbox" checked={!!f.smooth} onChange={() => commit((g) => setSmooth(g, f.id, !f.smooth))} />
           Curved edges
@@ -425,14 +427,14 @@ function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf
       {f.kind === 'tree' && <TreeTypePicker f={f} set={set} />}
 
       <Section id="size" title="Size">
-        {rect && (
+        {rect && !fixed && (
           <div class="field-row">
             <NumberField label="Width" unit="mm" value={Math.round(rect.w)} min={50} onCommit={(w) => set({ footprint: resizeRectAny(f.footprint, w, rect.h)! })} />
             <NumberField label="Depth" unit="mm" value={Math.round(rect.h)} min={50} onCommit={(h) => set({ footprint: resizeRectAny(f.footprint, rect.w, h)! })} />
           </div>
         )}
-        {geometry === 'line' && <NumberField label="Thickness" unit="mm" value={f.widthMm ?? 100} min={10} onCommit={(widthMm) => set({ widthMm })} />}
-        {geometry === 'circle' && f.circle && (
+        {geometry === 'line' && !fixed && <NumberField label="Thickness" unit="mm" value={f.widthMm ?? 100} min={10} onCommit={(widthMm) => set({ widthMm })} />}
+        {geometry === 'circle' && f.circle && !fixed && (
           <NumberField
             label={f.kind === 'tree' ? 'Canopy spread (across)' : 'Diameter'}
             unit="mm"
@@ -441,7 +443,7 @@ function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf
             onCommit={(d) => set({ circle: { ...f.circle!, radiusMm: Math.round(d / 2) } })}
           />
         )}
-        {height}
+        {!fixed && height}
         <dl class="facts">
           {geometry === 'line' && f.line ? (
             <>
@@ -469,47 +471,60 @@ function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf
         </Section>
       )}
 
-      <p class="muted small">
-        Drag to move.{' '}
-        {geometry === 'circle'
-          ? 'Drag the square handle to resize.'
-          : f.smooth
-            ? 'The curve runs through the square handles: drag one to reshape it; double-click near the dotted line to add one.'
-            : 'Drag a corner to reshape; double-click an edge to add a corner.'}{' '}
-        Arrow keys nudge by 10 mm (100 mm with Shift).
-      </p>
-      <div class="button-row">
-        <button
-          type="button"
-          class="btn"
-          onClick={() => {
-            const made = { id: null as string | null };
-            commit((g) => {
-              const [next, id] = duplicateFeature(g, f.id);
-              made.id = id;
-              return next;
-            });
-            if (made.id) setSelected({ type: 'feature', id: made.id });
-          }}
-        >
-          Duplicate
-        </button>
-        <button type="button" class="btn" onClick={() => commit((g) => restack(g, f.id, 'top'))}>
-          Bring to front
-        </button>
-        <button
-          type="button"
-          class="btn btn-danger"
-          onClick={() => {
-            const text = deletedMessage(garden, f);
-            commit((g) => deleteFeatures(g, [f.id]));
-            setSelected(null);
-            app.notify(text, { undo: true });
-          }}
-        >
-          Delete
-        </button>
-      </div>
+      {fixed ? (
+        <>
+          <p class="muted small">This ground is set, so the beds and plants on it are easy to tap. Unlock it to move, reshape or delete it.</p>
+          <div class="button-row">
+            <button type="button" class="btn" onClick={() => setSelected({ type: 'feature', id: f.id, open: true })}>
+              Unlock
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p class="muted small">
+            Drag to move.{' '}
+            {geometry === 'circle'
+              ? 'Drag the square handle to resize.'
+              : f.smooth
+                ? 'The curve runs through the square handles: drag one to reshape it; double-click near the dotted line to add one.'
+                : 'Drag a corner to reshape; double-click an edge to add a corner.'}{' '}
+            Arrow keys nudge by 10 mm (100 mm with Shift).
+          </p>
+          <div class="button-row">
+            <button
+              type="button"
+              class="btn"
+              onClick={() => {
+                const made = { id: null as string | null };
+                commit((g) => {
+                  const [next, id] = duplicateFeature(g, f.id);
+                  made.id = id;
+                  return next;
+                });
+                if (made.id) setSelected(freshTarget({ ...f, id: made.id }));
+              }}
+            >
+              Duplicate
+            </button>
+            <button type="button" class="btn" onClick={() => commit((g) => restack(g, f.id, 'top'))}>
+              Bring to front
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              onClick={() => {
+                const text = deletedMessage(garden, f);
+                commit((g) => deleteFeatures(g, [f.id]));
+                setSelected(null);
+                app.notify(text, { undo: true });
+              }}
+            >
+              Delete
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

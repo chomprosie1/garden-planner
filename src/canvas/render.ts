@@ -98,6 +98,8 @@ export interface Scene {
   month?: number;
   /** Show the selected thing's rotate handle. */
   rotatable?: boolean;
+  /** The selected thing is set ground: just its outline, no handles or lengths. */
+  fixed?: boolean;
   /** false in Simple: only rectangles and round things show handles, to resize; nothing shows corners to reshape. */
   reshape?: boolean;
   /** Leave out names and labels (small previews). */
@@ -886,6 +888,7 @@ function drawSelection(ctx: CanvasRenderingContext2D, s: Scene, t: Target) {
   ctx.setLineDash([7, 5]);
   ctx.stroke();
   ctx.setLineDash([]);
+  if (s.fixed) return;
 
   if (f?.circle) {
     const c = f.circle;

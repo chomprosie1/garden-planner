@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { microclimateOf } from '../climate/microclimate';
 import { isNewSeason, nextStage, STAGE_ACTION } from '../lifecycle/stages';
-import { deleteFeatures, duplicateFeature, featureLabel, geometryOf, MATERIAL_LABEL, materialPatch, rectInfo, resizeRectAny, setSmooth, updateFeature, type Target } from '../model/features';
+import { deleteFeatures, duplicateFeature, featureLabel, geometryOf, freshTarget, isGround, isSetGround, placeLabel, MATERIAL_LABEL, materialPatch, rectInfo, resizeRectAny, setSmooth, updateFeature, type Target } from '../model/features';
 import { todayIso } from '../model/ids';
 import { asTree, treeSizeText, treeType } from '../model/trees';
 import { updateGarden, type Store } from '../model/store';
@@ -161,7 +161,7 @@ export function ActionPill({ pillRef, target, garden, store, plantOf, locked, mo
               } else app.notify(`No room for ${name.toLowerCase()} in ${featureLabel(f)}.`);
             }
           : null;
-      content = <FeatureActions f={f} garden={garden} commit={commit} locked={locked} sizing={sizing} setSizing={setSizing} plantHere={plantHere} paste={paste} select={select} unlock={unlock} extras={pillHasExtras(mode)} />;
+      content = <FeatureActions f={f} ground={isGround(f) ? (isSetGround(f, target) ? 'set' : 'open') : null} garden={garden} commit={commit} locked={locked} sizing={sizing} setSizing={setSizing} plantHere={plantHere} paste={paste} select={select} unlock={unlock} extras={pillHasExtras(mode)} />;
     }
   } else if (target?.type === 'boundary') {
     content = (
@@ -204,7 +204,7 @@ function SizeButton({ size, describe, set }: { size: PlantSize | null; describe:
   );
 }
 
-function FeatureActions({ f, garden, commit, locked, sizing, setSizing, plantHere, paste, select, unlock, extras }: { f: Feature; garden: Garden; commit: (fn: (g: Garden) => Garden) => void; locked: boolean; sizing: boolean; setSizing: (b: boolean) => void; plantHere: () => void; paste: (() => void) | null; select: (t: Target | null) => void; unlock: () => void; extras: boolean }) {
+function FeatureActions({ f, ground, garden, commit, locked, sizing, setSizing, plantHere, paste, select, unlock, extras }: { f: Feature; ground: 'set' | 'open' | null; garden: Garden; commit: (fn: (g: Garden) => Garden) => void; locked: boolean; sizing: boolean; setSizing: (b: boolean) => void; plantHere: () => void; paste: (() => void) | null; select: (t: Target | null) => void; unlock: () => void; extras: boolean }) {
   const app = useApp();
   const rect = !f.smooth && geometryOf(f) === 'area' ? rectInfo(f.footprint) : null;
   const circle = f.circle;
@@ -251,13 +251,34 @@ function FeatureActions({ f, garden, commit, locked, sizing, setSizing, plantHer
     );
   const sizeText = rect ? `${fmt(rect.w)} × ${fmt(rect.h)}` : circle ? `Ø ${fmt(circle.radiusMm * 2)}` : null;
   const kindOfTree = f.kind === 'tree' ? treeType(f.treeType) : undefined;
+  const madeOf = (f.kind === 'surface' || f.kind === 'path') && (
+    <label class="pill-select">
+      <span class="visually-hidden">Made of</span>
+      <select value={f.material ?? (f.kind === 'surface' ? 'lawn' : '')} onChange={(e) => commit((g) => updateFeature(g, f.id, materialPatch(f, ((e.currentTarget as HTMLSelectElement).value || undefined) as Material | undefined)))}>
+        {f.kind === 'path' && <option value="">Plain</option>}
+        {MATERIALS.filter((m) => f.kind === 'surface' || (m !== 'meadow' && m !== 'cardboard')).map((m) => (
+          <option key={m} value={m}>
+            {MATERIAL_LABEL[m]}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+  // Unlocked ground is being moved or reshaped: setting it is the next thing to do, so it takes Plant's place.
+  const setting = ground === 'open' && !locked;
   return (
     <>
       <span class="pill-name">{featureLabel(f)}</span>
-      {canHold(f) && (
-        <button type="button" class="pill-btn pill-primary" onClick={plantHere}>
-          Plant
+      {setting ? (
+        <button type="button" class="pill-btn pill-primary" title="Keep it in place, so the beds and plants on it are easy to tap" onClick={() => select({ type: 'feature', id: f.id })}>
+          <Icon name="check" size={16} /> Set this ground
         </button>
+      ) : (
+        canHold(f) && (
+          <button type="button" class="pill-btn pill-primary" onClick={plantHere}>
+            Plant
+          </button>
+        )
       )}
       {paste && (
         <button type="button" class="pill-btn" title="Paste the plant you copied here" onClick={paste}>
@@ -268,6 +289,13 @@ function FeatureActions({ f, garden, commit, locked, sizing, setSizing, plantHer
         <button type="button" class="pill-btn" onClick={unlock} title="The layout is locked">
           <Icon name="lock" size={16} /> Unlock
         </button>
+      ) : ground === 'set' ? (
+        <>
+          {madeOf}
+          <button type="button" class="pill-btn" aria-label={`Unlock ${placeLabel(f)} to move or reshape it`} title="Set in place. Unlock to move or reshape it" onClick={() => select({ type: 'feature', id: f.id, open: true })}>
+            <Icon name="lock" size={16} /> Unlock
+          </button>
+        </>
       ) : (
         <>
           {kindOfTree && (
@@ -283,19 +311,7 @@ function FeatureActions({ f, garden, commit, locked, sizing, setSizing, plantHer
               <Icon name="curve" size={18} />
             </button>
           )}
-          {(f.kind === 'surface' || f.kind === 'path') && (
-            <label class="pill-select">
-              <span class="visually-hidden">Made of</span>
-              <select value={f.material ?? (f.kind === 'surface' ? 'lawn' : '')} onChange={(e) => commit((g) => updateFeature(g, f.id, materialPatch(f, ((e.currentTarget as HTMLSelectElement).value || undefined) as Material | undefined)))}>
-                {f.kind === 'path' && <option value="">Plain</option>}
-                {MATERIALS.filter((m) => f.kind === 'surface' || (m !== 'meadow' && m !== 'cardboard')).map((m) => (
-                  <option key={m} value={m}>
-                    {MATERIAL_LABEL[m]}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
+          {madeOf}
           {extras && f.kind === 'bed' && (
             <label class="pill-select">
               <span class="visually-hidden">Edging</span>
@@ -319,7 +335,7 @@ function FeatureActions({ f, garden, commit, locked, sizing, setSizing, plantHer
                 made.id = id;
                 return next;
               });
-              if (made.id) select({ type: 'feature', id: made.id });
+              if (made.id) select(freshTarget({ ...f, id: made.id }));
             }}
           >
             <Icon name="copy" size={18} />

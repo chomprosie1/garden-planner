@@ -10,11 +10,12 @@ import { checkGarden, formatHours, type Finding } from '../../planting/rules';
 import { hoursAt } from '../../sun/hours';
 import { fromUkClock, sunAt, sunDay, ukClock } from '../../sun/position';
 import { shadowsAt } from '../../sun/shadow';
-import { openTraceKey } from '../../storage/gardens';
+import { listGardens, openTraceKey } from '../../storage/gardens';
 import { loadBlob } from '../../storage/idb';
 import { resolveMode } from '../../theme/apply';
 import { LOOKS } from '../../theme/looks';
 import type { Prefs, PrefsStore } from '../../theme/prefs';
+import type { WalkSpot } from '../../three/walk';
 import { ActionPill } from '../ActionPill';
 import { ClearBedsDialog } from '../ClearBeds';
 import { Dock, ToolsHandle, type Drawer } from '../Dock';
@@ -417,6 +418,17 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const select = (t: Target | null) => {
     setSelected(t);
     setSelectedVertex(null);
+  };
+  /**
+   * Where this garden's walk starts, if you've chosen, kept in this device's preferences by the open garden's id.
+   * Saving one drops those of gardens that are gone.
+   */
+  const walkFromProps = () => {
+    const { gardens, hidden, open } = listGardens();
+    if (!open) return { walkFrom: null, setWalkFrom: () => {} };
+    const known = new Set([...gardens, ...hidden].map((e) => e.id));
+    const others = Object.fromEntries(Object.entries(prefs.walkFrom).filter(([id]) => id !== open && known.has(id)));
+    return { walkFrom: prefs.walkFrom[open] ?? null, setWalkFrom: (spot: WalkSpot | null) => prefsStore.set({ walkFrom: spot ? { ...others, [open]: { at: spot.at, heading: spot.heading } } : others }) };
   };
   const makeTheSpace = (space: Parameters<typeof makeSpace>[1], w: number, d: number, kit: Kit | null = null) => {
     store.apply(updateGarden((g) => (kit ? applyKit(makeSpace(g, space, w, d), kit, (id) => plantById.get(id) ?? null, todayIso) : makeSpace(g, space, w, d))));
@@ -847,6 +859,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
           look={prefs.look}
           mode={colourMode}
           phone={phone}
+          {...walkFromProps()}
           close={() => setThreeD(false)}
         />
       )}
