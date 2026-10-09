@@ -40,6 +40,7 @@ import { useApp } from '../appContext';
 import { clockText, SunBar, type CalendarDate, type SunView } from '../SunBar';
 import { usePlants } from '../usePlants';
 import { spacingStyle } from '../../planting/place';
+import { treeAsPlant } from '../../planting/pots';
 import { useSunHours } from '../useSunHours';
 import { useWeatherNow } from '../useWeather';
 import { yearScene } from '../yearScene';
@@ -675,6 +676,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
             <PlanCanvas
               store={store}
               garden={garden}
+              treePlant={(tree) => (plants ? treeAsPlant(tree, plants) : null)}
               look={prefs.look}
               mode={colourMode}
               tool={tool}

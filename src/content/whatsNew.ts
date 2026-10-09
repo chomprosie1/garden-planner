@@ -17,6 +17,19 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-09-pots',
+    date: '2026-10-09',
+    title: 'Pots, properly',
+    items: [
+      'Pick a pot to see how big it is and how much compost it holds.',
+      'Several plants can share a pot: drop another in and it goes beside the first. If there are more than the pot has room for, or two that are usually kept apart, the plan says so.',
+      'A plant in a pot that’s too small for it is flagged, such as a fig in a 30 cm pot. A tomato or chilli wants a pot about 30 cm across, and a fruit tree or bush about 45 cm.',
+      'Pot on: pick a plant in a pot and move it to a new pot beside it, a bigger pot already on the plan, or out into a bed. A note of it goes with the plant.',
+      'Trees such as an olive, a Japanese maple or a holly can go in a pot: drop one from the Trees list onto the pot.',
+    ],
+    tryIt: { label: 'Open the garden', view: 'plan' },
+  },
+  {
     id: '2026-10-09-welcome',
     date: '2026-10-09',
     title: 'A welcome, and more photos',

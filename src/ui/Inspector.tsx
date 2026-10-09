@@ -53,6 +53,7 @@ import {
   updatePlanting,
 } from '../planting/place';
 import { formatHours, sunNeeded, type Finding } from '../planting/rules';
+import { cmText, isPot, litresText, potNeeds, potOn, potOnChoices, potSize, sizeText, type PotOnTo } from '../planting/pots';
 import { expectedText, nextInMonths, shortDate, timeline } from '../lifecycle/projection';
 import { batchDates, batchesOf, batchLabel, canSowInBatches, maxBatches, MIN_BATCHES, setSowBy, splitIntoBatches } from '../planting/batches';
 import { currentStage, sowingOf, STAGE_LABEL, stageDate } from '../lifecycle/stages';
@@ -751,11 +752,17 @@ function BedPanel(props: Shared & { bed: Feature }) {
   const past = here.filter((p) => p.removedOn).sort((a, b) => b.removedOn!.localeCompare(a.removedOn!));
   const mine = findings.filter((f) => f.featureIds.includes(bed.id));
   const sun = sunJune ? areaHours(sunJune, bed.footprint) : null;
+  const pot = potSize(bed);
   // A bed inside a greenhouse is under cover too.
   const over = isCover(bed) ? null : microclimateAt(garden, pivotOf(bed));
   return (
     <div class="inspector-body">
       <Heading eyebrow={KINDS[bed.kind].label} title={featureLabel(bed)} />
+      {pot && (
+        <p class="small pot-size">
+          {sizeText(pot)}, {cmText(pot.depth)} deep: {litresText(pot.litres)} of compost.
+        </p>
+      )}
       {sun !== null && <SunFact hours={sun} month={sunJune!.month} />}
       {over && (
         <p class="cover-fact">
@@ -978,6 +985,62 @@ function WeedPanel({ store, garden, pl, setSelected, plantOf }: Props & { pl: Pl
   );
 }
 
+/**
+ * A plant in a pot: how big the pot is against what the plant wants, and potting it on into a bigger pot already on the
+ * plan, a new one beside it, or out into a bed.
+ */
+function PotOnSection({ store, garden, pl, plant, pot, plantOf }: { store: Store; garden: Garden; pl: Planting; plant: Plant; pot: Feature; plantOf: (id: string) => Plant }) {
+  const app = useApp();
+  const size = potSize(pot)!;
+  const need = potNeeds(plant);
+  const choices = potOnChoices(garden, pl.id, plantOf);
+  const [picked, setTo] = useState('new');
+  if (!choices) return null;
+  // A choice that's gone (that pot deleted, or the plant already in it) falls back to a new pot.
+  const options = new Set(['new', ...choices.pots.map((f) => `pot:${f.id}`), ...choices.beds.map((f) => `bed:${f.id}`)]);
+  const to = options.has(picked) ? picked : 'new';
+  const small = need > size.across * 1.05;
+  const target = (): PotOnTo =>
+    to === 'new' ? { kind: 'new', acrossMm: choices.suggested } : to.startsWith('pot:') ? { kind: 'pot', featureId: to.slice(4) } : { kind: 'bed', featureId: to.slice(4) };
+  return (
+    <Section id="pot-on" title="Pot on" open={small}>
+      <p class="small">
+        In {featureLabel(pot).toLowerCase() === 'pot' ? 'a pot' : `the ${featureLabel(pot).toLowerCase()},`} {sizeText(size)} ({litresText(size.litres)}). {plant.commonName} wants a pot about {cmText(need)} across
+        {small ? ', so it’s due a bigger pot.' : ', so it has room for now.'}
+      </p>
+      <label class="field">
+        Move it to
+        <select value={to} onChange={(e) => setTo((e.currentTarget as HTMLSelectElement).value)}>
+          <option value="new">A new pot, {cmText(choices.suggested)} across, beside this one</option>
+          {choices.pots.map((f) => (
+            <option key={f.id} value={`pot:${f.id}`}>
+              {featureLabel(f)}, {cmText(potSize(f)!.across)} across
+            </option>
+          ))}
+          {choices.beds.map((f) => (
+            <option key={f.id} value={`bed:${f.id}`}>
+              Out into {featureLabel(f)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <button
+        type="button"
+        class="btn"
+        onClick={() => {
+          const g = store.get().garden;
+          const next = potOn(g, pl.id, target(), plantOf, todayIso());
+          if (next === g) return app.notify('That isn’t on the plan any more. Choose somewhere else.');
+          store.apply(updateGarden(() => next));
+          app.notify(`${plant.commonName} potted on. A note of it is under its Notes.`, { undo: true });
+        }}
+      >
+        Pot it on
+      </button>
+    </Section>
+  );
+}
+
 function PlantingPanel(props: Props & { pl: Planting }) {
   const { store, garden, pl, setSelected, plantOf, findings, sunJune } = props;
   const app = useApp();
@@ -1143,6 +1206,8 @@ function PlantingPanel(props: Props & { pl: Planting }) {
           },
         ]}
       />
+
+      {bed && isPot(bed) && n === 1 && plant.category !== 'weed' && <PotOnSection key={`pot-on-${pl.id}`} store={store} garden={garden} pl={pl} plant={plant} pot={bed} plantOf={plantOf} />}
 
       <div class="button-row panel-foot">
         {bed && (

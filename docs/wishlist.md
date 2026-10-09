@@ -89,10 +89,10 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Kitchen notes for your own plants, and searching and saving recipes | Build, release 13 | S | The kitchen covers the library's crops |
 | Help for every key feature, planned by the risk of people giving up | You, 9 Oct 2026 | L | Planned in releases 19 (the first session) and 23 (the rest) |
 | A fig wouldn't go in a pot | You, 9 Oct 2026 | S | Fixed 9 Oct 2026: any plant dropped on a small pot could miss it when zoomed out |
-| Several plants in one pot, discouraging overcrowding and poor companions | You, 9 Oct 2026 | M | Planned in release 21 |
-| Warn when a pot is too small for its plant | You, 9 Oct 2026 | S | Planned in release 21 |
-| Potting on: moving a plant to a bigger pot, or out into a bed | You, 9 Oct 2026 | M | Planned in release 21 |
-| Trees from the Trees list in pots (olive, Japanese maple, bay) | Build, fix of 9 Oct 2026 | S | Planned in release 21 |
+| Several plants in one pot, discouraging overcrowding and poor companions | You, 9 Oct 2026 | M | Built in release 21 |
+| Warn when a pot is too small for its plant | You, 9 Oct 2026 | S | Built in release 21 |
+| Potting on: moving a plant to a bigger pot, or out into a bed | You, 9 Oct 2026 | M | Built in release 21 |
+| Trees from the Trees list in pots (olive, Japanese maple, bay) | Build, fix of 9 Oct 2026 | S | Built in release 21 |
 | Cardboard as a weed suppressant; weed membrane discouraged | You, 9 Oct 2026 | M | Planned in release 22 |
 | Seedlings' sowing list: sow now first, grouped by kind, weeds hidden unless you ask | You, 9 Oct 2026 | S | Planned in release 22 |
 | A welcome screen on launch: a short pause with a quote and the version, then into the garden, tasks, your garden's page or What's new | You, 9 Oct 2026 | M | Built in release 20 |

@@ -8,8 +8,9 @@ import { featureLabel } from '../model/features';
 import type { Garden, Plant, Planting, Point } from '../model/types';
 import { averageHours, type SunGrid } from '../sun/hours';
 import { activePlantings, canHold, plantCount, plantingShape, plantPositions, rowSpacingOf, sizedPlant, type PlantingShape } from './place';
+import { isPot, potProblems } from './pots';
 
-export type FindingKind = 'spacing' | 'row' | 'outside' | 'no-bed' | 'avoid' | 'good' | 'light';
+export type FindingKind = 'spacing' | 'row' | 'outside' | 'no-bed' | 'avoid' | 'good' | 'light' | 'pot';
 
 export interface Finding {
   /** Stable for the same problem, so the list doesn't jump about. */
@@ -32,7 +33,7 @@ type PlantOf = (id: string) => Plant;
 export function checkGarden(g: Garden, plantOf: PlantOf, sun: SunGrid | null = null): Finding[] {
   // Weeds aren't checked for spacing, neighbours or light: they're not a planting choice.
   const active = activePlantings(g).filter((pl) => plantOf(pl.plantId).category !== 'weed');
-  const findings = [...checkPlacement(g, active, plantOf), ...checkSpacing(active, plantOf), ...checkNeighbours(g, active, plantOf), ...checkLight(active, plantOf, sun)];
+  const findings = [...checkPlacement(g, active, plantOf), ...checkPots(g, plantOf), ...checkSpacing(g, active, plantOf), ...checkNeighbours(g, active, plantOf), ...checkLight(active, plantOf, sun)];
   return findings.sort((a, b) => (a.level === b.level ? 0 : a.level === 'warn' ? -1 : 1));
 }
 
@@ -84,7 +85,9 @@ const EDGE_MM = 10;
 
 // ---------- Spacing between plantings ----------
 
-function checkSpacing(active: Planting[], plantOf: PlantOf): Finding[] {
+function checkSpacing(g: Garden, active: Planting[], plantOf: PlantOf): Finding[] {
+  // Single plants sharing a pot are checked as a pot, for crowding (checkPots), not for the gaps between them.
+  const pots = new Set(g.features.filter(isPot).map((f) => f.id));
   const out: Finding[] = [];
   const shapes = active.map((pl) => plantingShape(pl, sizedPlant(plantOf(pl.plantId), pl)));
   for (let i = 0; i < active.length; i++) {
@@ -95,6 +98,8 @@ function checkSpacing(active: Planting[], plantOf: PlantOf): Finding[] {
       const pb = sizedPlant(plantOf(b.plantId), b);
       // Bulbs under a tree or shrub are the usual way to grow them, not a squeeze.
       if (underplanted(pa, pb) || underplanted(pb, pa)) continue;
+      // Single plants sharing a pot are checked as a pot; rows and blocks in a planter still keep their spacing.
+      if (a.featureId === b.featureId && pots.has(a.featureId) && (a.layout ?? 'single') === 'single' && (b.layout ?? 'single') === 'single') continue;
       const near = closest(shapes[i]!, shapes[j]!);
       const names = `${describe(a, pa)} and ${describe(b, pb, true)}`;
       const base = { kind: 'spacing' as const, level: 'warn' as const, plantingIds: [a.id, b.id], featureIds: [...new Set([a.featureId, b.featureId])] };
@@ -160,7 +165,8 @@ function checkNeighbours(g: Garden, active: Planting[], plantOf: PlantOf): Findi
         continue;
       }
       const pair = `${pa.commonName} and ${lower(pb.commonName)}`;
-      const place = sameBed ? `in ${bedName(a.featureId)}` : `within ${formatLength(NEIGHBOUR_MM)} of each other (${bedName(a.featureId)} and ${bedName(b.featureId)})`;
+      const inPot = sameBed && g.features.some((f) => f.id === a.featureId && isPot(f));
+      const place = inPot ? `in the same ${lower(bedName(a.featureId))}` : sameBed ? `in ${bedName(a.featureId)}` : `within ${formatLength(NEIGHBOUR_MM)} of each other (${bedName(a.featureId)} and ${bedName(b.featureId)})`;
       groups.set(key, {
         id: key,
         kind: avoid ? 'avoid' : 'good',
@@ -272,4 +278,18 @@ export function closest(A: PlantingShape, B: PlantingShape): Near {
     }
   }
   return best;
+}
+
+// ---------- Pots ----------
+
+/** Pots too small for what's in them, or too crowded: one finding each, on the pot and its plants. */
+function checkPots(g: Garden, plantOf: PlantOf): Finding[] {
+  return potProblems(g, plantOf).map((p) => ({
+    id: `pot:${p.kind}:${p.feature.id}:${p.plantings.map((pl) => pl.id).join(':')}`,
+    kind: 'pot' as const,
+    level: 'warn' as const,
+    plantingIds: p.plantings.map((pl) => pl.id),
+    featureIds: [p.feature.id],
+    message: p.message,
+  }));
 }

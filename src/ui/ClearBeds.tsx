@@ -8,12 +8,12 @@ import { isFinished } from '../lifecycle/projection';
 import { featureLabel } from '../model/features';
 import { todayIso } from '../model/ids';
 import { updateGarden, type Store } from '../model/store';
-import type { Feature, Garden, Plant } from '../model/types';
+import type { Garden, Plant } from '../model/types';
 import { clearBeds, isActive } from '../planting/place';
+import { isPot } from '../planting/pots';
 import { useApp } from './appContext';
 import { useWeatherNow } from './useWeather';
 
-const isPot = (f: Feature) => f.kind === 'pot' || f.kind === 'planter';
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 export function ClearBedsDialog({ garden, store, plantOf, close }: { garden: Garden; store: Store; plantOf: (id: string) => Plant; close: () => void }) {

@@ -1208,7 +1208,7 @@ Decided:
 | Fix. Plants go in small pots | A plant dropped on a small pot goes in it; fruit trees in pots stand on its soil in 3D | Small | Built 9 Oct 2026 |
 | 19. Help, the first minute | Help pages and search; first-session topics; "Stuck?" nudges at the three riskiest moments | ~1 wk | Built 9 Oct 2026 |
 | 20. Welcome | A welcome screen with a loading pause, a quote and the version; more photos for each month | ~1 wk + photos | Built 9 Oct 2026 |
-| 21. Pots, properly | Several plants to a pot, crowding and companions, pots too small, potting on, trees in pots | ~1.5 wk | |
+| 21. Pots, properly | Several plants to a pot, crowding and companions, pots too small, potting on, trees in pots | ~1.5 wk | Built 9 Oct 2026 |
 | 22. Sowing and cardboard | Seedlings' sowing list by now and by kind, weeds hidden; cardboard for weeds, membrane discouraged | ~1 wk | |
 | 23. Help for the rest | First-week and deeper help topics, with links from each screen | ~1 wk | |
 
@@ -1282,21 +1282,29 @@ Tests:
 - new `tests/welcome.test.ts`: when the welcome shows (start, Today) and when it doesn't (a screen, a reminder, help); the pause between 1 and 5 seconds, skippable after one; the version matches `package.json`; quotes: at least 10 for each season, no repeats, short, ending in a full stop, without the banned shapes and words, naming no one, and never the same line twice running;
 - `tests/photos.test.ts`: **changed the rule** "at most one photo per month" to "at least four for every month, each used once", because you asked for more photos each month (9 Oct 2026); and the month's photos take turns by day.
 
-### Release 21 — Pots, properly (planned)
+### Release 21 — Pots, properly (as built)
+- **How big a pot is** (`potSize` in `src/planting/pots.ts`): a round pot's width, or a planter's or window box's length and width; its depth; and roughly how many litres it holds. The pot's panel says so: "30 cm across, 30 cm deep: about 21 litres of compost", or "80 cm long and 20 cm wide".
+- **What a plant wants** (`potNeeds`), a rule of thumb from its kind and size rather than new data for every plant:
+  - **checked against the RHS** (9 Oct 2026): tomatoes, peppers and chillies want a final pot about 30 cm across (RHS tomato advice; RHS advice on potting in *Grow Your Own*, April 2024); most fruit in containers 45 to 50 cm, and a tree a final container of about 45 cm (RHS *Fruit in containers* and *Trees: growing in containers*); salad leaves at least 15 cm (the same RHS advice). So: fruit trees and bushes, and trees, 45 cm; big leafy crops (spread of 40 cm or more) 30 cm; small plants 15 cm;
+  - **not checked, a rule of thumb between those:** sprawling crops such as courgettes and squash (spread of 80 cm or more) 45 cm; ornamental shrubs 45 cm, or 30 cm for a small one such as lavender. Said in the code as unchecked.
+- **Pots too small,** a new kind of check (`pot`): "Fig wants a pot about 45 cm across or more; this pot is 30 cm across (about 21 litres). In a small pot it stays small and dries out fast. Pot it on when you can."
 - **Several plants in a pot:**
-  - the pot's panel lists what's in it;
-  - a plant dropped into a pot with something in it goes beside it;
-  - checks in pot words: "Too crowded: the basil and the tomato need about 45 cm across; this pot is 30 cm"; and the usual "kept apart" check, said as "in the same pot".
-- **Pots too small,** a new kind of check:
-  - a rule of thumb from the plant's spread, height and kind (annual, perennial, shrub, tree), rather than new data for every plant. For example, a fig or olive wants a pot about 45 to 50 cm across;
-  - shown with the pot's size and rough volume ("about 15 litres");
-  - the rule's figures are checked against a named source (RHS advice on growing in containers) before release, as the ways of working say.
-- **Potting on:**
-  - **Pot on** for a plant in a pot: into a bigger pot already on the plan, into a new pot of the suggested size placed beside it, or out into a bed;
-  - it moves the planting and adds a note ("Potted on into a 45 cm pot, 3 Apr"), with the notes we have, so the save format doesn't change;
-  - the too-small check offers it.
-- **Trees in pots:** a tree from the Trees list dropped on a pot is planted as its library plant where there is one (olive, Japanese maple, bay), or it says why not.
-- **Tests:** new `tests/pots.test.ts` (crowding, companions in one pot, too small, potting on, trees dropped on pots); planting.
+  - a plant dropped into a pot with something in it goes in as one plant, in the free spot furthest from what's there (`spotInPot`), not as a fill on top of it;
+  - **too crowded** when the plants want more room than the pot has: a plant on its own wants a square of the pot it would want, plants in a row or block a square of their spacing each, counted by plants, not plantings ("Too crowded: the basil, parsley and tomato want a pot about 56 cm across between them; this pot is 50 cm");
+  - single plants sharing a pot aren't also given bed-style spacing warnings; rows and blocks in a planter still are;
+  - the "usually kept apart" check says "in the same pot".
+- **Pot on** (`potOnChoices`, `potOn`), in a potted plant's panel (open when it's too small for its pot): into a new pot of the size it wants beside the old one (clear of a long window box), a bigger pot already on the plan (beside what's in it), or out into a bed, greenhouse or cold frame. It moves the planting, keeping its stages, dates and picks, and adds a note ("Potted on into a 45 cm pot."), so the save format doesn't change. One undo step.
+- **Trees in pots:** a tree from the Trees list dropped on a pot goes in as its library plant where there is one, by id or name (`treeAsPlant`: olive, Japanese maple, holly, crab apple, rowan, hawthorn, Chinese dogwood and others). A tree with no plant, such as a birch, isn't added, and the message says it grows in the ground. Phone taps and computer drops both use the point as placed, not snapped.
+- **Help:** "Plants in pots" now covers sizes, crowding, Pot on and trees.
+- **Changed from the plan:** "Bay" isn't in the Trees list, so it isn't among the trees that go in pots; it's a herb in Plants, which goes in a pot like any plant.
+- **Checked:** at 1280 px, a fig in a 30 cm pot shows the warning; Pot on makes a 45 cm pot beside it, moves the fig, adds the note, and the warning goes; basil dropped on the pot goes in beside the fig.
+
+Tests: new `tests/pots.test.ts`:
+- **sizes:** a round pot and a window box, and what tomatoes, chillies, figs, apples, blueberries, lettuce and lavender want;
+- **checks:** a fig too small for a 30 cm pot and fine in a 50 cm one; several plants sharing a pot, then too many; counted by plants, so a block can be crowded and radishes at their spacing aren't; no bed-style spacing between single plants in a pot, but still between rows in a planter; companions "in the same pot"; weeds left out;
+- **placing:** where it was dropped in an empty pot, beside the first in a pot with something in it;
+- **potting on:** the choices offered; into a new pot (valid garden, a note, the old pot kept, no warning after), clear of a window box; into a pot on the plan beside what's there; into a bed; stages, dates and picks kept;
+- **trees:** the library plant for a tree by id or name, and none for a birch.
 
 ### Release 22 — Sowing and cardboard (planned)
 - **Seedlings' sowing list** (`SowForm` in `src/ui/views/Shed.tsx`):

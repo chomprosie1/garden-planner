@@ -44,6 +44,8 @@ import { updateGarden, type Store } from '../model/store';
 import { stickerById, stickerFeature, type Sticker } from '../model/stickers';
 import type { Feature, FeatureKind, Garden, Plant, Planting, Point, SketchColour, SketchKind } from '../model/types';
 import { defaultFill, fillPlanting } from '../planting/fill';
+import { isPot, spotInPot } from '../planting/pots';
+import { treeType } from '../model/trees';
 import { addPlanting, blockGrid, containerAt, deletePlanting, duplicatePlanting, makePlanting, placeCopy, MAX_PLANTS, movePlanting, plantCount, plantingPoint, plantPositions, rowCount, sizedPlant, spreadOf, updatePlanting, type Layout } from '../planting/place';
 import type { Finding } from '../planting/rules';
 import type { SunGrid } from '../sun/hours';
@@ -150,6 +152,8 @@ export interface PlanCanvasProps {
   onDraftChange?: (corners: number) => void;
   /** Looks up a plant by id, for drawing and checking plantings. */
   plantOf: (id: string) => Plant;
+  /** The library plant for a tree from the Trees list, so one dropped on a pot can go in it. Null when there isn't one. */
+  treePlant?: (tree: { id: string; name: string }) => Plant | null;
   findings: Finding[];
   focusFinding: string | null;
   placing: Placing | null;
@@ -702,7 +706,11 @@ export function PlanCanvas(props: PlanCanvasProps) {
     if (!placing || !view.current) return;
     const bed = containerAt(garden(), pt);
     if (!bed) return say(NOWHERE_TO_PLANT);
-    const shape = fillPlanting(placing.plant, bed, defaultFill(placing.plant, bed), pt);
+    // In a pot with something in it already, one plant goes beside it, rather than a fill on top of it.
+    const shared = isPot(bed) && garden().plantings.some((x) => x.featureId === bed.id && !x.removedOn);
+    const filled = fillPlanting(placing.plant, bed, shared ? 'one' : defaultFill(placing.plant, bed), pt);
+    const beside = shared ? spotInPot(garden(), bed, [filled.x, filled.y], p.plantOf) : null;
+    const shape = beside ? { ...filled, x: beside[0], y: beside[1] } : filled;
     const pl: Planting = { ...makePlanting(placing.plant, bed.id, 'single', [shape.x, shape.y], undefined, !!placing.growing), ...shape };
     const n = plantCount(pl, placing.plant);
     if (n > MAX_PLANTS) return say(`That's ${n.toLocaleString()} plants, which is more than one planting can hold.`);
@@ -721,9 +729,21 @@ export function PlanCanvas(props: PlanCanvasProps) {
   };
 
   /** A sticker from the dock, dropped at a point: it's added, selected, and ready to drag into place. */
-  const dropStickerAt = (st: Sticker, pt: Point) => {
+  const dropStickerAt = (st: Sticker, pt: Point, raw: Point = pt) => {
     const p = P.current;
     const f = stickerFeature(st, pt);
+    // A tree from the Trees list dropped on a pot goes in it as its plant, where the library has one.
+    const pot = f.kind === 'tree' ? containerAt(garden(), raw) : null;
+    if (pot && isPot(pot)) {
+      const type = treeType(f.treeType);
+      const plant = type ? (p.treePlant?.(type) ?? null) : null;
+      if (!plant) return say(`${type?.name ?? 'This tree'} grows in the ground, so it can't go in a pot. Fruit trees and shrubs from Plants can.`);
+      const placing = p.placing;
+      P.current = { ...p, placing: { plant, layout: 'auto', growing: false } };
+      placeAuto(raw);
+      P.current = { ...P.current, placing };
+      return;
+    }
     const first = garden().features.length === 0 && garden().boundary.length < 3;
     commit((g) => addFeature(g, f));
     // The first thing in an empty garden: zoom in on it, with room round it for what comes next.
@@ -1491,7 +1511,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
         if (!st || !v) return;
         const step = snapStepFor(v.scale);
         const [x, y] = toWorld(v, [size.current.w / 2, size.current.h / 2]);
-        dropStickerAt(st, [Math.round(x / step) * step, Math.round(y / step) * step]);
+        dropStickerAt(st, [Math.round(x / step) * step, Math.round(y / step) * step], [Math.round(x), Math.round(y)]);
       },
       show(points) {
         const b = bounds(points);
@@ -1524,7 +1544,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
     if (sticker) {
       e.preventDefault();
       const st = stickerById(sticker);
-      if (st) dropStickerAt(st, pt);
+      if (st) dropStickerAt(st, pt, raw);
       return;
     }
     const plantId = dt.getData(PLANT_DRAG_TYPE);
