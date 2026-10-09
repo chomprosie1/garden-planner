@@ -41,6 +41,7 @@ import { todayIso } from '../../model/ids';
 import { updateGarden, type Store } from '../../model/store';
 import { CONTAINERS, FACINGS, SHED_PLACE_KINDS, type Container, type Facing, type Garden, type Plant, type ShedPlace, type ShedPlaceKind, type Tray, type TrayStage } from '../../model/types';
 import { useApp } from '../appContext';
+import { HelpButton, HelpLink } from '../HelpLink';
 import { CompassFacing } from '../CompassNorth';
 import { useIsPhone } from '../hooks';
 import { PlantIcon } from '../PlantIcon';
@@ -117,6 +118,7 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
     <div class="page shed-page">
       <header class="page-head">
         <h1 class="title">Seedlings</h1>
+        <HelpButton topic="sowing" />
         <button type="button" class="btn btn-primary shed-sow-btn" onClick={() => (show('trays'), setSowing(''))}>
           Sow seeds
         </button>
@@ -214,9 +216,12 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
               <p class="muted">
                 Sow seeds in trays and pots here, on a windowsill, in a propagator or on shelves. Each tray shows when its seedlings are due, when to harden them off, and when they’re ready for the garden.
               </p>
-              <button type="button" class="btn btn-primary" onClick={() => setSowing('')}>
-                Sow seeds
-              </button>
+              <div class="button-row">
+                <button type="button" class="btn btn-primary" onClick={() => setSowing('')}>
+                  Sow seeds
+                </button>
+                <HelpLink topic="sowing">How sowing here works</HelpLink>
+              </div>
             </section>
           ) : (
             <>

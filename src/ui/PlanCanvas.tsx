@@ -77,6 +77,9 @@ export interface Placing {
 /** Said when a plant is dropped somewhere it can't grow. */
 export const NOWHERE_TO_PLANT = "Plants can't go on paving, decking or paths. Drop it in a bed, a pot or on the lawn.";
 
+/** The help topic that goes with a message on the plan, if any: a plant that missed every bed goes to Adding plants. */
+export const helpForMessage = (message: string | null): string | null => (message === NOWHERE_TO_PLANT ? 'adding-plants' : null);
+
 /** Drag-and-drop type for a plant dragged from a list onto the plan. */
 export const PLANT_DRAG_TYPE = 'application/x-garden-plant';
 /** Drag-and-drop types for a sticker from the dock, and a tray from the Potting Shed. */

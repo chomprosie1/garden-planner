@@ -27,7 +27,8 @@ import { Inspector } from '../Inspector';
 import { isFocusLens, LensBar, LensLegend, LensPicker, type Lens } from '../Lenses';
 import { MoreMenu } from '../MoreMenu';
 import { PhoneDrawBar, PhoneHandBar, PhoneSheet, PlantingBar } from '../PhonePlanControls';
-import { canDrawByHand, geometryForTool, PlanCanvas, type CanvasApi, type Placing, type SketchPen, type Tool } from '../PlanCanvas';
+import { canDrawByHand, geometryForTool, helpForMessage, PlanCanvas, type CanvasApi, type Placing, type SketchPen, type Tool } from '../PlanCanvas';
+import { HelpLink, StuckNote } from '../HelpLink';
 import { SeasonPhoto } from '../SeasonPhoto';
 import { PlanChips } from '../PlanChips';
 import { PlanTips } from '../PlanTips';
@@ -227,6 +228,11 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
 
   // Light is checked against June's sun hours, worked out once the plan has drawn.
   const growing = garden.plantings.some((p) => !p.removedOn);
+  /** A "Stuck?" note's place in the preferences: offered once, then never again. */
+  const stuck = (id: string) => ({
+    seen: prefs.stuckSeen.includes(id),
+    dismiss: () => prefsStore.set({ stuckSeen: [...new Set([...prefsStore.get().stuckSeen, id])] }),
+  });
   const juneGrid = useSunHours(garden, 6, today.year, (growing || sunOn) && !!plants);
   // Checks wait for the library, so plants never show as "unknown" for a moment.
   const findings: Finding[] = useMemo(() => (plants ? checkGarden(garden, plantOf, juneGrid ?? null) : []), [garden, plantOf, plants, juneGrid]);
@@ -546,6 +552,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       }}
       done={() => setTool('select')}
       phone={phone}
+      helpTopic={helpForMessage(message)}
     />
   );
 
@@ -637,6 +644,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               { label: 'Share a picture of the plan', icon: 'share', onSelect: () => setSharing(true) },
               { label: 'Your garden: location and backups', icon: 'settings', onSelect: () => app.go('profile') },
               { label: 'Your gardens: switch, or start a new one', icon: 'plan', onSelect: () => app.go('settings') },
+              { label: 'Help with the plan', icon: 'help', onSelect: () => app.openHelp() },
             ]}
           />
         </div>
@@ -745,6 +753,22 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               </div>
             )}
             {!empty && tool === 'select' && !prefs.seenTips && plants && <PlanTips phone={phone} done={() => prefsStore.set({ seenTips: true })} />}
+            {/* The two places people most often give up: nothing drawn, or beds and no plants, a minute on. */}
+            <StuckNote
+              class="plan-stuck"
+              waiting={empty && tool === 'select'}
+              {...stuck('plan-empty')}
+              topic="drawing-the-plan"
+              text="Getting the first beds down is the fiddly part. Here’s the quickest way in."
+            />
+            <StuckNote
+              class="plan-stuck"
+              {...stuck('plan-no-plants')}
+              waiting={!empty && !growing && tool === 'select' && prefs.seenTips && !drawer && !sheetOpen}
+              topic="adding-plants"
+              text="The beds are ready for plants. Here’s how to put them in."
+            />
+
             {empty && tool === 'select' && (
               <div class="plan-empty">
                 <p class="plan-empty-title">Start your plan</p>
@@ -774,6 +798,13 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
                       : lens === 'sun'
                         ? 'Point at the plan to see how many hours of sun each spot gets.'
                         : hintFor(tool, phone, byHand, sketchPen))}
+                {/* While planting, the planting bar below offers it instead. */}
+                {tool !== 'plant' && helpForMessage(message) && (
+                  <>
+                    {' '}
+                    <HelpLink topic={helpForMessage(message)!}>How planting works</HelpLink>
+                  </>
+                )}
               </p>
             )}
           </div>

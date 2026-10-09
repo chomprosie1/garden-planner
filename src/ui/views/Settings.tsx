@@ -112,6 +112,14 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
 
 
 
+      <section class="card" aria-labelledby="help">
+        <h2 id="help">Help</h2>
+        <p class="muted small">Short steps for setting up, drawing your garden, adding plants and sowing.</p>
+        <button type="button" class="btn" onClick={() => go('help')}>
+          Open help
+        </button>
+      </section>
+
       <section class="card" aria-labelledby="news">
         <h2 id="news">What’s new</h2>
         <p class="muted small">The latest changes to the app, in plain English.</p>

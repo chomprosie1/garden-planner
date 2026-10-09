@@ -3,7 +3,7 @@
 
 import { LOOK_IDS, type LookId } from './looks';
 
-export const VIEWS = ['home', 'plan', 'plants', 'month', 'notes', 'settings', 'check', 'shed', 'new', 'profile'] as const;
+export const VIEWS = ['home', 'plan', 'plants', 'month', 'notes', 'settings', 'check', 'shed', 'new', 'profile', 'help'] as const;
 export type View = (typeof VIEWS)[number];
 
 /** What each screen is called in the address bar: Today, Garden and Seedlings are the tabs' names. Old names still work. */
@@ -18,6 +18,7 @@ export const VIEW_HASH: Record<View, string> = {
   shed: 'seedlings',
   new: 'new',
   profile: 'your-garden',
+  help: 'help',
 };
 
 /** The screen an address names, by its name now or its old one. */
@@ -59,6 +60,8 @@ export interface Prefs {
   plantEditor: boolean;
   /** The first-visit tips on the garden plan have been seen. */
   seenTips: boolean;
+  /** "Stuck?" notes already offered, by id: shown once and never again. */
+  stuckSeen: string[];
   /** Warn of frost while the app's closed, where the browser allows (it checks the forecast in the background). */
   reminders: boolean;
   /** Once a week, a reminder of the jobs for the week, where the browser allows. */
@@ -102,6 +105,7 @@ export function defaultPrefs(): Prefs {
     seenNews: null,
     plantEditor: false,
     seenTips: false,
+    stuckSeen: [],
     reminders: false,
     weeklyNudge: false,
     uvReminders: false,
@@ -145,6 +149,7 @@ export function sanitisePrefs(raw: unknown): Prefs {
     seenNews: typeof r.seenNews === 'string' ? r.seenNews : null,
     plantEditor: r.plantEditor === true,
     seenTips: r.seenTips === true,
+    stuckSeen: Array.isArray(r.stuckSeen) ? r.stuckSeen.filter((x): x is string => typeof x === 'string') : [],
     reminders: r.reminders === true,
     weeklyNudge: r.weeklyNudge === true,
     uvReminders: r.uvReminders === true,

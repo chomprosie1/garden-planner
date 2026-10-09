@@ -24,6 +24,7 @@ import { Plants } from './views/Plants';
 import { Settings } from './views/Settings';
 import { Shed } from './views/Shed';
 import { WhatsNew } from './views/WhatsNew';
+import { Help } from './views/Help';
 import { Profile } from './views/Profile';
 import { WrappedHost } from './WrappedHost';
 import { ReminderKeeper } from './ReminderKeeper';
@@ -40,7 +41,7 @@ const NAV: { view: View; label: string; icon: IconName }[] = [
 const PARENT: Partial<Record<View, View>> = { notes: 'home', check: 'plants', month: 'home', new: 'home', profile: 'home' };
 
 /** Pages you go into and come back from. */
-const SUB_PAGES: View[] = ['settings', 'check', 'notes', 'month', 'new', 'profile'];
+const SUB_PAGES: View[] = ['settings', 'check', 'notes', 'month', 'new', 'profile', 'help'];
 
 const isTyping = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
@@ -55,7 +56,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   const { garden, userPlants } = useAppState(store);
   const prefs = usePrefs(prefsStore);
   const [view, go] = useView(prefsStore);
-  const [previous, setPrevious] = useState<View>('home');
+  const [trail, setTrail] = useState<View[]>([]);
   const [toast, setToast] = useState<Toast | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [planIntent, setPlanIntent] = useState<PlanIntent | null>(null);
@@ -67,9 +68,14 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   const [wrapping, setWrapping] = useState(false);
   const weather = useWeatherFeed(garden, prefs.weather && prefs.onboarded);
 
-  const navigate = (v: View) => {
-    if (SUB_PAGES.includes(v) && view !== v) setPrevious(view);
-    go(v);
+  /**
+   * Goes to a screen. Sub-pages (Settings, Help and the like) remember the way they were reached, so Back retraces it:
+   * Plan → Settings → Help → Back → Back is the plan again. A main screen starts the trail afresh.
+   */
+  const navigate = (v: View, sub?: string) => {
+    if (!SUB_PAGES.includes(v)) setTrail([]);
+    else if (view !== v) setTrail((t) => [...t, view]);
+    go(v, sub);
   };
 
   const actions: AppActions = useMemo(
@@ -109,6 +115,9 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
       clearBeds() {
         setPlanIntent({ kind: 'clear' });
         navigate('plan');
+      },
+      openHelp(topic) {
+        navigate('help', topic);
       },
     }),
     [store, view],
@@ -152,7 +161,12 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   // A second garden, or starting again, skips the welcome.
   if (!prefs.onboarded) return <Onboarding store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} go={navigate} again={gardenCount() > 1} />;
 
-  const back = () => navigate(previous);
+  // Back along the trail, without adding to it; Today if there is none.
+  const back = () => {
+    const to = trail[trail.length - 1] ?? 'home';
+    setTrail(trail.slice(0, -1));
+    go(to);
+  };
 
   /** Does what a search result says. Things for the plan go there as an intent. */
   const run = (c: Command) => {
@@ -192,6 +206,8 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
         return toPlan({ kind: '3d' });
       case 'wrapped':
         return setWrapping(true);
+      case 'help':
+        return actions.openHelp(c.id);
     }
   };
   const screen = (() => {
@@ -238,6 +254,8 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
         return <WhatsNew prefs={prefs} prefsStore={prefsStore} back={back} go={navigate} />;
       case 'profile':
         return <Profile store={store} garden={garden} prefsStore={prefsStore} back={back} />;
+      case 'help':
+        return <Help back={back} go={navigate} />;
       case 'settings':
         return (
           <Settings

@@ -26,9 +26,11 @@ export interface AppActions {
   openWrapped(): void;
   /** The plan, with Clear beds open. */
   clearBeds(): void;
+  /** Help, open at a topic (by its id in src/content/help.ts), or at the list of topics. */
+  openHelp(topic?: string): void;
 }
 
 const noop = () => undefined;
-export const AppContext = createContext<AppActions>({ notify: noop, go: noop, openPlant: noop, showOnPlan: noop, plantIt: noop, plantOutTray: noop, sowInShed: noop, openSearch: noop, openWrapped: noop, clearBeds: noop });
+export const AppContext = createContext<AppActions>({ notify: noop, go: noop, openPlant: noop, showOnPlan: noop, plantIt: noop, plantOutTray: noop, sowInShed: noop, openSearch: noop, openWrapped: noop, clearBeds: noop, openHelp: noop });
 
 export const useApp = () => useContext(AppContext);

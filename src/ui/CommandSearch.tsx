@@ -18,6 +18,7 @@ interface Props {
 
 const ICON: Record<Command['kind'], IconName> = {
   go: 'plan',
+  help: 'help',
   plant: 'plus',
   about: 'info',
   sow: 'shed',

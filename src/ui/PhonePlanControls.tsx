@@ -6,6 +6,7 @@ import { parseLength } from '../canvas/snap';
 import { KINDS } from '../model/features';
 import type { FeatureKind } from '../model/types';
 import type { ComponentChildren } from 'preact';
+import { HelpLink } from './HelpLink';
 import { canDrawByHand, geometryForTool, type CanvasApi, type Placing, type Tool } from './PlanCanvas';
 
 /** Sizes offered when placing a rectangle by size. */
@@ -259,6 +260,8 @@ interface PlantingBarProps {
   message: string | null;
   changePlant: () => void;
   done: () => void;
+  /** A help topic to offer beside the message: when a plant missed every bed, say. */
+  helpTopic?: string | null;
   phone: boolean;
 }
 
@@ -270,7 +273,7 @@ const LAYOUT_NAMES: [Placing['layout'], string][] = [
 ];
 
 /** Placing a plant: tap (or click) a bed. "Fill for me" plants it the usual way for the plant. */
-export function PlantingBar({ placing, setLayout, growing, setGrowing, points, api, message, changePlant, done, phone }: PlantingBarProps) {
+export function PlantingBar({ placing, setLayout, growing, setGrowing, points, api, message, changePlant, done, phone, helpTopic = null }: PlantingBarProps) {
   const { plant, layout } = placing;
   const name = plant.commonName.toLowerCase();
   const tap = phone ? 'Tap' : 'Click';
@@ -304,6 +307,12 @@ export function PlantingBar({ placing, setLayout, growing, setGrowing, points, a
       </div>
       <p class="draw-hint" role="status">
         {message ?? hint}
+        {message && helpTopic && (
+          <>
+            {' '}
+            <HelpLink topic={helpTopic}>How planting works</HelpLink>
+          </>
+        )}
       </p>
       <div class="draw-buttons">
         <button type="button" class="btn" onClick={changePlant}>

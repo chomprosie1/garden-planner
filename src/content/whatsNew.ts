@@ -17,6 +17,18 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-09-help',
+    date: '2026-10-09',
+    title: 'Help',
+    items: [
+      'Short, step-by-step help for setting up, drawing your garden, moving things, tracing a photo, adding plants, rows and blocks, pots and sowing. The steps are worded for whichever you’re using, a phone or a computer.',
+      'Find it in Settings, in the ⋯ menu on the plan, or by searching: “how do I trace a photo” works.',
+      'A ? beside Seedlings opens its help, and if a plant won’t go where you dropped it, the message offers a way to see how planting works.',
+      'If the plan sits with nothing drawn, or beds with nothing in them, for a minute, a note offers to show you how. Say no thanks and it won’t ask again.',
+    ],
+    tryIt: { label: 'Open help', view: 'help' },
+  },
+  {
     id: '2026-10-09-pot-drop-fix',
     date: '2026-10-09',
     title: 'Plants go in small pots',

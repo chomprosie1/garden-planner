@@ -1206,7 +1206,7 @@ Decided:
 | Release | What | Size | Status |
 | --- | --- | --- | --- |
 | Fix. Plants go in small pots | A plant dropped on a small pot goes in it; fruit trees in pots stand on its soil in 3D | Small | Built 9 Oct 2026 |
-| 19. Help, the first minute | Help pages and search; first-session topics; "Stuck?" nudges at the three riskiest moments | ~1 wk | |
+| 19. Help, the first minute | Help pages and search; first-session topics; "Stuck?" nudges at the three riskiest moments | ~1 wk | Built 9 Oct 2026 |
 | 20. Welcome | A welcome screen with a loading pause, a quote and the version; more photos for each month | ~1 wk + photos | |
 | 21. Pots, properly | Several plants to a pot, crowding and companions, pots too small, potting on, trees in pots | ~1.5 wk | |
 | 22. Sowing and cardboard | Seedlings' sowing list by now and by kind, weeds hidden; cardboard for weeds, membrane discouraged | ~1 wk | |
@@ -1225,23 +1225,35 @@ Decided:
 - **Checked:** a fig dragged onto a 30 cm pot in a 20 m garden, zoomed right out, at 390 px: it's in the pot.
 - **Tests:** `tests/planting.test.ts` (a drop on the pot stays in it when snapping would miss it; a drop that misses still snaps); `tests/three.test.ts` (a fig in a pot stands on its soil, an apple on the lawn on the ground).
 
-### Release 19 — Help, the first minute (planned)
+### Release 19 — Help, the first minute (as built)
 - **Where help lives:**
-  - `src/content/help.ts` (content only): topics, each with a title, the screen it belongs to, 3 to 6 short steps written for a phone and for a computer, and related topics;
-  - a **Help** page (a new view, `help`), from the ⋯ menus and Settings;
-  - topics found by search (`src/ui/search.ts`, Ctrl+K);
-  - a small "?" on each key screen opens its topic.
-- **Topics, ranked by the risk of people giving up:**
-  - **Tier 1, the first session** (written in this release): setting up (place, size, starter kit); drawing the plan (boundary, beds, pots, moving, resizing, tracing a photo); adding plants (drag, tap, rows and blocks, pots).
-  - **Tier 2, the first week** (release 23): Today and This week, and ticking jobs off; sowing in Seedlings; sun and shade; undo, saving and backups.
-  - **Tier 3, depth** (release 23): the year slider, 3D and walking, Inspire me; the kitchen and picks, feeding, the seed tin; several gardens, sharing, notes and photos.
-- **"Stuck?" nudges at the three riskiest moments,** each opening its topic:
-  - the plan still empty a minute after setting up;
-  - a plant that misses every bed ("nowhere to plant");
-  - Seedlings opened for the first time with nothing sown.
+  - `src/content/help.ts` (content only): topics, each with a title, a line on what it's for, the screen it belongs to, 3 to 6 short steps, notes, related topics and the words it can be found by. A step is either the same everywhere or worded for a phone and for a computer;
+  - a **Help** page (`src/ui/views/Help.tsx`, view `help`): the topics grouped Getting started and Week to week; a topic shows its steps for the screen you're on, with a link to show the other kind's steps, its notes, **Take me to** its screen, and related topics. The address keeps the topic (`#/help/adding-plants`), so the back button steps between topics;
+  - from **Settings** (a Help card), the plan's ⋯ menu (**Help with the plan**), and search: topics are a **Help** group in the results, and "how", "do", "I", "can" and similar are skipped in a search, so "how do I trace a photo" finds its topic;
+  - `openHelp` on the app's actions opens a topic from anywhere; `HelpButton` (a "?") and `HelpLink` (a link in text) in `src/ui/HelpLink.tsx`.
+- **Topics written** (in the voice of `docs/voice.md`):
+  - **Getting started:** setting up your garden; drawing your garden; moving, resizing and deleting; tracing a photo; adding plants; rows and blocks; plants in pots;
+  - **Week to week:** sowing in Seedlings, written early because the Seedlings link needs it.
+  - **Changed from the plan:** drawing the plan became three topics (drawing, moving and resizing, tracing a photo), and pots and rows and blocks got topics of their own, as they're where people get stuck.
+- **Ways in where people get stuck:**
+  - **"Stuck?" notes** (`StuckNote`) after a minute on the plan with nothing drawn (to Drawing your garden), or with beds and nothing planted (to Adding plants; only once the first tips are done). **Show me how** or **No thanks**, and either way it doesn't come back on this device;
+  - **a plant that misses every bed:** the message ("Plants can't go on paving…") gains **How planting works**, on a phone and a computer;
+  - **Seedlings:** a "?" beside the heading, and **How sowing here works** on "Nothing sown yet".
+  - **Changed from the plan:** "?" buttons on the other key screens wait for release 23, with their topics; the plan's header has no room on a phone, so its help is in the ⋯ menu.
 - **Definition of done** gains a line: a new feature ships with its help topic.
-- **In the voice** of `docs/voice.md`: short steps, verb first, no code words.
-- **Tests:** new `tests/help.test.ts` (every topic points to a real screen and real related topics; every topic has phone and computer steps). `tests/words.test.ts` covers the words.
+- **Checked:** screenshots at 390 px of the Help list, a topic, the "Stuck?" note on a plan with a bed and no plants after a minute, and Seedlings.
+
+Tests: new `tests/help.test.ts`:
+- every topic has a unique id, a real screen, 3 to 6 steps and real related topics;
+- steps read for a phone and a computer, with no "click" for a phone or "tap" for a computer;
+- the first session's topics come first; the topics the notes and links open exist;
+- search finds topics by the words someone stuck would type, and the Help page by "help";
+- a question's opening words are left off, words in the middle aren't; the notes offered are kept in the preferences, and bad values are dropped.
+
+Also changed:
+- search leaves off how a question starts ("how do I", "why does it", "can I"), but never question words in the middle of a query (`queryWords` in `src/ui/search.ts`);
+- Back retraces the way you came through Settings, Help and the other sub-pages (a trail, where there was one "previous" page), and a topic opened from elsewhere goes Back there;
+- the "Stuck?" notes offered are kept in the device's preferences (`stuckSeen`), not storage of their own.
 
 ### Release 20 — Welcome (planned)
 - **A welcome screen on every launch:**

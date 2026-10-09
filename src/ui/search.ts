@@ -2,6 +2,7 @@
 // one box. "add tomato", "go to the shed" and "show sun" all work: every word
 // must start a word in the result, and the result's own name counts most.
 
+import { HELP } from '../content/help';
 import { featureLabel, KINDS, MATERIAL_LABEL, type Target } from '../model/features';
 import { STICKERS, treeStickerId } from '../model/stickers';
 import { TREE_TYPES, treeSizeText } from '../model/trees';
@@ -30,10 +31,12 @@ export type Command =
   | { kind: '3d' }
   | { kind: 'shortcuts' }
   /** "Your season, wrapped". */
-  | { kind: 'wrapped' };
+  | { kind: 'wrapped' }
+  /** Help, open at a topic. */
+  | { kind: 'help'; id: string };
 
-export type Group = 'Actions' | 'On your plan' | 'Plants';
-export const GROUPS: Group[] = ['Actions', 'On your plan', 'Plants'];
+export type Group = 'Actions' | 'Help' | 'On your plan' | 'Plants';
+export const GROUPS: Group[] = ['Actions', 'Help', 'On your plan', 'Plants'];
 
 export interface Result {
   key: string;
@@ -52,6 +55,9 @@ interface Candidate extends Result {
 
 const STOP = new Set(['the', 'a', 'an', 'to', 'my', 'in', 'on', 'of', 'for', 'some', 'me', 'at']);
 
+/** How a question starts ("how do I", "why does it", "can I"): left off the front of a query, never from the middle. */
+const ASKING = new Set(['how', 'do', 'does', 'i', 'can', 'why', 'is', 'it', 'should', 'will']);
+
 /** Lower-case words, without accents. */
 export const wordsOf = (s: string) =>
   s
@@ -62,7 +68,13 @@ export const wordsOf = (s: string) =>
     .filter(Boolean);
 
 /** The words that count in a query. */
-export const queryWords = (q: string) => wordsOf(q).filter((w) => !STOP.has(w));
+export function queryWords(q: string): string[] {
+  const words = wordsOf(q).filter((w) => !STOP.has(w));
+  let i = 0;
+  while (i < words.length && ASKING.has(words[i]!)) i++;
+  // A query that's all question words ("how") is kept as it is.
+  return i < words.length ? words.slice(i) : words;
+}
 
 /** How well a result matches, or null if any word doesn't. Its own name counts most. */
 export function scoreOf(words: string[], label: string, extra: string): number | null {
@@ -90,6 +102,7 @@ const VIEWS: { view: View; label: string; words: string }[] = [
   { view: 'notes', label: 'Go to the journal', words: 'open page notes diary' },
   { view: 'settings', label: 'Go to Settings', words: 'open page backup location look theme dark frost weather forecast climate' },
   { view: 'new', label: 'What’s new', words: 'open page news changes updates latest release' },
+  { view: 'help', label: 'Help', words: 'open page how stuck guide instructions tips' },
 ];
 
 /** "a pot", "gravel": no "a" for things you can't count. */
@@ -124,6 +137,9 @@ function actions(g: Garden, locked: boolean): Candidate[] {
     out.push({ key: `tree-${t.id}`, group: 'Actions', label: `Add a tree: ${t.name}`, detail: treeSizeText(t, 'medium'), words: `put place new tree ${t.latinName} ${t.evergreen ? 'evergreen conifer' : ''}`, command: { kind: 'sticker', id: treeStickerId(t.id, 'medium') } });
   return out;
 }
+
+/** Help topics: found by their title, what they're for, and the words people use when they're stuck. Made once. */
+const HELP_RESULTS: Candidate[] = HELP.map((t) => ({ key: `help-${t.id}`, group: 'Help', label: t.title, words: `help ${t.summary} ${t.words}`, command: { kind: 'help', id: t.id } }));
 
 function onPlan(g: Garden, plantOf: (id: string) => Plant): Candidate[] {
   const out: Candidate[] = [];
@@ -162,7 +178,7 @@ function plantVerb(words: string[]): { kind: 'plant' | 'about' | 'sow'; rest: st
 
 const PLANT_DETAIL = { plant: 'Add to the plan', about: 'About it', sow: 'Sow in a tray' } as const;
 
-const LIMIT: Record<Group, number> = { Actions: 6, 'On your plan': 6, Plants: 8 };
+const LIMIT: Record<Group, number> = { Actions: 6, Help: 3, 'On your plan': 6, Plants: 8 };
 
 /** Suggestions before anything's typed. */
 const SUGGESTED = ['setup', 'sticker-raised-bed', 'sticker-pot', 'lens-sun', 'lens-shade', 'go-month', 'go-shed', 'shortcuts'];
@@ -181,7 +197,7 @@ export function search(query: string, ctx: SearchContext): Result[] {
   if (!words.length) return SUGGESTED.map((k) => acts.find((a) => a.key === k)).filter((a): a is Candidate => !!a).map(strip);
 
   const scored: { r: Candidate; score: number }[] = [];
-  for (const r of [...acts, ...onPlan(ctx.garden, ctx.plantOf)]) {
+  for (const r of [...acts, ...HELP_RESULTS, ...onPlan(ctx.garden, ctx.plantOf)]) {
     const score = scoreOf(words, r.label, `${r.words} ${r.detail ?? ''}`);
     if (score !== null) scored.push({ r, score });
   }

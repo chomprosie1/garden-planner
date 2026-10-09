@@ -23,13 +23,30 @@ export function useIsPhone(): boolean {
   return phone;
 }
 
-const viewFromHash = (): View | null => viewForHash(location.hash.replace(/^#\/?/, ''));
+/** The address after "#/", split at its slashes: "help/adding-plants" is the Help page at that topic. */
+const hashParts = () => location.hash.replace(/^#\/?/, '').split('/');
+const viewFromHash = (): View | null => viewForHash(hashParts()[0] ?? '');
 
 /** "#/today" for Home. */
 export const hashFor = (v: View) => `#/${VIEW_HASH[v]}`;
 
+/** "#/help/adding-plants": the Help page open at a topic. */
+export const hashForHelp = (topic?: string) => `#/${VIEW_HASH.help}${topic ? `/${topic}` : ''}`;
+
+/** The help topic the address is open at, kept in step with the back button. */
+export function useHelpTopic(): string | null {
+  const read = () => (viewFromHash() === 'help' ? (hashParts()[1] ?? null) : null);
+  const [topic, setTopic] = useState(read);
+  useEffect(() => {
+    const on = () => setTopic(read());
+    addEventListener('hashchange', on);
+    return () => removeEventListener('hashchange', on);
+  }, []);
+  return topic;
+}
+
 /** The current screen, kept in the URL hash so reloads and the back button work. */
-export function useView(prefs: PrefsStore): [View, (v: View) => void] {
+export function useView(prefs: PrefsStore): [View, (v: View, sub?: string) => void] {
   const [view, setView] = useState<View>(() => {
     const fromHash = viewFromHash();
     if (fromHash) return fromHash;
@@ -44,10 +61,12 @@ export function useView(prefs: PrefsStore): [View, (v: View) => void] {
     addEventListener('hashchange', on);
     return () => removeEventListener('hashchange', on);
   }, []);
-  const go = (v: View) => {
-    if (location.hash !== hashFor(v)) location.hash = `/${VIEW_HASH[v]}`;
+  /** Goes to a screen; `sub` is a part within it, such as a help topic ("#/help/adding-plants"). */
+  const go = (v: View, sub?: string) => {
+    const hash = `${hashFor(v)}${sub ? `/${sub}` : ''}`;
+    if (location.hash !== hash) location.hash = hash.slice(1);
     setView(v);
-    if (v !== 'settings') prefs.set({ lastView: v });
+    if (v !== 'settings' && v !== 'help') prefs.set({ lastView: v });
   };
   return [view, go];
 }
