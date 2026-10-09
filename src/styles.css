@@ -3563,6 +3563,78 @@ kbd {
 }
 
 /* The pill of actions beside the selection. The canvas moves it. */
+/* Straightening a photo: the photo to tap, with numbered corners. */
+.straighten-photo {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  margin: 0.25rem 0 0.5rem;
+  line-height: 0;
+}
+.straighten-photo img {
+  max-width: 100%;
+  max-height: 50vh;
+  border-radius: var(--radius);
+  cursor: crosshair;
+  touch-action: manipulation;
+}
+.straighten-corner {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-text);
+  border: 2px solid var(--surface);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Typing a length: a small box over the length tap on the plan. */
+.length-edit {
+  position: absolute;
+  z-index: 4;
+  transform: translate(-50%, -50%);
+}
+.length-edit input {
+  width: 6.5rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 999px;
+  border: 2px solid var(--accent);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* The tape measure's bar: across the top of the plan, with the distance and Done. */
+.measure-bar {
+  position: absolute;
+  top: 0.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem 0.75rem;
+  max-width: calc(100% - 16px);
+  padding: 0.35rem 0.4rem 0.35rem 0.9rem;
+  border-radius: 21px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+.measure-bar strong {
+  font-size: 1.1rem;
+}
+
 .action-pill {
   position: absolute;
   left: 0;

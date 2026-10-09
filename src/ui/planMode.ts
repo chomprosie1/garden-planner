@@ -38,6 +38,17 @@ export const SIMPLE_STICKERS: readonly string[] = [
   'fence',
   'wall',
   'hedge',
+  'house',
+  'water-butt',
+  'gate',
+  'bench',
+  'table',
+  'bins',
+  'washing-line',
+  'steps',
+  'bird-bath',
+  'bird-feeder',
+  'bee-hotel',
 ];
 
 export const showsSticker = (mode: PlanMode, id: string) => mode === 'advanced' || SIMPLE_STICKERS.includes(id);

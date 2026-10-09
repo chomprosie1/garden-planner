@@ -61,6 +61,7 @@ import { expectedText, nextInMonths, shortDate, timeline } from '../lifecycle/pr
 import { batchDates, batchesOf, batchLabel, canSowInBatches, maxBatches, MIN_BATCHES, setSowBy, splitIntoBatches } from '../planting/batches';
 import { currentStage, sowingOf, STAGE_LABEL, stageDate } from '../lifecycle/stages';
 import { deleteBlob, saveBlob } from '../storage/idb';
+import { Straighten } from './Straighten';
 import { openTraceKey } from '../storage/gardens';
 import { areaHours, averageHours, lightBand, type SunGrid } from '../sun/hours';
 import { useApp } from './appContext';
@@ -586,6 +587,7 @@ function GardenPanel({ store, garden, setSelected, setTool, embedded = false }: 
   const app = useApp();
   const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
   const b = garden.boundary;
+  const [straightening, setStraightening] = useState(false);
   const pickTrace = async (e: Event) => {
     const input = e.currentTarget as HTMLInputElement;
     const file = input.files?.[0];
@@ -658,8 +660,15 @@ function GardenPanel({ store, garden, setSelected, setTool, embedded = false }: 
                 onChange={(e) => commit((g) => ({ ...g, trace: { ...g.trace!, opacity: Number((e.currentTarget as HTMLInputElement).value) / 100 } }))}
               />
             </label>
-            <p class="muted small">{garden.trace.calibrated ? 'Scale set.' : 'Set the scale: click two points on the photo a known distance apart.'}</p>
+            <p class="muted small">
+              {garden.trace.calibrated ? 'Scale set.' : 'Set the scale: click two points on the photo a known distance apart.'} Taken at an angle, from a window? Straighten it
+              first, from four corners of something you can measure.
+            </p>
+            {straightening && <Straighten store={store} garden={garden} close={() => setStraightening(false)} />}
             <div class="button-row">
+              <button type="button" class="btn" title="For a photo taken at an angle, from a window" onClick={() => setStraightening(true)}>
+                Straighten it…
+              </button>
               <button type="button" class="btn" onClick={() => setTool('calibrate')}>
                 Set scale
               </button>

@@ -2,7 +2,7 @@
 // and structures. Each one becomes an ordinary feature where it's dropped, so
 // it can be moved, resized, turned and reshaped like anything drawn.
 
-import { makeFeature, rectPoints } from './features';
+import { makeFeature, rectPoints, withFootprint } from './features';
 import { makeTree, treeSize, treeType } from './trees';
 import { PLANT_SIZES, type Feature, type FeatureKind, type Material, type PlantSize, type Point } from './types';
 
@@ -18,6 +18,12 @@ export interface Sticker {
   shape: { rect: [number, number] } | { circle: number } | { line: number };
   material?: Material;
   edging?: Feature['edging'];
+  /** Its own name on the plan ("Water butt"), where the kind's name won't do. */
+  name?: string;
+  /** How tall it stands, and for a line how thick it is, mm; the share of light it blocks. Absent: the kind's usual. */
+  heightMm?: number;
+  widthMm?: number;
+  opacity?: number;
   /** A tree of a type, at a size: see src/model/trees.ts. */
   tree?: { type: string; size: PlantSize };
 }
@@ -50,6 +56,18 @@ export const STICKERS: Sticker[] = [
   { id: 'fence', group: 'build', label: 'Fence', size: '3 m', kind: 'fence', shape: { line: 3000 } },
   { id: 'wall', group: 'build', label: 'Wall', size: '3 m', kind: 'wall', shape: { line: 3000 } },
   { id: 'hedge', group: 'build', label: 'Hedge', size: '3 m', kind: 'hedge', shape: { line: 3000 } },
+  // The everyday things a garden is planned round. Heights are typical, for the shade they cast; change them in More.
+  { id: 'house', group: 'build', label: 'House', size: rect(7000, 5000), kind: 'building', shape: { rect: [7000, 5000] }, name: 'House', heightMm: 7500 },
+  { id: 'water-butt', group: 'build', label: 'Water butt', size: 'Ø 60 cm', kind: 'other', shape: { circle: 300 }, name: 'Water butt', heightMm: 1000 },
+  { id: 'gate', group: 'build', label: 'Gate', size: '1 m', kind: 'fence', shape: { line: 1000 }, name: 'Gate', heightMm: 1200 },
+  { id: 'bench', group: 'build', label: 'Bench', size: rect(1500, 500), kind: 'other', shape: { rect: [1500, 500] }, name: 'Bench', heightMm: 900 },
+  { id: 'table', group: 'build', label: 'Table and chairs', size: 'Ø 1.8 m', kind: 'other', shape: { circle: 900 }, name: 'Table and chairs', heightMm: 750 },
+  { id: 'bins', group: 'build', label: 'Bins', size: rect(1400, 700), kind: 'other', shape: { rect: [1400, 700] }, name: 'Bins', heightMm: 1100 },
+  { id: 'washing-line', group: 'build', label: 'Washing line', size: '4 m', kind: 'fence', shape: { line: 4000 }, name: 'Washing line', heightMm: 1800, widthMm: 20, opacity: 0.05 },
+  { id: 'bird-bath', group: 'build', label: 'Bird bath', size: 'Ø 50 cm', kind: 'other', shape: { circle: 250 }, name: 'Bird bath', heightMm: 700 },
+  { id: 'bird-feeder', group: 'build', label: 'Bird feeder', size: 'Ø 30 cm', kind: 'other', shape: { circle: 150 }, name: 'Bird feeder', heightMm: 1800, opacity: 0.1 },
+  { id: 'bee-hotel', group: 'build', label: 'Bee hotel', size: rect(300, 200), kind: 'other', shape: { rect: [300, 200] }, name: 'Bee hotel', heightMm: 400 },
+  { id: 'steps', group: 'ground', label: 'Steps', size: rect(1200, 900), kind: 'surface', shape: { rect: [1200, 900] }, material: 'paving', name: 'Steps' },
 ];
 
 /** A tree's sticker id: "tree:silver-birch:medium". Trees aren't in STICKERS; the dock lists them from TREE_TYPES. */
@@ -81,6 +99,10 @@ export function stickerFeature(s: Sticker, at: Point): Feature {
     const half = s.shape.line / 2;
     f = makeFeature(s.kind, { line: [[x - half, y], [x + half, y]] });
   }
+  if (s.name) f = { ...f, name: s.name };
+  if (s.heightMm !== undefined) f = { ...f, heightMm: s.heightMm };
+  if (s.opacity !== undefined) f = { ...f, opacityInLeaf: s.opacity, opacityBare: s.opacity };
+  if (s.widthMm !== undefined && f.line) f = withFootprint({ ...f, widthMm: s.widthMm });
   if (s.material) f = { ...f, material: s.material };
   if (s.edging !== undefined) f = { ...f, edging: s.edging };
   else if (s.kind === 'bed' && !s.edging) {

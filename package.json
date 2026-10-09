@@ -1,7 +1,7 @@
 {
   "name": "garden-planner",
   "private": true,
-  "version": "0.24.0",
+  "version": "0.25.0",
   "description": "A to-scale garden planner: layout, plants, jobs by month, and sun and shade.",
   "type": "module",
   "scripts": {

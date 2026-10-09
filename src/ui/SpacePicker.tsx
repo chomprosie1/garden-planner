@@ -2,8 +2,9 @@
 // what it'll make. Used on the first run, and from an empty plan.
 
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { polygonArea } from '../geometry/polygon';
 import { newGarden } from '../model/defaults';
-import { makeSpace, metres, MAX_SPACE_MM, PLOTS, SPACES, spaceInfo, type Space } from '../model/spaces';
+import { HAS_HOUSE, makeSpace, metres, MAX_SPACE_MM, PLOTS, SPACES, spaceInfo, type SideReturn, type Space } from '../model/spaces';
 import type { Plant } from '../model/types';
 import { kitsFor, type Kit } from '../planting/kits';
 import { KitPicker } from './KitPicker';
@@ -14,12 +15,14 @@ export interface SpaceChoice {
   /** Width and depth, mm. */
   w: number;
   d: number;
+  /** A garden or patio shaped as an L, with a side return down the left. */
+  sideReturn?: SideReturn | null;
 }
 
 export const defaultChoice = (space: Space): SpaceChoice => ({ space, w: spaceInfo(space).size[0], d: spaceInfo(space).size[1] });
 
 /** A size field in metres, kept as typed until it's a number that fits. */
-function MetresField({ label, mm, min, onChange }: { label: string; mm: number; min: number; onChange: (mm: number) => void }) {
+export function MetresField({ label, mm, min, onChange }: { label: string; mm: number; min: number; onChange: (mm: number) => void }) {
   const [text, setText] = useState(metres(mm));
   useEffect(() => {
     if (Math.round(Number(text) * 1000) !== mm) setText(metres(mm));
@@ -50,7 +53,7 @@ function MetresField({ label, mm, min, onChange }: { label: string; mm: number; 
 
 export function SpacePicker({ value, onChange }: { value: SpaceChoice | null; onChange: (c: SpaceChoice) => void }) {
   const previews = useMemo(() => Object.fromEntries(SPACES.map((s) => [s.id, makeSpace(newGarden(), s.id, s.size[0], s.size[1])])), []);
-  const chosen = useMemo(() => (value ? makeSpace(newGarden(), value.space, value.w, value.d) : null), [value?.space, value?.w, value?.d]);
+  const chosen = useMemo(() => (value ? makeSpace(newGarden(), value.space, value.w, value.d, value.sideReturn ?? null) : null), [value?.space, value?.w, value?.d, value?.sideReturn?.width, value?.sideReturn?.length, value?.sideReturn?.onRight]);
   const info = value ? spaceInfo(value.space) : null;
   const size = useRef<HTMLDivElement>(null);
   // On a phone the size is below the choices: bring it into view once a space is picked.
@@ -90,8 +93,39 @@ export function SpacePicker({ value, onChange }: { value: SpaceChoice | null; on
               <MetresField label="Width" mm={value.w} min={info.min[0]} onChange={(w) => onChange({ ...value, w })} />
               <MetresField label="Depth" mm={value.d} min={info.min[1]} onChange={(d) => onChange({ ...value, d })} />
             </div>
+            {HAS_HOUSE.includes(value.space) && (
+              <>
+                <div class="choice-row choice-small" role="radiogroup" aria-label="Shape">
+                  <label class="choice-option">
+                    <input type="radio" name="shape" checked={!value.sideReturn} onChange={() => onChange({ ...value, sideReturn: null })} />
+                    <span>Rectangle</span>
+                  </label>
+                  <label class="choice-option">
+                    <input type="radio" name="shape" checked={!!value.sideReturn} onChange={() => onChange({ ...value, sideReturn: { width: 1200, length: 3000 } })} />
+                    <span>L, with a side return</span>
+                  </label>
+                </div>
+                {value.sideReturn && (
+                  <>
+                    <div class="field-row">
+                      <MetresField label="Side return width" mm={value.sideReturn.width} min={600} onChange={(width) => onChange({ ...value, sideReturn: { ...value.sideReturn!, width } })} />
+                      <MetresField label="Its length" mm={value.sideReturn.length} min={1000} onChange={(length) => onChange({ ...value, sideReturn: { ...value.sideReturn!, length } })} />
+                    </div>
+                    <div class="choice-row choice-small" role="radiogroup" aria-label="Which side, looking out from the house">
+                      {([false, true] as const).map((right) => (
+                        <label key={String(right)} class="choice-option">
+                          <input type="radio" name="return-side" checked={!!value.sideReturn!.onRight === right} onChange={() => onChange({ ...value, sideReturn: { ...value.sideReturn!, onRight: right } })} />
+                          <span>{right ? 'On the right' : 'On the left'}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <p class="muted small">The narrow strip beside the back of the house, looking out from it.</p>
+                  </>
+                )}
+              </>
+            )}
             <p class="muted small">
-              {+((value.w * value.d) / 1e6).toFixed(1)} m². Measure with a tape if you can; you can change it on the plan later.
+              {+((chosen.boundary.length >= 3 ? Math.abs(polygonArea(chosen.boundary)) : value.w * value.d) / 1e6).toFixed(1)} m². Measure with a tape if you can; you can change it on the plan later.
             </p>
           </div>
           <MiniPlan garden={chosen} width={180} height={140} pad={0.04} class="space-result" />

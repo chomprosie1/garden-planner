@@ -21,7 +21,7 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Potting on: move seedlings from a module tray into pots, splitting a tray | Build, Stage 12 | S | For now: change the tray's container and count |
 | Cold frames on the plan sharing their place in the shed | Build, Stage 12 | S | Built in Stage 15: "Raise seedlings in here", or link a place from the shed |
 | Equal-spacing guides, and snapping to path widths, when moving beds | Build, Stage 13 | S | Edges and middles line up for now |
-| Tap a length on the plan to type it | Build, Stage 13 | S | Planned in release 25 |
+| Tap a length on the plan to type it | Build, Stage 13 | S | Built in release 25 |
 | Recent searches, and searching jobs and journal notes | Build, Stage 13c | S | Search finds plants, things on the plan and actions |
 | Jobs for the week, not just the month, on the plan | Build, Stage 14 | S | Chips show the month's jobs |
 | Ideas for an empty bed from your own sowing list | Build, Stage 14 | S | Built in Stage 17 |
@@ -46,7 +46,7 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | A simpler details panel in Simple | Build, release 7 | S | More shows the full details in both modes |
 | No harvest job for a direct sowing that's running behind (not up) | Build, release 8 | S | Today can say it's not up and to harvest it in the same month |
 | Weeds marked as a patch across a lawn or bed | Build, release 8 | S | One weed at a time for now |
-| Straighten a photo taken at an angle before tracing: tap four corners of something rectangular and give its size | Aerial spike, 7 Oct 2026 | S | Planned in release 25. Photos from an upstairs window or a drone are never straight down. The spike has the 30 lines of straightening |
+| Straighten a photo taken at an angle before tracing: tap four corners of something rectangular and give its size | Aerial spike, 7 Oct 2026 | S | Built in release 25 |
 | Ask the browser to keep the garden's storage, and push iPhone users to install | Review, 7 Oct 2026 | S | Parked until beta testing. Safari can clear a site's data after about 7 days without a visit unless it's on the home screen, and gardeners leave the app for weeks in winter |
 | "What grows here?": tap any spot for its sun hours through the year, frost and warmth, and the plants that suit it best | Review, 7 Oct 2026 | M | Partly built in release 16: Inspire me suggests plants for a bed, pot or lawn from its June sun and cover. Still to do: any spot, and its sun through the year |
 | Next year, drafted for you: crop families rotated bed by bed, what did well kept, what failed or ran behind dropped or moved | Review, 7 Oct 2026 | L | Moved up to release 27 (review, 9 Oct 2026). Needs a plant family on each plant, added in release 15 |
@@ -99,11 +99,11 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | More photos for each month | You, 9 Oct 2026 | M | Four a month since release 20; batches towards ten a month still to come |
 | Quotes shaped by the person and their garden | You, 9 Oct 2026 | M | Wishlist: generic quotes for now, as decided; would need a short "about you" |
 | Reasons to come back beyond the garden itself | You, 9 Oct 2026 | M | Wishlist: to think about after release 20 |
-| A house, a water butt, gate, bench, bins, washing line and steps on the plan | Review, 9 Oct 2026 | S | Planned in release 25 ([product-review.md](product-review.md)) |
-| Garden shapes beyond a rectangle in onboarding and Simple (an L with a side return, long and thin, corner plot) | Review, 9 Oct 2026 | M | Planned in release 25 |
+| A house, a water butt, gate, bench, bins, washing line and steps on the plan | Review, 9 Oct 2026 | S | Built in release 25 |
+| Garden shapes beyond a rectangle in onboarding and Simple (an L with a side return, long and thin, corner plot) | Review, 9 Oct 2026 | M | Built in release 25: an L with a side return, and the boundary's corners in Simple |
 | Climbers along fences and walls, with trellis, arches and obelisks | Review, 9 Oct 2026 | M | Planned in release 26 |
 | Soil type for the garden and each bed, with plants that hate it flagged | Review, 9 Oct 2026 | S | Planned in release 26 |
-| A tape measure between two points | Review, 9 Oct 2026 | S | Planned in release 25, with "tap a length to type it" |
+| A tape measure between two points | Review, 9 Oct 2026 | S | Built in release 25 |
 | Plants in a beginner's order, an Easy chip, seasonal kits, recognisable pictures in pickers | Review, 9 Oct 2026 | M | Planned in release 24 |
 | The welcome screen at most once a day, with no forced pause | Review, 9 Oct 2026 | S | Planned in release 29 |
 | Ask the browser to keep the garden's storage; backup and home-screen nudges | Review, 9 Oct 2026 | S | Planned in release 24 (was parked until beta testing) |

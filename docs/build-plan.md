@@ -1362,7 +1362,7 @@ Decided:
 | Release | What | Review | Size | Status |
 | --- | --- | --- | --- | --- |
 | 24. Off to a good start | Plants in a beginner's order and an Easy chip; kits for every season; recognisable plants in the pickers; more plan on a phone; keeping the garden safe | A2–A5 | ~1.5 wk | Built 9 Oct 2026 |
-| 25. Build the garden | A house and everyday things; garden shapes, including an L with a side return; tap a length to type it; a tape measure; straighten a photo | B1, B2, B6 | ~1.5 wk | |
+| 25. Build the garden | A house and everyday things; garden shapes, including an L with a side return; tap a length to type it; a tape measure; straighten a photo | B1, B2, B6 | ~1.5 wk | Built 9 Oct 2026 |
 | 26. Along the fence | Climbers along fences and walls, with trellis, arch and obelisk; soil for the garden and each bed; shade from over the fence | B3–B5 | ~1.5 wk | |
 | 27. Next year | Next year drafted, with crop rotation; a shopping list; watering in dry spells; the open job fixes | B7–B9, A6 | ~2 wk | |
 | 28. Listening | A feedback form in the app; private counts of opens, first plant and return visits | B10, B11 | ~3 evenings | |
@@ -1411,17 +1411,58 @@ Tests: new `tests/good-start.test.ts`:
 - kits (something to plant in October first for every space; summer kits first in April; the plain order without a month; each autumn kit planted, valid);
 - keeping it safe (when to ask, never after a yes, again a week after a no, the preferences kept and cleaned, a backup file named and read back).
 
-### Release 25 — Build the garden (planned)
-- **A house and everyday things** (new stickers in Trees and structures, `src/model/stickers.ts`):
-  - **House** (a building, two storeys, about 7 m to the ridge), and a house along the bottom edge in the Garden and Patio layouts, as the house usually is;
-  - **water butt**, **gate**, **bench**, **table and chairs**, **bins**, **washing line**, **steps**, **bird bath**, **bird feeder** and **bee hotel**.
-  - Each has a real size and height, so the sun views and 3D use them.
-- **Garden shapes** (`src/model/spaces.ts`): in onboarding and "Where are you growing?", after the space, a shape: **rectangle**, **L with a side return** (the return's width and length), **wide and shallow**, **long and thin**, **corner plot**. Each makes the boundary; in Simple the boundary's corners can be dragged.
-- **Tap a length to type it:** the length tags on a selected shape take a tap and a typed length, in Advanced; in Simple, a rectangle's width and depth.
-- **A tape measure:** "Measure" in the ⋯ menu: tap two points, and the distance shows on the plan until you close it. Nothing is saved.
-- **Straighten a photo before tracing:** tap four corners of something rectangular in the photo and give its size; the photo is straightened and scaled (the aerial spike's 30 lines).
-- **Model:** the new stickers use the existing kinds where they can (building, other, fence), so no schema change unless the gate needs one.
-- **Tests:** every new sticker's size and kind; each shape's boundary (area, corners); the L's return as asked; typed lengths on the right edge; the tape measure's distance; straightening four corners.
+### Release 25 — Build the garden (as built)
+- **A house and everyday things** (`src/model/stickers.ts`). Stickers can now carry their own name, height, line width and light blocked:
+  - in Trees and structures, in Simple too:
+    - **House** (7 × 5 m, 7.5 m high);
+    - **water butt** (Ø 60 cm, 1 m);
+    - **gate** (a 1 m stretch of fence, 1.2 m high);
+    - **bench**;
+    - **table and chairs** (Ø 1.8 m);
+    - **bins**;
+    - **washing line** (4 m, 2 cm thick, blocking almost no light);
+    - **bird bath**;
+    - **bird feeder**;
+    - **bee hotel**;
+  - in Ground: **Steps**, as paving (so they're set ground, like a patio).
+
+  They use the existing kinds (building, other, fence, surface), so there's **no change to the save format**. The sun views and 3D use their heights.
+- **The house in the starter layouts** (`src/model/spaces.ts`): a Garden or Patio gets a house across the bottom of the plan, outside the boundary (4 m of it drawn, 7.5 m high), so its shadow falls as it does. Balconies, allotments and single beds don't.
+- **Garden shapes:**
+  - for a Garden or Patio, **Rectangle** or **L, with a side return**, with the return's width and length and **On the left** or **On the right**. It makes an L-shaped boundary, the back extension beside the strip (3 m high), a paved path down the strip, and the rest of the layout in the full-width part above it. The area shown is the L's own. A return is at least 600 mm by 1 m, with at least 1.5 m of garden beside and above it; a space too small for one stays a rectangle;
+  - in Simple, the boundary's corners can now be dragged, so any other shape (a corner plot, a wedge) is a drag away.
+  - **Changed from the plan:** "wide and shallow" and "long and thin" aren't shapes, only sizes, which width and depth already give; and there's no corner-plot shape, as dragging the boundary's corners does it in Simple.
+- **Typed lengths:** pick a bed, the boundary or a fence, then choose a length along its side, and a box opens to type the length (2.4 m, 240 cm, or a bare number of metres) (`setEdgeLength` in `src/model/features.ts`).
+  - The edge's first corner stays put. Where the next edge is square to it, as in a rectangle or an L, that moves too, so the shape stretches and stays square; otherwise only the far corner moves.
+  - In Simple: rectangles and the boundary.
+  - A tap elsewhere or Esc puts the box away. The length is chosen on the press, before anything under it is picked, so a length along the boundary isn't lost to the boundary.
+- **Measure**, in the ⋯ menu: tap two points (onto a corner nearby, otherwise where tapped, never to the grid), and the distance shows on the plan and in a bar at the top, with Done. A third tap starts again. Nothing is picked or moved while measuring, and nothing is saved.
+- **Straighten the photo** (`src/geometry/straighten.ts`, pure, and `src/ui/Straighten.tsx`): Straighten it… under Trace a photo.
+  - Mark four corners of something rectangular on the photo (near left, near right, far right, far left) and give its width and depth. The photo is redrawn as if from straight above, to scale, with that rectangle's near-left corner at the bottom left of the garden.
+  - The picture covers what the photo shows round the rectangle, out to the rectangle's own size on each side and no further than the horizon, at about the photo's own sharpness and at most 2,400 px across.
+  - The projective transform is solved from the four corners; pixels are sampled smoothly between neighbours.
+  - It replaces the stored photo and can't be undone (the undo history starts again, so Undo can't pair the old place with the new picture); to start again from the photo as taken, choose it again. Cancel waits while it works, and a photo too big for the device says so.
+- **Help:** Drawing your garden (the new things, shapes, the boundary's corners), Moving and resizing (typed lengths, Measure), Tracing a photo (Straighten it).
+- **Version** 0.25.0.
+- **Checked:**
+  - at 390 px:
+    - onboarding with the L and its choices;
+    - the plan it makes (house, extension, side return);
+    - the new stickers in the drawer;
+    - Measure between two points;
+    - a border's length typed from 9 m to 6.5 m (it stays square);
+  - at 1280 px: Straighten it from four corners of a photo, and the straightened photo under the plan at its scale.
+
+  No errors in the console.
+- **Tests changed:** `tests/start.test.ts` said everything a space lays out is inside its boundary; the house is now the exception, as it stands outside along the bottom edge.
+
+Tests: new `tests/build-garden.test.ts`:
+- every new sticker at its size, named, with its height; the washing line thin and see-through; all in Simple;
+- the house below a garden and patio and not elsewhere;
+- the L on either side (area, inside and outside);
+- the layout above the side return, with the extension and path beside it; a side return kept sensible; a walk starting in the garden, not the house;
+- typed lengths: a rectangle stretched and kept square, an L's return lengthened with the extension's edge, a triangle's far corner moved, a bed and a fence lengthened, nothing for a length of nothing;
+- straightening: the transform through four points, the straightened picture sampling the right places in a photo at an angle, its size limit, and corners that cross or touch refused.
 
 ### Release 26 — Along the fence (planned)
 - **Climbers along fences and walls:**

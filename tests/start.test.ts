@@ -15,7 +15,9 @@ import { queryWords, scoreOf, search, type Result } from '../src/ui/search';
 const library = [...vegetables, ...herbs] as Plant[];
 const byId = new Map(library.map((p) => [p.id, p]));
 const plantOf = (id: string) => byId.get(id) ?? unknownPlant(id);
-const inside = (g: Garden) => g.features.every((f) => f.footprint.every((p) => pointInPolygon(p, g.boundary) || g.boundary.some((q) => q[0] === p[0] && q[1] === p[1]) || onEdge(p, g)));
+// Everything laid out is inside the boundary, except the house (release 25), which stands along its bottom edge, outside it.
+const isHouse = (f: Garden['features'][number]) => f.kind === 'building' && f.name === 'House';
+const inside = (g: Garden) => g.features.filter((f) => !isHouse(f)).every((f) => f.footprint.every((p) => pointInPolygon(p, g.boundary) || g.boundary.some((q) => q[0] === p[0] && q[1] === p[1]) || onEdge(p, g)));
 /** On the boundary's edge, which counts as inside for a surface that covers it. */
 const onEdge = ([x, y]: [number, number], g: Garden) => {
   const b = bounds(g.boundary)!;

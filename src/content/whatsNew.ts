@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-09-build-the-garden',
+    date: '2026-10-09',
+    title: 'Build your garden as it really is',
+    items: [
+      'The house, and the everyday things a garden is planned round: a water butt, a gate, a bench, a table and chairs, bins, a washing line, a bird bath, a bird feeder, a bee hotel, and steps. They’re in Trees and structures (steps under Ground), each at a real size and height, so their shade is right too.',
+      'A new garden or patio starts with the house along the bottom, casting its shadow.',
+      'Gardens that aren’t rectangles: when you set one up, choose an L with a side return, on the left or the right. And in Simple you can now drag the boundary’s corners into any shape.',
+      'Exact lengths: pick a bed or the boundary, choose a length along its side, and type the length you want.',
+      'Measure, in the ⋯ menu: tap two points to see how far apart they are.',
+      'A photo taken from a window can be straightened before you trace it: tap four corners of something you can measure, give its size, and it’s redrawn as if from above, to scale.',
+    ],
+    tryIt: { label: 'Open the plan', view: 'plan' },
+  },
+  {
     id: '2026-10-09-good-start',
     date: '2026-10-09',
     title: 'Off to a good start',

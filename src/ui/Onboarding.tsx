@@ -59,7 +59,7 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
         updateGarden((g) => {
           let next = g;
           // The space, laid out fresh from the garden as it was, then the kit in its beds.
-          if (empty && choice) next = makeSpace({ ...next, boundary: before.boundary, features: before.features, plantings: before.plantings }, choice.space, choice.w, choice.d);
+          if (empty && choice) next = makeSpace({ ...next, boundary: before.boundary, features: before.features, plantings: before.plantings }, choice.space, choice.w, choice.d, choice.sideReturn ?? null);
           if (kit && plants) next = applyKit(next, kit, (id) => byId.get(id) ?? null, todayIso());
           for (const id of picked) if (!next.wishlist.includes(id)) next = toggleWishlist(next, id);
           return next;

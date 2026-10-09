@@ -2,7 +2,7 @@
 // Drags show a preview and commit once when released, so each is one undo step.
 
 import type { ComponentChildren } from 'preact';
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { useApp } from './appContext';
 import { copiedPlanting, copyPlanting } from './clipboard';
 import { hitEdge, hitVertex, pickAt } from '../canvas/hit';
@@ -32,6 +32,7 @@ import {
   moveVertex,
   pivotOf,
   resizesByHandles,
+  setEdgeLength,
   pointsOf,
   rectCorners,
   rectInfo,
@@ -180,8 +181,12 @@ export interface PlanCanvasProps {
   showSketches?: boolean;
   /** Soft shadows under things with height. */
   depth?: boolean;
-  /** Simple: things are moved and resized, not reshaped or turned; the boundary and north stay put. */
+  /** Simple: things are moved and resized, not reshaped or turned; the boundary's corners can be dragged, and north stays put. */
   simple?: boolean;
+  /** The tape measure: taps set two points (snapped to corners), and the distance between them shows on the plan. */
+  measuring?: boolean;
+  /** The tape measure's points, as they're tapped. */
+  onMeasure?: (points: Point[]) => void;
 }
 
 type Drag =
@@ -264,6 +269,14 @@ export function PlanCanvas(props: PlanCanvasProps) {
   /** Alignment lines while moving something, and which ones were showing (for a haptic tick when they change). */
   const guides = useRef<Guide[]>([]);
   const guideKey = useRef('');
+  /** The tape measure's points, while measuring. */
+  const measure = useRef<Point[]>([]);
+  /** A press on a length shown on what's selected: on release, if it didn't move, the length is typed. */
+  const pressedTag = useRef<{ target: Target; index: number; at: Point; mm: number } | null>(null);
+  /** A length on the selected outline being typed: which edge, where its tag is on screen, and the words so far. */
+  const [typing, setTyping] = useState<{ target: Target; index: number; at: Point; text: string } | null>(null);
+  const typingRef = useRef(typing);
+  typingRef.current = typing;
   /** A zoom asked for just before the canvas changes size (the dock's drawer closing on a phone): it's done again at the new size. */
   const zoomGoal = useRef<{ box: Bounds; until: number } | null>(null);
   const settle = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -316,6 +329,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
       depth: p.depth !== false,
       rotatable: p.selected?.type === 'feature' && p.tool === 'select' && layoutEditable() && !selectionSet() && !p.simple,
       fixed: selectionSet(),
+      measure: p.measuring ? measure.current : null,
       reshape: !p.simple,
       guides: drag.current?.kind === 'move' ? guides.current : [],
       drawing: !!geometry || p.tool === 'plant' || p.tool === 'sketch',
@@ -519,6 +533,11 @@ export function PlanCanvas(props: PlanCanvasProps) {
   useEffect(redraw, [drawKey]);
 
   useEffect(redraw, [props.garden, props.look, props.mode, props.selected, props.selectedVertex, props.traceImage, props.findings, props.focusFinding, props.shadows, props.sunGrid, props.sun, props.showSketches, props.byHand, props.depth, props.locked, props.simple, props.tool, props.time, props.focus, props.month]);
+  // Putting the tape measure away clears it.
+  useEffect(() => {
+    if (!props.measuring) measure.current = [];
+    redraw();
+  }, [props.measuring]);
 
   // ---------- helpers ----------
 
@@ -797,6 +816,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
     }
     const s = screenOf(e);
     pointers.current.set(e.pointerId, s);
+    // A new press starts afresh: no length from an earlier press.
+    pressedTag.current = null;
     if (pointers.current.size === 2) {
       const [a, b] = [...pointers.current.values()] as [Point, Point];
       pinch.current = { dist: distance(a, b), mid: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] };
@@ -809,6 +830,14 @@ export function PlanCanvas(props: PlanCanvasProps) {
     if (!view.current) return;
     const p = P.current;
     const world = toWorld(view.current, s);
+
+    // A press on the plan puts away a length being typed.
+    if (typingRef.current) setTyping(null);
+    // Measuring: a drag moves the plan; a tap sets a point (on pointer up). Nothing is picked.
+    if (p.measuring) {
+      drag.current = { kind: 'pan', last: s, moved: false };
+      return;
+    }
 
     // Sketching: pen, highlighter and arrows follow the pointer; words go where you click; the eraser rubs out.
     if (p.tool === 'sketch' && !p.readOnly && p.sketchPen && e.button === 0 && !space.current) {
@@ -909,8 +938,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
           return;
         }
       }
-      // In Simple, a rectangle's corners resize it; other shapes show no corners, so a drag there moves the shape.
-      const pts = p.simple && !(f && resizesByHandles(f)) ? null : pointsOf(g, p.selected);
+      // In Simple, a rectangle's corners resize it, and the boundary's corners move; other shapes show no corners, so a drag there moves the shape.
+      const pts = p.simple && p.selected.type !== 'boundary' && !(f && resizesByHandles(f)) ? null : pointsOf(g, p.selected);
       const vi = pts ? hitVertex(pts, world, tol) : null;
       if (vi !== null) {
         p.setSelectedVertex(vi);
@@ -926,6 +955,13 @@ export function PlanCanvas(props: PlanCanvasProps) {
         drag.current = { kind: 'plantEnd', id: pl.id, end: end as 0 | 1, base: g };
         return;
       }
+    }
+    // A press on a length shown along what's selected is for typing it, not for picking what's under it.
+    const tag = p.tool === 'select' && p.selected ? lengthTagAt(s) : null;
+    if (tag && p.selected) {
+      pressedTag.current = { target: p.selected, ...tag };
+      drag.current = { kind: 'pan', last: s, moved: false };
+      return;
     }
     // What's selected keeps its taps, except set ground; then plants, then beds and the rest (canvas/hit.ts).
     const picked = pickAt(g, p.plantOf, world, { planting: tolMm(touch ? 6 : 3), feature: tolMm(touch ? 6 : 9) }, p.selected, edit === 'layout');
@@ -958,7 +994,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
       if (vi !== null || edge) {
         p.setSelected({ type: 'boundary' });
         p.setSelectedVertex(vi);
-        drag.current = vi !== null && layoutEdits && !p.simple ? { kind: 'vertex', target: { type: 'boundary' }, index: vi, base: g } : { kind: 'pan', last: s, moved: false };
+        drag.current = vi !== null && layoutEdits ? { kind: 'vertex', target: { type: 'boundary' }, index: vi, base: g } : { kind: 'pan', last: s, moved: false };
         return;
       }
     }
@@ -1174,6 +1210,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
 
   const onPointerUp = (e: PointerEvent) => {
     pointers.current.delete(e.pointerId);
+    // A cancelled pointer (a system gesture) is never a tap.
+    const cancelled = e.type === 'pointercancel';
     if (pinch.current) {
       if (pointers.current.size < 2) pinch.current = null;
       return;
@@ -1188,6 +1226,15 @@ export function PlanCanvas(props: PlanCanvasProps) {
     }
     const d = drag.current;
     guides.current = [];
+    // Measuring: a tap sets the next point; a third tap starts again.
+    if (d && d.kind === 'pan' && !d.moved && !cancelled && p.measuring && view.current) {
+      drag.current = null;
+      // Onto a corner nearby, or exactly where it was tapped (to the centimetre), never to the grid.
+      const at = snapPoint(toWorld(view.current, screenOf(e)), { vertices: allVertices(garden()), gridMm: 10, toleranceMm: tolMm(10), free: e.altKey }).point;
+      measure.current = measure.current.length >= 2 ? [at] : [...measure.current, at];
+      p.onMeasure?.(measure.current);
+      return redraw();
+    }
     // A tap with the Plant tool on a touch screen plants; a drag only moved the plan.
     if (d && d.kind === 'pan' && !d.moved && p.tool === 'plant' && view.current) {
       drag.current = null;
@@ -1195,6 +1242,14 @@ export function PlanCanvas(props: PlanCanvasProps) {
       const raw = toWorld(view.current, screenOf(e));
       plantAt(p.placing?.layout === 'auto' ? raw : plantingPoint(garden(), raw, snapAt(raw, e).point), false);
       return redraw();
+    }
+    // A press on a length shown on what's selected, let go without moving: type the length.
+    const tag = pressedTag.current;
+    pressedTag.current = null;
+    if (tag && d && d.kind === 'pan' && !d.moved && !cancelled) {
+      drag.current = null;
+      setTyping({ target: tag.target, index: tag.index, at: tag.at, text: `${+(tag.mm / 1000).toFixed(2)} m` });
+      return;
     }
     // Touch has no double-click: two quick taps in the same place add a corner to an edge.
     if (d && (d.kind === 'pan' || d.kind === 'move' || d.kind === 'movePlanting') && !d.moved && p.tool === 'select' && view.current) {
@@ -1272,6 +1327,37 @@ export function PlanCanvas(props: PlanCanvasProps) {
   };
 
   /** Adds a corner to the selected outline where the pointer is on one of its edges. */
+  /**
+   * The length shown on an edge of the selected outline under a screen point, where lengths can be typed: the layout
+   * can change, it isn't set ground, and it shows its lengths (in Simple, a rectangle or the boundary).
+   */
+  const lengthTagAt = (s: Point): { index: number; at: Point; mm: number } | null => {
+    const p = P.current;
+    const v = view.current;
+    const t = p.selected;
+    if (!t || t.type === 'planting' || !v || !layoutEditable() || selectionSet()) return null;
+    const g = garden();
+    const f = t.type === 'feature' ? g.features.find((x) => x.id === t.id) : undefined;
+    if (f && (f.circle || f.smooth)) return null;
+    if (p.simple && t.type !== 'boundary' && !(f && resizesByHandles(f))) return null;
+    const pts = pointsOf(g, t);
+    if (!pts) return null;
+    const n = pts.length;
+    const closed = isClosed(g, t);
+    for (let i = 0; i < n - (closed ? 0 : 1); i++) {
+      const a = toScreen(v, pts[i]!);
+      const b = toScreen(v, pts[(i + 1) % n]!);
+      // Tags are only drawn on edges long enough on screen to carry them (lengthTag in render.ts).
+      if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 46) continue;
+      const m: Point = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      if (Math.abs(s[0] - m[0]) <= 32 && Math.abs(s[1] - m[1]) <= 13) return { index: i, at: m, mm: distance(pts[i]!, pts[(i + 1) % n]!) };
+    }
+    return null;
+  };
+
+  /** A typed length: "2.4 m", "240 cm", "2400 mm", or a bare number of metres (up to 100) as most people would mean. */
+  const typedLength = (text: string): number | null => (/^\s*\d+\s*$/.test(text) && Number(text) <= 100 ? Number(text) * 1000 : parseLength(text));
+
   const insertCornerAt = (s: Point, tolPx: number): boolean => {
     const p = P.current;
     if (!p.selected || !view.current || selectionSet()) return false;
@@ -1598,6 +1684,30 @@ export function PlanCanvas(props: PlanCanvasProps) {
         onDragOver={onDragOver}
         onDrop={onDrop}
       />
+      {typing && (
+        <form
+          class="length-edit"
+          style={{ left: `${Math.round(typing.at[0])}px`, top: `${Math.round(typing.at[1])}px` }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            const mm = typedLength(typing.text);
+            if (mm) commit((g) => setEdgeLength(g, typing.target, typing.index, mm));
+            else say('Type a length, such as 2.4 m or 240 cm.');
+            setTyping(null);
+          }}
+        >
+          <input
+            ref={(el) => el?.focus()}
+            value={typing.text}
+            aria-label="Length"
+            inputMode="decimal"
+            enterKeyHint="done"
+            onFocus={(e) => (e.currentTarget as HTMLInputElement).select()}
+            onInput={(e) => setTyping({ ...typing, text: (e.currentTarget as HTMLInputElement).value })}
+            onKeyDown={(e) => e.key === 'Escape' && setTyping(null)}
+          />
+        </form>
+      )}
       {props.children}
     </div>
   );

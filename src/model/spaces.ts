@@ -3,7 +3,7 @@
 // beds or pots to drop plants into, so the first plant is a few taps away.
 
 import { addFeature, makeFeature, rectPoints } from './features';
-import type { Feature, FeatureKind, Garden } from './types';
+import type { Feature, FeatureKind, Garden, Point } from './types';
 
 export type Space = 'balcony' | 'patio' | 'garden' | 'allotment' | 'bed';
 
@@ -92,13 +92,100 @@ function contents(space: Space, w: number, d: number): Feature[] {
   return out;
 }
 
-/** The garden with this space laid out in it, at w × d mm. A single bed has no boundary. */
-export function makeSpace(g: Garden, space: Space, w: number, d: number): Garden {
+/**
+ * A side return: beside the house's back extension, a narrow strip of garden runs down its side, so the garden is an
+ * L. The strip is `width` wide and `length` long, on the left (or the right); the extension fills the rest of that end.
+ */
+export interface SideReturn {
+  width: number;
+  length: number;
+  onRight?: boolean;
+}
+
+/** Spaces with a house at the bottom of the plan, which can have a side return. */
+export const HAS_HOUSE: readonly Space[] = ['garden', 'patio'];
+
+/** How deep the house is drawn below the garden, mm: enough for its shadow, not the whole house. */
+export const HOUSE_DEPTH_MM = 4000;
+
+/** The smallest side return: 600 mm wide and 1 m long. Beside and above it, at least 1.5 m of garden. */
+const RETURN_MIN: SideReturn = { width: 600, length: 1000 };
+const ROOM_MM = 1500;
+
+/**
+ * A side return that fits: at least 600 mm wide and 1 m long, leaving at least 1.5 m beside it and above it, and no
+ * longer than half the garden. Null when the garden is too small for one, so it stays a rectangle.
+ */
+export function fitSideReturn(r: SideReturn, w: number, d: number): SideReturn | null {
+  const maxWidth = w - ROOM_MM;
+  const maxLength = Math.min(d / 2, d - ROOM_MM);
+  if (maxWidth < RETURN_MIN.width || maxLength < RETURN_MIN.length) return null;
+  return {
+    width: Math.round(Math.max(RETURN_MIN.width, Math.min(maxWidth, r.width))),
+    length: Math.round(Math.max(RETURN_MIN.length, Math.min(maxLength, r.length))),
+    ...(r.onRight ? { onRight: true } : {}),
+  };
+}
+
+/** Where the strip starts across the garden, and where the extension does. */
+const sides = (w: number, s: SideReturn) => (s.onRight ? { strip: w - s.width, ext: 0 } : { strip: 0, ext: s.width });
+
+/** The boundary: a rectangle, or an L with the side return down one side. (0, 0) is the bottom left. */
+export function spaceBoundary(w: number, d: number, side: SideReturn | null = null): Point[] {
+  if (!side) return rectPoints({ x: 0, y: 0, w, h: d });
+  const { width, length } = side;
+  if (side.onRight)
+    return [
+      [w - width, 0],
+      [w, 0],
+      [w, d],
+      [0, d],
+      [0, length],
+      [w - width, length],
+    ];
+  return [
+    [0, 0],
+    [width, 0],
+    [width, length],
+    [w, length],
+    [w, d],
+    [0, d],
+  ];
+}
+
+/** The house along the bottom of the plan, and with a side return its back extension beside the strip. */
+function house(w: number, side: SideReturn | null): Feature[] {
+  const out = [box('building', 0, -HOUSE_DEPTH_MM, w, HOUSE_DEPTH_MM, { name: 'House', heightMm: 7500 })];
+  if (side) out.push(box('building', sides(w, side).ext, 0, w - side.width, side.length, { name: 'Extension', heightMm: 3000 }));
+  return out;
+}
+
+/** Moves a feature up the plan, to sit above a side return: its outline, line, curve corners or centre. */
+const raise = (f: Feature, dy: number): Feature => {
+  const up = (p: Point): Point => [p[0], p[1] + dy];
+  return {
+    ...f,
+    footprint: f.footprint.map(up),
+    ...(f.line ? { line: f.line.map(up) } : {}),
+    ...(f.controls ? { controls: f.controls.map(up) } : {}),
+    ...(f.circle ? { circle: { ...f.circle, centre: up(f.circle.centre) } } : {}),
+  };
+};
+
+/**
+ * The garden with this space laid out in it, at w × d mm. A single bed has no boundary. A garden or patio gets the
+ * house along the bottom, and with a side return, an L-shaped boundary with a path down the strip.
+ */
+export function makeSpace(g: Garden, space: Space, w: number, d: number, sideReturn: SideReturn | null = null): Garden {
   const info = spaceInfo(space);
   const W = Math.round(Math.min(MAX_SPACE_MM, Math.max(info.min[0], w)));
   const D = Math.round(Math.min(MAX_SPACE_MM, Math.max(info.min[1], d)));
-  let next: Garden = space === 'bed' || g.boundary.length >= 3 ? g : { ...g, boundary: rectPoints({ x: 0, y: 0, w: W, h: D }) };
-  for (const f of contents(space, W, D)) next = addFeature(next, f);
+  const side = sideReturn && HAS_HOUSE.includes(space) ? fitSideReturn(sideReturn, W, D) : null;
+  let next: Garden = space === 'bed' || g.boundary.length >= 3 ? g : { ...g, boundary: spaceBoundary(W, D, side) };
+  if (HAS_HOUSE.includes(space)) for (const f of house(W, side)) next = addFeature(next, f);
+  if (side) next = addFeature(next, box('surface', sides(W, side).strip, 0, side.width, side.length, { material: 'paving', name: 'Side return' }));
+  // With a side return, the rest is laid out above it, in the part that's full width.
+  for (const f of contents(space, W, side ? D - side.length : D)) next = addFeature(next, side ? raise(f, side.length) : f);
   // A garden still called "My garden" is named after the space.
   if (g.name === 'My garden' && space !== 'garden' && space !== 'bed') next = { ...next, name: `My ${space === 'patio' ? 'patio' : space}` };
   return next;

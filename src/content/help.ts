@@ -70,9 +70,13 @@ export const HELP: HelpTopic[] = [
         computer: 'For exact shapes, switch to Advanced at the top and open Draw: pick Bed or Boundary, then drag a rectangle or click each corner. Type a length, such as 3.45m, and press Enter for an exact edge.',
       },
     ],
-    notes: ['It needn’t be perfect. A rough plan still gives the right jobs and the right sun; you can tidy it any time.'],
+    notes: [
+      'It needn’t be perfect. A rough plan still gives the right jobs and the right sun; you can tidy it any time.',
+      'Trees and structures has the house and the everyday things: a water butt, a gate, a bench, a table, bins, a washing line, a bird bath and more. Steps are under Ground.',
+      'Garden not a rectangle? Pick the boundary and drag its corners, in Simple too. A garden or patio set up with a side return starts as an L.',
+    ],
     related: ['moving-and-resizing', 'tracing-a-photo', 'adding-plants'],
-    words: 'draw add bed pot raised lawn path paving shed fence boundary edge outline shape corners exact measure size advanced simple',
+    words: 'draw add bed pot raised lawn path paving shed fence boundary edge outline shape corners exact measure size advanced simple house water butt bench bins washing line gate side return L-shaped',
   },
   {
     id: 'moving-and-resizing',
@@ -93,9 +97,10 @@ export const HELP: HelpTopic[] = [
     notes: [
       'If beds won’t move, the layout may be locked: tap the padlock at the top (Advanced) to unlock it. Plants can always be moved.',
       'Ground (a lawn, patio, gravel and the like) is set once it’s placed, so the beds and plants on it are easy to pick. To move or reshape it, pick it where nothing’s on top and choose Unlock, then Set this ground when you’re done.',
+      'For an exact size, pick it and choose a length shown along its side, then type the length, such as 2.4 m. Measure, in the ⋯ menu, gives the distance between any two points.',
     ],
     related: ['drawing-the-plan', 'adding-plants'],
-    words: 'move drag pick select resize bigger smaller delete remove bin rotate zoom pinch pan lock padlock unlock stuck ground lawn patio gravel set',
+    words: 'move drag pick select resize bigger smaller delete remove bin rotate zoom pinch pan lock padlock unlock stuck ground lawn patio gravel set length exact type measure tape distance how far',
   },
   {
     id: 'tracing-a-photo',
@@ -116,9 +121,12 @@ export const HELP: HelpTopic[] = [
       'Use Move photo to line it up, and the See-through slider so you can see your lines over it.',
       'Draw your beds, paths and boundary over the top.',
     ],
-    notes: ['A photo from an upstairs window or a drone is never quite straight down, so treat it as a guide and check the main lengths with a tape.'],
+    notes: [
+      'A photo from an upstairs window or a drone is never quite straight down. Straighten it… (under Trace a photo) fixes that: tap the four corners of something rectangular you can measure, such as the patio, give its width and depth, and it’s redrawn as if from above, to scale.',
+      'Check the main lengths with a tape all the same.',
+    ],
     related: ['drawing-the-plan'],
-    words: 'trace photo picture aerial satellite map screenshot scale calibrate background image',
+    words: 'trace photo picture aerial satellite map screenshot scale calibrate background image straighten angle window squeezed',
   },
   {
     id: 'adding-plants',

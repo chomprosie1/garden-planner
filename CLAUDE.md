@@ -28,10 +28,10 @@ This is still a proof of concept. Test what a change could break, not everything
 ### Which tests cover what
 | Area | Tests |
 | --- | --- |
-| `geometry/*` | geometry, drawing |
+| `geometry/*` | geometry, drawing, build-garden |
 | `model/store`, undo | store, plan |
 | `model/migrate`, `model/validate`, `storage/file` | file, drawing, shed, stages, ux-delight, plus any test using a fixture |
-| `model/features`, `model/stickers`, `model/spaces` | depth, arrange, start, ux-first-minute |
+| `model/features`, `model/stickers`, `model/spaces` | depth, arrange, start, ux-first-minute, build-garden |
 | `canvas/*` (hit, snap, viewport, render) | plan, sun, usability |
 | `planting/place`, `planting/fill`, `planting/rules` | planting, arrange, start, jobs, drawing |
 | `planting/kits`, `planting/batches`, `planting/harvest` | ux-first-minute, weather, ux-daily, ux-delight, good-start |

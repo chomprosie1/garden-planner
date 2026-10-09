@@ -3,9 +3,11 @@ import { jobsFor } from '../../calendar/jobs';
 import type { Focus, TimeScene } from '../../canvas/render';
 import { pickedBy, timeline, wetness } from '../../lifecycle/projection';
 import { featureLabel, KINDS, type Target } from '../../model/features';
-import { makeSpace, spaceInfo } from '../../model/spaces';
+import { makeSpace, spaceInfo, type SideReturn } from '../../model/spaces';
 import { updateGarden, type Store } from '../../model/store';
 import type { FeatureKind, Garden, Plant, Point } from '../../model/types';
+import { formatLength } from '../../canvas/viewport';
+import { distance } from '../../geometry/polygon';
 import { checkGarden, formatHours, type Finding } from '../../planting/rules';
 import { hoursAt } from '../../sun/hours';
 import { fromUkClock, sunAt, sunDay, ukClock } from '../../sun/position';
@@ -137,6 +139,9 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const [settingUp, setSettingUp] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [threeD, setThreeD] = useState(false);
+  // The tape measure: on while measuring, with the points tapped so far.
+  const [measuring, setMeasuring] = useState(false);
+  const [measured, setMeasured] = useState<Point[]>([]);
   const [clearing, setClearing] = useState(false);
   const mode = prefs.planMode;
   const simple = mode === 'simple';
@@ -378,7 +383,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
 
   // The trace photo lives in IndexedDB, not in the garden file.
   const hasTrace = !!garden.trace;
-  // Each garden keeps its own; switching gardens loads the other's.
+  // Each garden keeps its own; switching gardens loads the other's. A straightened photo replaces it at a new width, so it loads again.
   const traceKey = hasTrace ? openTraceKey() : '';
   useEffect(() => {
     if (!hasTrace) return setTraceImage(null);
@@ -397,7 +402,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       cancelled = true;
       if (url) URL.revokeObjectURL(url);
     };
-  }, [hasTrace, traceKey]);
+  }, [hasTrace, traceKey, garden.trace?.widthMm]);
 
   const empty = garden.boundary.length === 0 && garden.features.length === 0;
   const sketchBar = (
@@ -432,8 +437,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
     const others = Object.fromEntries(Object.entries(prefs.walkFrom).filter(([id]) => id !== open && known.has(id)));
     return { walkFrom: prefs.walkFrom[open] ?? null, setWalkFrom: (spot: WalkSpot | null) => prefsStore.set({ walkFrom: spot ? { ...others, [open]: { at: spot.at, heading: spot.heading } } : others }) };
   };
-  const makeTheSpace = (space: Parameters<typeof makeSpace>[1], w: number, d: number, kit: Kit | null = null) => {
-    store.apply(updateGarden((g) => (kit ? applyKit(makeSpace(g, space, w, d), kit, (id) => plantById.get(id) ?? null, todayIso) : makeSpace(g, space, w, d))));
+  const makeTheSpace = (space: Parameters<typeof makeSpace>[1], w: number, d: number, kit: Kit | null = null, side: SideReturn | null = null) => {
+    store.apply(updateGarden((g) => (kit ? applyKit(makeSpace(g, space, w, d, side), kit, (id) => plantById.get(id) ?? null, todayIso) : makeSpace(g, space, w, d, side))));
     setFitSignal((n) => n + 1);
     if (kit) {
       setMessage(`${kit.title}: planted up and ready. Drag the timeline below to see it grow, or see what to sow on Today.`);
@@ -655,6 +660,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
                 ? [{ label: hidePhotos ? 'Show photos around the plan' : 'Hide photos around the plan', icon: (hidePhotos ? 'image-off' : 'image') as IconName, keys: 'H', onSelect: () => prefsStore.set({ focus: !hidePhotos }) }]
                 : []),
               ...(!empty ? [{ label: 'See it in 3D', icon: 'cube' as const, onSelect: () => setThreeD(true) }] : []),
+              { label: 'Measure', icon: 'size' as const, onSelect: () => (setSelected(null), setMeasured([]), setMeasuring(true)) },
               ...(growing ? [{ label: 'Clear beds…', icon: 'trash' as const, onSelect: () => setClearing(true) }] : []),
               { label: 'Share a picture of the plan', icon: 'share', onSelect: () => setSharing(true) },
               { label: 'Your garden: location and backups', icon: 'settings', onSelect: () => app.go('profile') },
@@ -733,6 +739,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               focus={focus}
               onHoverPoint={setHoverPoint}
               onTap={setTapPoint}
+              measuring={measuring}
+              onMeasure={setMeasured}
             >
               <ActionPill
                 pillRef={pillRef}
@@ -750,6 +758,25 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
                 tapped={tapPoint}
               />
               {placed && <FillPopover placed={placed} garden={garden} store={store} plantOf={plantOf} close={() => setPlaced(null)} />}
+              {measuring && (
+                <div class="measure-bar" role="status">
+                  <span>
+                    {measured.length === 2 ? (
+                      <strong>{formatLength(distance(measured[0]!, measured[1]!))}</strong>
+                    ) : measured.length === 1 ? (
+                      phone ? 'Now tap where it ends.' : 'Now click where it ends.'
+                    ) : phone ? (
+                      'Tap where to measure from.'
+                    ) : (
+                      'Click where to measure from.'
+                    )}
+                  </span>
+                  {measured.length === 2 && <span class="muted small">{phone ? 'Tap again to start a new one.' : 'Click again to start a new one.'}</span>}
+                  <button type="button" class="btn btn-quiet" onClick={() => setMeasuring(false)}>
+                    Done
+                  </button>
+                </div>
+              )}
               {tool === 'select' && lens === 'none' && plants && (
                 <PlanChips
                   garden={garden}
@@ -850,7 +877,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
         )}
       </div>
       {phone && bottom}
-      {settingUp && <SpaceDialog make={(c, kit) => makeTheSpace(c.space, c.w, c.d, kit)} close={() => setSettingUp(false)} plantOf={plants ? plantOf : null} />}
+      {settingUp && <SpaceDialog make={(c, kit) => makeTheSpace(c.space, c.w, c.d, kit, c.sideReturn ?? null)} close={() => setSettingUp(false)} plantOf={plants ? plantOf : null} />}
       {threeD && plants && (
         <Garden3D
           garden={garden}

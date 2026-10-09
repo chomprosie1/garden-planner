@@ -243,6 +243,35 @@ export function setPoints(g: Garden, t: Target, points: Point[]): Garden {
   return updateFeature(g, t.id, f.line ? { line: pts } : f.controls ? { controls: pts } : { footprint: pts });
 }
 
+/**
+ * Makes one edge of an outline (or a line's segment) a typed length, keeping its first corner where it is. Its far
+ * corner moves along the edge; where the next edge is square to it, as in a rectangle or an L, that edge moves along
+ * with it, so the shape stretches and stays square.
+ */
+export function setEdgeLength(g: Garden, t: Target, index: number, mm: number): Garden {
+  if (mm <= 0 || t.type === 'planting') return g;
+  const pts = pointsOf(g, t);
+  if (!pts) return g;
+  const n = pts.length;
+  const closed = isClosed(g, t);
+  const next = closed ? (index + 1) % n : index + 1;
+  const a = pts[index];
+  const b = pts[next];
+  if (!a || !b) return g;
+  const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  if (len < 1) return g;
+  const u: Point = [(b[0] - a[0]) / len, (b[1] - a[1]) / len];
+  const shift: Point = [u[0] * (mm - len), u[1] * (mm - len)];
+  const moves = new Set([next]);
+  const after = closed ? (next + 1) % n : next + 1;
+  const c = pts[after];
+  if (c && after !== index) {
+    const lc = Math.hypot(c[0] - b[0], c[1] - b[1]);
+    if (lc >= 1 && Math.abs(((c[0] - b[0]) * u[0] + (c[1] - b[1]) * u[1]) / lc) < 0.02) moves.add(after);
+  }
+  return setPoints(g, t, pts.map((q, i): Point => (moves.has(i) ? [q[0] + shift[0], q[1] + shift[1]] : q)));
+}
+
 export function moveVertex(g: Garden, t: Target, index: number, p: Point): Garden {
   const pts = pointsOf(g, t);
   if (!pts || index < 0 || index >= pts.length) return g;

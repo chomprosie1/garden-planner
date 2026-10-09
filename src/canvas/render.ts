@@ -98,6 +98,8 @@ export interface Scene {
   month?: number;
   /** Show the selected thing's rotate handle. */
   rotatable?: boolean;
+  /** The tape measure: up to two points, with the distance between them. */
+  measure?: Point[] | null;
   /** The selected thing is set ground: just its outline, no handles or lengths. */
   fixed?: boolean;
   /** false in Simple: only rectangles and round things show handles, to resize; nothing shows corners to reshape. */
@@ -398,6 +400,7 @@ export function renderLive(ctx: CanvasRenderingContext2D, s: Scene) {
   if (s.guides?.length) drawGuides(ctx, s, s.guides);
   if (s.stroke) drawStroke(ctx, s, s.stroke);
   if (s.draft) drawDraft(ctx, s, s.draft);
+  if (s.measure?.length) drawMeasure(ctx, s, s.measure);
   if (s.plantDraft) drawPlantDraft(ctx, s, s.plantDraft);
   if (s.crosshair) drawCrosshair(ctx, s);
 
@@ -837,11 +840,39 @@ function drawLabel(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, planted 
   ctx.fillText(text, x, y + (st.labels === 'hand' ? 1 : 0.5));
 }
 
-function lengthTag(ctx: CanvasRenderingContext2D, s: Scene, a: Point, b: Point) {
+/** The tape measure: a dashed line between its two points, a dot at each, and the distance, however short. */
+function drawMeasure(ctx: CanvasRenderingContext2D, s: Scene, pts: Point[]) {
+  const v = s.view;
+  const sel = s.style.plan.selection;
+  const [a, b] = pts.map((p) => toScreen(v, p));
+  if (a && b) {
+    ctx.beginPath();
+    ctx.moveTo(a[0], a[1]);
+    ctx.lineTo(b[0], b[1]);
+    ctx.strokeStyle = sel;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  for (const p of [a, b]) {
+    if (!p) continue;
+    ctx.beginPath();
+    ctx.arc(p[0], p[1], 5, 0, Math.PI * 2);
+    ctx.fillStyle = s.style.plan.paper;
+    ctx.fill();
+    ctx.strokeStyle = sel;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+  if (pts.length === 2) lengthTag(ctx, s, pts[0]!, pts[1]!, true);
+}
+
+function lengthTag(ctx: CanvasRenderingContext2D, s: Scene, a: Point, b: Point, always = false) {
   const v = s.view;
   const [ax, ay] = toScreen(v, a);
   const [bx, by] = toScreen(v, b);
-  if (Math.hypot(bx - ax, by - ay) < 46) return;
+  if (!always && Math.hypot(bx - ax, by - ay) < 46) return;
   const text = formatLength(distance(a, b));
   ctx.font = `600 11px ${s.style.fontBody}`;
   const w = ctx.measureText(text).width + 10;
@@ -897,8 +928,8 @@ function drawSelection(ctx: CanvasRenderingContext2D, s: Scene, t: Target) {
     return;
   }
 
-  // In Simple, only a rectangle shows its corners (to resize it); other shapes and the boundary are reshaped in Advanced.
-  if (s.reshape === false && (!f || !resizesByHandles(f))) return;
+  // In Simple, a rectangle shows its corners (to resize it), and the boundary its corners (to move them); other shapes are reshaped in Advanced.
+  if (s.reshape === false && t.type !== 'boundary' && (!f || !resizesByHandles(f))) return;
   const pts = pointsOf(g, t) ?? [];
   const closed = isClosed(g, t);
   if (f?.smooth) {
