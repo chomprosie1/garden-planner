@@ -6,11 +6,9 @@ import type { TimeScene } from '../canvas/render';
 import { gapsOn, stageIn, type Gap, type Step } from '../lifecycle/projection';
 import { climateOf } from '../climate/microclimate';
 import { frostDatesUnder } from '../lifecycle/shed';
+import { LAWN_BY_MONTH } from '../lifecycle/seasons';
 import type { Climate, Garden, Plant, Planting, Point } from '../model/types';
 import { fromUkClock, shadowOffset, sunAt } from '../sun/position';
-
-/** The lawn through the year: greener in spring, paler in a dry late summer, dull in winter. */
-const LAWN_BY_MONTH = [-0.3, -0.3, 0.3, 0.8, 0.9, 0.3, -0.3, -0.8, -0.4, 0, -0.2, -0.3];
 
 /** Which way shadows fall on screen at 1 pm on a day, and how long: short at midsummer, long in winter. */
 export function lightOn(g: Garden, date: string): Point | null {

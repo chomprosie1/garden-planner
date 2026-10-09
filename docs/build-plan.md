@@ -830,8 +830,8 @@ Decided:
 | 13. From plot to plate | Recipes, storing and preserving, a kitchen card for this week, harvest worth in £ | ~2 wk + writing | Built 8 Oct 2026 |
 | 14. Feeding | Fertiliser types, prices, what each plant likes, feed jobs | ~1.5 wk | Built 9 Oct 2026 |
 | 15. 500 plants, and varieties | +250 plants in batches of 50, a variety model, the seed tin | ~4 wk of data (alongside 13–14) | Built 9 Oct 2026 |
-| 16. Inspire me | Tap an empty area, give a budget, a time and effort; it suggests what would grow (folds in "What grows here?") | ~1.5 wk | |
-| 17. Walk through it | First-person walking in 3D, leaves you can recognise, frost and lawn by season | ~2 wk | |
+| 16. Inspire me | Tap an empty area, give a budget, a time and effort; it suggests what would grow (folds in "What grows here?") | ~1.5 wk | Built 9 Oct 2026 |
+| 17. Walk through it | First-person walking in 3D, leaves you can recognise, frost and lawn by season | ~2 wk | Built 9 Oct 2026 |
 | 18. Later from the review | Nature calendar and how good the garden is for pollinators, voice logging, water forecast, next year drafted (crop rotation), same-spot timelapse | Split as needed | |
 
 ### Release 11a — Room to see (as built, schema 14)
@@ -1121,28 +1121,46 @@ Tests: new `tests/varieties.test.ts`:
 
 Also changed: `tests/kitchen.test.ts` allows prices up to £400 a kilo (wasabi is about £300), and `tests/plants.test.ts` expects yardlong beans in a search for beans.
 
-### Release 16 — Inspire me (planned)
-- **Asking:** tap an empty bed, a gap or an empty area of lawn (or **Inspire me** on Today), then answer three questions:
-  - **Budget:** under £10, £25 or £50+;
-  - **When:** for this summer, this year or the long term;
-  - **Time a week:** 10 minutes, an hour or a weekend.
-- **The suggestions:** three ideas with a picture, cost, effort, when they're ready and why each suits (e.g. "6 h of sun here in June"). Pick one and it's planted on the plan.
-- **Logic:** `src/planting/inspire.ts` (pure) ranks plants and kits by the spot's sun hours (`src/sun/hours.ts` `hoursAt`), cover and warmth, then by cost (seed tin and plant prices), effort (new `Plant.effort`) and time to crop. It reuses `gapsOn` and fills from `src/planting/fill.ts`.
-- **Folds in** the review's "What grows here?"
-- **Tests:** new `tests/inspire.test.ts` (sun-suited picks, budget and effort filters, the time frame, an empty result); planting.
+### Release 16 — Inspire me (as built)
+- **Asking** (`src/ui/Inspire.tsx`):
+  - **Inspire me** in a bed's panel when nothing is in the ground or planned there (batches still to sow don't count), and in a lawn's panel;
+  - **Room to grow** on Today: up to three empty beds or pots, and the lawn, each opening the same questions;
+  - three questions as chips, with the ideas changing as you answer: **Budget** (under £10, under £25, £50 or more), **When** (something quick, this year, for years to come) and **Time a week** (10 minutes, an hour, a weekend).
+  - **Changed from the plan:** "for this summer" became "something quick" (in the ground within six weeks and ready within four months), since "this summer" means nothing in October.
+- **The ideas:** three, each with a picture, a rough cost, minutes a week, when to sow or plant and when it's ready, and up to three reasons ("About 7 h of sun here in June: it wants full sun", "You have the seed already", "Good for bees"). **Plant this** plants it on the plan as one undo step, and puts anything from seed on the sowing list.
+- **Logic** (`src/planting/inspire.ts`, pure):
+  - **the spot:** a bed's average June sun (`areaHours`), or for a lawn its most open point (furthest from the edges and anything planted) and the sun there (`hoursAt`); whether it's under glass; its narrow side, for what fits; and a planned batch's sow-by date, which makes it a gap that ideas must be done by;
+  - **what's left out:** weeds; anything needing more sun than the spot has, or shade plants in full sun; anything wider than the bed; trees in pots; trees, shrubs and bulbs under glass; anything but trees, shrubs and bulbs on a lawn, meadow, gravel or bark (a patch of bare soil is treated like a bed); tender perennials outside (they'd need bringing in); and whatever doesn't suit the time frame;
+  - **cost:** one packet of seed for annuals (nothing if there's seed in the tin), or so much a plant for perennials, shrubs, trees, strawberry runners and bulbs. The top of the price range must be within the budget; bought plants are planted as a drift, then a row, then one, to keep within it;
+  - **effort:** worked out from the library rather than stored. **Changed from the plan:** no new `Plant.effort` field, so no unchecked data was added. Vegetables count most, then annual flowers, perennials, shrubs and trees, and bulbs; sowing indoors, hungry feeders, moist soil, frost watch and climbers add to it, it scales with the area, and a pot adds a few minutes most days for watering;
+  - **ranking:** seed in the tin, the sowing list and tender crops under glass first, then sun fit, cost, effort and how soon it's ready. A short list of familiar, forgiving plants (`FAMILIAR`, a choice of what to suggest rather than a plant fact) comes before the rarer ones in the library. The three are of different kinds where possible (a vegetable, a flower and a mix, not three salads), never two of one plant, and nothing far behind the best;
+  - **mixes:** four beds from the starter kits (a salad bed, easy veg in rows, flowers for bees, kitchen herbs), planted with `plantKitBed`, newly split out of `applyKit` in `src/planting/kits.ts`. Not offered on a lawn, in a pot or in a short gap.
+- **Prices** (`PRICES`), shown as "about": checked on 9 Oct 2026 against retailers' listings found by a web search, and named in the code: allotment-garden.org for seed, buyplants.co.uk, eBay and Tesco Marketplace for 9 cm pots, rhsplants.co.uk for strawberry runners, crocus.co.uk for shrubs, ashridgetrees.co.uk and rootsplants.co.uk for fruit trees, and Suttons' 2024 catalogue and Wowcher for bulbs. They're rough ranges from a few listings, not a survey.
+- **Folds in** the review's "What grows here?" for beds, pots and lawns. Any spot, and its sun through the year, are still to do.
+- **Checked:** screenshots at 390 px of Room to grow, the questions and ideas for an empty bed, and planting one.
 
-### Release 17 — Walk through it (planned)
-- **Done early (9 Oct 2026), after your feedback that the view was stuck turning round the middle:** two fingers (or a right-drag) move along the garden, and a double-tap glides the view to that spot and turns round it (`goTo` in `src/three/view.ts`). It stays over the garden, up to 3 m past its edges. This release still adds walking at eye height, with collision.
-- **Walking:**
-  - a **Walk** preset in the 3D view: eye height 1.6 m;
-  - WASD or arrows and the mouse on a desktop, a thumb pad on a phone, or tap the ground to walk there;
-  - you can't walk through buildings, walls, fences or beds (collision against the scene's outlines in `src/three/scene.ts`).
+Tests: new `tests/inspire.test.ts`:
+- **The spot:** three ideas in shade, part shade and sun, each suited; full-sun crops in the sun, none in the shade; three different kinds, no plant twice; nothing too big for a pot; trees, shrubs and bulbs on a lawn, in its most open part; tender crops under glass; ideas while the sun is still being worked out.
+- **Budget, time and when:** within budget; fewer of something dear rather than leaving it out; seed in the tin free and first; within the time a week; more work for sowing indoors, hungry crops and pots; something quick in the ground soon and ready within four months; years to come means things that come back; this year leaves out trees; a gap gets only what's done in time; a reason when nothing fits.
+- **Planting:** inside the bed, valid, and seed on the sowing list; bulbs and trees on the lawn where there's room; costs; the familiar plants and mixes all in the library; which places count as empty.
+
+### Release 17 — Walk through it (as built)
+- **Done early (9 Oct 2026), after your feedback that the view was stuck turning round the middle:** two fingers (or a right-drag) move along the garden, and a double-tap glides the view to that spot and turns round it (`goTo` in `src/three/view.ts`). It stays over the garden, up to 3 m past its edges.
+- **Walking** (`src/three/walk.ts`, pure, and `src/three/view.ts`):
+  - **Walk** beside From above and Standing in it: eye height 1.6 m, starting in from the bottom of the plan looking up it, at the nearest spot you can stand;
+  - W, A, S and D or the arrow keys on a computer (up and down walk, left and right turn, A and D step sideways, Q and E turn), drag to look round, and tap or click the ground to walk there, turning to face the way you go; a thumb pad on a touch screen. A tap on anything else gives its name;
+  - you can't walk through buildings, greenhouses, walls, fences, hedges, beds (with or without edging), pots, compost bins, ponds or tree trunks, and you keep about 15 cm from them, so a 30 cm path between beds is wide enough. Blocked straight on, you slide along whatever's in the way; a long step (a slow frame) is taken in strides, so it can't hop a fence; and if something grows up close to where you stand (moving the date on), any step away from it is allowed. You can walk up to 3 m past the garden's edge.
 - **Leaves you can recognise:**
-  - leaf-cluster textures drawn by code for each leaf shape (broad, lobed, feathery, needle, strap), in the tree type's colour;
-  - canopies built as shells of instanced leaf cards, so a birch, a pine and a copper beech look different;
-  - plants' side drawings get finer leaves when you're close.
-- **Wishlist extras:** frost and a greener lawn by season, and sketches in 3D.
-- **Tests:** `tests/three.test.ts` (collision, walkable start point, leaf choice by type); screenshots walking on a phone and a desktop.
+  - `Tree3.leaf` from the tree type (broad, lobed, feathery, needle, strap), or for a fruit tree from its plant's drawing (round leaves count as broad);
+  - leaf-cluster textures drawn by code for each shape, in the tree's colour, with blossom in season;
+  - each canopy is a darker core with a shell of instanced leaf cards over it, so a birch, a rowan and a pine look different from above and from underneath;
+  - once you've walked, plants are redrawn at twice the detail.
+- **The season:** the lawn greener in spring and paler in late summer (the same months as the plan, `LAWN_BY_MONTH` moved to `src/lifecycle/seasons.ts`); frost on the ground, paths and bed tops between the first autumn and last spring frosts, white until 9 am and melting to a light rime by 1 pm, but not under glass, changed in place as the time of day moves rather than rebuilding the scene; sketches from the plan lying on the ground (pen, highlighter and arrows), with words standing just above it.
+- **Checked:** screenshots at 390 px of the 3D view from above and standing, walking from the start, walking up the garden past a tree, and stopping at the edge. **Not done:** screenshots on a desktop, and a check on a real phone.
+
+Tests: `tests/three.test.ts`, new:
+- **Walking:** what you can and can't walk through (open lawn, paths, under a canopy; beds, the shed, the fence, a pot, a trunk); stopping at a fence and sliding along it; never stepping through a thin fence; a start you can stand on, also with a shed in the way; walking towards a tapped spot, as far as you can or not at all; staying near the garden.
+- **Leaves and the season:** each tree's leaf shape, and a fruit tree's; the lawn by season; frost through a winter day, none in summer or under glass; sketches in the scene.
 
 ### Release 18 — Later from the review (planned)
 To be split into releases as we get there:
@@ -1191,6 +1209,22 @@ garden-planner/
 - It is checked once on your phone.
 - The MVP doc and this plan are updated if anything changed.
 - Anything someone using the app would notice gets a **What's new** entry in `src/content/whatsNew.ts`, newest first with a new id: what they can now do and where to find it, in plain English, with no stage numbers or code.
+
+## Ways of working (added 9 Oct 2026)
+From a review of how the last two releases were built. These apply from release 16 on.
+
+- **Plant facts are drafts until checked.**
+  - Every new plant, feed, kind and kitchen note is a draft from memory, and says so.
+  - The `source` line says "Drafted from memory, not yet checked against a named source" until someone has checked it against a named source (RHS, a seed packet, a supplier), and then it names that source.
+  - The tests that check sources must accept this wording, and fail on any line that names a source nobody has opened.
+  - Nothing unchecked is described as checked on screen, in What's new or in the build plan.
+- **Tests are not loosened to fit data.** If new data fails a rule, stop and say which side is wrong. Change the data, or change the rule with an explicit note of why and who agreed. Two changes made in release 15 (the kitchen price ceiling and a search expectation) are to be revisited on this basis.
+- **Small batches, checked as we go.** Data is written in batches of about 10 to 15 entries, with tests run after each batch, not 50 at once.
+- **Edits by hand, not generated scripts.** Changes to source and data files go through the editor tool. Scripts are only for one-off data generation and are kept out of the repo.
+- **Facts are checked, design calls are not.** Look and wording calls are still decided and explained after, as in [[design-calls]]. Factual claims about plants, prices, months and feeding are checked before release, or asked about first.
+- **Branches and previews for risky changes.** A change to the save format, the data files or the app's storage goes on a branch with a preview, and is merged after a review. Small copy and screen fixes can still go straight to `main`.
+- **Review before a release.** Run `/code-review` on each release's diff before pushing.
+- **Commit and push only when asked, or at the end of a release as CLAUDE.md says.**
 
 ## Verification overall
 - Unit tests: geometry, store and undo, migrations, rules, jobs, sun position against NOAA, and shadow length.

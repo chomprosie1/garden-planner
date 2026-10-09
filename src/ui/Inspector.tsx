@@ -64,6 +64,7 @@ import { copyPlanting } from './clipboard';
 import { BehindActions, Causes } from './BehindCard';
 import { behindOf, behindText } from '../lifecycle/behind';
 import { FindingsList } from './Findings';
+import { InspireButton } from './Inspire';
 import { UseLocationButton } from './GardenSettings';
 import { formatDate, NotesSection } from './NotesSection';
 import { deletedMessage, type Tool } from './PlanCanvas';
@@ -388,6 +389,11 @@ function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf
 
       {(f.kind === 'surface' || f.kind === 'path') && <MaterialPicker f={f} set={set} />}
       {!embedded && isSoftGround(f) && <GrowingOnGround garden={garden} f={f} plantOf={plantOf} setSelected={setSelected} />}
+      {!embedded && isSoftGround(f) && (
+        <div class="button-row">
+          <InspireButton store={store} garden={garden} f={f} />
+        </div>
+      )}
       {f.kind === 'bed' && (
         <label class="field">
           Edging
@@ -760,6 +766,8 @@ function BedPanel(props: Shared & { bed: Feature }) {
         <button type="button" class="btn btn-primary" onClick={startPlanting}>
           Add plants
         </button>
+        {/* Nothing in the ground or planned, bar batches still to sow: room for an idea. */}
+        {!growing.some((p) => !p.sowBy) && <InspireButton store={store} garden={garden} f={bed} />}
         <button type="button" class="btn" onClick={() => zoomTo(bed.footprint)}>
           Zoom to bed
         </button>

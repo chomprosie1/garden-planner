@@ -5800,3 +5800,108 @@ h2 {
   flex-wrap: wrap;
   gap: 0.2rem 1rem;
 }
+
+/* ---------- Inspire me (release 16) ---------- */
+.inspire-dialog {
+  width: min(40rem, calc(100% - 2rem));
+}
+.inspire-qs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.inspire-q {
+  margin: 0;
+}
+.inspire-ideas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.inspire-idea {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.8rem;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface2);
+}
+.inspire-pics {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  align-content: start;
+  gap: 0.2rem;
+  width: 3.5rem;
+}
+.inspire-pics:has(> :only-child) {
+  grid-template-columns: auto;
+}
+.inspire-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+.inspire-text h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+}
+.inspire-facts {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.9rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.inspire-facts span:first-letter {
+  text-transform: uppercase;
+}
+.inspire-why {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.9rem;
+}
+.inspire-text .btn {
+  align-self: flex-start;
+  margin-top: 0.2rem;
+}
+.inspire-none {
+  padding: 0.8rem;
+  border-radius: var(--radius);
+  background: var(--surface2);
+}
+.inspire-card .choice-row {
+  margin-top: 0.4rem;
+}
+
+/* ---------- Walking in 3D (release 17) ---------- */
+.garden-3d-canvas.walking {
+  cursor: crosshair;
+}
+.thumb-pad {
+  position: absolute;
+  left: 1rem;
+  bottom: 3rem;
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--text) 30%, transparent);
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  display: grid;
+  place-items: center;
+  touch-action: none;
+}
+.thumb-knob {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: var(--shadow);
+  pointer-events: none;
+}

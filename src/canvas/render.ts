@@ -1569,7 +1569,7 @@ function drawPlantDraft(ctx: CanvasRenderingContext2D, s: Scene, d: PlantDraft) 
 
 // ---------- Sketches ----------
 
-const SKETCH_INK: Record<'light' | 'dark', Record<Exclude<SketchColour, 'ink'>, string>> = {
+export const SKETCH_INK: Record<'light' | 'dark', Record<Exclude<SketchColour, 'ink'>, string>> = {
   light: { red: '#c0392b', blue: '#2d6cb5', green: '#2f7d32', yellow: '#f2c230' },
   dark: { red: '#ff8a7a', blue: '#8cc2ff', green: '#7bd88f', yellow: '#f5d76e' },
 };

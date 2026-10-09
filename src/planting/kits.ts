@@ -162,24 +162,30 @@ function placeIn(f: Feature, bed: KitBed, plantOf: (id: string) => Plant): { ite
  */
 export function applyKit(g: Garden, kit: Kit, plantOf: (id: string) => Plant | null, today: string): Garden {
   const beds = g.features.filter(isContainer);
-  const known = (id: string) => plantOf(id)!;
   let next = g;
   kit.beds.forEach((bed, i) => {
     const f = beds[i];
-    if (!f) return;
-    const usable = { ...bed, items: bed.items.filter((it) => plantOf(it.plant)) };
-    for (const { item, start, end } of placeIn(f, usable, known)) {
-      const plant = known(item.plant);
-      const pl = makePlanting(plant, f.id, item.layout, start, item.layout === 'single' ? undefined : end);
-      next = addPlanting(next, pl);
-      if (item.batches && item.layout !== 'single') {
-        const how = sowingOf(plant);
-        const months = (plant.sowing ?? []).filter((x) => (how === 'direct' ? x.method === 'direct' : x.method !== 'direct')).flatMap((x) => x.months);
-        const first = nextInMonths(addDays(today, 1), months.length ? months : (plant.sowing ?? []).flatMap((x) => x.months)) ?? today;
-        next = splitIntoBatches(next, pl.id, plant, item.batches, 21, first);
-      }
-    }
+    if (f) next = plantKitBed(next, f, bed, plantOf, today);
   });
   for (const id of kitPlants(kit)) if (plantOf(id) && !next.wishlist.includes(id)) next = toggleWishlist(next, id);
+  return next;
+}
+
+/** One kit bed's plants, set out in a bed or pot. Salads in batches start at their next sowing time from `today`. */
+export function plantKitBed(g: Garden, f: Feature, bed: KitBed, plantOf: (id: string) => Plant | null, today: string): Garden {
+  const known = (id: string) => plantOf(id)!;
+  const usable = { ...bed, items: bed.items.filter((it) => plantOf(it.plant)) };
+  let next = g;
+  for (const { item, start, end } of placeIn(f, usable, known)) {
+    const plant = known(item.plant);
+    const pl = makePlanting(plant, f.id, item.layout, start, item.layout === 'single' ? undefined : end);
+    next = addPlanting(next, pl);
+    if (item.batches && item.layout !== 'single') {
+      const how = sowingOf(plant);
+      const months = (plant.sowing ?? []).filter((x) => (how === 'direct' ? x.method === 'direct' : x.method !== 'direct')).flatMap((x) => x.months);
+      const first = nextInMonths(addDays(today, 1), months.length ? months : (plant.sowing ?? []).flatMap((x) => x.months)) ?? today;
+      next = splitIntoBatches(next, pl.id, plant, item.batches, 21, first);
+    }
+  }
   return next;
 }

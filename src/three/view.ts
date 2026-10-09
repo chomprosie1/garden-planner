@@ -4,20 +4,26 @@
 // It turns a scene from src/three/scene.ts into meshes: ground and surfaces
 // with the plan's own textures, beds and pots with their edging and soil,
 // walls, fences, hedges and buildings at their heights with pitched roofs,
-// trees in their shapes, and each plant as crossed pictures drawn from the
-// side (one instanced mesh for every plant drawn the same way). The sun is a
-// light with real shadows. Read-only: drag to turn, two fingers (or a right-drag) to move, pinch or scroll to
-// zoom, double-tap to go somewhere, and tap for a name.
+// trees in their shapes with canopies of leaf clusters, and each plant as
+// crossed pictures drawn from the side (one instanced mesh for every plant
+// drawn the same way). The lawn follows the season, frost lies on a frosty
+// morning, and sketches lie on the ground. The sun is a light with real
+// shadows. Read-only: drag to turn, two fingers (or a right-drag) to move,
+// pinch or scroll to zoom, double-tap to go somewhere, and tap for a name. Or
+// walk through it at eye height, never through a wall or a bed (walk.ts).
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { drawPlant, hashString, mixHex, type Paint } from '../art/plants';
+import { drawPlant, hashString, mixHex, seeded, shadeHex, type Paint } from '../art/plants';
 import { drawPlantSide } from '../art/side';
 import { drawEdgingTile, drawHedgeTile, drawMaterialTile, EDGING_TILE_MM, MATERIAL_TILE_MM, materialColour } from '../canvas/materials';
+import { SKETCH_INK } from '../canvas/render';
+import type { TreeLeaf } from '../model/trees';
 import type { Material, Point } from '../model/types';
 import { LOOKS, type LookId, type Mode, type PlanPalette } from '../theme/looks';
 import { TRUNK_SHARE, type PlantGroup, type Scene3, type Solid, type Tree3 } from './scene';
+import { BODY_MM, EYE_MM, obstaclesOf, PACE_MM, step, walkStart, walkTowards, type Obstacle } from './walk';
 
 export type Preset = 'above' | 'standing';
 
@@ -93,23 +99,69 @@ function tileTexture(draw: (c: CanvasRenderingContext2D) => void, metresPerTile:
   return t;
 }
 
+/**
+ * A tile with the season over it: a greener or paler lawn (tone above or below 0, as on the plan), and frost (0 to 1)
+ * as a white rime with a sparkle of crystals.
+ */
+function seasonTile(draw: (c: CanvasRenderingContext2D) => void, tone: number, frost: number): (c: CanvasRenderingContext2D) => void {
+  return (c) => {
+    draw(c);
+    if (tone) {
+      c.fillStyle = tone > 0 ? `rgba(70, 150, 50, ${Math.min(0.3, tone * 0.22)})` : `rgba(196, 176, 112, ${Math.min(0.35, -tone * 0.3)})`;
+      c.fillRect(0, 0, 64, 64);
+    }
+    if (frost > 0) {
+      c.fillStyle = `rgba(236, 242, 246, ${0.6 * frost})`;
+      c.fillRect(0, 0, 64, 64);
+      const rnd = seeded(7);
+      c.fillStyle = `rgba(255, 255, 255, ${0.9 * frost})`;
+      for (let i = 0; i < 70; i++) c.fillRect(Math.floor(rnd() * 64), Math.floor(rnd() * 64), 1, 1);
+    }
+  };
+}
+
+/** A flat ribbon along a line on the ground, `width` mm wide, for a pen mark or an arrow. */
+function ribbonGeometry(pts: Point[], width: number, lift: number): THREE.BufferGeometry {
+  const pos: number[] = [];
+  const idx: number[] = [];
+  const half = width / 2;
+  pts.forEach((p, i) => {
+    const a = pts[Math.max(0, i - 1)]!;
+    const b = pts[Math.min(pts.length - 1, i + 1)]!;
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    const nx = (-(b[1] - a[1]) / len) * half;
+    const ny = ((b[0] - a[0]) / len) * half;
+    for (const k of [1, -1]) {
+      const v = v3(p[0] + nx * k, p[1] + ny * k);
+      pos.push(v.x, lift, v.z);
+    }
+    if (i) idx.push(2 * i - 2, 2 * i - 1, 2 * i, 2 * i - 1, 2 * i + 1, 2 * i);
+  });
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
 const SIDE_PX = 128;
 
-/** A plant's side and top pictures, as textures. */
-function plantTextures(grp: PlantGroup): { side: THREE.CanvasTexture; top: THREE.CanvasTexture } {
+/** A plant's side and top pictures, as textures; at twice the size (finer leaves) when you're walking among them. */
+function plantTextures(grp: PlantGroup, detail: boolean): { side: THREE.CanvasTexture; top: THREE.CanvasTexture } {
+  const px = SIDE_PX * (detail ? 2 : 1);
   const ratio = Math.max(0.25, Math.min(4, grp.heightMm / Math.max(1, grp.spreadMm)));
   const side = document.createElement('canvas');
-  side.width = SIDE_PX;
-  side.height = Math.round(Math.max(32, Math.min(512, SIDE_PX * ratio)));
+  side.width = px;
+  side.height = Math.round(Math.max(32, Math.min(512 * (detail ? 2 : 1), px * ratio)));
   const sc = side.getContext('2d')!;
-  sc.translate(SIDE_PX / 2, side.height);
-  drawPlantSide(sc, { art: grp.art, look: grp.look, w: SIDE_PX * 0.94, h: side.height * 0.97, seed: hashString(grp.plantId) });
+  sc.translate(px / 2, side.height);
+  drawPlantSide(sc, { art: grp.art, look: grp.look, w: px * 0.94, h: side.height * 0.97, seed: hashString(grp.plantId) });
   const top = document.createElement('canvas');
-  top.width = top.height = 128;
+  top.width = top.height = px;
   const tc = top.getContext('2d')!;
-  tc.translate(64, 64);
+  tc.translate(px / 2, px / 2);
   const paint: Paint = { style: 'wash', mode: 'light', ink: '#3a3a30', paper: '#f6f1e7', soil: '#7a5a3c' };
-  drawPlant(tc, { art: grp.art, look: { ...grp.look, ghost: false }, r: 56, paint, seed: hashString(grp.plantId) });
+  drawPlant(tc, { art: grp.art, look: { ...grp.look, ghost: false }, r: px * 0.44, paint, seed: hashString(grp.plantId) });
   const out = { side: new THREE.CanvasTexture(side), top: new THREE.CanvasTexture(top) };
   out.side.colorSpace = out.top.colorSpace = THREE.SRGBColorSpace;
   return out;
@@ -160,10 +212,102 @@ function canopyGeometry(seed: number): THREE.BufferGeometry {
   return g;
 }
 
+/**
+ * A cluster of leaves of one shape, drawn by code on a clear background, for the cards a canopy is built from: broad
+ * (a birch, an apple), lobed (a maple, an oak), feathery (a rowan, an elder), needles (a pine, a yew) or straps (an
+ * olive, a willow). Blossom, in season, as small flowers among them.
+ */
+function leafCluster(leaf: TreeLeaf, foliage: string, blossom: string | undefined, seed: number): HTMLCanvasElement {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const ctx = c.getContext('2d')!;
+  const rnd = seeded(seed);
+  ctx.translate(64, 64);
+  const count = leaf === 'needle' ? 34 : leaf === 'feathery' ? 14 : leaf === 'strap' ? 26 : 30;
+  for (let i = 0; i < count; i++) {
+    const a = rnd() * Math.PI * 2;
+    const d = Math.sqrt(rnd()) * 40;
+    ctx.save();
+    ctx.translate(Math.cos(a) * d, Math.sin(a) * d);
+    ctx.rotate(rnd() * Math.PI * 2);
+    ctx.fillStyle = ctx.strokeStyle = shadeHex(foliage, (rnd() - 0.55) * 0.45);
+    ctx.lineCap = 'round';
+    switch (leaf) {
+      case 'broad':
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(9, -10, 0, -24);
+        ctx.quadraticCurveTo(-9, -10, 0, 0);
+        ctx.fill();
+        break;
+      case 'lobed':
+        // Five pointed lobes from one point, like a maple's.
+        for (let k = -2; k <= 2; k++) {
+          ctx.save();
+          ctx.rotate(k * 0.55);
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.quadraticCurveTo(6, -9, 0, -(k === 0 ? 22 : 16));
+          ctx.quadraticCurveTo(-6, -9, 0, 0);
+          ctx.fill();
+          ctx.restore();
+        }
+        break;
+      case 'feathery': {
+        // A stalk with pairs of small leaflets along it.
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, -34);
+        ctx.stroke();
+        for (let k = 1; k <= 6; k++)
+          for (const side of [-1, 1]) {
+            ctx.beginPath();
+            ctx.ellipse(side * 5, -k * 5.2, 5, 2.2, side * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        break;
+      }
+      case 'needle':
+        // A tuft of fine needles.
+        ctx.lineWidth = 1.4;
+        for (let k = -4; k <= 4; k++) {
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(Math.sin(k * 0.22) * 18, -Math.cos(k * 0.22) * 18);
+          ctx.stroke();
+        }
+        break;
+      case 'strap':
+        ctx.beginPath();
+        ctx.ellipse(0, -14, 3, 14, 0, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+    }
+    ctx.restore();
+  }
+  if (blossom) {
+    for (let i = 0; i < 26; i++) {
+      const a = rnd() * Math.PI * 2;
+      const d = Math.sqrt(rnd()) * 46;
+      ctx.fillStyle = shadeHex(blossom, (rnd() - 0.5) * 0.2);
+      ctx.beginPath();
+      ctx.arc(Math.cos(a) * d, Math.sin(a) * d, 3.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  return c;
+}
+
+/** How many leaf cards make a canopy: enough to read as leaves, more on a big tree, never so many it's slow. */
+export const leafCards = (rx: number, ry: number) => Math.round(Math.max(40, Math.min(420, rx * ry * 34)));
+
 interface Pickable {
   name?: string;
   /** For instanced plants: the planting each instance belongs to. */
   plantingIds?: string[];
+  /** Open ground: a tap while walking walks you there. */
+  ground?: boolean;
 }
 
 export class GardenView {
@@ -185,6 +329,19 @@ export class GardenView {
   private bounds = { minX: 0, maxX: 0, minZ: 0, maxZ: 0 };
   /** Gliding to a spot you double-tapped: where the camera and the point it turns round go, from where, and when. */
   private glide: { from: [THREE.Vector3, THREE.Vector3]; to: [THREE.Vector3, THREE.Vector3]; start: number } | null = null;
+  /** The scene shown, for walking round it and for redrawing it in finer detail. */
+  private last: { s: Scene3; style: ViewStyle } | null = null;
+  private obstacles: Obstacle[] = [];
+  /** Plants drawn at twice the detail, once you've walked in among them. */
+  private detail = false;
+  /** Walking at eye height: where you are (garden mm), which way you face (radians, 0 along the plan, anticlockwise), and looking up or down. */
+  private walking: { at: Point; heading: number; pitch: number; target: Point | null } | null = null;
+  /** Keys or the thumb pad: forward, sideways (right) and turning (right), each -1 to 1. */
+  private move = { forward: 0, strafe: 0, turn: 0 };
+  private lastTime = performance.now();
+  /** The frost shown (0 to 1, in tenths), and how to change what it lies on. */
+  private frost = -1;
+  private frostables: ((frost: number) => void)[] = [];
 
   constructor(canvas: HTMLCanvasElement, opts: { phone: boolean }) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: false });
@@ -215,8 +372,13 @@ export class GardenView {
     this.scene.add(this.sky, this.sun, this.sun.target, this.world);
     const loop = () => {
       this.frame = requestAnimationFrame(loop);
+      const now = performance.now();
+      const dt = Math.min(0.1, (now - this.lastTime) / 1000);
+      this.lastTime = now;
       this.stepGlide();
-      if (this.controls.update() || this.dirty) {
+      this.stepWalk(dt);
+      const turned = this.walking ? false : this.controls.update();
+      if (turned || this.dirty) {
         this.dirty = false;
         this.renderer.render(this.scene, this.camera);
       }
@@ -248,12 +410,21 @@ export class GardenView {
       s.groups.map((g) => `${g.key}:${g.spots.length}`).join(','),
       s.trees.map((t) => `${t.bare ? 'b' : ''}${t.blossom ?? ''}${t.fruit ?? ''}${t.ghost ? 'g' : ''}${Math.round(t.heightMm)}`).join(','),
       s.solids.map((x) => (x.bare ? 'b' : '')).join(''),
+      this.detail,
     ].join('|');
     const first = !this.contentKey;
+    this.last = { s, style };
+    this.obstacles = obstaclesOf(s);
     if (key !== this.contentKey || gardenKey !== this.lastGarden) {
       this.contentKey = key;
       this.lastGarden = gardenKey;
       this.build(s, style);
+    }
+    // Frost thins through the day: new textures on what it touches, nothing rebuilt.
+    const frost = Math.round(s.frost * 10) / 10;
+    if (frost !== this.frost) {
+      this.frost = frost;
+      for (const f of this.frostables) f(frost);
     }
     this.names = s.names;
     this.light(s);
@@ -299,21 +470,34 @@ export class GardenView {
     const beyond = new THREE.Mesh(new THREE.CircleGeometry(this.extent * 6, 48).rotateX(-Math.PI / 2).translate(this.centre.x, -0.02, this.centre.z), std({ color: mixHex(P.paper, P.lawnAlt.startsWith('#') ? P.lawnAlt : '#9aa880', 0.35) }));
     beyond.receiveShadow = true;
     add(beyond);
-    const ground = new THREE.Mesh(flatGeometry(s.ground, 0), std({ color: mixHex(P.paper.startsWith('#') ? P.paper : '#f0ead8', '#8a7a5a', 0.3) }));
+    // Frost comes and goes with the time of day, so what it touches is changed in place (see setFrost), not rebuilt.
+    this.frostables = [];
+    const frosty = (mat: THREE.MeshStandardMaterial, colour: string | null, tile: ((frost: number) => THREE.Texture) | null) =>
+      this.frostables.push((fr) => {
+        if (colour) mat.color.set(fr ? mixHex(colour, '#eef3f6', 0.5 * fr) : colour);
+        if (tile) mat.map = tile(fr);
+      });
+    const earth = mixHex(P.paper.startsWith('#') ? P.paper : '#f0ead8', '#8a7a5a', 0.3);
+    const groundMat = std({ color: earth });
+    frosty(groundMat, earth, null);
+    const ground = new THREE.Mesh(flatGeometry(s.ground, 0), groundMat);
     ground.receiveShadow = true;
-    add(ground);
+    add(ground, { ground: true });
 
     // Flat things, each a little above the one before. A few millimetres isn't enough for the depth buffer from far off or
     // low down (paving over a lawn let the lawn flicker through), so each layer is also drawn in order and pulled towards
-    // the camera by its layer: the one on top always wins.
+    // the camera by its layer: the one on top always wins. The lawn takes its season, and frost goes on a tenth at a time,
+    // so a few textures serve.
+    const tone = Math.round(s.lawn * 10) / 10;
+    const seasonal = (m: Material, t: number) => (fr: number) => this.texture(`${tk}:${m}:${t}:${fr}`, () => tileTexture(seasonTile((c) => drawMaterialTile(c, m, P, mode), t, fr), MATERIAL_TILE_MM[m] * M));
     s.flats.forEach((f, i) => {
       const lift = 0.002 + i * 0.0015;
-      let mat: THREE.Material;
+      let mat: THREE.MeshStandardMaterial;
       if (f.material === 'water') mat = std({ color: P.water, roughness: 0.12, metalness: 0.15 });
-      else if (f.material === 'path') mat = std({ color: P.path });
+      else if (f.material === 'path') frosty((mat = std({ color: P.path })), P.path, null);
       else {
-        const m = f.material as Material;
-        mat = std({ map: this.texture(`${tk}:${m}`, () => tileTexture((c) => drawMaterialTile(c, m, P, mode), MATERIAL_TILE_MM[m] * M)) });
+        const tile = seasonal(f.material as Material, f.material === 'lawn' ? tone : 0);
+        frosty((mat = std({ map: tile(0) })), null, tile);
       }
       mat.polygonOffset = true;
       mat.polygonOffsetFactor = -(i + 1);
@@ -321,16 +505,23 @@ export class GardenView {
       const mesh = new THREE.Mesh(flatGeometry(f.polygon, lift), mat);
       mesh.renderOrder = i + 1;
       mesh.receiveShadow = true;
-      add(mesh, { name: f.name });
+      add(mesh, { name: f.name, ground: f.material !== 'water' });
     });
+    this.sketches(s, P, mode, 0.004 + s.flats.length * 0.0015, add);
 
-    const soil = this.texture(`${tk}:soil`, () => tileTexture((c) => drawMaterialTile(c, 'soil', P, mode), MATERIAL_TILE_MM.soil * M));
-    const soilMat = () => std({ map: soil });
+    const soil = seasonal('soil', 0);
+    // Under glass, no frost.
+    const soilMat = (covered?: boolean) => {
+      const mat = std({ map: soil(0) });
+      if (!covered) frosty(mat, null, soil);
+      return mat;
+    };
     const glass = () => std({ color: P.glass.startsWith('#') ? P.glass : '#cfe6ee', roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.28, depthWrite: false, side: THREE.DoubleSide });
 
     for (const x of s.solids) this.solid(x, P, mode, tk, std, soilMat, glass, add);
     for (const t of s.trees) this.tree(t, std, add);
     for (const g of s.groups) this.plants(g);
+    this.frost = -1;
   }
 
   private solid(
@@ -339,7 +530,7 @@ export class GardenView {
     mode: Mode,
     tk: string,
     std: (o: THREE.MeshStandardMaterialParameters) => THREE.MeshStandardMaterial,
-    soilMat: () => THREE.Material,
+    soilMat: (covered?: boolean) => THREE.Material,
     glass: () => THREE.Material,
     add: (o: THREE.Object3D, pick?: Pickable) => THREE.Object3D,
   ): void {
@@ -354,8 +545,8 @@ export class GardenView {
     const timber = () => std({ map: this.texture(`${tk}:timber`, () => tileTexture((c) => drawEdgingTile(c, 'timber', P, mode), EDGING_TILE_MM.timber * M)) });
     switch (x.kind) {
       case 'bed': {
-        const side = x.edging ? std({ map: this.texture(`${tk}:${x.edging}`, () => tileTexture((c) => drawEdgingTile(c, x.edging!, P, mode), EDGING_TILE_MM[x.edging!] * M)) }) : soilMat();
-        solidMesh(prismGeometry(x.polygon, x.heightMm), [soilMat(), side], !!x.edging);
+        const side = x.edging ? std({ map: this.texture(`${tk}:${x.edging}`, () => tileTexture((c) => drawEdgingTile(c, x.edging!, P, mode), EDGING_TILE_MM[x.edging!] * M)) }) : soilMat(x.covered);
+        solidMesh(prismGeometry(x.polygon, x.heightMm), [soilMat(x.covered), side], !!x.edging);
         return;
       }
       case 'pot': {
@@ -364,15 +555,15 @@ export class GardenView {
         const h = x.heightMm * M;
         const pot = solidMesh(new THREE.CylinderGeometry(r, r * 0.8, h, 28, 1, true).translate(0, h / 2, 0), std({ color: mode === 'dark' ? '#8a4a2c' : '#b5653a', side: THREE.DoubleSide }));
         pot.position.copy(v3(c.centre[0], c.centre[1]));
-        const top = solidMesh(new THREE.CircleGeometry(r * 0.94, 28).rotateX(-Math.PI / 2).translate(0, h - 0.03, 0), soilMat(), false);
+        const top = solidMesh(new THREE.CircleGeometry(r * 0.94, 28).rotateX(-Math.PI / 2).translate(0, h - 0.03, 0), soilMat(x.covered), false);
         top.position.copy(pot.position);
         return;
       }
       case 'planter':
-        solidMesh(prismGeometry(x.polygon, x.heightMm), [soilMat(), std({ color: mode === 'dark' ? '#4a443c' : '#5a5048' })]);
+        solidMesh(prismGeometry(x.polygon, x.heightMm), [soilMat(x.covered), std({ color: mode === 'dark' ? '#4a443c' : '#5a5048' })]);
         return;
       case 'cold-frame':
-        solidMesh(prismGeometry(x.polygon, Math.min(250, x.heightMm)), [soilMat(), timber()]);
+        solidMesh(prismGeometry(x.polygon, Math.min(250, x.heightMm)), [soilMat(x.covered), timber()]);
         solidMesh(prismGeometry(x.polygon, x.heightMm, Math.min(250, x.heightMm)), glass(), false);
         return;
       case 'greenhouse':
@@ -449,20 +640,25 @@ export class GardenView {
       haze.position.y = cy;
       group.add(haze);
     } else {
+      // A solid core, darker, so the gaps between the leaves show shade rather than sky; then a shell of leaf clusters
+      // round it, in the tree's own leaf shape, so a birch, a pine and a copper beech look different. A ghost (only
+      // planned) is the plain shape.
       const colour = t.blossom ? mixHex(t.foliage, t.blossom, 0.5) : t.foliage;
-      const leaves = std({ color: colour, ...fade });
+      const leaves = std({ color: t.ghost ? colour : shadeHex(t.foliage, -0.18), ...fade });
+      const flat = t.shape === 'spreading' ? 0.75 : 1;
+      const core = t.ghost ? 1 : 0.72;
       const canopy =
         t.shape === 'conical'
-          ? new THREE.Mesh(new THREE.ConeGeometry(rx, h - low, 18, 3).translate(0, low + (h - low) / 2, 0), leaves)
+          ? new THREE.Mesh(new THREE.ConeGeometry(rx * core, (h - low) * core, 18, 3).translate(0, low + ((h - low) * core) / 2, 0), leaves)
           : new THREE.Mesh(canopyGeometry(hashString(t.id)), leaves);
       if (t.shape !== 'conical') {
-        const flat = t.shape === 'spreading' ? 0.75 : 1;
-        canopy.scale.set(rx, ry * flat, rx);
+        canopy.scale.set(rx * core, ry * flat * core, rx * core);
         canopy.position.y = cy - (1 - flat) * ry * 0.5;
       }
       canopy.castShadow = !t.ghost;
       canopy.receiveShadow = true;
       group.add(canopy);
+      if (!t.ghost) group.add(this.leafShell(t, rx, ry * flat, t.shape === 'conical' ? null : cy - (1 - flat) * ry * 0.5, low, h));
       if (t.fruit) {
         // A dozen fruit round the outside of the canopy.
         const fruit = new THREE.InstancedMesh(new THREE.SphereGeometry(Math.max(0.035, r * 0.05), 8, 6), std({ color: t.fruit }), 14);
@@ -481,13 +677,118 @@ export class GardenView {
     add(group, pick);
   }
 
+  /**
+   * Leaf cards spread over a canopy's surface and a little inside it, each facing outwards with a random twist: a
+   * round or oval canopy centred at `cy`, or for a conifer (cy null) a cone from `low` to `h`.
+   */
+  private leafShell(t: Tree3, rx: number, ry: number, cy: number | null, low: number, h: number): THREE.InstancedMesh {
+    const key = `leaf:${t.leaf}:${t.foliage}:${t.blossom ?? ''}`;
+    const map = this.texture(key, () => {
+      const tex = new THREE.CanvasTexture(leafCluster(t.leaf, t.foliage, t.blossom, hashString(key)));
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    });
+    const n = leafCards(rx, cy === null ? (h - low) / 2 : ry);
+    const mat = new THREE.MeshStandardMaterial({ map, roughness: 0.9, alphaTest: 0.4, side: THREE.DoubleSide });
+    const mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), mat, n);
+    let s = hashString(t.id) ^ 0x2f;
+    const rnd = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32);
+    const size = Math.max(0.35, Math.min(1.1, Math.max(rx, ry) * 0.5));
+    const m = new THREE.Matrix4();
+    const q = new THREE.Quaternion();
+    const out = new THREE.Vector3();
+    const z = new THREE.Vector3(0, 0, 1);
+    const roll = new THREE.Quaternion();
+    for (let i = 0; i < n; i++) {
+      // Evenly round the canopy (a spiral), a little in or out of its surface.
+      const u = (i + 0.5) / n;
+      const a = i * 2.39996 + rnd() * 0.4;
+      const depth = 0.78 + rnd() * 0.3;
+      let pos: THREE.Vector3;
+      if (cy === null) {
+        const y = low + (h - low) * Math.pow(u, 0.8);
+        const r = rx * (1 - (y - low) / (h - low)) * depth;
+        pos = new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r);
+        out.set(Math.cos(a), 0.45, Math.sin(a)).normalize();
+      } else {
+        const yy = 1 - 2 * u;
+        const ring = Math.sqrt(1 - yy * yy);
+        out.set(Math.cos(a) * ring, yy, Math.sin(a) * ring);
+        pos = new THREE.Vector3(out.x * rx * depth, cy + out.y * ry * depth, out.z * rx * depth);
+      }
+      q.setFromUnitVectors(z, out);
+      roll.setFromAxisAngle(z, rnd() * Math.PI * 2);
+      q.multiply(roll);
+      const k = size * (0.75 + rnd() * 0.5);
+      m.compose(pos, q, new THREE.Vector3(k, k, k));
+      mesh.setMatrixAt(i, m);
+    }
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    mesh.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map, alphaTest: 0.4 });
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.computeBoundingSphere();
+    return mesh;
+  }
+
+  /** Pen marks, highlighter and arrows lying on the ground, and words standing just above it, as on the plan. */
+  private sketches(s: Scene3, P: PlanPalette, mode: Mode, lift: number, add: (o: THREE.Object3D, pick?: Pickable) => THREE.Object3D): void {
+    for (const k of s.sketches) {
+      const colour = k.colour === 'ink' ? P.label : SKETCH_INK[mode][k.colour];
+      if (k.kind === 'text') {
+        const text = k.text;
+        if (!text || !k.points[0]) continue;
+        const px = 48;
+        // Kept with the other textures, so a rebuild reuses it rather than making another.
+        const tex = this.texture(`sketch:${colour}:${text}`, () => {
+          const c = document.createElement('canvas');
+          const ctx = c.getContext('2d')!;
+          ctx.font = `600 ${px}px system-ui, sans-serif`;
+          c.width = Math.ceil(ctx.measureText(text).width) + 16;
+          c.height = px + 16;
+          ctx.font = `600 ${px}px system-ui, sans-serif`;
+          ctx.fillStyle = colour;
+          ctx.textBaseline = 'middle';
+          ctx.fillText(text, 8, c.height / 2);
+          const t = new THREE.CanvasTexture(c);
+          t.colorSpace = THREE.SRGBColorSpace;
+          return t;
+        });
+        const img = tex.image as HTMLCanvasElement;
+        const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthWrite: false }));
+        // Letters as tall as they're drawn on the plan (its text size is the sketch's width), at least a hand's height.
+        const h = Math.max(0.12, (k.widthMm / 1000) * (img.height / px));
+        sprite.scale.set((h * img.width) / img.height, h, 1);
+        sprite.position.copy(v3(k.points[0][0], k.points[0][1], 300));
+        add(sprite);
+        continue;
+      }
+      if (k.points.length < 2) continue;
+      const highlighter = k.kind === 'highlighter';
+      const mat = new THREE.MeshBasicMaterial({ color: colour, side: THREE.DoubleSide, transparent: highlighter, opacity: highlighter ? 0.4 : 1, depthWrite: !highlighter, polygonOffset: true, polygonOffsetFactor: -40, polygonOffsetUnits: -160 });
+      const width = Math.max(30, k.widthMm);
+      add(new THREE.Mesh(ribbonGeometry(k.points, width, lift), mat));
+      if (k.kind === 'arrow') {
+        // The head: a triangle at the last point, pointing along the last stretch.
+        const [a, b] = [k.points[k.points.length - 2]!, k.points[k.points.length - 1]!];
+        const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+        const [ux, uy] = [(b[0] - a[0]) / len, (b[1] - a[1]) / len];
+        const size = Math.max(250, width * 5);
+        const back: Point = [b[0] - ux * size, b[1] - uy * size];
+        const tri = [b, [back[0] - uy * size * 0.5, back[1] + ux * size * 0.5] as Point, [back[0] + uy * size * 0.5, back[1] - ux * size * 0.5] as Point];
+        add(new THREE.Mesh(flatGeometry(tri, lift + 0.0005), mat));
+      }
+    }
+  }
+
   private plants(g: PlantGroup): void {
-    const textures = this.texture(`plant:${g.key}:side`, () => {
-      const t = plantTextures(g);
-      this.textures.set(`plant:${g.key}:top`, t.top);
+    const k = `plant:${g.key}:${this.detail ? 2 : 1}`;
+    const textures = this.texture(`${k}:side`, () => {
+      const t = plantTextures(g, this.detail);
+      this.textures.set(`${k}:top`, t.top);
       return t.side;
     });
-    const top = this.textures.get(`plant:${g.key}:top`)!;
+    const top = this.textures.get(`${k}:top`)!;
     const ghost = g.look.ghost;
     const mat = (map: THREE.Texture) =>
       new THREE.MeshStandardMaterial({ map, roughness: 0.95, alphaTest: ghost ? 0.05 : 0.45, ...(ghost ? { transparent: true, opacity: 0.4, depthWrite: false } : {}) });
@@ -552,8 +853,123 @@ export class GardenView {
     this.dirty = true;
   }
 
+  get isWalking(): boolean {
+    return !!this.walking;
+  }
+
+  /** Walks into the garden at eye height, from the bottom of the plan looking up it. Plants are redrawn finer. */
+  startWalk(): void {
+    if (!this.last) return;
+    this.glide = null;
+    const { at, heading } = walkStart(this.last.s, this.obstacles);
+    this.walking = { at, heading, pitch: -0.12, target: null };
+    this.controls.enabled = false;
+    if (!this.detail) {
+      this.detail = true;
+      this.show(this.last.s, this.last.style, this.lastGarden);
+    }
+    this.placeEye();
+  }
+
+  private stopWalk(): void {
+    if (!this.walking) return;
+    this.walking = null;
+    this.move = { forward: 0, strafe: 0, turn: 0 };
+    this.controls.enabled = true;
+  }
+
+  /** Walking from the keys or the thumb pad, each -1 to 1. Any of it stops a walk to a tapped spot. */
+  setMove(forward: number, strafe: number, turn: number): void {
+    this.move = { forward, strafe, turn };
+    if (this.walking && (forward || strafe || turn)) this.walking.target = null;
+  }
+
+  /** Looking round by dragging, in screen pixels: the view follows your finger, as when turning round the garden. */
+  look(dx: number, dy: number): void {
+    const w = this.walking;
+    if (!w) return;
+    w.heading += dx * 0.004;
+    w.pitch = Math.max(-1.1, Math.min(0.9, w.pitch + dy * 0.004));
+    this.placeEye();
+  }
+
+  /**
+   * A tap while walking: on open ground (lawn, paths, paving), walk there, as far as you can get; on anything else,
+   * its name. Returns the name, or null.
+   */
+  walkTap(clientX: number, clientY: number): string | null {
+    const w = this.walking;
+    if (!w || !this.last) return null;
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    const ray = new THREE.Raycaster();
+    ray.setFromCamera(new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1), this.camera);
+    for (const h of ray.intersectObjects(this.world.children, true)) {
+      let o: THREE.Object3D | null = h.object;
+      while (o && !o.userData.pick) o = o.parent;
+      const p = o?.userData.pick as Pickable | undefined;
+      if (!p) continue;
+      if (p.ground) {
+        const end = walkTowards(this.last.s, this.obstacles, w.at, [Math.round(h.point.x / M), Math.round(-h.point.z / M)]);
+        w.target = end;
+        return null;
+      }
+      if (p.plantingIds && h.instanceId !== undefined) {
+        const id = p.plantingIds[h.instanceId];
+        if (id && this.names[id]) return this.names[id]!;
+        continue;
+      }
+      if (p.name) return p.name;
+    }
+    return null;
+  }
+
+  /** The camera at eye height where you stand, looking the way you face. */
+  private placeEye(): void {
+    const w = this.walking;
+    if (!w) return;
+    const eye = v3(w.at[0], w.at[1], EYE_MM);
+    this.camera.position.copy(eye);
+    const look = new THREE.Vector3(Math.cos(w.heading) * Math.cos(w.pitch), Math.sin(w.pitch), -Math.sin(w.heading) * Math.cos(w.pitch));
+    this.camera.lookAt(eye.add(look));
+    this.dirty = true;
+  }
+
+  /** One frame of walking: from the keys or thumb pad, or on towards a tapped spot, never through anything. */
+  private stepWalk(dt: number): void {
+    const w = this.walking;
+    if (!w || !this.last || !dt) return;
+    const { forward, strafe, turn } = this.move;
+    if (turn) w.heading -= turn * 1.6 * dt;
+    let to: Point | null = null;
+    const [fx, fy] = [Math.cos(w.heading), Math.sin(w.heading)];
+    if (forward || strafe) {
+      const d = PACE_MM * dt;
+      // Right of where you face is a quarter turn clockwise.
+      to = [w.at[0] + (fx * forward + fy * strafe) * d, w.at[1] + (fy * forward - fx * strafe) * d];
+    } else if (w.target) {
+      const [dx, dy] = [w.target[0] - w.at[0], w.target[1] - w.at[1]];
+      const dist = Math.hypot(dx, dy);
+      if (dist < BODY_MM / 5) w.target = null;
+      else {
+        const k = Math.min(1, (PACE_MM * 1.5 * dt) / dist);
+        to = [w.at[0] + dx * k, w.at[1] + dy * k];
+        // Turn to face the way you're going, gently.
+        let diff = Math.atan2(dy, dx) - w.heading;
+        diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+        w.heading += diff * Math.min(1, dt * 5);
+      }
+    }
+    if (to) {
+      const next = step(this.last.s, this.obstacles, w.at, to);
+      if (next[0] === w.at[0] && next[1] === w.at[1]) w.target = null;
+      w.at = next;
+    }
+    if (turn || to) this.placeEye();
+  }
+
   /** Looking down over the garden from the bottom of the plan, or standing at its bottom edge. */
   preset(p: Preset): void {
+    this.stopWalk();
     this.glide = null;
     const c = this.centre;
     // A tall, narrow screen (a phone) needs to stand further back to see the whole garden.

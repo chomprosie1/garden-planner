@@ -11,6 +11,7 @@ import { BackupCard, GardenCard, GardenName, JournalCard, MomentCard, SaveIndica
 import { FrostCard, UvCard } from '../WeatherCards';
 import { WeekCard } from '../WeekCard';
 import { KitchenCard } from '../Kitchen';
+import { InspireCard } from '../Inspire';
 import { SeasonCard } from '../Wrapped';
 import { InstallCard } from '../Install';
 import { Icon } from '../icons';
@@ -137,6 +138,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
         {plants && <WeekCard garden={garden} plantOf={plantOf} />}
         {plants && <KitchenCard garden={garden} plantOf={plantOf} />}
         <SetupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} />
+        <InspireCard store={store} garden={garden} />
         {plants && <BehindCard store={store} garden={garden} plantOf={plantOf} />}
         <section class="card">
           <div class="card-head">

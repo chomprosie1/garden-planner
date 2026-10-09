@@ -10,9 +10,12 @@
 import { artFor, seasonal, stageLook, type Look } from '../art/plants';
 import { lookKey } from '../art/sprites';
 import { STAGE_LABEL, currentStage, type LifeStage } from '../lifecycle/stages';
-import { featureLabel, placeLabel, rectInfo } from '../model/features';
-import { treeType, type TreeShape } from '../model/trees';
-import type { Feature, Garden, Material, Plant, PlantArt, Planting, Point } from '../model/types';
+import { isCover, microclimateAt } from '../climate/microclimate';
+import { LAWN_BY_MONTH } from '../lifecycle/seasons';
+import { frostDatesUnder } from '../lifecycle/shed';
+import { featureLabel, pivotOf, placeLabel, rectInfo } from '../model/features';
+import { treeType, type TreeLeaf, type TreeShape } from '../model/trees';
+import type { Feature, Garden, Material, Plant, PlantArt, Planting, Point, Sketch } from '../model/types';
 import { plantPositions, sizedPlant, spreadOf } from '../planting/place';
 import { bearingToGarden, fromUkClock, sunAt } from '../sun/position';
 import { LEAF_MONTHS, TRUNK_SHARE } from '../sun/shadow';
@@ -55,6 +58,8 @@ export interface Solid {
   roof?: Roof;
   /** A deciduous hedge in winter. */
   bare?: boolean;
+  /** Inside a greenhouse or cold frame (or one itself): no frost on it. */
+  covered?: boolean;
 }
 
 export interface Tree3 {
@@ -74,6 +79,8 @@ export interface Tree3 {
   ghost?: boolean;
   /** The planting it is, for a fruit tree planted as a plant. */
   plantingId?: string;
+  /** The shape of its leaves, for the leaf clusters its canopy is made of. */
+  leaf: TreeLeaf;
 }
 
 /** One plant on the plan. */
@@ -121,6 +128,12 @@ export interface Scene3 {
   names: Record<string, string>;
   sun: Sun3 | null;
   month: number;
+  /** The lawn in its season: above 0 greener (spring), below 0 paler (a dry August). */
+  lawn: number;
+  /** Frost on the ground on a frosty day: thick first thing, thinner once the sun's been on it (0 to 1). */
+  frost: number;
+  /** Pen marks, arrows and words from the plan, lying on the ground. */
+  sketches: Sketch[];
 }
 
 export interface SceneInput {
@@ -247,6 +260,7 @@ export function buildScene(input: SceneInput): Scene3 {
         shape: type?.shape ?? 'round',
         bare: !!f.deciduous && !leafy,
         foliage: type?.foliage ?? '#5e8a4a',
+        leaf: type?.leaf ?? 'broad',
       });
       return;
     }
@@ -264,6 +278,7 @@ export function buildScene(input: SceneInput): Scene3 {
       ...(f.edging ? { edging: f.edging } : {}),
       ...(roof ? { roof } : {}),
       ...(f.kind === 'hedge' && f.deciduous && !leafy ? { bare: true } : {}),
+      ...(isCover(f) || microclimateAt(g, pivotOf(f)) ? { covered: true } : {}),
     });
   });
 
@@ -301,6 +316,7 @@ export function buildScene(input: SceneInput): Scene3 {
           ...(look.crop && art.crop ? { fruit: art.crop.colour } : {}),
           ...(look.ghost ? { ghost: true } : {}),
           plantingId: pl.id,
+          leaf: leafOf(art),
         });
       continue;
     }
@@ -343,7 +359,25 @@ export function buildScene(input: SceneInput): Scene3 {
     names,
     sun: sunIn(g, date, input.minutes),
     month,
+    lawn: LAWN_BY_MONTH[month - 1]!,
+    frost: frostOn(g, date, input.minutes ?? 13 * 60),
+    sketches: g.sketches ?? [],
   };
+}
+
+/** A plant's leaf as a tree's: round leaves (a fig's, a vine's) are drawn as broad ones. */
+export const leafOf = (art: PlantArt): TreeLeaf => (art.leaf === 'round' ? 'broad' : art.leaf);
+
+/**
+ * Frost between the first autumn frost and the last spring frost, the same days the plan shows it: white until 9 am,
+ * melting to a light rime by 1 pm, and that rime the rest of the day, as in shade.
+ */
+export function frostOn(g: Garden, date: string, minutes: number): number {
+  const f = frostDatesUnder(g, null);
+  if (!f) return 0;
+  const md = date.slice(5);
+  if (!(md >= f.firstFrost || md <= f.lastFrost)) return 0;
+  return minutes <= 9 * 60 ? 1 : minutes >= 13 * 60 ? 0.35 : 1 - (0.65 * (minutes - 540)) / 240;
 }
 
 

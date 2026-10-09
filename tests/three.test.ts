@@ -21,7 +21,8 @@ import { makeTree, treeType } from '../src/model/trees';
 import type { Feature, Garden, Plant, Planting, Point } from '../src/model/types';
 import { validatePlant } from '../src/model/validate';
 import { addPlanting, makePlanting, plantPositions, unknownPlant } from '../src/planting/place';
-import { buildScene, MAX_PLANTS, roofOf, soilHeight, solidHeight, sunIn, type Scene3 } from '../src/three/scene';
+import { buildScene, frostOn, leafOf, MAX_PLANTS, roofOf, soilHeight, solidHeight, sunIn, type Scene3 } from '../src/three/scene';
+import { BODY_MM, canStand, EDGE_MM, obstaclesOf, step, walk, walkStart, walkTowards } from '../src/three/walk';
 
 const library = [...vegetables, ...herbs, ...fruit, ...flowers, ...shrubs] as Plant[];
 const byId = new Map(library.map((p) => [p.id, p]));
@@ -339,5 +340,138 @@ describe('the garden in 3D', () => {
     expect(performance.now() - t0).toBeLessThan(400);
     expect(s.plantCount).toBeGreaterThan(1000);
     expect(s.groups.length).toBeLessThanOrEqual(ids.length);
+  });
+});
+
+// Release 17: walking through it, leaves you can recognise, and the season.
+describe('walking through the garden', () => {
+  const walkScene = () => scene(sample().g);
+
+  it('can’t walk through beds, buildings, fences, hedges, pots or tree trunks, but can on the lawn and paths', () => {
+    const s = walkScene();
+    const obs = obstaclesOf(s);
+    expect(canStand(s, obs, [5000, 3000])).toBe(true); // open lawn
+    expect(canStand(s, obs, [5000, 6000])).toBe(true); // the path
+    expect(canStand(s, obs, [2000, 5600])).toBe(false); // in the raised bed
+    expect(canStand(s, obs, [7000, 5600])).toBe(false); // in the border, though it has no edging
+    expect(canStand(s, obs, [8000, 7500])).toBe(false); // in the shed
+    expect(canStand(s, obs, [5000, 7950])).toBe(false); // against the fence
+    expect(canStand(s, obs, [9000, 3000])).toBe(false); // the pot
+    expect(canStand(s, obs, [4000, 2050])).toBe(false); // the birch's trunk
+    expect(canStand(s, obs, [4000, 2900])).toBe(true); // under its canopy
+  });
+
+  it('stops at a fence, and slides along a wall rather than sticking', () => {
+    const s = walkScene();
+    const obs = obstaclesOf(s);
+    const end = walk(s, obs, [5000, 7000], [5000, 9500]);
+    expect(end[1]).toBeLessThan(8000 - BODY_MM + 20);
+    // Walking up and to the right into the fence: you end up further right, still on this side.
+    const slid = walk(s, obs, [3000, 7300], [4000, 9000]);
+    expect(slid[0]).toBeGreaterThan(3500);
+    expect(slid[1]).toBeLessThan(8000);
+    expect(canStand(s, obs, slid)).toBe(true);
+  });
+
+  it('never steps through a thin fence, however big the step', () => {
+    const s = walkScene();
+    const obs = obstaclesOf(s);
+    expect(step(s, obs, [5000, 7600], [5000, 8600])).not.toEqual([5000, 8600]);
+    expect(walk(s, obs, [5000, 7600], [5000, 12000])[1]).toBeLessThan(8000);
+  });
+
+  it('starts somewhere you can stand, looking up the garden, even with something in the way', () => {
+    const s = walkScene();
+    const obs = obstaclesOf(s);
+    const { at, heading } = walkStart(s, obs);
+    expect(canStand(s, obs, at)).toBe(true);
+    expect(heading).toBeCloseTo(Math.PI / 2);
+    // A shed right where you'd start: you start beside it.
+    const g = addFeature(sample().g, makeFeature('building', { area: area(3500, 0, 3000, 2500) }));
+    const s2 = scene(g);
+    const obs2 = obstaclesOf(s2);
+    const start2 = walkStart(s2, obs2);
+    expect(canStand(s2, obs2, start2.at)).toBe(true);
+  });
+
+  it('walks towards a tapped spot as far as it can, or not at all when blocked', () => {
+    const s = walkScene();
+    const obs = obstaclesOf(s);
+    const end = walkTowards(s, obs, [5000, 3000], [6000, 3000])!;
+    expect(end[0]).toBeCloseTo(6000, 3);
+    expect(end[1]).toBeCloseTo(3000, 3);
+    const blocked = walkTowards(s, obs, [5000, 3000], [5000, 7400]);
+    expect(blocked).not.toBeNull();
+    expect(canStand(s, obs, blocked!)).toBe(true);
+    expect(walkTowards(s, obs, [5000, 7800], [5000, 9000])).toBeNull();
+  });
+
+  it('goes down a 35 cm path between two beds', () => {
+    let g = sample().g;
+    g = addFeature(g, makeFeature('bed', { area: area(3000, 2500, 1000, 1200) }));
+    g = addFeature(g, makeFeature('bed', { area: area(4350, 2500, 1000, 1200) }));
+    const s = scene(g);
+    const obs = obstaclesOf(s);
+    const end = walk(s, obs, [4175, 2200], [4175, 4000]);
+    expect(end[1]).toBeGreaterThan(3900);
+  });
+
+  it('is never stuck when something has grown up close by: it can always step away', () => {
+    const s = walkScene();
+    const obs = obstaclesOf(s);
+    // Right by the birch's trunk, closer than you're meant to get.
+    const from: Point = [4000, 2000 + 200 + BODY_MM / 2];
+    expect(canStand(s, obs, from)).toBe(false);
+    const away = step(s, obs, from, [from[0], from[1] + 40]);
+    expect(away[1]).toBeGreaterThan(from[1]);
+    expect(step(s, obs, from, [from[0], from[1] - 40])).toEqual(from);
+  });
+
+  it('stays within a few metres of the garden', () => {
+    const s = walkScene();
+    expect(canStand(s, obstaclesOf(s), [-EDGE_MM - 500, 3000])).toBe(false);
+  });
+});
+
+describe('leaves and the season in 3D', () => {
+  it('gives each tree its own leaf shape', () => {
+    let g = sample().g;
+    for (const [id, x] of [['japanese-maple', 1000], ['rowan', 3000], ['scots-pine', 5000], ['olive', 7000]] as const) g = addFeature(g, makeTree(treeType(id)!, 'medium', [x, 3500]));
+    g = addPlanting(g, makePlanting(plant('apple'), sample().raised.id, 'single', [2000, 5600]));
+    const s = scene(g);
+    const leaf = (name: string) => s.trees.find((t) => t.name.startsWith(name))!.leaf;
+    expect(leaf('Silver birch')).toBe('broad');
+    expect(leaf('Japanese maple')).toBe('lobed');
+    expect(leaf('Rowan')).toBe('feathery');
+    expect(leaf('Scots pine')).toBe('needle');
+    expect(leaf('Olive')).toBe('strap');
+    expect(leaf('Apple')).toBe('broad');
+    expect(leafOf({ form: 'shrub', leaf: 'round', foliage: '#5e8a4a' })).toBe('broad');
+  });
+
+  it('greens the lawn in spring and pales it in late summer', () => {
+    const g = sample().g;
+    expect(scene(g, '2027-04-15').lawn).toBeGreaterThan(0);
+    expect(scene(g, '2027-08-15').lawn).toBeLessThan(0);
+  });
+
+  it('puts frost on a winter morning, thinning through the day, and none in summer or under glass', () => {
+    const g = sample().g;
+    expect(frostOn(g, '2027-01-10', 8 * 60)).toBe(1);
+    expect(frostOn(g, '2027-01-10', 14 * 60)).toBeLessThan(1);
+    expect(frostOn(g, '2027-01-10', 14 * 60)).toBeGreaterThan(0);
+    expect(frostOn(g, '2027-07-10', 8 * 60)).toBe(0);
+    expect(buildScene({ garden: g, plantOf: plant, date: '2027-01-10', minutes: 9 * 60 }).frost).toBe(1);
+    // A bed inside the greenhouse stays clear.
+    const g2 = addFeature(g, makeFeature('bed', { area: area(1200, 1200, 600, 600) }));
+    const s = scene(g2, '2027-01-10');
+    const inside = s.solids.filter((x) => x.kind === 'bed' && x.polygon[0]![0] === 1200)[0]!;
+    expect(inside.covered).toBe(true);
+    expect(s.solids.find((x) => x.name === 'Raised bed')!.covered).toBeUndefined();
+  });
+
+  it('brings the plan’s sketches into the scene', () => {
+    const g = { ...sample().g, sketches: [{ id: 'k1', kind: 'arrow' as const, points: [[1000, 1000], [3000, 1000]] as Point[], colour: 'red' as const, widthMm: 60 }] };
+    expect(scene(g).sketches).toHaveLength(1);
   });
 });

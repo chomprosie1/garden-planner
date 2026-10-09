@@ -17,6 +17,30 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-09-walk-through-it',
+    date: '2026-10-09',
+    title: 'Walk through your garden',
+    items: [
+      'Walk round the garden in 3D at eye height: tap Walk in the 3D view. Use W, A, S and D or the arrow keys on a computer, or the pad in the corner on a phone; drag to look round, and tap the ground to walk there.',
+      'You can’t walk through the shed, a fence or a bed, so you go round them as you would outside.',
+      'Trees are made of leaves now, in their own shapes: broad leaves on a birch, feathery ones on a rowan, needles on a pine. Plants are drawn in finer detail once you walk in among them.',
+      'The lawn is greener in spring and paler in a dry August, frost lies on a winter morning and melts through the day, and arrows and notes you’ve drawn on the plan show on the ground.',
+    ],
+    tryIt: { label: 'Open the garden', view: 'plan' },
+  },
+  {
+    id: '2026-10-09-inspire-me',
+    date: '2026-10-09',
+    title: 'Inspire me',
+    items: [
+      'Not sure what to grow in an empty bed, pot or lawn? Tap it on the plan and choose Inspire me, or pick a place under Room to grow on Today.',
+      'Say what you’d spend, when you want something from it and how much time you have each week, and you get three ideas that suit its sun: a picture, a rough cost, the work it takes, and when it’s ready.',
+      'Tap Plant this and it’s on the plan, with anything from seed on your sowing list. Seed already in your tin counts as free.',
+      'Costs are rough guides from UK shops this autumn, and the time each week is a guess from what each plant needs.',
+    ],
+    tryIt: { label: 'Open Today', view: 'home' },
+  },
+  {
     id: '2026-10-09-500-plants',
     date: '2026-10-09',
     title: '500 plants, kinds to grow, and a seed tin',

@@ -48,7 +48,7 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Weeds marked as a patch across a lawn or bed | Build, release 8 | S | One weed at a time for now |
 | Straighten a photo taken at an angle before tracing: tap four corners of something rectangular and give its size | Aerial spike, 7 Oct 2026 | S | Photos from an upstairs window or a drone are never straight down. The spike has the 30 lines of straightening |
 | Ask the browser to keep the garden's storage, and push iPhone users to install | Review, 7 Oct 2026 | S | Parked until beta testing. Safari can clear a site's data after about 7 days without a visit unless it's on the home screen, and gardeners leave the app for weeks in winter |
-| "What grows here?": tap any spot for its sun hours through the year, frost and warmth, and the plants that suit it best | Review, 7 Oct 2026 | M | Planned in release 16, as part of Inspire me |
+| "What grows here?": tap any spot for its sun hours through the year, frost and warmth, and the plants that suit it best | Review, 7 Oct 2026 | M | Partly built in release 16: Inspire me suggests plants for a bed, pot or lawn from its June sun and cover. Still to do: any spot, and its sun through the year |
 | Next year, drafted for you: crop families rotated bed by bed, what did well kept, what failed or ran behind dropped or moved | Review, 7 Oct 2026 | L | Planned in release 18. Needs a plant family on each plant, added in release 15 |
 | Water forecast: roof areas into water butts, rain and evaporation from Open-Meteo, "the butt runs dry on Thursday; water the pots tonight" | Review, 7 Oct 2026 | M | Planned in release 18 |
 | Nature calendar: what's in flower for bees each month, with gaps filled ("Nothing for bees in March: crocus?") | Review, 7 Oct 2026 | S–M | Planned in release 18 |
@@ -59,7 +59,7 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Sync and shared gardens (a household, allotment partners, a whole allotment site) | Review, 7 Oct 2026 | L | Parked until beta testing. Needs a server: a business decision first (see the cost ladder in the MVP plan) |
 | Ask the garden: questions and photos of a sick plant, answered with this garden's own sun, stage and weather | Review, 7 Oct 2026 | L | Parked until beta testing. Needs a server and a vision model. The natural paid tier |
 | A winter habit (evergreen, deciduous, dies back) on the plant form for your own plants | Build, release 10 | S | Your own plants go by their category for now |
-| 3D: walk round inside it, frost and a greener lawn by season, sketches, leafier tree canopies | Build, release 10 | M | Planned in release 17, Walk through it |
+| 3D: walk round inside it, frost and a greener lawn by season, sketches, leafier tree canopies | Build, release 10 | M | Built in release 17 |
 | The year slider’s month letters overlap where the year changes, on a phone | Build, release 10 | S | Seen in the release 10 screenshots; it was already so |
 | Sun hours and shade use the whole screen: the toolbar and dock tuck away, to pull back up | You, 7 Oct 2026 | S | Built in release 11a |
 | The sun bar’s day chips as a drop-down | You, 7 Oct 2026 | S | Built in release 11a |
@@ -73,7 +73,7 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Fertilisers: the common types, rough prices, what each plant likes | You, 7 Oct 2026 | M | Planned in release 14 |
 | A library of at least 500 plants, with varieties of the same plant | You, 7 Oct 2026 | L | Planned in release 15 |
 | Inspiration for empty areas, by budget, time frame and effort | You, 7 Oct 2026 | M | Planned in release 16 |
-| Walk through the garden in 3D | You, 7 Oct 2026 | M | Planned in release 17 |
+| Walk through the garden in 3D | You, 7 Oct 2026 | M | Built in release 17 |
 | Leaves you can recognise in 3D | You, 7 Oct 2026 | S | Planned in release 17 |
 | Clear beds one at a time, several, or all | You, 8 Oct 2026 | S | Built in release 11a: a checklist of beds and pots, from the ⋯ menu |
 | Copy and paste a plant | You, 8 Oct 2026 | S | Built in release 11a |

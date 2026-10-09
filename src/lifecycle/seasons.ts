@@ -8,6 +8,9 @@ import type { Plant, WinterHabit } from '../model/types';
 import { LEAF_MONTHS } from '../sun/shadow';
 import { perennial } from './stages';
 
+/** The lawn through the year, by month: greener in spring (above 0), paler in a dry late summer, dull in winter. */
+export const LAWN_BY_MONTH = [-0.3, -0.3, 0.3, 0.8, 0.9, 0.3, -0.3, -0.8, -0.4, 0, -0.2, -0.3];
+
 /** How a perennial spends the winter. null for annuals, weeds and anything cleared each year. */
 export function winterHabit(p: Plant): WinterHabit | null {
   if (p.category === 'weed' || !perennial(p)) return null;

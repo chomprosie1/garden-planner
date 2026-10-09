@@ -44,6 +44,47 @@ const minutesOf = (d: Date | null, fallback: number) => {
   return c.hour * 60 + c.minute;
 };
 
+/** A thumb pad for walking on a touch screen: push up to walk on, down to step back, and to the sides to step sideways. */
+function ThumbPad({ move }: { move: (forward: number, strafe: number) => void }) {
+  const [knob, setKnob] = useState<[number, number]>([0, 0]);
+  const centre = useRef<[number, number] | null>(null);
+  const R = 44;
+  const at = (e: PointerEvent) => {
+    const c = centre.current;
+    if (!c) return;
+    let [dx, dy] = [e.clientX - c[0], e.clientY - c[1]];
+    const d = Math.hypot(dx, dy);
+    if (d > R) [dx, dy] = [(dx / d) * R, (dy / d) * R];
+    setKnob([dx, dy]);
+    // A small dead zone in the middle, so resting a thumb doesn't creep.
+    const k = (v: number) => (Math.abs(v) < R * 0.15 ? 0 : v / R);
+    move(-k(dy), k(dx));
+  };
+  const end = () => {
+    centre.current = null;
+    setKnob([0, 0]);
+    move(0, 0);
+  };
+  return (
+    <div
+      class="thumb-pad"
+      role="img"
+      aria-label="Walking pad: push up to walk on"
+      onPointerDown={(e) => {
+        const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        centre.current = [r.left + r.width / 2, r.top + r.height / 2];
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+        at(e);
+      }}
+      onPointerMove={at}
+      onPointerUp={end}
+      onPointerCancel={end}
+    >
+      <span class="thumb-knob" style={{ transform: `translate(${knob[0]}px, ${knob[1]}px)` }} />
+    </div>
+  );
+}
+
 export function Garden3D({ garden, plantOf, stageAt, today, date, setDate, look, mode, phone, close }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const wrap = useRef<HTMLDivElement>(null);
@@ -53,8 +94,11 @@ export function Garden3D({ garden, plantOf, stageAt, today, date, setDate, look,
   const [playing, setPlaying] = useState(false);
   const [label, setLabel] = useState<{ text: string; x: number; y: number } | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const down = useRef<{ x: number; y: number } | null>(null);
+  const down = useRef<{ x: number; y: number; lastX: number; lastY: number; dragging: boolean } | null>(null);
   const lastTap = useRef<{ t: number; x: number; y: number } | null>(null);
+  const [walking, setWalking] = useState(false);
+  const keys = useRef(new Set<string>());
+  const coarse = useMemo(() => phone || matchMedia('(pointer: coarse)').matches, [phone]);
 
   const day = useMemo(() => sunDay(Number(date.slice(0, 4)), Number(date.slice(5, 7)), Number(date.slice(8, 10)), garden.latitude, garden.longitude), [date, garden.latitude, garden.longitude]);
   const rise = minutesOf(day.sunrise, 6 * 60);
@@ -105,7 +149,53 @@ export function Garden3D({ garden, plantOf, stageAt, today, date, setDate, look,
     return () => clearTimeout(t);
   }, [label]);
 
-  const preset = (p: Preset) => view.current?.preset(p);
+  // Walking on a keyboard: W, A, S and D or the arrows. Up and down walk; left and right turn, or step sideways with A and D.
+  useEffect(() => {
+    if (!walking) return;
+    const held = keys.current;
+    const apply = () => {
+      const on = (...k: string[]) => k.some((x) => held.has(x));
+      const forward = (on('w', 'arrowup') ? 1 : 0) - (on('s', 'arrowdown') ? 1 : 0);
+      const strafe = (on('d') ? 1 : 0) - (on('a') ? 1 : 0);
+      const turn = (on('arrowright', 'e') ? 1 : 0) - (on('arrowleft', 'q') ? 1 : 0);
+      view.current?.setMove(forward, strafe, turn);
+    };
+    const WALK_KEYS = ['w', 'a', 's', 'd', 'q', 'e', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'];
+    const onDown = (e: KeyboardEvent) => {
+      const k = e.key.toLowerCase();
+      if (!WALK_KEYS.includes(k) || (e.target as HTMLElement).closest?.('input, select, textarea')) return;
+      e.preventDefault();
+      held.add(k);
+      apply();
+    };
+    const onUp = (e: KeyboardEvent) => {
+      held.delete(e.key.toLowerCase());
+      apply();
+    };
+    const onBlur = () => {
+      held.clear();
+      apply();
+    };
+    addEventListener('keydown', onDown);
+    addEventListener('keyup', onUp);
+    addEventListener('blur', onBlur);
+    return () => {
+      removeEventListener('keydown', onDown);
+      removeEventListener('keyup', onUp);
+      removeEventListener('blur', onBlur);
+      held.clear();
+    };
+  }, [walking]);
+
+  const preset = (p: Preset) => {
+    view.current?.preset(p);
+    setWalking(false);
+  };
+  const walk = () => {
+    view.current?.startWalk();
+    setWalking(!!view.current?.isWalking);
+    setLabel(null);
+  };
   const share = async () => {
     setPlaying(false);
     const blob = await view.current?.picture();
@@ -123,11 +213,30 @@ export function Garden3D({ garden, plantOf, stageAt, today, date, setDate, look,
     setMessage('Picture saved.');
   };
 
-  const onPointerDown = (e: PointerEvent) => (down.current = { x: e.clientX, y: e.clientY });
+  const onPointerDown = (e: PointerEvent) => {
+    down.current = { x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY, dragging: false };
+    if (walking) (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  // While walking, a drag looks round.
+  const onPointerMove = (e: PointerEvent) => {
+    const d = down.current;
+    if (!walking || !d) return;
+    if (!d.dragging && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6) d.dragging = true;
+    if (d.dragging) view.current?.look(e.clientX - d.lastX, e.clientY - d.lastY);
+    d.lastX = e.clientX;
+    d.lastY = e.clientY;
+  };
   const onPointerUp = (e: PointerEvent) => {
     const d = down.current;
     down.current = null;
-    if (!d || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6 || !view.current || !wrap.current) return;
+    if (!d || d.dragging || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6 || !view.current || !wrap.current) return;
+    if (walking) {
+      // A tap on the ground walks there; on anything else, its name.
+      const text = view.current.walkTap(e.clientX, e.clientY);
+      const r = wrap.current.getBoundingClientRect();
+      setLabel(text ? { text, x: e.clientX - r.left, y: e.clientY - r.top } : null);
+      return;
+    }
     // Two taps in the same place: go there, and turn round it.
     const now = performance.now();
     const last = lastTap.current;
@@ -154,13 +263,19 @@ export function Garden3D({ garden, plantOf, stageAt, today, date, setDate, look,
           <button type="button" class="chip" onClick={() => preset('standing')} disabled={status !== 'ready'}>
             Standing in it
           </button>
+          <button type="button" class="chip" aria-pressed={walking} onClick={walk} disabled={status !== 'ready'}>
+            Walk
+          </button>
           <button type="button" class="icon-btn" aria-label="Close the 3D view" title="Close (Esc)" onClick={close}>
             <Icon name="close" />
           </button>
         </div>
       </header>
       <div class="garden-3d-stage" ref={wrap}>
-        {status !== 'none' && status !== 'failed' && <canvas ref={canvas} class="garden-3d-canvas" onPointerDown={onPointerDown} onPointerUp={onPointerUp} />}
+        {status !== 'none' && status !== 'failed' && (
+          <canvas ref={canvas} class={`garden-3d-canvas${walking ? ' walking' : ''}`} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={() => (down.current = null)} />
+        )}
+        {walking && coarse && <ThumbPad move={(f, s) => view.current?.setMove(f, s, 0)} />}
         {status === 'loading' && <p class="garden-3d-note">Building your garden in 3D…</p>}
         {status === 'none' && <p class="garden-3d-note">This browser can’t show 3D here, as it has 3D graphics (WebGL) turned off or missing. The plan and its share picture still work.</p>}
         {status === 'failed' && <p class="garden-3d-note">The 3D view couldn’t load. Check you’re online the first time you open it, then try again.</p>}
@@ -171,7 +286,14 @@ export function Garden3D({ garden, plantOf, stageAt, today, date, setDate, look,
         )}
         {status === 'ready' && (
           <p class="garden-3d-hint" role="status">
-            {message ?? (phone ? 'Drag to turn, two fingers to move and zoom. Double-tap to go there; tap for a name.' : 'Drag to turn, right-drag to move, scroll to zoom. Double-click to go there; click for a name.')}
+            {message ??
+              (walking
+                ? coarse
+                  ? 'Walk with the pad, drag to look round, tap the ground to walk there.'
+                  : 'W A S D or the arrow keys to walk, drag to look round, click the ground to walk there.'
+                : phone
+                  ? 'Drag to turn, two fingers to move and zoom. Double-tap to go there; tap for a name.'
+                  : 'Drag to turn, right-drag to move, scroll to zoom. Double-click to go there; click for a name.')}
           </p>
         )}
       </div>
