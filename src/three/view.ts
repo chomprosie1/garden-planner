@@ -605,7 +605,7 @@ export class GardenView {
   private tree(t: Tree3, std: (o: THREE.MeshStandardMaterialParameters) => THREE.MeshStandardMaterial, add: (o: THREE.Object3D, pick?: Pickable) => THREE.Object3D): void {
     const pick = { name: t.plantingId ? (this.names[t.plantingId] ?? t.name) : t.name };
     const group = new THREE.Group();
-    group.position.copy(v3(t.centre[0], t.centre[1]));
+    group.position.copy(v3(t.centre[0], t.centre[1], t.baseMm ?? 0));
     const h = t.heightMm * M;
     const r = (t.spreadMm / 2) * M;
     const fade = t.ghost ? { transparent: true, opacity: 0.35, depthWrite: false } : {};

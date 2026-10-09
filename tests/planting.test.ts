@@ -14,6 +14,7 @@ import {
   duplicatePlanting,
   placeCopy,
   containerAt,
+  plantingPoint,
   deletePlanting,
   makePlanting,
   movePlanting,
@@ -450,5 +451,26 @@ describe('copying and pasting a plant (release 11a)', () => {
     expect(duplicatePlanting(full, first.id, plant)[1]).toBeNull();
     // Off any bed: on bare ground with no lawn.
     expect(placeCopy(g, one('tomato', a, [1500, 1500]), plant, [9000, 12000])).toBeNull();
+  });
+});
+
+describe('dropping a plant on a small pot (fix, 9 Oct 2026)', () => {
+  // A 30 cm pot on a lawn. Zoomed out, the snap grid is half a metre or more, so snapping a drop on the pot lands on the lawn.
+  const lawn = { ...makeFeature('surface', { area: rectPoints({ x: 0, y: 0, w: 6000, h: 4000 }) }), material: 'lawn' as const };
+  const pot = makeFeature('pot', { circle: { centre: [2240, 1760], radiusMm: 150 } });
+  const g: Garden = addFeature(addFeature(newAppState().garden, lawn), pot);
+  const snap = (p: Point, step: number): Point => [Math.round(p[0] / step) * step, Math.round(p[1] / step) * step];
+
+  it('keeps a plant dropped on the pot in the pot, even when snapping would carry it off', () => {
+    const raw: Point = [2250, 1770];
+    const snapped = snap(raw, 500);
+    expect(containerAt(g, snapped)?.id).toBe(lawn.id);
+    const at = plantingPoint(g, raw, snapped);
+    expect(containerAt(g, at)?.id).toBe(pot.id);
+  });
+
+  it('still snaps a drop that misses the pot, or that snapping keeps in it', () => {
+    expect(plantingPoint(g, [1100, 1100], [1000, 1000])).toEqual([1000, 1000]);
+    expect(plantingPoint(g, [2245, 1765], [2240, 1760])).toEqual([2240, 1760]);
   });
 });

@@ -81,6 +81,8 @@ export interface Tree3 {
   plantingId?: string;
   /** The shape of its leaves, for the leaf clusters its canopy is made of. */
   leaf: TreeLeaf;
+  /** The soil it grows in, above the ground: a fruit tree in a pot or raised bed. Absent: the ground. */
+  baseMm?: number;
 }
 
 /** One plant on the plan. */
@@ -317,6 +319,7 @@ export function buildScene(input: SceneInput): Scene3 {
           ...(look.ghost ? { ghost: true } : {}),
           plantingId: pl.id,
           leaf: leafOf(art),
+          ...(baseMm ? { baseMm } : {}),
         });
       continue;
     }

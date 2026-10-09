@@ -49,6 +49,15 @@ export function containerAt(g: Garden, p: Point): Feature | null {
   return ground;
 }
 
+/**
+ * Where a dropped plant goes: the snapped point, unless snapping moved it out of the pot or bed it was dropped on (a
+ * 30 cm pot is easily missed by a grid of half a metre when zoomed out). Then it's the point it was dropped at.
+ */
+export function plantingPoint(g: Garden, raw: Point, snapped: Point): Point {
+  const here = containerAt(g, raw);
+  return here && isContainer(here) && containerAt(g, snapped)?.id !== here.id ? raw : snapped;
+}
+
 /** Stand-in for a plant that is no longer in the library or your own plants. */
 export function unknownPlant(id: string): Plant {
   return {

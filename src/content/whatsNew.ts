@@ -17,6 +17,16 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-09-pot-drop-fix',
+    date: '2026-10-09',
+    title: 'Plants go in small pots',
+    items: [
+      'A plant dragged onto a small pot now goes in it, however far out you’ve zoomed. Before, it could land on the lawn beside it.',
+      'Fruit trees in a pot or raised bed stand on its soil in 3D, not on the ground inside it.',
+    ],
+    tryIt: { label: 'Open the garden', view: 'plan' },
+  },
+  {
     id: '2026-10-09-walk-through-it',
     date: '2026-10-09',
     title: 'Walk through your garden',

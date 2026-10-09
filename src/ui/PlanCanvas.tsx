@@ -44,7 +44,7 @@ import { updateGarden, type Store } from '../model/store';
 import { stickerById, stickerFeature, type Sticker } from '../model/stickers';
 import type { Feature, FeatureKind, Garden, Plant, Planting, Point, SketchColour, SketchKind } from '../model/types';
 import { defaultFill, fillPlanting } from '../planting/fill';
-import { addPlanting, blockGrid, containerAt, deletePlanting, duplicatePlanting, makePlanting, placeCopy, MAX_PLANTS, movePlanting, plantCount, plantPositions, rowCount, sizedPlant, spreadOf, updatePlanting, type Layout } from '../planting/place';
+import { addPlanting, blockGrid, containerAt, deletePlanting, duplicatePlanting, makePlanting, placeCopy, MAX_PLANTS, movePlanting, plantCount, plantingPoint, plantPositions, rowCount, sizedPlant, spreadOf, updatePlanting, type Layout } from '../planting/place';
 import type { Finding } from '../planting/rules';
 import type { SunGrid } from '../sun/hours';
 import type { Sun } from '../sun/position';
@@ -1159,7 +1159,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
       drag.current = null;
       // A plant dropped with "fill for me" goes exactly where you tapped: snapping could miss a small pot or window box.
       const raw = toWorld(view.current, screenOf(e));
-      plantAt(p.placing?.layout === 'auto' ? raw : snapAt(raw, e).point, false);
+      plantAt(p.placing?.layout === 'auto' ? raw : plantingPoint(garden(), raw, snapAt(raw, e).point), false);
       return redraw();
     }
     // Touch has no double-click: two quick taps in the same place add a corner to an edge.
@@ -1474,7 +1474,10 @@ export function PlanCanvas(props: PlanCanvasProps) {
         finishCircle(crosshairSnap().point, Math.round(radius));
       },
       placePlant() {
-        if (view.current) plantAt(crosshairSnap().point, false);
+        if (!view.current) return;
+        // The crosshair snaps, but not off the pot or bed it's over.
+        const raw = toWorld(view.current, [size.current.w / 2, size.current.h / 2]);
+        plantAt(plantingPoint(garden(), raw, crosshairSnap().point), false);
       },
       zoomTo(points) {
         zoomToPoints(points);
@@ -1512,7 +1515,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const dt = e.dataTransfer;
     if (!dt || !view.current || props.readOnly) return;
     const p = P.current;
-    const pt = snapAt(toWorld(view.current, screenOf(e)), { altKey: e.altKey, shiftKey: false }).point;
+    const raw = toWorld(view.current, screenOf(e));
+    const pt = snapAt(raw, { altKey: e.altKey, shiftKey: false }).point;
     const sticker = dt.getData(STICKER_DRAG_TYPE);
     if (sticker) {
       e.preventDefault();
@@ -1528,7 +1532,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const placing = p.placing;
     // Dropped plants fill the bed the usual way for the plant, whatever the Plant tool is set to.
     P.current = { ...p, placing: { plant: p.plantOf(tray ? tray.plantId : plantId), layout: 'auto', growing: !!placing?.growing, ...(tray ? { trayId: tray.id } : {}) } };
-    placeAuto(pt);
+    // Snapping mustn't carry it off the pot it was dropped on.
+    placeAuto(plantingPoint(garden(), raw, pt));
     P.current = { ...P.current, placing };
   };
 

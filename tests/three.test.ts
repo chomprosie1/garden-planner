@@ -475,3 +475,16 @@ describe('leaves and the season in 3D', () => {
     expect(scene(g).sketches).toHaveLength(1);
   });
 });
+
+describe('fruit trees in pots (fix, 9 Oct 2026)', () => {
+  it('stands a fig in a pot on the pot’s soil, and one on the lawn on the ground', () => {
+    const { g: g0, pot, lawn } = sample();
+    let g = addPlanting(g0, makePlanting(plant('fig'), pot.id, 'single', [9000, 3000]));
+    g = addPlanting(g, makePlanting(plant('apple'), lawn.id, 'single', [6000, 2000]));
+    const s = scene(g);
+    const fig = s.trees.find((t) => t.name.startsWith('Fig'))!;
+    expect(fig.baseMm).toBe(soilHeight(pot));
+    expect(fig.baseMm).toBeGreaterThan(0);
+    expect(s.trees.find((t) => t.name.startsWith('Apple'))!.baseMm).toBeUndefined();
+  });
+});
