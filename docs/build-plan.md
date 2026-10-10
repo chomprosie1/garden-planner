@@ -1363,7 +1363,7 @@ Decided:
 | --- | --- | --- | --- | --- |
 | 24. Off to a good start | Plants in a beginner's order and an Easy chip; kits for every season; recognisable plants in the pickers; more plan on a phone; keeping the garden safe | A2–A5 | ~1.5 wk | Built 9 Oct 2026 |
 | 25. Build the garden | A house and everyday things; garden shapes, including an L with a side return; tap a length to type it; a tape measure; straighten a photo | B1, B2, B6 | ~1.5 wk | Built 9 Oct 2026 |
-| 26. Along the fence | Climbers along fences and walls, with trellis, arch and obelisk; soil for the garden and each bed; shade from over the fence | B3–B5 | ~1.5 wk | |
+| 26. Along the fence | Climbers along fences and walls, with trellis, arch and obelisk; soil for the garden and each bed; shade from over the fence | B3–B5 | ~1.5 wk | Built 10 Oct 2026 |
 | 27. Next year | Next year drafted, with crop rotation; a shopping list; watering in dry spells; the open job fixes | B7–B9, A6 | ~2 wk | |
 | 28. Listening | A feedback form in the app; private counts of opens, first plant and return visits | B10, B11 | ~3 evenings | |
 | Data track | Check the core 150 plants, in batches of 15 that you confirm | A1 | ~2 wk of evenings, alongside | |
@@ -1464,16 +1464,38 @@ Tests: new `tests/build-garden.test.ts`:
 - typed lengths: a rectangle stretched and kept square, an L's return lengthened with the extension's edge, a triangle's far corner moved, a bed and a fence lengthened, nothing for a length of nothing;
 - straightening: the transform through four points, the straightened picture sampling the right places in a photo at an angle, its size limit, and corners that cross or touch refused.
 
-### Release 26 — Along the fence (planned)
-- **Climbers along fences and walls:**
-  - a fence, wall or hedge can hold plants along it, on the side you drop them (`canHold`, `containerAt` and `plantPositions` learn lines: a row along the line, spaced by the plant);
-  - trellis, arch and obelisk stickers that hold one climber each;
-  - climbers (clematis, honeysuckle, wisteria, star jasmine, climbing rose and the rest) and trained fruit offered first along a fence;
-  - drawn up the fence on the plan and in 3D.
-- **Soil:** the garden's soil (clay, loam, sandy, chalky, peaty, or not sure) in Your garden, with a change for each bed (pots default to compost), and pH if known. A plant whose soil doesn't suit gets a check, as light does.
-- **Shade from over the fence:** "Next door" in Trees and structures: a neighbour's tree or house outside the boundary, casting shade and drawn faintly.
-- **Model:** a schema change for plantings along a line (with a side) and for soil. On a branch with a preview, as the ways of working say.
-- **Tests:** placing along a fence (spacing, side, a fence too short), climbers offered first, soil checks, next door casting shade, the migration.
+### Release 26 — Along the fence (as built, schema 18)
+- **Climbers along fences, walls and hedges** (`src/planting/supports.ts`, pure):
+  - a fence, wall or hedge holds plants along either side (`isLineSupport`; not a washing line, which blocks almost no light, and not next door's). A plant dropped within 40 cm of its face goes just off it, 20 cm out, on the side it was dropped (`alongSupport`). One plant, or **A row** along that stretch of the line, half a spacing in from each end; a stretch too short for two plants gets one, and isn't offered a row;
+  - `canHold` takes fences, walls, hedges and frames, so a picked fence has **Plant**. `containerAt` takes the plant: a climber that comes back each year (clematis, roses, vines) or fruit to train (apple, pear, plum, cherry, morello cherry, fig, peach, apricot, greengage) dropped in a bed right by a fence goes up the fence; sweet peas, beans and cucumbers stay in the bed, and go along a fence only from open ground. Nothing leaves a pot, a planter, or a bed in a greenhouse or cold frame (`mayGoUp`). Anything else goes along a fence only where nothing else would hold it;
+  - **a fence along the boundary:** most gardens have the boundary drawn but no fence. A climber dropped by the boundary, where there's no fence, wall or hedge along that side, puts up a fence along that side and goes on it, as one undo step ("along a new fence on the boundary") (`boundaryFence`);
+  - a planting along a fence stays on it when nudged along it, moves and turns with it, and is checked as being by it ("too far from the fence to grow up it"). Copy and paste onto a picked fence puts the copy beside it. Jobs say "along the fence" and "up the obelisk" (`wherePhrase`);
+  - **drawn trained:** on the plan, each plant along a line is turned to run along it and drawn at 45% across it. In 3D, plants stand beside the fence at their height, as before.
+- **Trellis, arch and obelisk** in Trees and structures, in Simple too: a trellis (1.8 m, a see-through fence, 40% shade), an arch (1.4 × 0.5 m, 2.3 m high) and an obelisk (Ø 50 cm, 1.8 m). Each holds one climber: on an obelisk in the middle, on an arch at the nearer leg. A second climber is refused with a message, a row is made one plant, a copy finds no room, and a check flags any with more than one. Drawn as open timber on the plan (lattice, hoops between two legs, a ring of four uprights) with no solid shadow, and as thin posts and rails in 3D (`supportFrame` in `src/three/view.ts`).
+- **Climbers offered first:** a **Climbers** chip in the dock's plants: climbers that come back each year first, then fruit to train, then annual climbers, each with the familiar ones first (clematis, climbing rose, honeysuckle, star jasmine, wisteria…; apple, pear…; sweet peas, runner beans…). Tapping **Plant** on a fence, wall, hedge or frame opens on it.
+- **Soil** (`src/planting/soil.ts`, pure):
+  - the garden's soil in Your garden → About it: **Not sure** (the default), clay, loam, sandy, chalky or peaty, each with a line on how to tell, and its pH if tested (3.5 to 9);
+  - each bed, pot or planter can have its own under **Soil** in its panel, including compost and **ericaceous compost**, and its own pH. Pots and planters are compost unless you say otherwise; anything else is the garden's;
+  - **a check, as light is:** from the soil line on the plant's own card. Acid lovers ("acid", "ericaceous") on chalky soil, at pH 7 or more, or in ordinary compost; "slightly acid" ones on chalk or above pH 7; ones that don't want acid ("limy", "chalky", "not acid") in ericaceous compost or below pH 6; ones wanting it free-draining ("free-draining", "gritty", "sandy", "very well-drained", not those that cope with heavy soil) in clay; ones wanting it wet ("wet", "boggy") in sandy or chalky soil. Nothing is flagged when the soil isn't known. The message quotes the card;
+  - what each soil is like, and that chalk can't be made acid and ericaceous means below pH 7, is from the RHS's "Soil types" page (checked 10 Oct 2026). The squeeze test is general advice. The plants' soil lines are still drafts, as the data track will check them.
+- **Next door:** **Next door's house** (8 × 6 m, 7.5 m high) and **Next door's tree** (a small sycamore, about 9 m tall and 6 m across) in Trees and structures. Drag them over the boundary to where they stand. They're drawn faintly, washed over with the paper and edged with a dash, and the sun and shade views count their shade, as anything outside the boundary already did. A fence marked as next door's isn't planted along.
+- **Save format 18:** `soil` and `soilPh` on the garden; `soil`, `ph`, `support` and `nextDoor` on features. All optional; the migration has nothing to convert. On `main`, as you chose (10 Oct 2026).
+  - **Changed from the plan:** no side is stored on a planting. A planting along a fence is an ordinary single plant or row, set beside the line on its side, so everything that reads plantings (jobs, checks, sun, 3D, moving) works unchanged.
+- **Help:** a new **Climbers along a fence** topic and a **Your soil** topic; **Drawing your garden** has next door.
+- **Version** 0.26.0.
+- **Checked:** at 390 px, with a garden of a fence (clematis and a row of sweet peas), a trellis, an arch and an obelisk with climbers, next door's house, and blueberry and lavender in chalk and clay: the plan, zoomed in on the trained clematis, the arch and the obelisk; the plant checks (the two soil warnings); Trees and structures with the new things; the Climbers chip; the soil choice in Your garden; and 3D. No errors in the console.
+- **Reviewed** before release: the review's fixes were made (a row on a trellis, crops pulled out of beds, a second fence over a drawn one, job wording, paste onto a fence, soil lines read too widely, two speed-ups).
+
+Tests: new `tests/fence.test.ts`:
+- along a fence: either side, just off the face; a row's spacing and ends; a fence too short; climbers from beds but not crops, pots or greenhouses; open ground; nudging and moving with the fence; too far from it; a washing line and next door's fence left out; paste beside it;
+- a fence along the boundary: its side, none away from it, none over a drawn fence or wall;
+- trellis, arch and obelisk: in Simple, where the climber goes, one each;
+- climbers offered first, in their groups;
+- soil: reading the cards, the bed's or the garden's soil and pH, each clash and none when not known, the garden checked;
+- next door: the stickers, and shade into the garden from outside the boundary;
+- schema 18: each new field checked, schema 17 brought up to date, a row along a fence saved.
+
+**Tests changed:** `tests/sowing-cardboard.test.ts` said the schema was 17; it now says at least 17.
 
 ### Release 27 — Next year (planned)
 - **Next year, drafted** (moved up from release 18): from this year's plantings, a draft of next year's plan:

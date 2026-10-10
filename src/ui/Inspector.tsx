@@ -77,6 +77,8 @@ import { PlantIcon } from './PlantIcon';
 import { StageAdvice, StageCorrect, StageRail, WhatsHappened } from './PlantingStages';
 import { MoreMenu } from './MoreMenu';
 import { PanelTabs } from './PanelTabs';
+import { BedSoil } from './SoilFields';
+import { isSupport } from '../planting/supports';
 import { useWeatherNow } from './useWeather';
 
 interface Props {
@@ -286,7 +288,11 @@ function GrowingOnGround({ garden, f, plantOf, setSelected }: { garden: Garden; 
   if (!growing.length)
     return (
       <p class="muted small">
-        {f.material === 'cardboard'
+        {isSupport(f)
+          ? f.support
+            ? `Drop a climber from Plants below the plan onto it. It holds one.`
+            : 'Climbers can grow along it: drop one by it from Plants below the plan, on the side it should grow. Choose Plant for the climbers.'
+          : f.material === 'cardboard'
           ? 'Plant through it, into the mulch on top: drop plants onto it from Plants below the plan, as on a bed.'
           : 'Plants can go here too: bulbs in a lawn, or a tree. Drop one from Plants below the plan.'}
       </p>
@@ -402,6 +408,8 @@ function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf
       {(f.kind === 'surface' || f.kind === 'path') && <MaterialPicker f={f} set={set} />}
       {f.kind === 'surface' && f.material === 'cardboard' && !embedded && <CardboardAdvice f={f} set={set} />}
       {!embedded && isSoftGround(f) && <GrowingOnGround garden={garden} f={f} plantOf={plantOf} setSelected={setSelected} />}
+      {!embedded && isSupport(f) && <GrowingOnGround garden={garden} f={f} plantOf={plantOf} setSelected={setSelected} />}
+      {f.nextDoor && <p class="muted small">Next door’s: it casts shade over the fence, and is drawn faintly. Drag it to where it stands, and set its height for the shade.</p>}
       {!embedded && isSoftGround(f) && (
         <div class="button-row">
           <InspireButton store={store} garden={garden} f={f} />
@@ -886,6 +894,10 @@ function BedPanel(props: Shared & { bed: Feature }) {
       </Section>
 
       {isCover(bed) && <CoverSection store={store} garden={garden} f={bed} locked={props.locked} />}
+
+      <Section id="soil" title="Soil" open={false}>
+        <BedSoil store={store} garden={garden} bed={bed} />
+      </Section>
 
       {past.length > 0 && (
         <Section id="history" title={`Grown here before (${past.length})`} open={false}>

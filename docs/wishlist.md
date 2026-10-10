@@ -101,8 +101,8 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Reasons to come back beyond the garden itself | You, 9 Oct 2026 | M | Wishlist: to think about after release 20 |
 | A house, a water butt, gate, bench, bins, washing line and steps on the plan | Review, 9 Oct 2026 | S | Built in release 25 |
 | Garden shapes beyond a rectangle in onboarding and Simple (an L with a side return, long and thin, corner plot) | Review, 9 Oct 2026 | M | Built in release 25: an L with a side return, and the boundary's corners in Simple |
-| Climbers along fences and walls, with trellis, arches and obelisks | Review, 9 Oct 2026 | M | Planned in release 26 |
-| Soil type for the garden and each bed, with plants that hate it flagged | Review, 9 Oct 2026 | S | Planned in release 26 |
+| Climbers along fences and walls, with trellis, arches and obelisks | Review, 9 Oct 2026 | M | Built in release 26 |
+| Soil type for the garden and each bed, with plants that hate it flagged | Review, 9 Oct 2026 | S | Built in release 26 |
 | A tape measure between two points | Review, 9 Oct 2026 | S | Built in release 25 |
 | Plants in a beginner's order, an Easy chip, seasonal kits, recognisable pictures in pickers | Review, 9 Oct 2026 | M | Planned in release 24 |
 | The welcome screen at most once a day, with no forced pause | Review, 9 Oct 2026 | S | Planned in release 29 |

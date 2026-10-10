@@ -2,7 +2,7 @@
 // structures, and precise drawing. Drag a sticker onto the plan, or tap it to
 // drop it in the middle of the view.
 
-import { useMemo, useRef, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { canSowIn } from '../library/library';
 import { beginnerOrder, isEasy } from '../library/order';
 import { traysOf } from '../lifecycle/shed';
@@ -12,6 +12,7 @@ import { STICKERS, stickerById, stickerFeature, treeStickerId, type Sticker, typ
 import { findTrees, FRUIT_TREE_PLANTS, treeSizeText } from '../model/trees';
 import { PLANT_SIZES, type FeatureKind, type Garden, type Plant, type PlantSize } from '../model/types';
 import { SIZE_LABEL } from '../planting/place';
+import { forSupports } from '../planting/supports';
 import { DRAWERS_IN, showsSticker, type PlanMode } from './planMode';
 import { Icon, type IconName } from './icons';
 import { MiniPlan } from './MiniPlan';
@@ -130,7 +131,7 @@ const DRAW_TOOLS: { tool: Tool; label: string }[] = [
   { tool: 'other', label: 'Other' },
 ];
 
-type PlantFilter = 'now' | 'easy' | 'mine' | 'list' | 'tin' | 'shed' | 'all' | 'weeds';
+type PlantFilter = 'now' | 'easy' | 'climb' | 'mine' | 'list' | 'tin' | 'shed' | 'all' | 'weeds';
 
 interface Props {
   open: Drawer | null;
@@ -151,18 +152,25 @@ interface Props {
   phone: boolean;
   /** Simple: no Draw drawer, and the usual things in the others. */
   mode: PlanMode;
+  /** A fence, wall, hedge or frame is picked: the plants open on climbers. */
+  forSupport?: boolean;
 }
 
-export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, onTray, onSticker, tool, setTool, byHand, setByHand, phone, mode }: Props) {
+export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, onTray, onSticker, tool, setTool, byHand, setByHand, phone, mode, forSupport = false }: Props) {
   const trays = traysOf(garden);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<PlantFilter>('now');
+  // Plant, on a fence: climbers first.
+  useEffect(() => {
+    if (open === 'plants' && forSupport) setFilter('climb');
+  }, [forSupport, open]);
   const shown = useMemo(() => {
     if (!plants) return [];
     const q = query.trim().toLowerCase();
     if (q) return plants.filter((p) => `${p.commonName} ${p.latinName ?? ''}`.toLowerCase().includes(q));
     if (filter === 'now') return beginnerOrder(plants.filter((p) => !p.varietyOf && canSowIn(p, month)));
     if (filter === 'easy') return beginnerOrder(plants.filter((p) => !p.varietyOf && isEasy(p)));
+    if (filter === 'climb') return forSupports(beginnerOrder(plants));
     if (filter === 'mine') return plants.filter((p) => p.userAdded);
     if (filter === 'list') return [...new Set(garden.wishlist)].map(plantOf);
     if (filter === 'tin') return [...new Set((garden.seeds ?? []).filter((k) => k.count !== 0).map((k) => k.plantId))].map(plantOf);
@@ -170,9 +178,13 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
     if (filter === 'weeds') return plants.filter((p) => p.category === 'weed');
     return [];
   }, [plants, query, filter, month, garden.wishlist, garden.seeds]);
+  const climbCount = useMemo(() => (plants ? forSupports(plants).length : 0), [plants]);
+  const climbers: [PlantFilter, string, number] = ['climb', 'Climbers', climbCount];
   const filters: [PlantFilter, string, number][] = [
+    ...(forSupport ? [climbers] : []),
     ['now', 'Sow or plant now', plants ? plants.filter((p) => !p.varietyOf && canSowIn(p, month)).length : 0],
     ['easy', 'Easy to start', plants ? plants.filter((p) => !p.varietyOf && isEasy(p)).length : 0],
+    ...(forSupport ? [] : [climbers]),
     ['shed', 'In the shed', trays.length],
     ['list', 'Want to grow', garden.wishlist.length],
     ['tin', 'In the seed tin', new Set((garden.seeds ?? []).filter((k) => k.count !== 0).map((k) => k.plantId)).size],

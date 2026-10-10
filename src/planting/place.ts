@@ -6,6 +6,7 @@ import { distance, pointInPolygon } from '../geometry/polygon';
 import { currentStage, isGrowingStage, setStage } from '../lifecycle/stages';
 import { newId } from '../model/ids';
 import type { Feature, FeatureKind, Garden, Material, Plant, PlantSize, Planting, Point, SpacingStyle } from '../model/types';
+import { alongSupport, climbs, holdsOne, holdsPoint, isSupport, supportAt, trainsUp } from './supports';
 
 export type Layout = NonNullable<Planting['layout']>;
 
@@ -24,8 +25,8 @@ export const isContainer = (f: Feature) => CONTAINER_KINDS.includes(f.kind) && !
 /** A lawn, meadow, gravel, bark or bare soil: somewhere plants can go that isn't a bed. */
 export const isSoftGround = (f: Feature) => f.kind === 'surface' && SOFT_GROUND.includes(f.material ?? 'lawn');
 
-/** Anywhere a plant can go: a bed, pot or planter, or soft ground. */
-export const canHold = (f: Feature) => isContainer(f) || isSoftGround(f);
+/** Anywhere a plant can go: a bed, pot or planter, soft ground, or along a fence, wall, hedge, arch or obelisk. */
+export const canHold = (f: Feature) => isContainer(f) || isSoftGround(f) || isSupport(f);
 
 /** Things laid over the ground that nothing grows through: a patio on the lawn, a path across it, a shed or a pond. */
 const coversGround = (f: Feature) => (f.kind === 'surface' && !isSoftGround(f)) || f.kind === 'path' || f.kind === 'building' || f.kind === 'water';
@@ -34,19 +35,40 @@ const coversGround = (f: Feature) => (f.kind === 'surface' && !isSoftGround(f)) 
  * Where a plant dropped at a point goes: a bed, pot or planter there (they're drawn over the ground, so they win
  * wherever they are in the list), or failing that the topmost soft ground, unless a patio, path or shed covers it.
  * Trees, hedges and fences don't cover it: bulbs go under a tree.
+ *
+ * Given the plant: a climber, or fruit to train, dropped by a fence, wall, hedge, arch or obelisk goes up it, unless
+ * it's dropped in a pot or planter. Anything else goes along a fence only where nothing else would hold it.
  */
-export function containerAt(g: Garden, p: Point): Feature | null {
+export function containerAt(g: Garden, p: Point, plant?: Plant | null): Feature | null {
   let ground: Feature | null = null;
   let covered = false;
+  let held: Feature | null = null;
   for (let i = g.features.length - 1; i >= 0; i--) {
     const f = g.features[i]!;
     if (f.footprint.length < 3 || !pointInPolygon(p, f.footprint)) continue;
-    if (isContainer(f)) return f;
+    if (isContainer(f)) {
+      held = f;
+      break;
+    }
     if (isSoftGround(f)) {
       if (!covered) ground ??= f;
     } else if (coversGround(f)) covered = true;
   }
-  return ground;
+  held ??= ground;
+  if (plant && mayGoUp(g, p, plant, held)) return supportAt(g, p) ?? held;
+  return held ?? supportAt(g, p);
+}
+
+/**
+ * Whether a plant dropped at p, where `held` would hold it, should go up a fence or frame there instead: a climber on
+ * open ground, or a climber that comes back each year (or fruit to train) from the bed in front. Sweet peas, beans and
+ * cucumbers stay in the bed they're dropped in, and nothing leaves a pot or a greenhouse.
+ */
+export function mayGoUp(g: Garden, p: Point, plant: Plant, held: Feature | null): boolean {
+  if (!climbs(plant)) return false;
+  if (!held || isSoftGround(held)) return true;
+  if (held.kind !== 'bed' || !trainsUp(plant)) return false;
+  return !g.features.some((f) => (f.kind === 'greenhouse' || f.kind === 'cold-frame') && f.footprint.length >= 3 && pointInPolygon(p, f.footprint));
 }
 
 /**
@@ -241,6 +263,9 @@ export function movePlanting(g: Garden, id: string, dx: number, dy: number): Gar
     plantings: g.plantings.map((p) => {
       if (p.id !== id) return p;
       const moved = shiftPlanting(p, dx, dy);
+      // Along a fence and still by it: it stays on the fence, not the lawn in front.
+      const was = g.features.find((f) => f.id === p.featureId);
+      if (was && isSupport(was) && holdsPoint(was, [moved.x, moved.y])) return moved;
       const bed = containerAt(g, [moved.x, moved.y]);
       return bed && bed.id !== p.featureId ? { ...moved, featureId: bed.id } : moved;
     }),
@@ -301,10 +326,18 @@ function roomOf(pl: Planting, plant: Plant): number {
  * there, where every one of its plants is in that bed and none sits closer to another plant than their spacing.
  * Returns the copy, moved there, or null when there's no room.
  */
-export function placeCopy(g: Garden, pl: Planting, plantOf: (id: string) => Plant, at?: Point): Planting | null {
-  const bed = at ? containerAt(g, at) : (g.features.find((f) => f.id === pl.featureId) ?? null);
+export function placeCopy(g: Garden, pl: Planting, plantOf: (id: string) => Plant, at?: Point, into?: Feature): Planting | null {
+  const bed = into ?? (at ? containerAt(g, at, plantOf(pl.plantId)) : (g.features.find((f) => f.id === pl.featureId) ?? null));
   if (!bed || bed.footprint.length < 3) return null;
+  // A trellis, arch or obelisk with its climber already has no room.
+  if (holdsOne(bed) && g.plantings.some((o) => o.featureId === bed.id && isActive(o))) return null;
   const plant = plantOf(pl.plantId);
+  // Onto a fence: beside it where it's pasted, as one plant or a row along that stretch; then looked for room from there.
+  if (isSupport(bed) && bed.id !== pl.featureId) {
+    const { endPoint: _e, count: _c, ...rest } = pl;
+    pl = { ...rest, ...alongSupport(bed, plant, pl.layout === 'row' && !holdsOne(bed) ? 'row' : 'one', at ?? [pl.x, pl.y]), featureId: bed.id };
+    at = [pl.x, pl.y];
+  }
   const room = roomOf(pl, plant);
   const mine = plantPositions(pl, plant);
   // The plants already there, each with the room it wants.
@@ -323,7 +356,7 @@ export function placeCopy(g: Garden, pl: Planting, plantOf: (id: string) => Plan
   // The corners first, then every plant: a block that's off the edge is ruled out quickly.
   const ends = mine.length > 2 ? [mine[0]!, mine[mine.length - 1]!] : [];
   const fits = (dx: number, dy: number) => {
-    const inBed = (q: Point) => containerAt(g, [q[0] + dx, q[1] + dy])?.id === bed.id;
+    const inBed = (q: Point) => (isSupport(bed) ? holdsPoint(bed, [q[0] + dx, q[1] + dy]) : containerAt(g, [q[0] + dx, q[1] + dy])?.id === bed.id);
     if (!ends.every(inBed) || !mine.every(inBed)) return false;
     return mine.every(([x, y]) => others.every((o) => Math.hypot(x + dx - o.q[0], y + dy - o.q[1]) >= ((room + o.r) / 2) * 0.95));
   };

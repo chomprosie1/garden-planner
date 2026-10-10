@@ -74,9 +74,10 @@ export const HELP: HelpTopic[] = [
       'It needn’t be perfect. A rough plan still gives the right jobs and the right sun; you can tidy it any time.',
       'Trees and structures has the house and the everyday things: a water butt, a gate, a bench, a table, bins, a washing line, a bird bath and more. Steps are under Ground.',
       'Garden not a rectangle? Pick the boundary and drag its corners, in Simple too. A garden or patio set up with a side return starts as an L.',
+      'A tall tree or house next door shading your garden? Add Next door’s tree or Next door’s house from Trees and structures and drag it to where it stands, over the boundary. It’s drawn faintly and casts its shade into your garden.',
     ],
-    related: ['moving-and-resizing', 'tracing-a-photo', 'adding-plants'],
-    words: 'draw add bed pot raised lawn path paving shed fence boundary edge outline shape corners exact measure size advanced simple house water butt bench bins washing line gate side return L-shaped',
+    related: ['moving-and-resizing', 'tracing-a-photo', 'adding-plants', 'climbers'],
+    words: 'draw add bed pot raised lawn path paving shed fence boundary edge outline shape corners exact measure size advanced simple house water butt bench bins washing line gate side return L-shaped next door neighbour neighbours tree shade overhanging',
   },
   {
     id: 'moving-and-resizing',
@@ -232,9 +233,48 @@ export const HELP: HelpTopic[] = [
     related: ['drawing-the-plan', 'adding-plants'],
     words: 'cardboard weeds weed suppressant membrane fabric mulch no dig smother clear lawn new bed sheet',
   },
+  {
+    id: 'climbers',
+    title: 'Climbers along a fence',
+    summary: 'Clematis, roses, sweet peas or trained fruit along a fence, wall or hedge, or up an arch or obelisk.',
+    view: 'plan',
+    tier: 2,
+    steps: [
+      'Pick a fence, wall or hedge on the plan and tap Plant. The plants open on Climbers: ones that come back each year first, then fruit you can train flat, then sweet peas and beans.',
+      {
+        phone: 'Tap a climber, then tap just beside the fence, on the side it should grow.',
+        computer: 'Drag a climber to just beside the fence, on the side it should grow. Or click it, then click there.',
+      },
+      'It’s planted just off the fence and drawn trained along it. For a row along that stretch, such as sweet peas or beans, choose A row in the choices beside it.',
+      'No fence drawn yet? Drop a climber just inside the boundary and a fence goes up along that side for it. Pick the fence to make it a wall or hedge, or change its height.',
+      'For an arch, an obelisk or a trellis panel, add one from Trees and structures, then drop a climber on it. Each holds one climber.',
+    ],
+    notes: [
+      'A clematis, a rose or fruit to train, dropped in a bed right by a fence, goes up the fence. Sweet peas, beans and cucumbers stay in the bed; to grow them along a fence, drop them by it where there’s no bed, such as on the lawn.',
+      'Anything in a pot, or in a greenhouse or cold frame, stays where it’s dropped.',
+    ],
+    related: ['adding-plants', 'drawing-the-plan', 'soil'],
+    words: 'climber climbers climbing fence wall hedge trellis arch obelisk clematis rose honeysuckle wisteria jasmine sweet pea runner bean cordon espalier fan trained apple pear wall fruit',
+  },
+  {
+    id: 'soil',
+    title: 'Your soil',
+    summary: 'Setting your soil, so plants that wouldn’t like it are flagged.',
+    view: 'profile',
+    tier: 3,
+    steps: [
+      'Open Your garden and choose your soil under About it: clay, loam, sandy, chalky or peaty. Not sure is fine.',
+      'If you’ve tested it, type its pH.',
+      'A bed can have its own: pick it on the plan and open Soil, such as ericaceous compost for blueberries. Pots and planters are compost unless you say otherwise.',
+      'In the plant checks, a plant whose card says the soil won’t suit it is flagged, such as a blueberry on chalk or lavender in clay.',
+    ],
+    notes: ['To tell your soil, squeeze a damp handful: clay makes a sticky ball, and sandy soil feels gritty and falls apart. Very chalky soil can have lumps of white stone in it.'],
+    related: ['climbers', 'adding-plants'],
+    words: 'soil clay loam sand sandy chalk chalky peat peaty ph acid alkaline lime ericaceous compost drainage heavy light',
+  },
 ];
 
-export const helpTopic = (id: string): HelpTopic | undefined => HELP.find((t) => t.id === id);
+export const helpTopic =(id: string): HelpTopic | undefined => HELP.find((t) => t.id === id);
 
 /** A step as worded for this screen. */
 export const stepText = (s: HelpStep, phone: boolean): string => (typeof s === 'string' ? s : phone ? s.phone : s.computer);

@@ -26,7 +26,7 @@ export function FillPopover({ placed, garden, store, plantOf, close }: { placed:
   if (!pl || !bed) return null;
   const plant = plantOf(pl.plantId);
   const current = fillOf(pl.layout);
-  const options = fillsFor(plant, bed);
+  const options = fillsFor(plant, bed, placed.world);
   if (options.length < 2) return null;
   const choose = (fill: Fill) =>
     store.apply(

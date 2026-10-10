@@ -43,6 +43,7 @@ import { useApp } from '../appContext';
 import { clockText, SunBar, type CalendarDate, type SunView } from '../SunBar';
 import { usePlants } from '../usePlants';
 import { spacingStyle } from '../../planting/place';
+import { isSupport } from '../../planting/supports';
 import { treeAsPlant } from '../../planting/pots';
 import { useSunHours } from '../useSunHours';
 import { useWeatherNow } from '../useWeather';
@@ -555,6 +556,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       setByHand={setByHand}
       phone={phone}
       mode={mode}
+      forSupport={!!selectedFeature && isSupport(selectedFeature)}
     />
   );
   const plantingBar = placing && (

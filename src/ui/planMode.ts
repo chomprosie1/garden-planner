@@ -49,6 +49,11 @@ export const SIMPLE_STICKERS: readonly string[] = [
   'bird-bath',
   'bird-feeder',
   'bee-hotel',
+  'trellis',
+  'arch',
+  'obelisk',
+  'next-door-house',
+  'next-door-tree',
 ];
 
 export const showsSticker = (mode: PlanMode, id: string) => mode === 'advanced' || SIMPLE_STICKERS.includes(id);

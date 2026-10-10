@@ -48,8 +48,9 @@ import { stickerById, stickerFeature, type Sticker } from '../model/stickers';
 import type { Feature, FeatureKind, Garden, Plant, Planting, Point, SketchColour, SketchKind } from '../model/types';
 import { defaultFill, fillPlanting } from '../planting/fill';
 import { isPot, spotInPot } from '../planting/pots';
+import { besideSupport, boundaryFence, holdsOne, isSupport, wherePhrase } from '../planting/supports';
 import { treeType } from '../model/trees';
-import { addPlanting, blockGrid, containerAt, deletePlanting, duplicatePlanting, makePlanting, placeCopy, MAX_PLANTS, movePlanting, plantCount, plantingPoint, plantPositions, rowCount, sizedPlant, spreadOf, updatePlanting, type Layout } from '../planting/place';
+import { addPlanting, blockGrid, containerAt, mayGoUp, deletePlanting, duplicatePlanting, makePlanting, placeCopy, MAX_PLANTS, movePlanting, plantCount, plantingPoint, plantPositions, rowCount, sizedPlant, spreadOf, updatePlanting, type Layout } from '../planting/place';
 import type { Finding } from '../planting/rules';
 import type { SunGrid } from '../sun/hours';
 import type { Sun } from '../sun/position';
@@ -704,25 +705,60 @@ export function PlanCanvas(props: PlanCanvasProps) {
     drawing.current = emptyDrawing();
     redraw();
     if (!placing) return;
-    const { plant, layout } = placing;
+    const { plant } = placing;
+    let { layout } = placing;
     const middle: Point = end ? [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2] : start;
-    const bed = containerAt(garden(), middle);
+    const { bed, fence } = supportedAt(middle, plant);
     if (!bed) return say(NOWHERE_TO_PLANT);
+    if (fullFrame(bed)) return;
+    // By a fence, the plants go just off it, on the side they were drawn; a block along a fence is a row. A trellis,
+    // arch or obelisk holds one.
+    if (isSupport(bed)) {
+      [start, end] = besideSupport(bed, start, end);
+      if (layout === 'block') layout = 'row';
+      if (holdsOne(bed) || !end) {
+        layout = 'single';
+        end = undefined;
+      }
+    }
     const sp = plant.size.spacingMm;
     const n = layout === 'row' && end ? rowCount(start, end, sp) : layout === 'block' && end ? blockGrid(start, end, sp).cols * blockGrid(start, end, sp).rows : 1;
     if (n > MAX_PLANTS) return say(`That's ${n.toLocaleString()} plants, which is more than one planting can hold. Make it smaller.`);
     const pl = makePlanting(plant, bed.id, layout === 'auto' ? 'single' : layout, start, end, !!placing.growing);
+    const withFence = (g: Garden) => (fence ? addFeature(g, fence) : g);
     if (placing.trayId) {
       const trayId = placing.trayId;
-      commit((g) => plantOutTray(g, trayId, pl, todayIso()));
+      commit((g) => plantOutTray(withFence(g), trayId, pl, todayIso()));
       A.current.notify(`Planted out ${n === 1 ? `a ${plant.commonName.toLowerCase()}` : `${n} ${plant.commonName.toLowerCase()} plants`} from the shed into ${placeLabel(bed)}.`, { undo: true });
       say(null);
       p.setTool('select');
       return;
     }
-    commit((g) => addPlanting(g, pl));
-    say(`Planted ${n === 1 ? `a ${plant.commonName.toLowerCase()}` : `${n} ${plant.commonName.toLowerCase()} plants`} in ${placeLabel(bed)}.`);
+    commit((g) => addPlanting(withFence(g), pl));
+    say(`Planted ${n === 1 ? `a ${plant.commonName.toLowerCase()}` : `${n} ${plant.commonName.toLowerCase()} plants`} ${whereOn(bed, !!fence)}.`);
   };
+
+  /**
+   * Where a plant at a point goes, for this plant: a climber by a fence goes up it, and by the boundary with no fence
+   * drawn, up a new fence along that side of the boundary (added with the plant, as one undo step).
+   */
+  const supportedAt = (pt: Point, plant: Plant): { bed: Feature | null; fence: Feature | null } => {
+    const g = garden();
+    const bed = containerAt(g, pt, plant);
+    if ((bed && isSupport(bed)) || !mayGoUp(g, pt, plant, bed)) return { bed, fence: null };
+    const fence = boundaryFence(g, pt);
+    return fence ? { bed: fence, fence } : { bed, fence: null };
+  };
+
+  /** A trellis, arch or obelisk that already has its climber: says so, and true. */
+  const fullFrame = (bed: Feature) => {
+    const on = holdsOne(bed) ? garden().plantings.find((x) => x.featureId === bed.id && !x.removedOn) : undefined;
+    if (on) say(`${featureLabel(bed)} already has ${P.current.plantOf(on.plantId).commonName.toLowerCase()} growing up it. It holds one climber.`);
+    return !!on;
+  };
+
+  /** "in Bed 1", "along the fence", "up the obelisk", or "along a new fence on the boundary". */
+  const whereOn = (bed: Feature, newFence: boolean) => (newFence ? 'along a new fence on the boundary' : wherePhrase(bed));
 
 /**
    * Drops a plant into the bed, pot or planter under a point, filled the usual way for the plant: one, a row
@@ -734,8 +770,10 @@ export function PlanCanvas(props: PlanCanvasProps) {
     drawing.current = emptyDrawing();
     redraw();
     if (!placing || !view.current) return;
-    const bed = containerAt(garden(), pt);
+    const { bed, fence } = supportedAt(pt, placing.plant);
     if (!bed) return say(NOWHERE_TO_PLANT);
+    if (fullFrame(bed)) return;
+    const withFence = (g: Garden) => (fence ? addFeature(g, fence) : g);
     // In a pot with something in it already, one plant goes beside it, rather than a fill on top of it.
     const shared = isPot(bed) && garden().plantings.some((x) => x.featureId === bed.id && !x.removedOn);
     const filled = fillPlanting(placing.plant, bed, shared ? 'one' : defaultFill(placing.plant, bed), pt);
@@ -747,11 +785,11 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const name = placing.plant.commonName.toLowerCase();
     if (placing.trayId) {
       const trayId = placing.trayId;
-      commit((g) => plantOutTray(g, trayId, pl, todayIso()));
-      A.current.notify(`Planted out ${n === 1 ? `a ${name}` : `${n} ${name} plants`} from the shed into ${placeLabel(bed)}.`, { undo: true });
+      commit((g) => plantOutTray(withFence(g), trayId, pl, todayIso()));
+      A.current.notify(`Planted out ${n === 1 ? `a ${name}` : `${n} ${name} plants`} from the shed ${whereOn(bed, !!fence).replace(/^in /, 'into ')}.`, { undo: true });
     } else {
-      commit((g) => addPlanting(g, pl));
-      say(`Planted ${n === 1 ? `a ${name}` : `${n} ${name} plants`} in ${placeLabel(bed)}.`);
+      commit((g) => addPlanting(withFence(g), pl));
+      say(`Planted ${n === 1 ? `a ${name}` : `${n} ${name} plants`} ${whereOn(bed, !!fence)}.`);
     }
     p.setTool('select');
     p.setSelected({ type: 'planting', id: pl.id });
@@ -1459,7 +1497,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
           const point: Point | undefined = over ?? (box ? [(box.minX + box.maxX) / 2, (box.minY + box.maxY) / 2] : undefined);
           const made = { id: null as string | null };
           commit((gg) => {
-            const copy = placeCopy(gg, copied, p.plantOf, point);
+            const copy = placeCopy(gg, copied, p.plantOf, point, !over && picked && isSupport(picked) ? picked : undefined);
             made.id = copy?.id ?? null;
             return copy ? addPlanting(gg, copy) : gg;
           });

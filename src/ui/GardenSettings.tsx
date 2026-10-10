@@ -18,6 +18,7 @@ import { useWeatherNow } from './useWeather';
 import { disableReminders, enableReminders, type ReminderStatus } from '../storage/reminders';
 import { CompassNorth } from './CompassNorth';
 import { PlaceSearch } from './PlaceSearch';
+import { GardenSoil } from './SoilFields';
 
 interface Props {
   store: Store;
@@ -225,6 +226,7 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
             between rows. Spacing checks and the number of plants in a row or block follow your choice.
           </p>
         </fieldset>
+        <GardenSoil store={store} garden={garden} />
       </section>
 
       <section class="card" aria-labelledby="seasons">

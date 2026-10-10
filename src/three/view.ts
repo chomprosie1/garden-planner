@@ -543,6 +543,7 @@ export class GardenView {
       return m;
     };
     const timber = () => std({ map: this.texture(`${tk}:timber`, () => tileTexture((c) => drawEdgingTile(c, 'timber', P, mode), EDGING_TILE_MM.timber * M)) });
+    if (x.support) return this.supportFrame(x, std({ color: mode === 'dark' ? '#8a6e4c' : '#7a5a3a' }), add, pick);
     switch (x.kind) {
       case 'bed': {
         const side = x.edging ? std({ map: this.texture(`${tk}:${x.edging}`, () => tileTexture((c) => drawEdgingTile(c, x.edging!, P, mode), EDGING_TILE_MM[x.edging!] * M)) }) : soilMat(x.covered);
@@ -599,6 +600,86 @@ export class GardenView {
       }
       default:
         solidMesh(prismGeometry(x.polygon, x.heightMm), std({ color: materialColour('paving', P, mode) }));
+    }
+  }
+
+  /** A trellis, arch or obelisk: thin timber posts and rails, so the climber on it shows. */
+  private supportFrame(x: Solid, wood: THREE.Material, add: (o: THREE.Object3D, pick?: { name: string }) => THREE.Object3D, pick: { name: string }): void {
+    const h = x.heightMm;
+    const bar = (a: [number, number, number], b: [number, number, number], r = 18) => {
+      const A = v3(a[0], a[1], a[2]);
+      const B = v3(b[0], b[1], b[2]);
+      const len = A.distanceTo(B);
+      if (len <= 0) return;
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(r * M, r * M, len, 6), wood);
+      m.position.copy(A.clone().add(B).multiplyScalar(0.5));
+      m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), B.clone().sub(A).normalize());
+      m.castShadow = true;
+      add(m, pick);
+    };
+    if (x.support === 'obelisk' && x.circle) {
+      const [cx, cy] = x.circle.centre;
+      const r = x.circle.radiusMm;
+      for (let i = 0; i < 4; i++) {
+        const a = Math.PI / 4 + (i * Math.PI) / 2;
+        bar([cx + Math.cos(a) * r, cy + Math.sin(a) * r, 0], [cx, cy, h]);
+      }
+      for (const z of [h * 0.3, h * 0.6]) {
+        const k = 1 - z / h;
+        for (let i = 0; i < 4; i++) {
+          const a = Math.PI / 4 + (i * Math.PI) / 2;
+          const b = a + Math.PI / 2;
+          bar([cx + Math.cos(a) * r * k, cy + Math.sin(a) * r * k, z], [cx + Math.cos(b) * r * k, cy + Math.sin(b) * r * k, z], 10);
+        }
+      }
+      return;
+    }
+    if (x.support === 'trellis' && x.line) {
+      // Posts at each end and corner, and a lattice of rails between them.
+      for (let i = 0; i + 1 < x.line.length; i++) {
+        const [a, b] = [x.line[i]!, x.line[i + 1]!];
+        bar([a[0], a[1], 0], [a[0], a[1], h], 30);
+        bar([b[0], b[1], 0], [b[0], b[1], h], 30);
+        const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        const n = Math.max(2, Math.round(len / 300));
+        for (let k = 0; k <= n; k++) {
+          const t = k / n;
+          const p: Point = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+          bar([p[0], p[1], 0], [p[0], p[1], h], 8);
+        }
+        for (let z = 300; z < h; z += 300) bar([a[0], a[1], z], [b[0], b[1], z], 8);
+      }
+      return;
+    }
+    // An arch: legs at the four corners, an arched top, and rails along the long sides.
+    const pts = x.polygon;
+    if (pts.length !== 4) return;
+    const [a, b, c, d] = pts as [Point, Point, Point, Point];
+    const long = Math.hypot(b[0] - a[0], b[1] - a[1]) >= Math.hypot(d[0] - a[0], d[1] - a[1]);
+    const [p0, p1, q0, q1] = long ? [a, b, d, c] : [a, d, b, c];
+    const span = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]);
+    const leg = Math.max(h - span / 2, h * 0.6);
+    for (const [s0, s1] of [
+      [p0, p1],
+      [q0, q1],
+    ] as [Point, Point][]) {
+      bar([s0[0], s0[1], 0], [s0[0], s0[1], leg], 25);
+      bar([s1[0], s1[1], 0], [s1[0], s1[1], leg], 25);
+      // The curve over the top, in a few straight pieces.
+      const n = 8;
+      let prev: [number, number, number] = [s0[0], s0[1], leg];
+      for (let k = 1; k <= n; k++) {
+        const t = k / n;
+        const z = leg + Math.sin(t * Math.PI) * (h - leg);
+        const next: [number, number, number] = [s0[0] + (s1[0] - s0[0]) * t, s0[1] + (s1[1] - s0[1]) * t, z];
+        bar(prev, next, 20);
+        prev = next;
+      }
+    }
+    for (let k = 0; k <= 6; k++) {
+      const t = k / 6;
+      const z = t === 0 || t === 1 ? leg : leg + Math.sin(t * Math.PI) * (h - leg);
+      bar([p0[0] + (p1[0] - p0[0]) * t, p0[1] + (p1[1] - p0[1]) * t, z], [q0[0] + (q1[0] - q0[0]) * t, q0[1] + (q1[1] - q0[1]) * t, z], 10);
     }
   }
 

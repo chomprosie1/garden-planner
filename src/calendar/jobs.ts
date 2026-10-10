@@ -15,6 +15,7 @@ import { runEnds } from '../library/library';
 import { STAGES, type Garden, type PickSize, type Plant, type Planting, type Stage } from '../model/types';
 import { addPick } from '../planting/harvest';
 import { isActive, isContainer, plantingStatus } from '../planting/place';
+import { wherePhrase } from '../planting/supports';
 
 export { runEnds };
 
@@ -157,12 +158,12 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     const plant = plantOf(plantId);
     const bed = g.features.find((f) => f.id === featureId);
     const bedName = bed ? placeLabel(bed) : 'a bed';
-    const where = `in ${bedName}${describeGroup(group)}`;
+    const where = `${wherePhrase(bed)}${describeGroup(group)}`;
     const ids = (list: Planting[]) => list.map((p) => p.id);
     // A weed gets a job to be rid of it, unless you're keeping it; none of the jobs for crops.
     if (plant.category === 'weed') {
       const job = weedJob(plant, group.filter((p) => !p.keep), month);
-      if (job) add('weed', plant, `in ${bedName}`, featureId, ids(group.filter((p) => !p.keep)), job, featureId);
+      if (job) add('weed', plant, wherePhrase(bed), featureId, ids(group.filter((p) => !p.keep)), job, featureId);
       continue;
     }
     // Under a greenhouse or cold frame: in sooner, with no hardening off, and no winter protection.

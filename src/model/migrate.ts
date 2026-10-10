@@ -1,7 +1,7 @@
 // Brings saved gardens and plants from older versions up to the current shape.
 // Bump SCHEMA_VERSION whenever the saved shape changes, and add a step here.
 
-export const SCHEMA_VERSION = 17;
+export const SCHEMA_VERSION = 18;
 
 type Raw = Record<string, unknown>;
 
@@ -95,6 +95,12 @@ export function migrateGarden(raw: unknown): unknown {
     // v17 added cardboard as a ground, and the day it was laid (laidOn), optional. Nothing to convert.
     g = { ...g, schemaVersion: 17 };
     version = 17;
+  }
+  if (version === 17) {
+    // v18 added soil and pH (the garden's and each bed's), trellises, arches and obelisks (support), and next door's
+    // trees and houses (nextDoor), all optional. Plants along a fence are ordinary plantings. Nothing to convert.
+    g = { ...g, schemaVersion: 18 };
+    version = 18;
   }
   return g;
 }

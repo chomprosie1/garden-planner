@@ -60,6 +60,10 @@ export interface Solid {
   bare?: boolean;
   /** Inside a greenhouse or cold frame (or one itself): no frost on it. */
   covered?: boolean;
+  /** A trellis, arch or obelisk: open framework, not a block. */
+  support?: Feature['support'];
+  /** A line's centre line, for a trellis. */
+  line?: Point[];
 }
 
 export interface Tree3 {
@@ -281,6 +285,8 @@ export function buildScene(input: SceneInput): Scene3 {
       ...(roof ? { roof } : {}),
       ...(f.kind === 'hedge' && f.deciduous && !leafy ? { bare: true } : {}),
       ...(isCover(f) || microclimateAt(g, pivotOf(f)) ? { covered: true } : {}),
+      ...(f.support ? { support: f.support } : {}),
+      ...(f.support && f.line ? { line: f.line } : {}),
     });
   });
 

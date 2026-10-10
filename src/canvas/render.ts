@@ -12,6 +12,7 @@ import { SKETCH_WIDTH, sketchesOf } from '../model/sketches';
 import type { Feature, Garden, Material, Plant, Planting, Point, Sketch, SketchColour, SketchKind } from '../model/types';
 import { blockGrid, byHeight, isActive, MAX_PLANTS, plantCount, plantingShape, plantPositions, rowCount, sizedPlant, spreadOf, type Layout, type PlantingShape } from '../planting/place';
 import type { Finding } from '../planting/rules';
+import { isLineSupport, trainedAngle } from '../planting/supports';
 import type { SunGrid } from '../sun/hours';
 import type { Sun } from '../sun/position';
 import { LEAF_MONTHS, type Shade } from '../sun/shadow';
@@ -433,7 +434,8 @@ const canBlur = typeof CanvasRenderingContext2D !== 'undefined' && 'filter' in C
 
 function drawFeatureShadow(ctx: CanvasRenderingContext2D, s: Scene, f: Feature) {
   const h = f.heightMm ?? 0;
-  if (h <= 0 || f.kind === 'surface' || f.footprint.length < 3) return;
+  // A trellis, arch or obelisk is open framework: no solid shadow.
+  if (h <= 0 || f.kind === 'surface' || f.footprint.length < 3 || f.support) return;
   const v = s.view;
   const d = shadowReach(f.kind === 'tree' ? Math.min(h, 3000) : h, v.scale);
   if (d < 1) return;
@@ -583,6 +585,96 @@ function featureColours(f: Feature, P: PlanPalette): { fill: string; stroke: str
 }
 
 function drawFeature(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, pats: Patterns) {
+  if (f.support && drawSupport(ctx, s, f)) return;
+  drawFeatureBody(ctx, s, f, pats);
+  if (f.nextDoor) {
+    // Next door's: washed over with the paper, so it reads as beyond the fence, with a dashed edge.
+    const pts = f.footprint.map((p) => toScreen(s.view, p));
+    polyPath(ctx, pts);
+    ctx.save();
+    ctx.globalAlpha = 0.55;
+    ctx.fillStyle = s.style.plan.paper;
+    ctx.fill();
+    ctx.globalAlpha = 0.8;
+    ctx.setLineDash([6, 5]);
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = s.style.plan.buildingStroke;
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+/** A trellis as an open lattice along its line; an arch as its two legs and the hoops between; an obelisk as a ring of four uprights. */
+function drawSupport(ctx: CanvasRenderingContext2D, s: Scene, f: Feature): boolean {
+  const v = s.view;
+  const timber = s.style.mode === 'dark' ? '#b89a72' : '#8a6a44';
+  const px = (mm: number) => Math.max(1, mm * v.scale);
+  ctx.save();
+  ctx.strokeStyle = timber;
+  ctx.fillStyle = timber;
+  ctx.lineCap = 'round';
+  const hover = s.hoverId === f.id ? 1.5 : 1;
+  if (f.support === 'trellis' && f.line) {
+    const line = f.line.map((p) => toScreen(v, p));
+    ctx.beginPath();
+    line.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+    ctx.lineWidth = px(f.widthMm ?? 40) * hover;
+    ctx.setLineDash([px(60), px(90)]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.lineWidth = Math.max(0.8, px(10));
+    ctx.stroke();
+  } else if (f.support === 'obelisk' && f.circle) {
+    const [cx, cy] = toScreen(v, f.circle.centre);
+    const r = f.circle.radiusMm * v.scale;
+    ctx.lineWidth = Math.max(1, px(25)) * hover;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+    // Four uprights leaning in to the top, seen from above.
+    ctx.beginPath();
+    for (let i = 0; i < 4; i++) {
+      const a = Math.PI / 4 + (i * Math.PI) / 2;
+      ctx.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+      ctx.lineTo(cx, cy);
+    }
+    ctx.stroke();
+  } else if (f.support === 'arch' && f.footprint.length === 4) {
+    const [a, b, c, d] = f.footprint.map((p) => toScreen(v, p)) as [Point, Point, Point, Point];
+    // The hoops run across the long sides; the legs stand at the short ends.
+    const long = Math.hypot(b[0] - a[0], b[1] - a[1]) >= Math.hypot(d[0] - a[0], d[1] - a[1]);
+    const [p0, p1, q0, q1] = long ? [a, b, d, c] : [a, d, b, c];
+    ctx.lineWidth = Math.max(1, px(30)) * hover;
+    ctx.beginPath();
+    ctx.moveTo(p0[0], p0[1]);
+    ctx.lineTo(p1[0], p1[1]);
+    ctx.moveTo(q0[0], q0[1]);
+    ctx.lineTo(q1[0], q1[1]);
+    for (let i = 1; i < 6; i++) {
+      const t = i / 6;
+      ctx.moveTo(p0[0] + (p1[0] - p0[0]) * t, p0[1] + (p1[1] - p0[1]) * t);
+      ctx.lineTo(q0[0] + (q1[0] - q0[0]) * t, q0[1] + (q1[1] - q0[1]) * t);
+    }
+    ctx.stroke();
+    for (const [m, n] of [
+      [p0, q0],
+      [p1, q1],
+    ] as [Point, Point][]) {
+      ctx.lineWidth = Math.max(2, px(80));
+      ctx.beginPath();
+      ctx.moveTo(m[0], m[1]);
+      ctx.lineTo(n[0], n[1]);
+      ctx.stroke();
+    }
+  } else {
+    ctx.restore();
+    return false;
+  }
+  ctx.restore();
+  return true;
+}
+
+function drawFeatureBody(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, pats: Patterns) {
   const v = s.view;
   const c = featureColours(f, s.style.plan);
   const pts = f.footprint.map((p) => toScreen(v, p));
@@ -1317,7 +1409,7 @@ function shapePath(ctx: CanvasRenderingContext2D, s: Scene, shape: PlantingShape
  * Draws a planting's plants as they look from above at their stage. Far out, where plants would be specks, a row
  * or block is one band of colour; a little closer, each is a dot; closer still, each is drawn in full.
  */
-function drawPlants(ctx: CanvasRenderingContext2D, s: Scene, pts: Point[], shape: PlantingShape, spreadMm: number, plant: Plant, look: Look, alpha: number) {
+function drawPlants(ctx: CanvasRenderingContext2D, s: Scene, pts: Point[], shape: PlantingShape, spreadMm: number, plant: Plant, look: Look, alpha: number, train?: (p: Point) => number | null) {
   const v = s.view;
   const r = (spreadMm / 2) * v.scale;
   const art = artFor(plant);
@@ -1361,19 +1453,19 @@ function drawPlants(ctx: CanvasRenderingContext2D, s: Scene, pts: Point[], shape
     // Each plant gets its own variation and turn, worked out from where it is, so it never changes between frames.
     const h = (Math.imul(p[0], 73856093) ^ Math.imul(p[1], 19349663)) >>> 0;
     const variant = h % VARIANTS;
-    const turn = ((h >>> 5) % 360) * (Math.PI / 180);
+    // Trained along a fence, it's turned to run along it and narrow across it; otherwise each plant has its own turn.
+    const along = train?.(p) ?? null;
+    const turn = along !== null ? -along : ((h >>> 5) % 360) * (Math.PI / 180);
+    const across = along !== null ? 0.45 : 1;
     const cos = Math.cos(turn);
     const sin = Math.sin(turn);
+    // One transform per plant: turned about its own centre, on top of the pixel ratio.
+    ctx.setTransform(dpr * cos, dpr * sin, -dpr * sin * across, dpr * cos * across, dpr * x, dpr * y);
     if (bucket) {
       const sprite = spriteFor(variant);
       const size = (sprite.width / dpr) * (r / bucket);
-      // One transform per plant: turned about its own centre, on top of the pixel ratio.
-      ctx.setTransform(dpr * cos, dpr * sin, -dpr * sin, dpr * cos, dpr * x, dpr * y);
       ctx.drawImage(sprite, -size / 2, -size / 2, size, size);
-    } else {
-      ctx.setTransform(dpr * cos, dpr * sin, -dpr * sin, dpr * cos, dpr * x, dpr * y);
-      drawPlant(ctx, { art, look, r, paint, seed: seed + variant * 7919 });
-    }
+    } else drawPlant(ctx, { art, look, r, paint, seed: seed + variant * 7919 });
   }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.globalAlpha = 1;
@@ -1385,11 +1477,21 @@ const lookOf = (s: Scene, pl: Planting, plant: Plant): Look => seasonal(stageLoo
 /** A planting's plant at the size it's been set to. */
 const plantFor = (s: Scene, pl: Planting) => sizedPlant(s.plantOf!(pl.plantId), pl);
 
+/** The garden's features by id, made once for each list of features (a new list comes with every edit). */
+const byIdCache = new WeakMap<Feature[], Map<string, Feature>>();
+function featuresById(g: Garden): Map<string, Feature> {
+  let m = byIdCache.get(g.features);
+  if (!m) byIdCache.set(g.features, (m = new Map(g.features.map((f) => [f.id, f]))));
+  return m;
+}
+
 function drawPlanting(ctx: CanvasRenderingContext2D, s: Scene, pl: Planting, plant: Plant) {
   const pts = plantPositions(pl, plant);
   const shape = plantingShape(pl, plant);
   const at = s.time?.stageOf(pl);
-  drawPlants(ctx, s, pts, shape, spreadOf(plant), plant, lookOf(s, pl, plant), s.hoverId === pl.id ? 1 : 0.95);
+  const support = featuresById(s.garden).get(pl.featureId);
+  const train = support && isLineSupport(support) ? (p: Point) => trainedAngle(support, p) : undefined;
+  drawPlants(ctx, s, pts, shape, spreadOf(plant), plant, lookOf(s, pl, plant), s.hoverId === pl.id ? 1 : 0.95, train);
   // A stage from the plant's usual months, not one you've marked: a dotted edge says it's a guess.
   if (at?.guessed && at.stage !== 'planned') {
     shapePath(ctx, s, shape, (spreadOf(plant) / 2) * s.view.scale + 2);

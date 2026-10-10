@@ -4,7 +4,7 @@
 
 import { makeFeature, rectPoints, withFootprint } from './features';
 import { makeTree, treeSize, treeType } from './trees';
-import { PLANT_SIZES, type Feature, type FeatureKind, type Material, type PlantSize, type Point } from './types';
+import { PLANT_SIZES, type Feature, type FeatureKind, type Material, type PlantSize, type Point, type Support } from './types';
 
 export type StickerGroup = 'beds' | 'ground' | 'build';
 
@@ -26,6 +26,10 @@ export interface Sticker {
   opacity?: number;
   /** A tree of a type, at a size: see src/model/trees.ts. */
   tree?: { type: string; size: PlantSize };
+  /** A trellis, arch or obelisk, for one climber. */
+  support?: Support;
+  /** Next door's: over the fence, casting shade, drawn faintly. */
+  nextDoor?: boolean;
 }
 
 /** "2.4 × 1.2 m", or "100 × 40 cm" when either side is under a metre: one unit for both. */
@@ -68,6 +72,13 @@ export const STICKERS: Sticker[] = [
   { id: 'bird-feeder', group: 'build', label: 'Bird feeder', size: 'Ø 30 cm', kind: 'other', shape: { circle: 150 }, name: 'Bird feeder', heightMm: 1800, opacity: 0.1 },
   { id: 'bee-hotel', group: 'build', label: 'Bee hotel', size: rect(300, 200), kind: 'other', shape: { rect: [300, 200] }, name: 'Bee hotel', heightMm: 400 },
   { id: 'steps', group: 'ground', label: 'Steps', size: rect(1200, 900), kind: 'surface', shape: { rect: [1200, 900] }, material: 'paving', name: 'Steps' },
+  // Things for one climber to grow up. A trellis is a see-through fence; an arch spans a path; an obelisk stands in a bed.
+  { id: 'trellis', group: 'build', label: 'Trellis', size: '1.8 m', kind: 'fence', shape: { line: 1800 }, name: 'Trellis', heightMm: 1800, widthMm: 40, opacity: 0.4, support: 'trellis' },
+  { id: 'arch', group: 'build', label: 'Arch', size: rect(1400, 500), kind: 'other', shape: { rect: [1400, 500] }, name: 'Arch', heightMm: 2300, opacity: 0.3, support: 'arch' },
+  { id: 'obelisk', group: 'build', label: 'Obelisk', size: 'Ø 50 cm', kind: 'other', shape: { circle: 250 }, name: 'Obelisk', heightMm: 1800, opacity: 0.3, support: 'obelisk' },
+  // Next door: over the fence, for the shade they cast. Drag them to where they stand.
+  { id: 'next-door-house', group: 'build', label: 'Next door’s house', size: rect(8000, 6000), kind: 'building', shape: { rect: [8000, 6000] }, name: 'Next door', heightMm: 7500, nextDoor: true },
+  { id: 'next-door-tree', group: 'build', label: 'Next door’s tree', size: 'Ø 6 m', kind: 'tree', shape: { circle: 3000 }, name: 'Next door’s tree', tree: { type: 'sycamore', size: 'small' }, nextDoor: true },
 ];
 
 /** A tree's sticker id: "tree:silver-birch:medium". Trees aren't in STICKERS; the dock lists them from TREE_TYPES. */
@@ -89,7 +100,10 @@ export function stickerById(id: string): Sticker | undefined {
 export function stickerFeature(s: Sticker, at: Point): Feature {
   const [x, y] = at;
   const type = s.tree && treeType(s.tree.type);
-  if (s.tree && type) return makeTree(type, s.tree.size, at);
+  if (s.tree && type) {
+    const tree = makeTree(type, s.tree.size, at);
+    return { ...tree, ...(s.name ? { name: s.name } : {}), ...(s.nextDoor ? { nextDoor: true } : {}) };
+  }
   let f: Feature;
   if ('rect' in s.shape) {
     const [w, h] = s.shape.rect;
@@ -104,6 +118,8 @@ export function stickerFeature(s: Sticker, at: Point): Feature {
   if (s.opacity !== undefined) f = { ...f, opacityInLeaf: s.opacity, opacityBare: s.opacity };
   if (s.widthMm !== undefined && f.line) f = withFootprint({ ...f, widthMm: s.widthMm });
   if (s.material) f = { ...f, material: s.material };
+  if (s.support) f = { ...f, support: s.support };
+  if (s.nextDoor) f = { ...f, nextDoor: true };
   if (s.edging !== undefined) f = { ...f, edging: s.edging };
   else if (s.kind === 'bed' && !s.edging) {
     const { edging: _e, ...rest } = f;

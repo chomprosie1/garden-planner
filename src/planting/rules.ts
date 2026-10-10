@@ -4,13 +4,15 @@
 
 import { formatLength } from '../canvas/viewport';
 import { distance, distanceToSegment, pointInPolygon } from '../geometry/polygon';
-import { featureLabel } from '../model/features';
+import { featureLabel, placeLabel } from '../model/features';
 import type { Garden, Plant, Planting, Point } from '../model/types';
 import { averageHours, type SunGrid } from '../sun/hours';
 import { activePlantings, canHold, plantCount, plantingShape, plantPositions, rowSpacingOf, sizedPlant, type PlantingShape } from './place';
 import { isPot, potProblems } from './pots';
+import { phOf, soilClash, soilOf } from './soil';
+import { holdsOne, holdsPoint, isSupport } from './supports';
 
-export type FindingKind = 'spacing' | 'row' | 'outside' | 'no-bed' | 'avoid' | 'good' | 'light' | 'pot';
+export type FindingKind = 'spacing' | 'row' | 'outside' | 'no-bed' | 'avoid' | 'good' | 'light' | 'pot' | 'soil' | 'support';
 
 export interface Finding {
   /** Stable for the same problem, so the list doesn't jump about. */
@@ -33,7 +35,15 @@ type PlantOf = (id: string) => Plant;
 export function checkGarden(g: Garden, plantOf: PlantOf, sun: SunGrid | null = null): Finding[] {
   // Weeds aren't checked for spacing, neighbours or light: they're not a planting choice.
   const active = activePlantings(g).filter((pl) => plantOf(pl.plantId).category !== 'weed');
-  const findings = [...checkPlacement(g, active, plantOf), ...checkPots(g, plantOf), ...checkSpacing(g, active, plantOf), ...checkNeighbours(g, active, plantOf), ...checkLight(active, plantOf, sun)];
+  const findings = [
+    ...checkPlacement(g, active, plantOf),
+    ...checkPots(g, plantOf),
+    ...checkSupports(g, active, plantOf),
+    ...checkSpacing(g, active, plantOf),
+    ...checkNeighbours(g, active, plantOf),
+    ...checkLight(active, plantOf, sun),
+    ...checkSoil(g, active, plantOf),
+  ];
   return findings.sort((a, b) => (a.level === b.level ? 0 : a.level === 'warn' ? -1 : 1));
 }
 
@@ -54,10 +64,12 @@ function checkPlacement(g: Garden, active: Planting[], plantOf: PlantOf): Findin
       continue;
     }
     const pts = plantPositions(pl, plant);
-    const outside = pts.filter((p) => !insideBed(p, bed.footprint)).length;
+    // Along a fence, a plant is in place while it's by the fence.
+    const along = isSupport(bed);
+    const outside = pts.filter((p) => (along ? !holdsPoint(bed, p) : !insideBed(p, bed.footprint))).length;
     if (outside > 0) {
       const what = pts.length === 1 ? `${plant.commonName} is` : `${outside} of ${pts.length} ${plant.commonName.toLowerCase()} plants are`;
-      out.push({ id: `outside:${pl.id}`, kind: 'outside', level: 'warn', plantingIds: [pl.id], featureIds: [bed.id], message: `${what} outside ${featureLabel(bed)}.` });
+      out.push({ id: `outside:${pl.id}`, kind: 'outside', level: 'warn', plantingIds: [pl.id], featureIds: [bed.id], message: along ? `${what} too far from ${featureLabel(bed)} to grow up it.` : `${what} outside ${featureLabel(bed)}.` });
     }
     if (pl.layout === 'row' && pts.length > 1) {
       const gap = distance(pts[0]!, pts[1]!);
@@ -209,6 +221,45 @@ export function checkLight(active: Planting[], plantOf: PlantOf, sun: SunGrid | 
 export const LIGHT_SLACK_H = 0.25;
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 export const formatHours = (h: number) => `${Math.round(h * 2) / 2} h`;
+
+// ---------- Supports and soil ----------
+
+/** A trellis, arch or obelisk with more than one climber on it. */
+function checkSupports(g: Garden, active: Planting[], plantOf: PlantOf): Finding[] {
+  const out: Finding[] = [];
+  for (const f of g.features) {
+    if (!holdsOne(f)) continue;
+    const on = active.filter((pl) => pl.featureId === f.id);
+    const n = on.reduce((sum, pl) => sum + plantCount(pl, plantOf(pl.plantId)), 0);
+    if (n < 2) continue;
+    const names = [...new Set(on.map((pl) => lower(plantOf(pl.plantId).commonName)))];
+    out.push({
+      id: `support:${f.id}`,
+      kind: 'support',
+      level: 'warn',
+      plantingIds: on.map((pl) => pl.id),
+      featureIds: [f.id],
+      message: `${featureLabel(f)} has ${n} climbers on it (${names.join(', ')}). It holds one; move the others to a fence or another support.`,
+    });
+  }
+  return out;
+}
+
+/** Plants in soil their card says doesn't suit them: acid lovers on chalk, plants that want it free-draining in clay. */
+export function checkSoil(g: Garden, active: Planting[], plantOf: PlantOf): Finding[] {
+  const out: Finding[] = [];
+  for (const pl of active) {
+    const plant = plantOf(pl.plantId);
+    const f = g.features.find((x) => x.id === pl.featureId);
+    if (!f) continue;
+    // Along a fence or by a frame, it's in the garden's ground.
+    const place = isSupport(f) ? undefined : f;
+    const name = place ? (place.kind === 'surface' ? placeLabel(place) : featureLabel(place)) : `the ground by ${featureLabel(f)}`;
+    const why = soilClash(plant, soilOf(g, place), phOf(g, place), name);
+    if (why) out.push({ id: `soil:${pl.id}`, kind: 'soil', level: 'warn', plantingIds: [pl.id], featureIds: [pl.featureId], message: `${describe(pl, plant)} ${why}.` });
+  }
+  return out;
+}
 
 // ---------- Words ----------
 

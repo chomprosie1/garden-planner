@@ -17,6 +17,19 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-10-along-the-fence',
+    date: '2026-10-10',
+    title: 'Along the fence',
+    items: [
+      'Climbers along fences, walls and hedges: pick one and tap Plant, and the plants open on climbers, from clematis and climbing roses to apples and pears you can train flat, then sweet peas and beans. Drop one just beside the fence, on the side it should grow, and it’s drawn trained along it. A row along the fence is one tap more.',
+      'No fence drawn? Drop a climber just inside the boundary and a fence goes up along that side for it.',
+      'A trellis, an arch and an obelisk, in Trees and structures. Each holds one climber.',
+      'Your soil: choose clay, loam, sandy, chalky or peaty in Your garden, and its pH if you’ve tested it. A bed can have its own, such as ericaceous compost. Plants whose cards say the soil won’t suit them are flagged in the plant checks, such as a blueberry on chalk or lavender in clay.',
+      'Shade from next door: add Next door’s tree or Next door’s house from Trees and structures and drag it over the boundary to where it stands. It’s drawn faintly, and the sun and shade views count its shade.',
+    ],
+    tryIt: { label: 'Open the plan', view: 'plan' },
+  },
+  {
     id: '2026-10-09-build-the-garden',
     date: '2026-10-09',
     title: 'Build your garden as it really is',

@@ -22,8 +22,11 @@ import {
   FACINGS,
   SKETCH_COLOURS,
   SKETCH_KINDS,
+  GROUND_SOILS,
+  SOILS,
   SOWING_METHODS,
   STAGES,
+  SUPPORTS,
   WEED_SPREADS,
   WINTER_HABITS,
   WINTERING_TYPES,
@@ -39,6 +42,7 @@ const isStr = (v: unknown): v is string => typeof v === 'string';
 const isPoint = (v: unknown): boolean => Array.isArray(v) && v.length === 2 && isNum(v[0]) && isNum(v[1]);
 const isMonths = (v: unknown): boolean =>
   Array.isArray(v) && v.every((m) => Number.isInteger(m) && m >= 1 && m <= 12);
+const isPh = (v: unknown): boolean => isNum(v) && v >= 3.5 && v <= 9;
 const oneOf = (list: readonly string[], v: unknown): boolean => isStr(v) && list.includes(v);
 
 export function validateGarden(g: unknown): string[] {
@@ -92,9 +96,15 @@ export function validateGarden(g: unknown): string[] {
       );
       need(f.treeType === undefined || (isStr(f.treeType) && /^[a-z0-9-]{1,40}$/.test(f.treeType)), `${at}.treeType must be a tree type's id.`);
       need(f.size === undefined || oneOf(PLANT_SIZES, f.size), `${at}.size must be small, medium or large.`);
+      need(f.soil === undefined || oneOf(SOILS, f.soil), `${at}.soil is not a known soil.`);
+      need(f.ph === undefined || isPh(f.ph), `${at}.ph must be from 3.5 to 9.`);
+      need(f.support === undefined || oneOf(SUPPORTS, f.support), `${at}.support must be a trellis, arch or obelisk.`);
+      need(f.nextDoor === undefined || typeof f.nextDoor === 'boolean', `${at}.nextDoor must be true or false.`);
     });
 
   need(g.spacing === undefined || g.spacing === 'close' || g.spacing === 'rows', 'spacing must be close or rows.');
+  need(g.soil === undefined || oneOf(GROUND_SOILS, g.soil), 'soil must be clay, loam, sandy, chalky or peaty.');
+  need(g.soilPh === undefined || isPh(g.soilPh), 'soilPh must be from 3.5 to 9.');
 
   if (g.trace !== undefined) {
     const t = g.trace;

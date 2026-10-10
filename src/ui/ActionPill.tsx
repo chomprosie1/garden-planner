@@ -12,6 +12,7 @@ import { updateGarden, type Store } from '../model/store';
 import { MATERIALS, PLANT_SIZES, type Feature, type PlantSize, type Garden, type Material, type Plant, type Point } from '../model/types';
 import { canHold, canResize, containerAt, deletePlanting, duplicatePlanting, placeCopy, updatePlanting, plantCount, setPlantingSize, setRowCount, SIZE_FACTOR, SIZE_LABEL, spreadOf } from '../planting/place';
 import { setStage } from '../lifecycle/stages';
+import { holdsPoint, isSupport, wherePhrase } from '../planting/supports';
 import { useApp } from './appContext';
 import { useCopied } from './clipboard';
 import { Icon } from './icons';
@@ -147,17 +148,17 @@ export function ActionPill({ pillRef, target, garden, store, plantOf, locked, mo
       const paste =
         copied && canHold(f)
           ? () => {
-              const inside = tapped && containerAt(garden, tapped)?.id === f.id ? tapped : centreOf(f.footprint);
+              const inside = tapped && (isSupport(f) ? holdsPoint(f, tapped) : containerAt(garden, tapped)?.id === f.id) ? tapped : centreOf(f.footprint);
               const made = { id: null as string | null };
               commit((g) => {
-                const copy = placeCopy(g, copied, plantOf, inside);
+                const copy = placeCopy(g, copied, plantOf, inside, isSupport(f) ? f : undefined);
                 made.id = copy?.id ?? null;
                 return copy ? { ...g, plantings: [...g.plantings, copy] } : g;
               });
               const name = plantOf(copied.plantId).commonName;
               if (made.id) {
                 select({ type: 'planting', id: made.id });
-                app.notify(`${name} pasted into ${featureLabel(f)}.`, { undo: true });
+                app.notify(`${name} pasted ${wherePhrase(f)}.`, { undo: true });
               } else app.notify(`No room for ${name.toLowerCase()} in ${featureLabel(f)}.`);
             }
           : null;

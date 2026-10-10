@@ -35,7 +35,22 @@ export interface Garden {
   feedShelf?: string[];
   /** The seed tin: packets of seed you have. */
   seeds?: SeedPacket[];
+  /** The garden's soil. Absent: not sure. Beds can have their own (Feature.soil). */
+  soil?: GroundSoil;
+  /** Its pH, if you've tested it: 3.5 to 9. */
+  soilPh?: number;
 }
+
+/** What the ground is: heavy clay to light sand, chalk, peat, or good loam. */
+export const GROUND_SOILS = ['clay', 'loam', 'sandy', 'chalky', 'peaty'] as const;
+export type GroundSoil = (typeof GROUND_SOILS)[number];
+/** What a bed or pot is filled with: the ground's soil, or compost (ericaceous, for plants that want acid soil). */
+export const SOILS = [...GROUND_SOILS, 'compost', 'ericaceous'] as const;
+export type Soil = (typeof SOILS)[number];
+
+/** Things climbers grow up: a trellis, an arch over a path, an obelisk in a bed. Each holds one climber. */
+export const SUPPORTS = ['trellis', 'arch', 'obelisk'] as const;
+export type Support = (typeof SUPPORTS)[number];
 
 /** A packet of seed in the tin. */
 export interface SeedPacket {
@@ -184,6 +199,14 @@ export interface Feature {
   /** A tree's type, from src/model/trees.ts, and the size it was set to. Its sizes and shade are kept on the feature. */
   treeType?: string;
   size?: PlantSize;
+  /** What a bed, pot or planter is filled with, where it isn't the garden's soil. Absent: the garden's soil, or compost in a pot or planter. */
+  soil?: Soil;
+  /** Its pH, if you've tested it. Absent: the garden's. */
+  ph?: number;
+  /** A trellis, arch or obelisk: it holds one climber. */
+  support?: Support;
+  /** Next door's tree or house, over the fence: it casts shade, and is drawn faintly. */
+  nextDoor?: boolean;
 }
 
 /** Under glass: degrees warmer than outside by day and at night, and whether it's heated (kept frost-free). */

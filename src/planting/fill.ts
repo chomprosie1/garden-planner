@@ -5,6 +5,7 @@
 import { bounds, pointInPolygon } from '../geometry/polygon';
 import type { Feature, Plant, Planting, Point } from '../model/types';
 import { blockGrid, plantPositions, rowCount, spreadOf } from './place';
+import { alongSupport, isSupport, supportFills } from './supports';
 
 export type Fill = 'one' | 'row' | 'fill';
 
@@ -12,6 +13,8 @@ export const FILL_LABEL: Record<Fill, string> = { one: 'One', row: 'A row', fill
 
 /** The usual way to plant this in this bed or pot. */
 export function defaultFill(plant: Plant, bed: Feature): Fill {
+  // Along a fence, one where it's dropped; a row along it is a tap away.
+  if (isSupport(bed)) return 'one';
   const spread = spreadOf(plant);
   const s = plant.size.spacingMm;
   const b = bounds(bed.footprint);
@@ -58,6 +61,7 @@ const inside = (bed: Feature, pts: Point[]) => pts.every((q) => pointInPolygon(q
 
 /** The planting for a fill, in a bed, from where the plant was dropped. */
 export function fillPlanting(plant: Plant, bed: Feature, fill: Fill, at: Point): Pick<Planting, 'layout' | 'x' | 'y'> & Partial<Pick<Planting, 'endPoint' | 'count'>> {
+  if (isSupport(bed)) return alongSupport(bed, plant, fill === 'row' ? 'row' : 'one', at);
   const one = { layout: 'single' as const, x: Math.round(at[0]), y: Math.round(at[1]) };
   const s = plant.size.spacingMm;
   if (fill === 'row') {
@@ -93,7 +97,9 @@ export function fillPlanting(plant: Plant, bed: Feature, fill: Fill, at: Point):
 }
 
 /** Which fills make sense here: a row needs room for two plants, a fill room for a few. */
-export function fillsFor(plant: Plant, bed: Feature): Fill[] {
+export function fillsFor(plant: Plant, bed: Feature, at?: Point): Fill[] {
+  // Along a fence: one, or a row along the stretch where it was dropped. A trellis, arch or obelisk holds one.
+  if (isSupport(bed)) return bed.support ? ['one'] : supportFills(bed, plant, at ?? bed.footprint[0]!);
   // A row or a fill across a whole lawn is never what's meant; draw a row or block by hand instead.
   if (bed.kind === 'surface') return ['one'];
   const b = bounds(bed.footprint);

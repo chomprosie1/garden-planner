@@ -116,14 +116,14 @@ describe('cardboard over weeds', () => {
   });
 
   it('saves and loads: schema 17, a valid laid date, and older gardens brought up to date', () => {
-    expect(SCHEMA_VERSION).toBe(17);
+    expect(SCHEMA_VERSION).toBeGreaterThanOrEqual(17);
     const g: Garden = addFeature(newGarden(), sheet('2027-03-15'));
     expect(validateGarden(JSON.parse(JSON.stringify(g)))).toEqual([]);
     const bad = { ...g, features: [{ ...g.features[0]!, laidOn: 'last spring' }] };
     expect(validateGarden(JSON.parse(JSON.stringify(bad))).join(' ')).toMatch(/laidOn must be a date/);
     const old = { ...newGarden(), schemaVersion: 16 };
     const migrated = migrateGarden(old) as Garden;
-    expect(migrated.schemaVersion).toBe(17);
+    expect(migrated.schemaVersion).toBe(SCHEMA_VERSION);
     expect(validateGarden(migrated)).toEqual([]);
   });
 });
