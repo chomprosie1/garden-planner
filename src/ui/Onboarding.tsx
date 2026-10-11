@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'preact/hooks';
-import { toggleWishlist } from '../calendar/jobs';
+import { firstJob, toggleWishlist } from '../calendar/jobs';
 import { latestNews } from '../content/whatsNew';
 import { seasonFor } from '../content/seasons';
 import { todayIso } from '../model/ids';
 import { makeSpace } from '../model/spaces';
 import { updateGarden, type Store } from '../model/store';
+import type { Target } from '../model/features';
 import type { Garden } from '../model/types';
 import { applyKit, kitsFor, type Kit } from '../planting/kits';
 import { spacingStyle } from '../planting/place';
@@ -25,6 +26,8 @@ interface Props {
   go: (v: View) => void;
   /** Setting up another garden, or starting again: straight to the questions, with no welcome. */
   again?: boolean;
+  /** At the end: the plan, with the first job's plants picked out and a note of what it is. */
+  showFirst?: (target: Target, note: string) => void;
 }
 
 type Step = 'where' | 'space' | 'grow';
@@ -36,11 +39,12 @@ export const FAVOURITES = ['tomato', 'lettuce', 'strawberry', 'basil', 'potato',
  * First run: where your garden is, what you're growing in, and what you'd like to grow (a starter kit, and
  * favourites for your sowing list). Then Today, with real jobs. Every step can be skipped; the look is in Settings.
  */
-export function Onboarding({ store, garden, prefs, prefsStore, go, again = false }: Props) {
+export function Onboarding({ store, garden, prefs, prefsStore, go, again = false, showFirst }: Props) {
   const [step, setStep] = useState(again ? 1 : 0);
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; lines: string[] } | null>(null);
   const [choice, setChoice] = useState<SpaceChoice | null>(null);
-  const [kit, setKit] = useState<Kit | null>(null);
+  /** The kit you chose, or none; undefined until you choose, when it's the first offered (the one that can go in soonest). */
+  const [kitChosen, setKit] = useState<Kit | null | undefined>(undefined);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   /** The garden as it was before a space was made, so going back and choosing again replaces it. */
   const [before] = useState(garden);
@@ -52,6 +56,7 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
   const steps: Step[] = empty ? ['where', 'space', 'grow'] : ['where', 'grow'];
   const current = steps[step - 1];
   const kits = choice && plants ? kitsFor(choice.space, month, (id) => byId.get(id) ?? null) : [];
+  const kit = kitChosen === undefined ? (kits[0] ?? null) : kitChosen;
 
   const finish = (skipped = false) => {
     if (!skipped) {
@@ -60,7 +65,9 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
           let next = g;
           // The space, laid out fresh from the garden as it was, then the kit in its beds.
           if (empty && choice) next = makeSpace({ ...next, boundary: before.boundary, features: before.features, plantings: before.plantings }, choice.space, choice.w, choice.d, choice.sideReturn ?? null);
-          if (kit && plants) next = applyKit(next, kit, (id) => byId.get(id) ?? null, todayIso());
+          // The kit chosen for you only if you saw it: Skip before the last step plants none.
+          const planted = kitChosen !== undefined ? kitChosen : current === 'grow' ? kit : null;
+          if (planted && plants) next = applyKit(next, planted, (id) => byId.get(id) ?? null, todayIso());
           for (const id of picked) if (!next.wishlist.includes(id)) next = toggleWishlist(next, id);
           return next;
         }),
@@ -68,7 +75,10 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
     }
     // Everything's new to someone just starting: no "What's new" until the next change. Someone setting up another garden has seen it.
     prefsStore.set({ onboarded: true, seenNews: again ? prefs.seenNews : latestNews().id });
-    go(skipped ? 'plan' : 'home');
+    // Straight to the plan, with the first job picked out: what to do first, where it is.
+    const first = skipped || !plants ? null : firstJob(store.get().garden, plantOf, new Date(), { weeding: prefs.weeding, feeding: prefs.feeding });
+    if (first && showFirst) showFirst(first.target, first.note);
+    else go('plan');
   };
   const next = () => (step < steps.length ? setStep(step + 1) : finish());
   const toggle = (id: string) => {
@@ -127,7 +137,7 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
             <SpacePicker
               value={choice}
               onChange={(c) => {
-                if (c.space !== choice?.space) setKit(null);
+                if (c.space !== choice?.space) setKit(undefined);
                 setChoice(c);
               }}
             />

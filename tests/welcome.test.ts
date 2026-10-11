@@ -1,4 +1,4 @@
-// Release 20: the welcome on launch. When it shows, how long it pauses, the
+// Release 20: the welcome on launch. When it shows (once a day, from release 29), the
 // version it shows, and the quotes: the rules a test can check. Whether a line
 // sounds like a person wrote it is for a person to judge.
 
@@ -7,7 +7,8 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { pickQuote, QUOTES, quotesFor, seasonOfMonth, type QuoteSeason } from '../src/content/quotes';
 import { APP_VERSION, versionText } from '../src/content/version';
-import { pauseMs, SKIP_AFTER_MS, welcomesAt } from '../src/ui/launch';
+import { welcomeDue, welcomesAt } from '../src/ui/launch';
+import { sanitisePrefs } from '../src/theme/prefs';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -19,17 +20,13 @@ describe('the welcome on launch', () => {
     expect(welcomesAt('#/home')).toBe(true);
   });
 
-  it('pauses between one and five seconds, and can be skipped after a second', () => {
-    expect(pauseMs(0)).toBe(1000);
-    expect(pauseMs(1)).toBe(5000);
-    expect(pauseMs(-3)).toBe(1000);
-    expect(pauseMs(9)).toBe(5000);
-    for (let i = 0; i < 50; i++) {
-      const ms = pauseMs();
-      expect(ms).toBeGreaterThanOrEqual(1000);
-      expect(ms).toBeLessThanOrEqual(5000);
-    }
-    expect(SKIP_AFTER_MS).toBe(1000);
+  it('shows at most once a day: the first launch of the day (release 29, no pause any more)', () => {
+    expect(welcomeDue(null, '2026-10-11')).toBe(true);
+    expect(welcomeDue('2026-10-10', '2026-10-11')).toBe(true);
+    expect(welcomeDue('2026-10-11', '2026-10-11')).toBe(false);
+    const p = sanitisePrefs({ welcomedOn: '2026-10-11' });
+    expect(p.welcomedOn).toBe('2026-10-11');
+    expect(sanitisePrefs({ welcomedOn: 'yesterday' }).welcomedOn).toBeNull();
   });
 
   it('shows the version from package.json, and the day it was built', () => {

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Heart } from '../Heart';
 import { blankPlant, copyAsUserPlant, deleteUserPlant, emptyFilter, filterPlants, saveUserPlant, type PlantFilter } from '../../library/library';
-import { beginnerOrder } from '../../library/order';
+import { beginnerOrder, splitCore } from '../../library/order';
+import { MorePlants } from '../MorePlants';
 import { featureLabel } from '../../model/features';
 import { currentStage, STAGE_LABEL } from '../../lifecycle/stages';
 import { useApp } from '../appContext';
@@ -65,8 +66,12 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
     return wantOnly ? found.filter((p) => garden.wishlist.includes(p.id)) : found;
   }, [plants, filter, wantOnly, garden.wishlist]);
 
-  // On a wide screen, show the first result rather than an empty pane.
-  const shown = panel ?? (!phone && results[0] ? { kind: 'card' as const, id: results[0].id } : null);
+  // Beyond the core 150, plants wait under More plants until they're checked; a search or your list shows everything.
+  const { core, more } = filter.query.trim() || wantOnly ? { core: results, more: [] } : splitCore(results);
+
+  // On a wide screen, show the first result in view rather than an empty pane.
+  const firstShown = core[0] ?? results[0];
+  const shown = panel ?? (!phone && firstShown ? { kind: 'card' as const, id: firstShown.id } : null);
   const current = shown?.kind === 'card' ? byId.get(shown.id) : undefined;
 
   const save = (p: Plant) => {
@@ -86,6 +91,24 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
         const bed = garden.features.find((f) => f.id === pl.featureId);
         return { id: pl.id, label: `${bed ? featureLabel(bed) : 'a bed'} (${STAGE_LABEL[currentStage(pl)].toLowerCase()})` };
       });
+
+  const row = (p: Plant) => (
+    <li key={p.id}>
+      <button type="button" class="plant-row" aria-current={current?.id === p.id ? 'true' : undefined} onClick={() => setPanel({ kind: 'card', id: p.id })}>
+        <PlantIcon plant={p} size={34} view="side" />
+        <span class="plant-row-main">
+          <span class="plant-row-name">{p.commonName}</span>
+          {p.latinName && <span class="latin small">{p.latinName}</span>}
+        </span>
+        <span class="plant-row-meta small muted">
+          {LIGHT_LABEL[p.conditions.light]} · {formatLength(p.size.spacingMm)}
+        </span>
+        {hasSeed(p) && <span class="badge badge-seed">Seed</span>}
+        {p.userAdded ? <span class="badge badge-own">Yours</span> : editor && !p.verified && <span class="dot-warn" title="Not yet checked" aria-label="Not yet checked" />}
+      </button>
+      <Heart store={store} garden={garden} plant={p} />
+    </li>
+  );
 
   const list = (
     <div class="plants-list-pane">
@@ -145,25 +168,12 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
           {results.length} of {plants.length} plants
         </p>
       )}
-      <ul class="plant-list">
-        {results.map((p) => (
-          <li key={p.id}>
-            <button type="button" class="plant-row" aria-current={current?.id === p.id ? 'true' : undefined} onClick={() => setPanel({ kind: 'card', id: p.id })}>
-              <PlantIcon plant={p} size={34} view="side" />
-              <span class="plant-row-main">
-                <span class="plant-row-name">{p.commonName}</span>
-                {p.latinName && <span class="latin small">{p.latinName}</span>}
-              </span>
-              <span class="plant-row-meta small muted">
-                {LIGHT_LABEL[p.conditions.light]} · {formatLength(p.size.spacingMm)}
-              </span>
-              {hasSeed(p) && <span class="badge badge-seed">Seed</span>}
-              {p.userAdded ? <span class="badge badge-own">Yours</span> : editor && !p.verified && <span class="dot-warn" title="Not yet checked" aria-label="Not yet checked" />}
-            </button>
-            <Heart store={store} garden={garden} plant={p} />
-          </li>
-        ))}
-      </ul>
+      <ul class="plant-list">{core.map((p) => row(p))}</ul>
+      {more.length > 0 && (
+        <MorePlants count={more.length}>
+          <ul class="plant-list">{more.map((p) => row(p))}</ul>
+        </MorePlants>
+      )}
       {library && results.length === 0 && (
         <p class="muted">{wantOnly && !garden.wishlist.length ? 'Nothing on your list yet. Tap the heart on a plant you’d like to grow.' : 'No plants match. Try fewer words or clear a filter.'}</p>
       )}

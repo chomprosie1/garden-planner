@@ -6083,9 +6083,6 @@ h2 {
 .launch {
   min-height: 100dvh;
 }
-.launch:not(.launch-ready) {
-  cursor: default;
-}
 .launch-quote {
   margin: 0.25rem 0 0.5rem;
   padding: 0;
@@ -6096,39 +6093,6 @@ h2 {
   font-family: var(--font-display);
   font-size: 1.25rem;
   line-height: 1.4;
-}
-.launch-bar {
-  height: 4px;
-  width: min(18rem, 100%);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.28);
-  overflow: hidden;
-}
-.launch-fill {
-  height: 100%;
-  width: 100%;
-  border-radius: inherit;
-  background: #fff;
-  transform-origin: left center;
-  animation-name: launch-fill;
-  animation-timing-function: ease-out;
-  animation-fill-mode: both;
-}
-.launch-fill-still {
-  animation: none;
-  opacity: 0.6;
-}
-@keyframes launch-fill {
-  from {
-    transform: scaleX(0.04);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-.launch-skip {
-  margin: 0;
-  opacity: 0.85;
 }
 .launch-choices {
   display: flex;
@@ -6163,9 +6127,6 @@ h2 {
 .app-version {
   text-align: center;
   margin: 1rem 0 0;
-}
-.launch:not(.launch-settled) .launch-choices {
-  pointer-events: none;
 }
 .launch-plain {
   background: #33472d;
@@ -6278,4 +6239,54 @@ h2 {
 .shop-dialog .clear-group ul,
 .next-dialog .clear-group ul {
   max-height: none;
+}
+
+/* ---------- Release 29: trim and tidy ---------- */
+.setup-fold {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.setup-folded {
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
+}
+.more-plants {
+  margin: 0.75rem 0;
+}
+.more-plants > summary {
+  list-style: none;
+  cursor: pointer;
+  font-weight: 600;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.dock-more {
+  display: block;
+  margin: 0.4rem auto 0.2rem;
+}
+.more-settings h3 {
+  margin-top: 0.6rem;
+}
+.more-plants > summary::-webkit-details-marker {
+  display: none;
+}
+.more-plants > summary::before {
+  content: '▸';
+  width: 1em;
+}
+.more-plants[open] > summary::before {
+  content: '▾';
 }

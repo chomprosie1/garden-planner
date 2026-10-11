@@ -3,7 +3,7 @@
 // (vegetables, herbs and so on) and by name. Weeds only when asked for: a few
 // people grow them on purpose, most don't. Pure.
 
-import { beginnerOrder } from '../library/order';
+import { beginnerOrder, isCore } from '../library/order';
 import type { Plant } from '../model/types';
 
 export const SOW_KINDS = [
@@ -36,6 +36,8 @@ export interface SowList {
   later: Plant[];
   /** Sown outside or bought as plants: they can still start in the shed. */
   other: Plant[];
+  /** Beyond the core 150 and not yet checked, with nothing typed: in a group of their own, after the rest. */
+  more: Plant[];
 }
 
 /** Started indoors, under glass or in a cold frame at some point in the year. */
@@ -65,13 +67,15 @@ export function sowList(plants: Plant[], o: SowListOptions): SowList {
   // With nothing typed, the plants most beginners grow come first in each group; your own seed stays A to Z.
   const shown = words ? found : beginnerOrder(found);
   const tin = found.filter((p) => o.tin.has(p.id));
-  // Seed in the tin shows once, at the top, not again in its group.
-  const rest = shown.filter((p) => !o.tin.has(p.id));
+  // Seed in the tin shows once, at the top, not again in its group. With nothing typed, plants still being checked wait in their own group.
+  const unseen = shown.filter((p) => !o.tin.has(p.id));
+  const rest = words ? unseen : unseen.filter(isCore);
   const cover = rest.filter(sownUnderCover);
   return {
     tin,
     now: cover.filter((p) => sowNow(p, o.month)),
     later: cover.filter((p) => !sowNow(p, o.month)),
     other: rest.filter((p) => !sownUnderCover(p)),
+    more: words ? [] : unseen.filter((p) => !isCore(p)),
   };
 }

@@ -3,7 +3,7 @@
 // log a pick, and what the year's harvest would have cost in the shops.
 
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import { cropOf, croppingNow, harvestWorth, KEEP_LABEL, minutesText, poundsText, recipesFor, recipesWith, type Kitchen, type Recipe } from '../kitchen/recipes';
+import { cropOf, croppingNow, KEEP_LABEL, minutesText, recipesFor, recipesWith, type Kitchen, type Recipe } from '../kitchen/recipes';
 import { todayIso } from '../model/ids';
 import type { Garden, Plant } from '../model/types';
 import { PlantIcon } from './PlantIcon';
@@ -60,7 +60,7 @@ export function RecipeItem({ recipe, plantOf }: { recipe: Recipe; plantOf: (id: 
   );
 }
 
-/** Today: what's cropping this week, a few recipes for it, and what the year's picks are worth. */
+/** Today: what's cropping this week, and a few recipes for it. No pounds: shop prices go stale (what it's worth is in Wrapped, for fun). */
 export function KitchenCard({ garden, plantOf }: { garden: Garden; plantOf: (id: string) => Plant }) {
   const kitchen = useKitchen();
   const { weather } = useWeatherNow();
@@ -68,8 +68,7 @@ export function KitchenCard({ garden, plantOf }: { garden: Garden; plantOf: (id:
   const month = Number(today.slice(5, 7));
   const crops = useMemo(() => (kitchen ? croppingNow(garden, plantOf, kitchen, today, weather) : []), [kitchen, garden, plantOf, today, weather]);
   const recipes = useMemo(() => (kitchen ? recipesFor(crops, month, kitchen.recipes) : []), [kitchen, crops, month]);
-  const worth = useMemo(() => (kitchen ? harvestWorth(garden, kitchen, Number(today.slice(0, 4)), plantOf) : null), [kitchen, garden, today, plantOf]);
-  if (!kitchen || (!crops.length && !worth?.pounds)) return null;
+  if (!kitchen || !crops.length) return null;
   return (
     <section class="card kitchen-card" aria-labelledby="kitchen-title">
       <div class="section-head">
@@ -93,12 +92,6 @@ export function KitchenCard({ garden, plantOf }: { garden: Garden; plantOf: (id:
             </div>
           )}
         </>
-      )}
-      {worth && worth.pounds > 0 && (
-        <p class="kitchen-worth">
-          <span class="kitchen-worth-big">{poundsText(worth.pounds)}</span> of food from your garden this year, at shop prices
-          {worth.crops[0] ? `. Most of it ${plantOf(worth.crops[0].plantId).commonName.toLowerCase()}.` : '.'}
-        </p>
       )}
     </section>
   );
@@ -137,7 +130,6 @@ export function PlantKitchen({ plant, plantOf }: { plant: Plant; plantOf: (id: s
           ))}
         </div>
       )}
-      <p class="muted small">Worth about £{k.kg % 1 ? k.kg.toFixed(2) : k.kg} a kilo in the shops (autumn 2026, roughly).</p>
     </section>
   );
 }

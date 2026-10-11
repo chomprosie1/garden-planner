@@ -52,12 +52,58 @@ const RANK = new Map(POPULAR.map((id, i) => [id, i]));
 /** Easy to start with: the plant, or the plant it's a variety of, is on the RHS's easy list. */
 export const isEasy = (p: Pick<Plant, 'id' | 'varietyOf'>) => p.id in EASY || (!!p.varietyOf && p.varietyOf in EASY);
 
-/** The most-grown plants first, in that order; then the rest A to Z. A new list; the one given is left alone. */
-export function beginnerOrder<T extends Pick<Plant, 'id' | 'commonName'>>(plants: T[]): T[] {
+/**
+ * The most-grown plants first, in that order; then the rest of the core 150 A to Z (with their varieties), then
+ * everything else A to Z. A new list; the one given is left alone.
+ */
+export function beginnerOrder<T extends Pick<Plant, 'id' | 'commonName'> & Partial<Pick<Plant, 'varietyOf'>>>(plants: T[]): T[] {
+  const tier = (p: T) => (CORE_SET.has(p.varietyOf ?? p.id) ? 0 : 1);
   return [...plants].sort((a, b) => {
     const ra = RANK.get(a.id);
     const rb = RANK.get(b.id);
     if (ra !== undefined || rb !== undefined) return (ra ?? Infinity) - (rb ?? Infinity);
-    return a.commonName.localeCompare(b.commonName);
+    return tier(a) - tier(b) || a.commonName.localeCompare(b.commonName);
   });
+}
+
+/**
+ * The rest of the core 150, after POPULAR: more common veg, herbs, fruit, flowers and shrubs. With POPULAR, the plants
+ * the data track checks first. A judgement for which plants lead the lists, not a fact shown on screen.
+ */
+const MORE_CORE = [
+  // Veg.
+  'shallot', 'turnip', 'cauliflower', 'brussels-sprout', 'pak-choi', 'kohlrabi', 'swede', 'celeriac', 'celery', 'aubergine',
+  'asparagus', 'globe-artichoke', 'florence-fennel', 'marrow', 'mangetout', 'cavolo-nero', 'savoy-cabbage', 'red-cabbage',
+  'perpetual-spinach', 'summer-squash', 'corn-salad', 'jerusalem-artichoke',
+  // Herbs.
+  'sage', 'dill', 'oregano', 'fennel', 'bay', 'tarragon', 'lemon-balm', 'sorrel', 'borage', 'chamomile',
+  // Fruit.
+  'blackberry', 'redcurrant', 'plum', 'pear', 'cherry', 'fig', 'grape-vine', 'damson', 'greengage', 'tayberry', 'alpine-strawberry',
+  'whitecurrant', 'quince', 'loganberry',
+  // Flowers.
+  'rose', 'hollyhock', 'lupin', 'delphinium', 'hardy-geranium', 'hellebore', 'peony', 'echinacea', 'rudbeckia', 'verbena-bonariensis',
+  'nigella', 'sweet-william', 'snapdragon', 'ornamental-allium', 'wallflower', 'forget-me-not', 'viola', 'primrose', 'hyacinth',
+  'grape-hyacinth', 'bluebell', 'lily', 'salvia-nemorosa', 'catmint', 'penstemon', 'aquilegia', 'hosta', 'sedum',
+  // Shrubs and climbers.
+  'buddleja', 'hydrangea', 'hardy-fuchsia', 'hebe', 'camellia', 'forsythia', 'lilac', 'clematis', 'honeysuckle', 'wisteria',
+  'star-jasmine', 'climbing-rose', 'box', 'pyracantha', 'ceanothus', 'japanese-maple', 'mock-orange', 'choisya',
+];
+
+/** The core 150: the most-grown plants, first in every list and checked first. */
+export const CORE = [...POPULAR, ...MORE_CORE];
+const CORE_SET = new Set(CORE);
+
+/** What the plants beyond the core are listed under, until they're checked. */
+export const MORE_PLANTS = 'More plants (still being checked)';
+
+/**
+ * In the main lists: a core plant or a variety of one, anything checked, your own plants, and weeds (which have their
+ * own lists). The rest wait under "More plants (still being checked)" until the data track reaches them.
+ */
+export const isCore = (p: Pick<Plant, 'id' | 'varietyOf' | 'verified' | 'userAdded' | 'category'>) =>
+  p.userAdded || p.verified || p.category === 'weed' || CORE_SET.has(p.varietyOf ?? p.id);
+
+/** A list split into the core plants and the rest, each keeping its order. */
+export function splitCore<T extends Pick<Plant, 'id' | 'varietyOf' | 'verified' | 'userAdded' | 'category'>>(plants: T[]): { core: T[]; more: T[] } {
+  return { core: plants.filter(isCore), more: plants.filter((p) => !isCore(p)) };
 }

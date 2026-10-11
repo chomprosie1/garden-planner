@@ -4,7 +4,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { canSowIn } from '../library/library';
-import { beginnerOrder, isEasy } from '../library/order';
+import { beginnerOrder, isEasy, MORE_PLANTS, splitCore } from '../library/order';
 import { traysOf } from '../lifecycle/shed';
 import { newAppState } from '../model/defaults';
 import { KINDS } from '../model/features';
@@ -178,6 +178,10 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
     if (filter === 'weeds') return plants.filter((p) => p.category === 'weed');
     return [];
   }, [plants, query, filter, month, garden.wishlist, garden.seeds]);
+  // Beyond the core 150, plants wait under More plants until they're checked: in the lists by kind, not a search or your own lists.
+  const [showMore, setShowMore] = useState(false);
+  const { core, more } = useMemo(() => (!query.trim() && (['now', 'easy', 'climb', 'all'] as PlantFilter[]).includes(filter) ? splitCore(shown) : { core: shown, more: [] }), [shown, query, filter]);
+  useEffect(() => setShowMore(false), [filter]);
   const climbCount = useMemo(() => (plants ? forSupports(plants).length : 0), [plants]);
   const climbers: [PlantFilter, string, number] = ['climb', 'Climbers', climbCount];
   const filters: [PlantFilter, string, number][] = [
@@ -239,7 +243,7 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
                         </li>
                       );
                     })
-                  : shown.slice(0, 80).map((p) => (
+                  : [...core.slice(0, 80), ...(showMore ? more.slice(0, 120) : [])].map((p) => (
                       <li key={p.id}>
                         <button
                           type="button"
@@ -260,7 +264,13 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
                 {!plants && <li class="muted small">Loading plants…</li>}
                 {plants && !query && filter === 'list' && garden.wishlist.length === 0 && <li class="muted small">Nothing here yet. Tap the heart on a plant you want to grow.</li>}
                 {plants && query && shown.length === 0 && <li class="muted small">No plants match.</li>}
+                {plants && !query && core.length === 0 && more.length > 0 && !showMore && <li class="muted small">None of the most-grown plants here. See the plants still being checked, below.</li>}
               </ul>
+              {more.length > 0 && (
+                <button type="button" class="link-btn small dock-more" aria-expanded={showMore} onClick={() => setShowMore(!showMore)}>
+                  {showMore ? 'Hide the plants still being checked' : `${MORE_PLANTS} · ${more.length}`}
+                </button>
+              )}
             </>
           )}
           {(open === 'beds' || open === 'ground' || open === 'build') && (

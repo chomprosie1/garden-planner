@@ -44,6 +44,7 @@ import { useApp } from '../appContext';
 import { HelpButton, HelpLink } from '../HelpLink';
 import { Icon } from '../icons';
 import { SOW_KINDS, sowList, type SowKind } from '../../lifecycle/sowList';
+import { MORE_PLANTS } from '../../library/order';
 import { CompassFacing } from '../CompassNorth';
 import { useIsPhone } from '../hooks';
 import { PlantIcon } from '../PlantIcon';
@@ -602,6 +603,7 @@ function SowForm({ plants, garden, plantOf, places, sunOf, sunniest, month: sunM
         <SowTiles key={`now|${filterKey}`} title={`Sow under cover now, in ${MONTH_NAMES[month - 1]}`} plants={list.now} picked={plantId} pick={setPlantId} empty="Nothing of this kind to sow under cover this month. Try Later, or another kind." />
         <SowTiles key={`later|${filterKey}`} title="Later in the year" plants={list.later} picked={plantId} pick={setPlantId} folded />
         <SowTiles key={`other|${filterKey}`} title="Everything else: usually sown outside or bought as plants" plants={list.other} picked={plantId} pick={setPlantId} folded />
+        {list.more.length > 0 && <SowTiles key={`more|${filterKey}`} title={MORE_PLANTS} plants={list.more} picked={plantId} pick={setPlantId} folded />}
       </div>
       {plant && (
         <div class="shed-sow-plant">

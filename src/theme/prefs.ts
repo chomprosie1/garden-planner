@@ -69,6 +69,12 @@ export interface Prefs {
   walkFrom: Record<string, { at: [number, number]; heading: number }>;
   /** The line shown on the loading screen last time, so the next one is different. */
   lastQuote: string | null;
+  /** The day the welcome last showed (ISO): it shows at most once a day. */
+  welcomedOn: string | null;
+  /** The day's UV on Today, from April to September. Off unless you turn it on in Settings. */
+  uvOnToday: boolean;
+  /** The first day Getting started showed on Today (ISO): after it, the list folds to one line. */
+  setupFrom: string | null;
   /** Warn of frost while the app's closed, where the browser allows (it checks the forecast in the background). */
   reminders: boolean;
   /** Once a week, a reminder of the jobs for the week, where the browser allows. */
@@ -117,6 +123,9 @@ export function defaultPrefs(): Prefs {
     storageKept: null,
     storageAsked: null,
     lastQuote: null,
+    welcomedOn: null,
+    uvOnToday: false,
+    setupFrom: null,
     reminders: false,
     weeklyNudge: false,
     uvReminders: false,
@@ -178,6 +187,9 @@ export function sanitisePrefs(raw: unknown): Prefs {
     storageKept: r.storageKept === 'kept' || r.storageKept === 'not-kept' || r.storageKept === 'unknown' ? r.storageKept : null,
     storageAsked: typeof r.storageAsked === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.storageAsked) ? r.storageAsked : null,
     lastQuote: typeof r.lastQuote === 'string' ? r.lastQuote : null,
+    welcomedOn: typeof r.welcomedOn === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.welcomedOn) ? r.welcomedOn : null,
+    uvOnToday: r.uvOnToday === true,
+    setupFrom: typeof r.setupFrom === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.setupFrom) ? r.setupFrom : null,
     reminders: r.reminders === true,
     weeklyNudge: r.weeklyNudge === true,
     uvReminders: r.uvReminders === true,

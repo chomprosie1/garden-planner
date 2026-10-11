@@ -25,7 +25,7 @@ import { Settings } from './views/Settings';
 import { Shed } from './views/Shed';
 import { WhatsNew } from './views/WhatsNew';
 import { Help } from './views/Help';
-import { welcomesAt } from './launch';
+import { welcomeDue, welcomesAt } from './launch';
 import { Welcome } from './Welcome';
 import { Profile } from './views/Profile';
 import { WrappedHost } from './WrappedHost';
@@ -71,8 +71,8 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   const [searching, setSearching] = useState(false);
   const [shedSow, setShedSow] = useState<string | null>(null);
   const [wrapping, setWrapping] = useState(false);
-  // The welcome, on a launch: not the very first (setting up runs then), nor a link or reminder to a particular screen.
-  const [welcoming, setWelcoming] = useState(() => prefs.onboarded && welcomesAt(location.hash));
+  // The welcome, on the day's first launch: not the very first (setting up runs then), nor a link or reminder to a particular screen.
+  const [welcoming, setWelcoming] = useState(() => prefs.onboarded && welcomesAt(location.hash) && welcomeDue(prefs.welcomedOn, todayIso()));
   const weather = useWeatherFeed(garden, prefs.weather && prefs.onboarded);
 
   /**
@@ -186,7 +186,21 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   }, [welcoming]);
 
   // A second garden, or starting again, skips the welcome.
-  if (!prefs.onboarded) return <Onboarding store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} go={navigate} again={gardenCount() > 1} />;
+  if (!prefs.onboarded)
+    return (
+      <Onboarding
+        store={store}
+        garden={garden}
+        prefs={prefs}
+        prefsStore={prefsStore}
+        go={navigate}
+        again={gardenCount() > 1}
+        showFirst={(target, note) => {
+          actions.showOnPlan(target);
+          actions.notify(note);
+        }}
+      />
+    );
   if (welcoming)
     return (
       <Welcome

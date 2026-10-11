@@ -333,6 +333,16 @@ export function groupJobs(jobs: Job[]): [JobKind, Job[]][] {
   return JOB_KINDS.map((k) => [k, jobs.filter((j) => j.kind === k)] as [JobKind, Job[]]).filter(([, list]) => list.length > 0);
 }
 
+/**
+ * The first job to do, for landing on the plan after setting up: the first of this month's jobs that's about plantings
+ * on the plan, with a note of what it is. Null when there's none (nothing planted, or nothing to do this month).
+ */
+export function firstJob(g: Garden, plantOf: (id: string) => Plant, now: Date, opts: JobOptions = {}): { target: { type: 'planting'; id: string }; note: string } | null {
+  const job = jobsFor(g, plantOf, now.getMonth() + 1, now.getFullYear(), opts).find((j) => j.plantingIds.length > 0);
+  if (!job) return null;
+  return { target: { type: 'planting', id: job.plantingIds[0]! }, note: `Your first job: ${job.plant}, ${JOB_LABEL[job.kind].toLowerCase()} ${job.where}.` };
+}
+
 // ---------- Ticking jobs off ----------
 
 /**

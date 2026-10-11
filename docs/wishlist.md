@@ -105,9 +105,9 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Soil type for the garden and each bed, with plants that hate it flagged | Review, 9 Oct 2026 | S | Built in release 26 |
 | A tape measure between two points | Review, 9 Oct 2026 | S | Built in release 25 |
 | Plants in a beginner's order, an Easy chip, seasonal kits, recognisable pictures in pickers | Review, 9 Oct 2026 | M | Planned in release 24 |
-| The welcome screen at most once a day, with no forced pause | Review, 9 Oct 2026 | S | Planned in release 29 |
+| The welcome screen at most once a day, with no forced pause | Review, 9 Oct 2026 | S | Built in release 29 |
 | Ask the browser to keep the garden's storage; backup and home-screen nudges | Review, 9 Oct 2026 | S | Planned in release 24 (was parked until beta testing) |
 | Check the core 150 plants; the rest marked draft | Review, 9 Oct 2026 | L | The data track, alongside releases 24 to 28 |
-| A feedback form in the app, and private counts of first plant and return visits | Review, 9 Oct 2026 | S | Planned in release 28 |
+| A feedback form in the app, and private counts of first plant and return visits | Review, 9 Oct 2026 | S | Parked 11 Oct 2026 (release 28): not needed yet |
 | A shopping list of seeds, sets, compost and feed for what's planned | Review, 9 Oct 2026 | S | Built in release 27 |
 | Watering jobs for pots and new plantings in dry spells | Review, 9 Oct 2026 | S | Built in release 27 |

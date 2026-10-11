@@ -5,7 +5,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { canSowIn, emptyFilter, filterPlants } from '../src/library/library';
-import { beginnerOrder, EASY, isEasy, POPULAR } from '../src/library/order';
+import { beginnerOrder, CORE, EASY, isEasy, POPULAR } from '../src/library/order';
 import { newGarden } from '../src/model/defaults';
 import { makeSpace, spaceInfo, SPACES } from '../src/model/spaces';
 import type { Plant } from '../src/model/types';
@@ -27,10 +27,13 @@ describe("plants in a beginner's order", () => {
     expect(new Set(POPULAR).size).toBe(POPULAR.length);
   });
 
-  it('puts the most-grown first, in order, then the rest A to Z', () => {
+  it('puts the most-grown first, in order, then the rest of the core 150 A to Z, then the rest A to Z (release 29)', () => {
     const ordered = beginnerOrder(library.filter((p) => p.category !== 'weed'));
     expect(ordered.slice(0, 4).map((p) => p.id)).toEqual(['tomato', 'lettuce', 'strawberry', 'basil']);
-    const rest = ordered.slice(POPULAR.length).map((p) => p.commonName);
+    const core = ordered.slice(POPULAR.length, CORE.length).map((p) => p.commonName);
+    expect(core).toEqual([...core].sort((a, b) => a.localeCompare(b)));
+    expect(ordered.slice(POPULAR.length, CORE.length).every((p) => CORE.includes(p.id))).toBe(true);
+    const rest = ordered.slice(CORE.length).map((p) => p.commonName);
     expect(rest).toEqual([...rest].sort((a, b) => a.localeCompare(b)));
     expect(ordered.length).toBe(library.filter((p) => p.category !== 'weed').length);
   });

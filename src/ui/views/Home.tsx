@@ -141,7 +141,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
         {/* What needs you now first, in panels; then the week, the month and the rest, as a page. */}
         {plants && <MomentCard garden={garden} plantOf={plantOf} />}
         {plants && <FrostCard garden={garden} plantOf={plantOf} />}
-        <UvCard garden={garden} />
+        {prefs.uvOnToday && <UvCard garden={garden} />}
         {plants && <ReadyCard store={store} garden={garden} plantOf={plantOf} />}
         {plants && <WeekCard garden={garden} plantOf={plantOf} />}
         {plants && <KitchenCard garden={garden} plantOf={plantOf} />}

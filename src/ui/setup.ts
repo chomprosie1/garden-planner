@@ -46,3 +46,6 @@ export function backupDue(g: Garden, lastBackup: string | null, now = new Date()
   const days = daysSinceBackup(lastBackup, now);
   return days === null || days >= 30;
 }
+
+/** After the first day Getting started showed, it folds to one line ("2 of 6 done ›"), to open when wanted. */
+export const setupFolded = (setupFrom: string | null, today: string): boolean => !!setupFrom && today > setupFrom;

@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'preact/hooks';
 import { formatLength } from '../canvas/viewport';
 import { canSowIn, emptyFilter, filterPlants } from '../library/library';
-import { beginnerOrder } from '../library/order';
+import { beginnerOrder, splitCore } from '../library/order';
+import { MorePlants } from './MorePlants';
 import type { Plant } from '../model/types';
 import { rowSpacingOf, spreadOf, type Layout } from '../planting/place';
 import { PLANT_DRAG_TYPE } from './PlanCanvas';
@@ -40,7 +41,31 @@ export function PlantPicker({ plants, plantId, setPlantId, layout, setLayout, gr
     },
     [plants, query, thisMonth, month],
   );
+  // Beyond the core 150, plants wait under More plants until they're checked; a search shows everything.
+  const { core, more } = query.trim() ? { core: results, more: [] } : splitCore(results);
   const chosen = plants?.find((p) => p.id === plantId);
+  const pick = (p: Plant) => (
+    <li key={p.id}>
+      <button
+        type="button"
+        class="pick"
+        aria-pressed={p.id === plantId}
+        draggable={!phone}
+        onDragStart={(e) => {
+          e.dataTransfer?.setData(PLANT_DRAG_TYPE, p.id);
+          if (e.dataTransfer) e.dataTransfer.effectAllowed = 'copy';
+        }}
+        onClick={() => setPlantId(p.id)}
+      >
+        <PlantIcon plant={p} size={28} view="side" />
+        <span class="pick-name">{p.commonName}</span>
+        <span class="small muted">
+          {formatLength(p.size.spacingMm)}
+          {canSowIn(p, month) ? ' · now' : ''}
+        </span>
+      </button>
+    </li>
+  );
 
   return (
     <div class="inspector-body plant-picker">
@@ -99,30 +124,12 @@ export function PlantPicker({ plants, plantId, setPlantId, layout, setLayout, gr
       {!plants && <p class="muted">Loading plants…</p>}
       {!phone && plants && <p class="muted small">Pick a plant, then click in a bed. You can also drag a plant onto a bed.</p>}
       <p class="muted small">{close ? 'Spacing is for close planting in beds, as most home gardeners grow.' : 'Spacing is for traditional rows, as on seed packets.'} You can change this in Settings.</p>
-      <ul class="pick-list" aria-label="Plants">
-        {results.map((p) => (
-          <li key={p.id}>
-            <button
-              type="button"
-              class="pick"
-              aria-pressed={p.id === plantId}
-              draggable={!phone}
-              onDragStart={(e) => {
-                e.dataTransfer?.setData(PLANT_DRAG_TYPE, p.id);
-                if (e.dataTransfer) e.dataTransfer.effectAllowed = 'copy';
-              }}
-              onClick={() => setPlantId(p.id)}
-            >
-              <PlantIcon plant={p} size={28} view="side" />
-              <span class="pick-name">{p.commonName}</span>
-              <span class="small muted">
-                {formatLength(p.size.spacingMm)}
-                {canSowIn(p, month) ? ' · now' : ''}
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
+      <ul class="pick-list" aria-label="Plants">{core.map((p) => pick(p))}</ul>
+      {more.length > 0 && (
+        <MorePlants count={more.length}>
+          <ul class="pick-list" aria-label="More plants">{more.map((p) => pick(p))}</ul>
+        </MorePlants>
+      )}
       {plants && results.length === 0 && <p class="muted">No plants match.</p>}
     </div>
   );

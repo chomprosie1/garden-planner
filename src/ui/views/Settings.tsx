@@ -9,6 +9,7 @@ import { usePlants } from '../usePlants';
 import { Icon } from '../icons';
 import { Choice, LookPicker } from '../LookPicker';
 import { GardenSwitcher, StartAgainCard } from '../Gardens';
+import { useReminders } from '../GardenSettings';
 
 interface Props {
   store: Store;
@@ -185,6 +186,8 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
         </ul>
       </details>
 
+      <MoreSettings prefsStore={prefsStore} />
+
       <details class="card advanced">
         <summary>Advanced</summary>
         <label class="check-row">
@@ -211,5 +214,31 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
       <StartAgainCard store={store} prefsStore={prefsStore} garden={garden} />
       <p class="muted small app-version">{versionText()}</p>
     </div>
+  );
+}
+
+/** Now and then: the sun and UV, out of the way of the garden. Both off unless you turn them on. */
+function MoreSettings({ prefsStore }: { prefsStore: PrefsStore }) {
+  const { prefs, toggle, statusText } = useReminders(prefsStore);
+  return (
+    <details class="card advanced more-settings">
+      <summary>More</summary>
+      <h3>Sun and UV</h3>
+      <label class="check-row">
+        <input type="checkbox" checked={prefs.uvOnToday} onChange={(e) => prefsStore.set({ uvOnToday: (e.currentTarget as HTMLInputElement).checked })} />
+        <span>The UV on Today</span>
+      </label>
+      <p class="muted small">From April to September, on days it’s moderate or higher: how strong it is, and what to do. With this year’s weather on, from the forecast.</p>
+      <label class="check-row">
+        <input type="checkbox" checked={prefs.uvReminders} onChange={toggle('uvReminders')} />
+        <span>Sun cream reminders</span>
+      </label>
+      <p class="muted small">On mornings from April to September when the UV is high: sun cream, a hat, and shade in the middle of the day, where the browser allows. To check, the app sends your garden’s location, rounded to about a kilometre, to Open-Meteo now and then.</p>
+      {statusText && (
+        <p class="small" role="status">
+          {statusText}
+        </p>
+      )}
+    </details>
   );
 }

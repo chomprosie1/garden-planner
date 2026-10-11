@@ -38,7 +38,8 @@ export const HELP: HelpTopic[] = [
     steps: [
       'Type a postcode or town under “Where’s your garden?”. It times the sun, the frosts and the seasons, and nothing more exact is needed.',
       'Pick what you’re growing in: a balcony, a patio, a garden, an allotment or one bed. Give its rough size and it’s laid out for you.',
-      'Choose a starter kit if one appeals, and tap a few favourites. They go on your list to grow, with sowing jobs when it’s time.',
+      'The kit that can go in soonest is chosen for you; pick another, or Just the space. Tap a few favourites too: they go on your list to grow, with sowing jobs when it’s time.',
+      'Tap Start growing, and the plan opens with your first job’s plants picked out.',
       'Skipped it? On an empty plan, tap “Where are you growing?” to lay out a space at any time.',
     ],
     notes: [
@@ -148,9 +149,10 @@ export const HELP: HelpTopic[] = [
       'A plant can’t go on paving, decking or a path. If it won’t go in, drop it inside a bed’s outline, zoomed in a little for small pots.',
       'Pick a planting for its jobs, its stages and when it should be ready.',
       'New to it? “Easy to start” shows the crops and herbs the RHS calls easy, such as radishes, peas, potatoes and courgettes. The plants most people grow come first in the plant lists.',
+      'About 150 of the most-grown plants are in the lists. The rest are under More plants (still being checked), at the foot: their details are checked after these. A search finds them all.',
     ],
     related: ['rows-and-blocks', 'plants-in-pots', 'moving-and-resizing'],
-    words: 'add plant put grow drop tray library vegetables flowers fill row missing nowhere go goes won’t isn’t paving easy beginner first',
+    words: 'add plant put grow drop tray library vegetables flowers fill row missing nowhere go goes won’t isn’t paving easy beginner first more plants checked checking unusual rare',
   },
   {
     id: 'rows-and-blocks',

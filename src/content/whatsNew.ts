@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-11-trim-and-tidy',
+    date: '2026-10-11',
+    title: 'Quicker in, and tidier',
+    items: [
+      'The welcome shows once a day, the first time you open the app, and its choices are there straight away with no wait. Open it again the same day and you go straight in.',
+      'The plant lists lead with about 150 of the most-grown plants. The rest are under More plants (still being checked) at the foot of each list, as their details are checked after these. A search still finds every plant.',
+      'Getting started on Today folds to one line after the first day. Tap it to open the list.',
+      'Setting up a new garden now chooses the kit that can go in soonest, and finishes on the plan with your first job picked out.',
+      'Feeding and the kitchen no longer show prices, which go out of date. What your harvest would have cost stays in your year’s round-up, for fun.',
+      'The day’s UV and the sun cream reminders have moved to Settings, under More, and are off unless you turn them on.',
+    ],
+    tryIt: { label: 'See the plants', view: 'plants' },
+  },
+  {
     id: '2026-10-11-next-year',
     date: '2026-10-11',
     title: 'Next year, and the shopping',

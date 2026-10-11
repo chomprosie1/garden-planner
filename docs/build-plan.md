@@ -1365,9 +1365,9 @@ Decided:
 | 25. Build the garden | A house and everyday things; garden shapes, including an L with a side return; tap a length to type it; a tape measure; straighten a photo | B1, B2, B6 | ~1.5 wk | Built 9 Oct 2026 |
 | 26. Along the fence | Climbers along fences and walls, with trellis, arch and obelisk; soil for the garden and each bed; shade from over the fence | B3–B5 | ~1.5 wk | Built 10 Oct 2026 |
 | 27. Next year | Next year drafted, with crop rotation; a shopping list; watering in dry spells; the open job fixes | B7–B9, A6 | ~2 wk | Built 11 Oct 2026 |
-| 28. Listening | A feedback form in the app; private counts of opens, first plant and return visits | B10, B11 | ~3 evenings | |
+| 28. Listening | A feedback form in the app; private counts of opens, first plant and return visits | B10, B11 | ~3 evenings | Parked 11 Oct 2026 |
 | Data track | Check the core 150 plants, in batches of 15 that you confirm | A1 | ~2 wk of evenings, alongside | |
-| 29. Trim and tidy | The welcome once a day with no pause; UV out of the way; stale prices; unchecked plants under "More plants"; onboarding's default kit and landing; a shorter Getting started; Report a mistake to the form | C1, C2, C4, C5, D4–D6 | ~1 wk | |
+| 29. Trim and tidy | The welcome once a day with no pause; UV out of the way; stale prices; unchecked plants under "More plants"; onboarding's default kit and landing; a shorter Getting started; Report a mistake to the form | C1, C2, C4, C5, D4–D6 | ~1 wk | Built 11 Oct 2026 (Report a mistake parked with 28) |
 | 23. Help for the rest | Help for the screens as they now are | D3 | ~1 wk | |
 | Later | A business decision: sync and accounts, the paid tier, hosting off GitHub Pages, commercial weather terms | B12, D7 | L | |
 
@@ -1534,25 +1534,36 @@ Tests: new `tests/next-year.test.ts`:
 
 **Tests changed:** `tests/fence.test.ts` said the schema was 18; it now says at least 18.
 
-### Release 28 — Listening (planned)
+### Release 28 — Listening (parked, 11 Oct 2026)
+Parked at your word: not needed yet, with two testers giving feedback directly. Nothing built. When it comes back, the form and the counting service are your choice first.
 - **A feedback form in the app:** in Settings and the ⋯ menu, a few lines and an optional email, sent with the app's version and the screen. Where it goes needs your choice first (a form service or an email address).
 - **Private counts:** opens, first plant placed, and coming back after 7 and 30 days, with no cookies and no personal data. Which service, and its cost, is your choice first; off until then.
 - **Report a mistake** on a plant card uses the form; the GitHub link stays for the plant editor.
 - **Tests:** what's sent (version, screen, no garden data), and nothing sent when counting is off.
 
 ### Data track — Checking the core 150 plants (planned, alongside)
-- The 150 most-grown plants (the beginner's order from release 24), checked against the RHS and seed packets in batches of 15: sowing and planting months, spacing, light, hardiness, pests and controls.
+- The 150 most-grown plants (`CORE` in `src/library/order.ts`, from release 29: `POPULAR` and 92 more), checked against the RHS and seed packets in batches of 15: sowing and planting months, spacing, light, hardiness, pests and controls.
 - For each batch I check against named sources and list every change, and you confirm. Then the plant is `verified: true`, with its sources and the date.
 - No new plants or varieties until the checking catches up.
 
-### Release 29 — Trim and tidy (planned)
-- **The welcome** at most once a day (the first launch of the day), with no forced pause.
-- **UV reminders** out of Today and Your garden into Settings → More, off by default.
-- **Prices:** the pounds in Feeding and the kitchen dropped, or marked clearly as rough; the harvest worth in Wrapped kept as fun.
-- **Unchecked plants** under "More plants (still being checked)" in the lists, until the data track reaches them.
-- **Onboarding:** a kit chosen by default (the one that can go in soonest), and after "Start growing", the plan with the first job highlighted.
-- **Today:** Getting started folds to one line ("2 of 6 done ›") after the first day.
-- **Report a mistake** goes to the form (after release 28).
+### Release 29 — Trim and tidy (as built)
+- **The welcome** shows at most once a day, on the day's first launch (`welcomeDue` in `src/ui/launch.ts`; the day kept in the preferences as `welcomedOn`). No pause: the photo, the garden's name, a line to read and the choices are there at once, and the plants load meanwhile. Opened again that day, the app goes straight in. Links and reminders to a screen still skip it.
+- **The sun and UV** are in Settings → **More**, both off unless you turn them on: **The UV on Today** (a new preference, `uvOnToday`; the UV card no longer shows on Today otherwise) and **Sun cream reminders** (moved from Your garden; anyone who had them on keeps them on). The reminder switches share one hook (`useReminders` in `src/ui/GardenSettings.tsx`).
+- **No prices** in Feeding or the kitchen: the season's cost, each feed's cost and its pack price are gone from the feed shelf, and the "worth" line from Today's kitchen card and the plant card's "worth about £… a kilo". What your harvest would have cost stays in Wrapped, for fun. The pure sums (`seasonFeeding`, `harvestWorth`) stay for Wrapped and for later. **Changed from the plan:** Inspire me keeps its rough costs, already labelled as rough UK prices with a date; a packet price you type in the seed tin stays too.
+- **The core 150** (`CORE` in `src/library/order.ts`): `POPULAR` (58) and 92 more common veg, herbs, fruit, flowers, shrubs and climbers, a judgement like `POPULAR`. In the main lists: a core plant or a variety of one, anything checked, your own plants, and weeds (which have their own lists) (`isCore`, `splitCore`). The other 350 are under **More plants (still being checked)**, folded at the foot of the Plants page and the plant picker, behind a button in the dock's plant drawer (in Sow or plant now, Easy to start, Climbers and All plants), and in a folded group of their own in the sowing list. A search, your Want to grow list, the seed tin and your own plants show everything. `beginnerOrder` now puts the rest of the core 150 (A to Z) after `POPULAR` and before everything else, so the first plant in any list is a core one. **Changed from the plan:** "unchecked" would have been every plant (none is checked yet), so the line is the core 150 the data track checks first.
+- **Onboarding:** the kit that can go in soonest is chosen for you (`kitsFor` already puts it first) on the last step; choose another, or Just the space. Skip before that step plants no kit you haven't seen. Start growing (or Skip on the questions) goes to the plan, not Today, with the first of the month's jobs that's about a planting picked out and a note: "Your first job: Broad bean, sow outside in Bed (2 rows)." (`firstJob` in `src/calendar/jobs.ts`.) With nothing to do this month, it's the plan as it is.
+- **Getting started** folds to one line ("Getting started · 2 of 6 done ›") from the day after it first showed (`setupFolded` in `src/ui/setup.ts`; the day kept as `setupFrom`). A tap opens it. A garden set up before today counts from the first day it shows after the update.
+- **Parked with release 28:** Report a mistake going to a form. It keeps the GitHub link.
+- **Help:** Adding plants (More plants) and Setting up (the kit chosen for you, landing on the plan).
+- **Version** 0.29.0 (28 parked, so no 0.28).
+- **Checked:** at 390 px: the welcome with its choices at once, and none on a second launch that day; Today with Getting started folded, and opened; no UV card on Today; the Plants page with 150 plants and More plants (350) at the foot; Settings → More; a new garden in October with Bulbs and autumn veg chosen, then the plan with the broad beans picked out and the note. No errors in the console.
+- **Noticed, not changed:** on a brand-new garden the plan's first-visit tips sit over the plan as it opens, so the picked-out job is under the first tip until it's read or skipped.
+
+Tests: new `tests/trim.test.ts`: the core 150 (real, once each, the most-grown first, no weeds or varieties); what stays in the main lists; the split, keeping order; the sowing list's own group, and none when searching; the first job after setting up, and none for an empty garden; Getting started folding; the new preferences.
+
+**Reviewed** before release: the review's fixes were made (Skip planting an unseen kit, the default plant card under More plants, an empty dock list with no word, a plant's name lower-cased in the note, Getting started's first day counted while hidden, a duplicate style). Not changed: the review also suggested one helper for when lists split, and removing the now-unused price sums, kept for Wrapped and later.
+
+**Tests changed:** `tests/welcome.test.ts` tested the 1 to 5 second pause; it now tests the welcome showing once a day. `tests/good-start.test.ts` said everything after `POPULAR` was A to Z; it now says the rest of the core 150 A to Z, then everything else A to Z.
 
 ### Later — a business decision
 Sync and accounts (a household or allotment partner sharing a garden, iPhone push, gardens on every device), the paid tier, moving off GitHub Pages, and commercial terms for the weather. Each costs money and needs your decision; see the review's section 3.

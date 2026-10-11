@@ -494,8 +494,8 @@ const REMINDER_TEXT: Record<ReminderStatus, string> = {
 type ReminderKey = 'reminders' | 'weeklyNudge' | 'uvReminders';
 const REMINDER_KEYS: ReminderKey[] = ['reminders', 'weeklyNudge', 'uvReminders'];
 
-/** Frost warnings and the week's jobs with the app closed, where the browser allows: it checks now and then in the background. */
-function Reminders({ prefsStore }: { prefsStore: PrefsStore }) {
+/** Turning reminders on asks the browser; turning the last one off stops the checks. With what the browser said. */
+export function useReminders(prefsStore: PrefsStore) {
   const prefs = usePrefs(prefsStore);
   const [status, setStatus] = useState<ReminderStatus | null>(null);
   const toggle = (key: ReminderKey) => async (e: Event) => {
@@ -511,6 +511,12 @@ function Reminders({ prefsStore }: { prefsStore: PrefsStore }) {
     setStatus(result);
     prefsStore.set({ [key]: result === 'background' || result === 'open-only' });
   };
+  return { prefs, status, toggle, statusText: status ? REMINDER_TEXT[status] : null };
+}
+
+/** Frost warnings and the week's jobs with the app closed, where the browser allows: it checks now and then in the background. Sun cream is in Settings → More. */
+function Reminders({ prefsStore }: { prefsStore: PrefsStore }) {
+  const { prefs, status, toggle } = useReminders(prefsStore);
   return (
     <div class="weather-switch">
       <h3>Reminders</h3>
@@ -527,11 +533,6 @@ function Reminders({ prefsStore }: { prefsStore: PrefsStore }) {
         <span>This week’s jobs, on Mondays</span>
       </label>
       <p class="muted small">What there is to sow, harden off or plant out that week. Nothing is sent anywhere for this.</p>
-      <label class="check-row">
-        <input type="checkbox" checked={prefs.uvReminders} onChange={toggle('uvReminders')} />
-        <span>Sun cream reminders</span>
-      </label>
-      <p class="muted small">On mornings from April to September when the UV is high: sun cream, a hat, and shade in the middle of the day. It checks the forecast the same way as frost warnings.</p>
       <label class="check-row">
         <input type="checkbox" checked={prefs.weeding} onChange={(e) => prefsStore.set({ weeding: (e.currentTarget as HTMLInputElement).checked })} />
         <span>Weeding reminders</span>

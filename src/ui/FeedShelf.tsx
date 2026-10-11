@@ -1,6 +1,6 @@
 // Feeding, on screen: the feed shelf on the Seedlings page (what you have in,
-// and what this season's plants call for, with a rough cost), and how to feed a
-// plant on its card.
+// and what this season's plants call for), and how to feed a plant on its card.
+// No prices: they go stale.
 
 import { Fragment } from 'preact';
 import { useMemo } from 'preact/hooks';
@@ -12,13 +12,11 @@ import {
   NEED_LABEL,
   NEED_TEXT,
   npkText,
-  priceText,
-  PRICES_WHEN,
   stepHeading,
   stepText,
   type Feed,
 } from '../feeding/feeds';
-import { costText, onShelf, seasonFeeding, toggleShelf, toBuy } from '../feeding/schedule';
+import { onShelf, seasonFeeding, toggleShelf, toBuy } from '../feeding/schedule';
 import { updateGarden, type Store } from '../model/store';
 import type { FeedStep, Garden, Plant } from '../model/types';
 
@@ -61,11 +59,6 @@ function FeedRow({ feed, have, toggle }: { feed: Feed; have: boolean; toggle: ()
               <dd>{feed.careful}</dd>
             </>
           )}
-          <dt>Price</dt>
-          <dd>
-            {priceText(feed)}
-            {feed.pack ? ` (${PRICES_WHEN})` : ''}
-          </dd>
         </dl>
       </details>
     </li>
@@ -77,7 +70,6 @@ export function FeedShelf({ store, garden, plantOf }: { store: Store; garden: Ga
   const season = useMemo(() => seasonFeeding(garden, plantOf), [garden, plantOf]);
   const buy = toBuy(season);
   const toggle = (id: string) => store.apply(updateGarden((g) => toggleShelf(g, id)));
-  const cost = costText(season.low, season.high);
   return (
     <>
       <section class="card feed-season" aria-labelledby="feed-season-title">
@@ -86,15 +78,7 @@ export function FeedShelf({ store, garden, plantOf }: { store: Store; garden: Ga
           <p class="muted">Nothing on the plan wants feeding yet. Add some plants, and what they’ll want shows here.</p>
         ) : (
           <>
-            <p class="kitchen-worth">
-              {cost === 'nothing' ? (
-                'All home-made, so it costs nothing.'
-              ) : (
-                <>
-                  <span class="kitchen-worth-big">{cost}</span> of feed for what’s on your plan, at shop prices.
-                </>
-              )}
-            </p>
+            <p class="muted small">What the plants on your plan call for this season, and roughly how much. Tick what you have.</p>
             <ul class="plain-list feed-uses">
               {season.uses.map((u) => (
                 <li key={u.feed.id}>
@@ -104,7 +88,7 @@ export function FeedShelf({ store, garden, plantOf }: { store: Store; garden: Ga
                       <strong>{u.feed.name}</strong>
                       <span class="muted small">
                         {' '}
-                        · about {amountText(u.feed, u.amount)} for {plantList(u.plantIds, plantOf)} · {u.feed.homeMade ? 'home-made' : costText(u.low, u.high)}
+                        · about {amountText(u.feed, u.amount)} for {plantList(u.plantIds, plantOf)}{u.feed.homeMade ? ' · home-made' : ''}
                       </span>
                     </span>
                   </label>
@@ -136,7 +120,7 @@ export function FeedShelf({ store, garden, plantOf }: { store: Store; garden: Ga
           </div>
         ))}
         <p class="assumption">
-          Prices are rough, from {PRICES_WHEN}, for the amount used. Amounts are worked out from each plant’s spacing, so a big plan is only a guide.
+          Amounts are worked out from each plant’s spacing, so a big plan is only a guide.
         </p>
       </section>
     </>
