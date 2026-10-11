@@ -75,7 +75,7 @@ export function FeedShelf({ store, garden, plantOf }: { store: Store; garden: Ga
       <section class="card feed-season" aria-labelledby="feed-season-title">
         <h2 id="feed-season-title">This season’s feeding</h2>
         {season.uses.length === 0 ? (
-          <p class="muted">Nothing on the plan wants feeding yet. Add some plants, and what they’ll want shows here.</p>
+          <p class="muted">Nothing in your garden wants feeding yet. Add some plants, and what they’ll want shows here.</p>
         ) : (
           <>
             <p class="muted small">What the plants on your plan call for this season, and roughly how much. Tick what you have.</p>

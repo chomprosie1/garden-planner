@@ -6322,6 +6322,11 @@ h2 {
 .beds-head .title {
   margin-bottom: 0.1rem;
 }
+.beds-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 .bed-card {
   display: flex;
   flex-direction: column;

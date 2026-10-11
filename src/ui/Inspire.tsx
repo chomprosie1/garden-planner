@@ -130,7 +130,7 @@ export function InspireDialog({ store, garden, featureId, close, onPlanted }: { 
           </button>
         </div>
         {!feature ? (
-          <p>That place isn’t on the plan any more.</p>
+          <p>That place isn’t in your garden any more.</p>
         ) : (
           <>
             <div class="inspire-qs">

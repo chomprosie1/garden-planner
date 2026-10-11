@@ -109,6 +109,8 @@ interface Props {
   list?: boolean;
   /** For a list: move a planting to another bed. */
   moveToBed?: (plantingId: string) => void;
+  /** For a list: the other rows shown with this one as one line, which what's happened applies to as well. */
+  together?: string[];
 }
 
 type Shared = Omit<Props, 'calibration' | 'clearCalibration' | 'selected' | 'setTool'>;
@@ -208,7 +210,7 @@ export function Inspector(props: Props) {
   const f = selected?.type === 'feature' ? garden.features.find((x) => x.id === selected.id) : undefined;
   if (f) {
     if (isContainer(f)) return <BedPanel {...props} bed={f} />;
-    return <FeaturePanel {...props} f={f} variant={props.sunLens ? 'sun' : 'layout'} fixed={isSetGround(f, selected)} />;
+    return <FeaturePanel {...props} f={f} variant={props.sunLens ? 'sun' : 'layout'} fixed={!props.list && isSetGround(f, selected)} />;
   }
 
   if (selected?.type === 'boundary') {
@@ -288,8 +290,10 @@ function TreeTypePicker({ f, set }: { f: Feature; set: (patch: Partial<Feature>)
 }
 
 /** Bulbs in a lawn, wildflowers in gravel: what's planted on a stretch of ground, to pick one. */
-function GrowingOnGround({ garden, f, plantOf, setSelected }: { garden: Garden; f: Feature; plantOf: (id: string) => Plant; setSelected: (t: Target | null) => void }) {
+function GrowingOnGround({ garden, f, plantOf, setSelected, list = false }: { garden: Garden; f: Feature; plantOf: (id: string) => Plant; setSelected: (t: Target | null) => void; list?: boolean }) {
   const growing = garden.plantings.filter((p) => p.featureId === f.id && !p.removedOn);
+  // In a list, the bed's card has Add a plant: there's no plan to drop one on.
+  if (list && !growing.length) return null;
   if (!growing.length)
     return (
       <p class="muted small">
@@ -319,7 +323,7 @@ function GrowingOnGround({ garden, f, plantOf, setSelected }: { garden: Garden; 
   );
 }
 
-function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf, embedded = false, fixed = false }: Shared & { f: Feature; variant: 'layout' | 'sun'; embedded?: boolean; /** Set ground: named and made of something, but not moved, reshaped or deleted until it's unlocked. */ fixed?: boolean }) {
+function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf, embedded = false, fixed = false, list = false }: Shared & { f: Feature; variant: 'layout' | 'sun'; embedded?: boolean; /** Set ground: named and made of something, but not moved, reshaped or deleted until it's unlocked. */ fixed?: boolean }) {
   const app = useApp();
   const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
   const geometry = geometryOf(f);
@@ -412,8 +416,8 @@ function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf
 
       {(f.kind === 'surface' || f.kind === 'path') && <MaterialPicker f={f} set={set} />}
       {f.kind === 'surface' && f.material === 'cardboard' && !embedded && <CardboardAdvice f={f} set={set} />}
-      {!embedded && isSoftGround(f) && <GrowingOnGround garden={garden} f={f} plantOf={plantOf} setSelected={setSelected} />}
-      {!embedded && isSupport(f) && <GrowingOnGround garden={garden} f={f} plantOf={plantOf} setSelected={setSelected} />}
+      {!embedded && isSoftGround(f) && <GrowingOnGround garden={garden} f={f} plantOf={plantOf} setSelected={setSelected} list={list} />}
+      {!embedded && isSupport(f) && <GrowingOnGround garden={garden} f={f} plantOf={plantOf} setSelected={setSelected} list={list} />}
       {f.nextDoor && <p class="muted small">Next door’s: it casts shade over the fence, and is drawn faintly. Drag it to where it stands, and set its height for the shade.</p>}
       {!embedded && isSoftGround(f) && (
         <div class="button-row">
@@ -496,34 +500,41 @@ function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf
         </>
       ) : (
         <>
-          <p class="muted small">
-            Drag to move.{' '}
-            {geometry === 'circle'
-              ? 'Drag the square handle to resize.'
-              : f.smooth
-                ? 'The curve runs through the square handles: drag one to reshape it; double-click near the dotted line to add one.'
-                : 'Drag a corner to reshape; double-click an edge to add a corner.'}{' '}
-            Arrow keys nudge by 10 mm (100 mm with Shift).
-          </p>
+          {/* In a list there's nothing to drag or stack; the bed's ··· menu has Another like this. */}
+          {!list && (
+            <p class="muted small">
+              Drag to move.{' '}
+              {geometry === 'circle'
+                ? 'Drag the square handle to resize.'
+                : f.smooth
+                  ? 'The curve runs through the square handles: drag one to reshape it; double-click near the dotted line to add one.'
+                  : 'Drag a corner to reshape; double-click an edge to add a corner.'}{' '}
+              Arrow keys nudge by 10 mm (100 mm with Shift).
+            </p>
+          )}
           <div class="button-row">
-            <button
-              type="button"
-              class="btn"
-              onClick={() => {
-                const made = { id: null as string | null };
-                commit((g) => {
-                  const [next, id] = duplicateFeature(g, f.id);
-                  made.id = id;
-                  return next;
-                });
-                if (made.id) setSelected(freshTarget({ ...f, id: made.id }));
-              }}
-            >
-              Duplicate
-            </button>
-            <button type="button" class="btn" onClick={() => commit((g) => restack(g, f.id, 'top'))}>
-              Bring to front
-            </button>
+            {!list && (
+              <>
+                <button
+                  type="button"
+                  class="btn"
+                  onClick={() => {
+                    const made = { id: null as string | null };
+                    commit((g) => {
+                      const [next, id] = duplicateFeature(g, f.id);
+                      made.id = id;
+                      return next;
+                    });
+                    if (made.id) setSelected(freshTarget({ ...f, id: made.id }));
+                  }}
+                >
+                  Duplicate
+                </button>
+                <button type="button" class="btn" onClick={() => commit((g) => restack(g, f.id, 'top'))}>
+                  Bring to front
+                </button>
+              </>
+            )}
             <button
               type="button"
               class="btn btn-danger"
@@ -1157,7 +1168,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
           Under cover in {featureLabel(cover.feature)}: {climateText(cover.climate)}.
         </p>
       )}
-      {canEdit && <WhatsHappened key={pl.id} store={store} garden={garden} pl={pl} plant={plant} covered={!!cover} />}
+      {canEdit && <WhatsHappened key={pl.id} store={store} garden={garden} pl={pl} plant={plant} covered={!!cover} together={props.together ?? []} />}
 
       <PanelTabs
         id="planting"
@@ -1307,7 +1318,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
                       app.notify(`${plant.commonName} marked as cleared.`, { undo: true });
                     },
                   }
-                : { label: 'Put back on the plan', icon: 'undo', onSelect: () => commit((g) => restorePlanting(g, pl.id)) },
+                : { label: props.list ? 'Put it back' : 'Put back on the plan', icon: 'undo', onSelect: () => commit((g) => restorePlanting(g, pl.id)) },
               {
                 label: 'Delete',
                 icon: 'trash',

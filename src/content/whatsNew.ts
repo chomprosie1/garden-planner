@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-13-list-put-right',
+    date: '2026-10-13',
+    title: 'Your list, put right',
+    items: [
+      'Plants never go on top of each other. Ask for more than a bed has room for and it plants what fits, then asks where the rest should go: “Room for 72 of 200 in Bed 4. Put the other 128 in another bed?” Planting out a big tray works the same, and the rest stay in the tray.',
+      'New beds stay inside your garden’s outline. If there’s no room, the new bed goes just outside it and you’re told so; your outline is never redrawn.',
+      'Planters and window boxes take rows, like a bed. A round pot is measured by its own size and how wide the plant grows, and one plant in a pot is never called over-full.',
+      'Add several pots or beds at once with How many?, and they’re numbered as they’re added: Pot 1, Pot 2, Pot 3. Each bed’s ··· menu now has Name, size, sun and soil, and Another like this.',
+      'Rows of the same plant show as one line, such as “Onion × 48 · 2 rows”, and marking what’s happened on it marks every row. Climbers on a fence, wall or arch now show in the list too.',
+      'Moving a row to a smaller bed moves as many as fit, never squeezed closer. The new ··· beside Add a bed has the shopping list, next year’s draft, Clear beds and Show it as a plan.',
+    ],
+    tryIt: { label: 'See your garden', view: 'plan' },
+  },
+  {
     id: '2026-10-12-one-answer',
     date: '2026-10-12',
     title: 'One answer everywhere',

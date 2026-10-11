@@ -109,7 +109,7 @@ describe('search everything', () => {
   });
 
   it('finds things on the plan, by name, kind or what they’re made of', () => {
-    const plan = (q: string) => search(q, ctx).filter((r) => r.group === 'On your plan');
+    const plan = (q: string) => search(q, ctx).filter((r) => r.group === 'In your garden');
     // The bed first, then what grows in it.
     expect(labels(plan('veg'))).toEqual(['Veg bed', 'Tomato']);
     expect(plan('lawn')[0]?.command).toEqual({ kind: 'show', target: { type: 'feature', id: lawn.id } });

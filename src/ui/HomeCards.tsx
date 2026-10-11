@@ -8,6 +8,7 @@ import { gardenBounds } from '../model/features';
 import { addNote, makeNote, newestFirst } from '../model/notes';
 import { updateGarden, type Store } from '../model/store';
 import type { Garden, Plant } from '../model/types';
+import { isList, listBeds } from '../planting/listPlant';
 import { checkGarden } from '../planting/rules';
 import { saveStatus, type SaveStatus } from '../storage/local';
 import { resolveMode } from '../theme/apply';
@@ -229,9 +230,13 @@ export function GardenCard({ garden, prefs, plants, plantOf }: { garden: Garden;
   }, [garden, width, prefs.look, prefs.mode, plants]);
 
   const summary = empty
-    ? 'Nothing drawn yet. Open the plan and start with your garden’s boundary.'
+    ? isList(garden)
+      ? 'No beds yet. Open your garden and add one.'
+      : 'Nothing drawn yet. Open the plan and start with your garden’s boundary.'
     : [
-        `${garden.features.length} ${garden.features.length === 1 ? 'thing' : 'things'} on the plan`,
+        isList(garden)
+          ? `${listBeds(garden).length} ${listBeds(garden).length === 1 ? 'bed or area' : 'beds and areas'}`
+          : `${garden.features.length} ${garden.features.length === 1 ? 'thing' : 'things'} on the plan`,
         growing ? `${growing} ${growing === 1 ? 'planting' : 'plantings'}` : 'nothing planted yet',
       ].join(' · ');
 

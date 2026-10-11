@@ -26,8 +26,11 @@ interface Props {
   covered?: boolean;
 }
 
-/** One button, then the things that could have happened: tap one, add a note if you like, and save. */
-export function WhatsHappened({ store, garden, pl, plant, covered = false }: Props) {
+/**
+ * One button, then the things that could have happened: tap one, add a note if you like, and save. `together`: other
+ * plantings shown as one with this (rows alike, in a list), which move on with it; the note, photo and pick stay with this.
+ */
+export function WhatsHappened({ store, garden, pl, plant, covered = false, together = [] }: Props & { together?: string[] }) {
   const app = useApp();
   const today = todayIso();
   const { weather } = useWeatherNow();
@@ -53,7 +56,17 @@ export function WhatsHappened({ store, garden, pl, plant, covered = false }: Pro
     const label = options.find((o) => o.id === chosen)!.label;
     const weighed = Number(grams);
     const pick = isPicking(chosen) && (size || weighed > 0) ? (weighed > 0 ? { grams: weighed } : { size: size! }) : undefined;
-    store.apply(updateGarden((g) => recordHappening(g, pl, plant, chosen, date, note, { ...(photo ? { photo } : {}), ...(pick ? { pick } : {}) })));
+    store.apply(
+      updateGarden((g) => {
+        let next = recordHappening(g, pl, plant, chosen, date, note, { ...(photo ? { photo } : {}), ...(pick ? { pick } : {}) });
+        if (!isPicking(chosen))
+          for (const id of together) {
+            const other = next.plantings.find((p) => p.id === id && !p.removedOn);
+            if (other) next = recordHappening(next, other, plant, chosen, date);
+          }
+        return next;
+      }),
+    );
     const extras = [pick && 'how much', note.trim() && 'your note', photo && 'the photo'].filter(Boolean);
     app.notify(`${plant.commonName}: ${label.toLowerCase()}${extras.length ? `, with ${extras.join(' and ')}` : ''}.`, { undo: true });
     setOpen(false);

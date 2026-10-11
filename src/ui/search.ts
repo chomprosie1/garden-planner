@@ -7,6 +7,7 @@ import { featureLabel, KINDS, MATERIAL_LABEL, type Target } from '../model/featu
 import { STICKERS, treeStickerId } from '../model/stickers';
 import { TREE_TYPES, treeSizeText } from '../model/trees';
 import type { Garden, Plant } from '../model/types';
+import { isList, isListed } from '../planting/listPlant';
 import type { View } from '../theme/prefs';
 import type { Lens } from './Lenses';
 import type { Tool } from './PlanCanvas';
@@ -35,8 +36,8 @@ export type Command =
   /** Help, open at a topic. */
   | { kind: 'help'; id: string };
 
-export type Group = 'Actions' | 'Help' | 'On your plan' | 'Plants';
-export const GROUPS: Group[] = ['Actions', 'Help', 'On your plan', 'Plants'];
+export type Group = 'Actions' | 'Help' | 'In your garden' | 'Plants';
+export const GROUPS: Group[] = ['Actions', 'Help', 'In your garden', 'Plants'];
 
 export interface Result {
   key: string;
@@ -147,10 +148,13 @@ const HELP_RESULTS: Candidate[] = HELP.map((t) => ({ key: `help-${t.id}`, group:
 function onPlan(g: Garden, plantOf: (id: string) => Plant): Candidate[] {
   const out: Candidate[] = [];
   const find = 'go show find select where';
+  // A list shows only its beds, and has no outline to find.
+  const shown = isList(g) ? isListed(g) : () => true;
   for (const f of g.features) {
+    if (!shown(f)) continue;
     const label = featureLabel(f);
     const kind = KINDS[f.kind].label;
-    out.push({ key: `f-${f.id}`, group: 'On your plan', label, ...(label !== kind ? { detail: kind } : {}), words: `${find} ${kind} ${f.material ? MATERIAL_LABEL[f.material] : ''}`, command: { kind: 'show', target: { type: 'feature', id: f.id } } });
+    out.push({ key: `f-${f.id}`, group: 'In your garden', label, ...(label !== kind ? { detail: kind } : {}), words: `${find} ${kind} ${f.material ? MATERIAL_LABEL[f.material] : ''}`, command: { kind: 'show', target: { type: 'feature', id: f.id } } });
   }
   for (const pl of g.plantings) {
     if (pl.removedOn) continue;
@@ -158,7 +162,7 @@ function onPlan(g: Garden, plantOf: (id: string) => Plant): Candidate[] {
     const bed = g.features.find((f) => f.id === pl.featureId);
     out.push({
       key: `p-${pl.id}`,
-      group: 'On your plan',
+      group: 'In your garden',
       label: plant.commonName,
       ...(bed ? { detail: `In ${featureLabel(bed)}` } : {}),
       words: `${find} growing ${plant.latinName ?? ''} ${bed ? featureLabel(bed) : ''}`,
@@ -166,7 +170,7 @@ function onPlan(g: Garden, plantOf: (id: string) => Plant): Candidate[] {
       plantId: plant.id,
     });
   }
-  if (g.boundary.length >= 3) out.push({ key: 'boundary', group: 'On your plan', label: 'Boundary', words: `${find} edge outline garden`, command: { kind: 'show', target: { type: 'boundary' } } });
+  if (g.boundary.length >= 3 && !isList(g)) out.push({ key: 'boundary', group: 'In your garden', label: 'Boundary', words: `${find} edge outline garden`, command: { kind: 'show', target: { type: 'boundary' } } });
   return out;
 }
 
@@ -180,8 +184,9 @@ function plantVerb(words: string[]): { kind: 'plant' | 'about' | 'sow'; rest: st
 }
 
 const PLANT_DETAIL = { plant: 'Add to the plan', about: 'About it', sow: 'Sow in a tray' } as const;
+const LIST_DETAIL = { ...PLANT_DETAIL, plant: 'Add to a bed' } as const;
 
-const LIMIT: Record<Group, number> = { Actions: 6, Help: 3, 'On your plan': 6, Plants: 8 };
+const LIMIT: Record<Group, number> = { Actions: 6, Help: 3, 'In your garden': 6, Plants: 8 };
 
 /** Suggestions before anything's typed. */
 const SUGGESTED = ['setup', 'sticker-raised-bed', 'sticker-pot', 'lens-sun', 'lens-shade', 'go-month', 'go-shed', 'shortcuts'];
@@ -210,7 +215,7 @@ export function search(query: string, ctx: SearchContext): Result[] {
     const score = scoreOf(verb.rest, p.commonName, `${p.latinName ?? ''} ${p.category}`);
     if (score === null) continue;
     scored.push({
-      r: { key: `plant-${p.id}`, group: 'Plants', label: p.commonName, detail: PLANT_DETAIL[verb.kind], words: '', command: { kind: verb.kind, id: p.id }, plantId: p.id },
+      r: { key: `plant-${p.id}`, group: 'Plants', label: p.commonName, detail: (isList(ctx.garden) ? LIST_DETAIL : PLANT_DETAIL)[verb.kind], words: '', command: { kind: verb.kind, id: p.id }, plantId: p.id },
       // A verb that was used counts for it.
       score: score + (verb.rest.length < words.length ? 1 : 0),
     });

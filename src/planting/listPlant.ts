@@ -9,19 +9,26 @@ import { placeLabel } from '../model/features';
 import type { Feature, Garden, Plant, Planting, Point } from '../model/types';
 import { defaultFill, fillPlanting, type Fill } from './fill';
 import { isActive, isContainer, isSoftGround, makePlanting, plantCount, plantPositions, rowCount, rowSpacingOf, spreadOf } from './place';
-import { isPot, spotInPot } from './pots';
+import { spotInPot } from './pots';
+import { isSupport } from './supports';
 
 /** A garden kept as a list. */
 export const isList = (g: Garden) => g.view === 'list';
 
-/** What the list shows: beds, pots, planters, greenhouses and cold frames; and soft ground with something in it, or added as a patch of ground. */
+/**
+ * What the list shows: beds, pots, planters, greenhouses and cold frames; soft ground with something in it, or added as
+ * a patch of ground; and a fence, wall, trellis, arch or obelisk with a climber on it.
+ */
 export function isListed(g: Garden): (f: Feature) => boolean {
   const used = new Set(g.plantings.filter(isActive).map((p) => p.featureId));
-  return (f) => !f.nextDoor && (isContainer(f) || (isSoftGround(f) && (f.material === 'soil' || used.has(f.id))));
+  return (f) => !f.nextDoor && (isContainer(f) || (isSoftGround(f) && (f.material === 'soil' || used.has(f.id))) || (isSupport(f) && used.has(f.id)));
 }
 
 /** The beds and areas the list shows, in their order. */
 export const listBeds = (g: Garden): Feature[] => g.features.filter(isListed(g));
+
+/** The ones you can add plants to from the list: not the fences and arches, whose climbers are planted on the plan. */
+export const plantableBeds = (g: Garden): Feature[] => listBeds(g).filter((f) => !isSupport(f));
 
 /** How many to plant: one of the usual ways, or a number of plants. */
 export type ListHow = Fill | number;
@@ -66,90 +73,112 @@ function freePoint(bed: Feature, busy: { p: Point; r: number }[], plant: Plant):
   return null;
 }
 
+/** A round pot: plants go in beside each other. A planter or window box is planted like a bed, in rows. */
+const isRoundPot = (f: Feature) => f.kind === 'pot';
+
+/** What came of planting from the list. */
+export interface ListPlacing {
+  plantings: Planting[];
+  /** Plants asked for that there was no room for (a number of plants, or a tray planted out). */
+  left: number;
+  /** No room for what was asked (a row or a fill), or the bed's over-full now. */
+  full: boolean;
+}
+
 /**
- * New plantings from the list, in a bed: each placed clear of what's there. One goes in the next free spot (in a pot,
- * beside what's in it); a row along the bed, after the rows already in it; Fill the bed fills the room that's left; a
- * number makes rows of that many plants. When there's no room, it goes in the middle anyway, and `full` says so (the
- * list's check says how over-full the bed is).
+ * New plantings from the list, in a bed, each placed clear of what's there and never on top of it. One goes in the
+ * next free spot (or the least crowded); a row along the bed, after the rows already in it; Fill the bed fills the
+ * room that's left; a number makes rows of that many plants, as far as they fit. In a round pot each goes in beside
+ * the last. With no room for a row or a fill, nothing is planted; with no room for all of a number, `left` says how
+ * many didn't fit. `full` says the bed's over-full, or there was no room.
  */
-export function placeInList(g: Garden, bed: Feature, plant: Plant, how: ListHow, plantOf: (id: string) => Plant, growing: boolean | string | null = false): { plantings: Planting[]; full: boolean } {
+export function placeInList(g: Garden, bed: Feature, plant: Plant, how: ListHow, plantOf: (id: string) => Plant, growing: boolean | string | null = false): ListPlacing {
   const b = bounds(bed.footprint)!;
   const middle: Point = [(b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2];
   const busy = taken(g, bed, plantOf);
+  const s = plant.size.spacingMm;
   const make = (shape: ReturnType<typeof fillPlanting>): Planting => {
     const pl = makePlanting(plant, bed.id, shape.layout ?? 'single', [shape.x, shape.y], shape.endPoint, growing);
     return { ...pl, ...(shape.endPoint ? { endPoint: shape.endPoint } : {}), ...(shape.count ? { count: shape.count } : {}) };
   };
-  const one = (): { plantings: Planting[]; full: boolean } => {
-    if (isPot(bed)) return { plantings: [make({ layout: 'single', ...xy(spotInPot(g, bed, middle, plantOf)) })], full: false };
-    const p = freePoint(bed, busy, plant);
-    return { plantings: [make({ layout: 'single', ...xy(p ?? middle) })], full: !p };
+  const inside = (pl: Planting) => plantPositions(pl, plant).every((p) => pointInPolygon(p, bed.footprint));
+  const done = (plantings: Planting[], left = 0): ListPlacing => {
+    const after = { ...g, plantings: [...g.plantings, ...plantings] };
+    return { plantings, left, full: left > 0 || !plantings.length || howFull(after, bed, plantOf) > OVER_FULL };
   };
+  /** One plant: the next free spot, or else the least crowded one. */
+  const single = (from: Garden): Planting => make({ layout: 'single', ...xy(freePoint(bed, taken(from, bed, plantOf), plant) ?? spotInPot(from, bed, middle, plantOf)) });
 
   const way = typeof how === 'number' ? 'count' : how;
-  if (way === 'one' || isPot(bed)) {
-    if (typeof how === 'number' && how > 1) {
-      // Several in a pot: each beside the last.
-      let next = g;
-      const out: Planting[] = [];
-      for (let i = 0; i < how; i++) {
-        const spot = spotInPot(next, bed, middle, plantOf);
-        const pl = make({ layout: 'single', ...xy(spot) });
-        out.push(pl);
-        next = { ...next, plantings: [...next.plantings, pl] };
-      }
-      return { plantings: out, full: false };
+  if (isRoundPot(bed)) {
+    if (way === 'fill' && !busy.length) return done([make(fillPlanting(plant, bed, 'fill', middle))]);
+    // Several in a pot: each beside the last.
+    let next = g;
+    const out: Planting[] = [];
+    for (let i = 0; i < (typeof how === 'number' ? Math.max(1, Math.round(how)) : 1); i++) {
+      const pl = make({ layout: 'single', ...xy(spotInPot(next, bed, middle, plantOf)) });
+      out.push(pl);
+      next = { ...next, plantings: [...next.plantings, pl] };
     }
-    if (way === 'fill' && isPot(bed) && !busy.length) return { plantings: [make(fillPlanting(plant, bed, 'fill', middle))], full: false };
-    return one();
+    return done(out);
   }
+  if (way === 'one') return done([single(g)]);
   if (way === 'row') {
     const next = nextAcross(bed, busy, plant);
-    if (!next) return { plantings: [make(fillPlanting(plant, bed, 'row', middle))], full: true };
-    return { plantings: [make(fillPlanting(plant, bed, 'row', alongMiddle(bed, next.across, next.at)))], full: false };
+    const row = next && make(fillPlanting(plant, bed, 'row', alongMiddle(bed, next.across, next.at)));
+    return done(row && inside(row) ? [row] : []);
   }
   if (way === 'fill') {
-    if (!busy.length) return { plantings: [make(fillPlanting(plant, bed, 'fill', middle))], full: false };
+    if (!busy.length) return done([make(fillPlanting(plant, bed, 'fill', middle))]);
     const next = nextAcross(bed, busy, plant);
-    if (!next) return { plantings: [make({ layout: 'single', ...xy(middle) })], full: true };
-    const s = plant.size.spacingMm;
-    const min: Point = next.across ? [Math.round(b.minX + s / 2), Math.round(next.at)] : [Math.round(next.at), Math.round(b.minY + s / 2)];
-    const max: Point = next.across ? [Math.round(b.maxX - s / 2), Math.round(b.maxY - s / 2)] : [Math.round(b.maxX - s / 2), Math.round(b.maxY - s / 2)];
-    if (max[0] - min[0] < s || max[1] - min[1] < s) return { plantings: [make(fillPlanting(plant, bed, 'row', alongMiddle(bed, next.across, next.at)))], full: false };
-    return { plantings: [make({ layout: 'block', x: min[0], y: min[1], endPoint: max })], full: false };
+    if (!next) return done([]);
+    // The strip left beyond the rows already in: a block, drawn in from its sides until every plant's in the bed.
+    for (let k = 0; k < 40; k++) {
+      const d = (k * s) / 4;
+      const min: Point = next.across ? [Math.round(b.minX + s / 2 + d), Math.round(next.at)] : [Math.round(next.at), Math.round(b.minY + s / 2 + d)];
+      const max: Point = next.across ? [Math.round(b.maxX - s / 2 - d), Math.round(b.maxY - s / 2 - d)] : [Math.round(b.maxX - s / 2 - d), Math.round(b.maxY - s / 2 - d)];
+      if (max[0] - min[0] < s || max[1] - min[1] < s) break;
+      const block = make({ layout: 'block', x: min[0], y: min[1], endPoint: max });
+      if (inside(block)) return done([block]);
+    }
+    // Room for a row, not a block.
+    const row = make(fillPlanting(plant, bed, 'row', alongMiddle(bed, next.across, next.at)));
+    return done(inside(row) ? [row] : []);
   }
-  return rowsOf(how as number);
+  return rowsOf(Math.max(1, Math.round(how as number)));
 
-  /** A number of plants: rows along the bed, each as many as fit (a short one cut to length), the rest one by one. */
-  function rowsOf(n: number): { plantings: Planting[]; full: boolean } {
+  /** A number of plants: rows along the bed, each as many as fit (a short one cut to length), then one by one where there's a gap. */
+  function rowsOf(n: number): ListPlacing {
     const out: Planting[] = [];
-    let left = Math.max(1, Math.round(n));
+    let left = n;
     let next = g;
-    let full = false;
-    const s = plant.size.spacingMm;
     while (left > 0 && out.length < 500) {
       const spot = nextAcross(bed, taken(next, bed, plantOf), plant);
       const shape = spot ? fillPlanting(plant, bed, 'row', alongMiddle(bed, spot.across, spot.at)) : null;
-      let pl: Planting;
+      let pl: Planting | null = null;
       if (shape && shape.layout === 'row' && shape.endPoint) {
         const fits = shape.count ?? rowCount([shape.x, shape.y], shape.endPoint, s);
         const count = Math.min(left, fits);
         const len = Math.hypot(shape.endPoint[0] - shape.x, shape.endPoint[1] - shape.y);
         const k = count > 1 && len > 0 ? Math.min(1, ((count - 1) * s) / len) : 0;
         const end: Point = [Math.round(shape.x + (shape.endPoint[0] - shape.x) * k), Math.round(shape.y + (shape.endPoint[1] - shape.y) * k)];
-        pl = count > 1 ? make({ layout: 'row', x: shape.x, y: shape.y, endPoint: end, count }) : make({ layout: 'single', x: shape.x, y: shape.y });
-        left -= count;
-      } else {
-        // No room for a row: one at a time, in the next free spot, or the middle.
-        const p = spot ? alongMiddle(bed, spot.across, spot.at) : freePoint(bed, taken(next, bed, plantOf), plant);
-        if (!p) full = true;
-        pl = make({ layout: 'single', ...xy(p ?? middle) });
+        const row = count > 1 ? make({ layout: 'row', x: shape.x, y: shape.y, endPoint: end, count }) : make({ layout: 'single', x: shape.x, y: shape.y });
+        if (inside(row)) {
+          pl = row;
+          left -= count;
+        }
+      }
+      if (!pl) {
+        // No room for a row: one at a time where there's a gap, and none on top of another.
+        const p = freePoint(bed, taken(next, bed, plantOf), plant);
+        if (!p) break;
+        pl = make({ layout: 'single', ...xy(p) });
         left -= 1;
       }
       out.push(pl);
       next = { ...next, plantings: [...next.plantings, pl] };
     }
-    return { plantings: out, full };
+    return done(out, left);
   }
 }
 
@@ -158,11 +187,12 @@ const xy = (p: Point) => ({ x: Math.round(p[0]), y: Math.round(p[1]) });
 /** The usual way to plant this in this bed, from the list. */
 export const usualHow = (plant: Plant, bed: Feature): Fill => defaultFill(plant, bed);
 
-/** The plant's room: a square of its spacing for each plant. */
-const roomOf = (pl: Planting, plant: Plant) => plantCount(pl, plant) * plant.size.spacingMm ** 2;
+/** The plant's room: a square of its spacing for each plant; in a round pot, a circle of its spread, as it fills the pot. */
+const roomOf = (pl: Planting, plant: Plant, round: boolean) => plantCount(pl, plant) * (round ? Math.PI * (spreadOf(plant) / 2) ** 2 : plant.size.spacingMm ** 2);
 
 /**
- * How full a bed is: the room its plantings want against its area, as a share (1 is full). Everything in it now counts
+ * How full a bed is: the room its plantings want against its area, as a share (1 is full). One plant in a pot is never
+ * more than full. Everything in it now counts
  * together, whenever it was started. Plantings planned for a date (next year's draft, batches) count with what comes back
  * each year, for their year, as this year's crops will be gone by then; the fuller is taken. Weeds and cleared plantings
  * don't count.
@@ -170,14 +200,17 @@ const roomOf = (pl: Planting, plant: Plant) => plantCount(pl, plant) * plant.siz
 export function howFull(g: Garden, bed: Feature, plantOf: (id: string) => Plant): number {
   const area = polygonArea(bed.footprint);
   if (area <= 0) return 0;
+  const round = isRoundPot(bed);
   let now = 0;
   let stays = 0;
+  let plants = 0;
   const later = new Map<string, number>();
   for (const pl of g.plantings) {
     if (pl.featureId !== bed.id || !isActive(pl)) continue;
     const plant = plantOf(pl.plantId);
     if (plant.category === 'weed') continue;
-    const room = roomOf(pl, plant);
+    plants += plantCount(pl, plant);
+    const room = roomOf(pl, plant, round);
     if (currentStage(pl) === 'planned' && pl.sowBy) {
       const y = pl.sowBy.slice(0, 4);
       later.set(y, (later.get(y) ?? 0) + room);
@@ -186,7 +219,9 @@ export function howFull(g: Garden, bed: Feature, plantOf: (id: string) => Plant)
     now += room;
     if (perennial(plant)) stays += room;
   }
-  return Math.max(now, ...[...later.values()].map((v) => v + stays)) / area;
+  const share = Math.max(now, ...[...later.values()].map((v) => v + stays)) / area;
+  // One plant to a pot is what a pot is for: it's never over-full, however big the plant.
+  return round && plants === 1 ? Math.min(share, 1) : share;
 }
 
 /** Over this much is worth a word: plants vary, and close planting is fine. */
@@ -215,10 +250,10 @@ export function fullText(share: number): string {
 }
 
 /**
- * Moves a planting to another bed from the list, as the same planting with the same number of plants (its stages,
- * dates, picks and notes kept), clear of what's growing there where there's room. A row keeps its count, along the new
- * bed (closer together if the bed is shorter: the row check then says so); a block keeps its size, turned to suit the
- * bed; one plant goes in the first clear spot.
+ * Moves a planting to another bed from the list, as the same planting (its stages, dates, picks and notes kept), clear
+ * of what's growing there where there's room. A row goes along the new bed, shortened to what fits there, never squeezed
+ * closer; a block keeps its size, turned to suit the bed, or fills what room there is if it's too big; one plant goes in
+ * the first clear spot.
  */
 export function moveToListBed(g: Garden, plantingId: string, bedId: string, plantOf: (id: string) => Plant): Garden {
   const pl = g.plantings.find((p) => p.id === plantingId);
@@ -230,15 +265,21 @@ export function moveToListBed(g: Garden, plantingId: string, bedId: string, plan
   const middle: Point = [(b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2];
   const busy = taken(without, bed, plantOf);
   const s = plant.size.spacingMm;
-  let shape: Pick<Planting, 'x' | 'y'> & Partial<Pick<Planting, 'endPoint' | 'count'>>;
+  const inside = (shape: Partial<Planting>) => plantPositions({ ...pl, ...shape } as Planting, plant).every((p) => pointInPolygon(p, bed.footprint));
+  const one = (): Pick<Planting, 'layout' | 'x' | 'y'> => {
+    const p = isRoundPot(bed) ? spotInPot(without, bed, middle, plantOf) : (freePoint(bed, busy, plant) ?? spotInPot(without, bed, middle, plantOf));
+    return { layout: 'single', x: Math.round(p[0]), y: Math.round(p[1]) };
+  };
+  let shape: Pick<Planting, 'layout' | 'x' | 'y'> & Partial<Pick<Planting, 'endPoint' | 'count'>>;
   if (pl.layout === 'row' && pl.endPoint) {
-    const count = plantCount(pl, plant);
     const spot = nextAcross(bed, busy, plant);
     const line = fillPlanting(plant, bed, 'row', spot ? alongMiddle(bed, spot.across, spot.at) : middle);
     const end = line.endPoint ?? [line.x, line.y];
+    const fits = line.layout === 'row' ? (line.count ?? rowCount([line.x, line.y], end, s)) : 1;
+    const count = Math.min(plantCount(pl, plant), fits);
     const len = Math.hypot(end[0] - line.x, end[1] - line.y);
-    const k = len > 0 ? Math.min(1, ((count - 1) * s) / len) : 0;
-    shape = { x: line.x, y: line.y, endPoint: [Math.round(line.x + (end[0] - line.x) * k), Math.round(line.y + (end[1] - line.y) * k)], count };
+    const k = count > 1 && len > 0 ? Math.min(1, ((count - 1) * s) / len) : 0;
+    shape = count > 1 ? { layout: 'row', x: line.x, y: line.y, endPoint: [Math.round(line.x + (end[0] - line.x) * k), Math.round(line.y + (end[1] - line.y) * k)], count } : one();
   } else if (pl.layout === 'block' && pl.endPoint) {
     // The same width and depth, turned if the new bed runs the other way, from the first clear strip.
     const [w0, d0] = [Math.abs(pl.endPoint[0] - pl.x), Math.abs(pl.endPoint[1] - pl.y)];
@@ -247,22 +288,29 @@ export function moveToListBed(g: Garden, plantingId: string, bedId: string, plan
     const spot = nextAcross(bed, busy, plant);
     const x = Math.round(across ? b.minX + s / 2 : (spot?.at ?? b.minX + s / 2));
     const y = Math.round(across ? (spot?.at ?? b.minY + s / 2) : b.minY + s / 2);
-    shape = { x, y, endPoint: [x + w, y + d] };
-  } else {
-    const p = isPot(bed) ? spotInPot(without, bed, middle, plantOf) : (freePoint(bed, busy, plant) ?? middle);
-    shape = { x: Math.round(p[0]), y: Math.round(p[1]) };
-  }
+    const block = { layout: 'block' as const, x, y, endPoint: [x + w, y + d] as Point };
+    if (inside(block)) shape = block;
+    else {
+      // Too big for the room there: as much of the bed as there is, or one plant.
+      const fill = fillPlanting(plant, bed, 'fill', middle);
+      shape = !busy.length && fill.layout === 'block' ? fill : one();
+    }
+  } else shape = one();
   const { endPoint: _e, count: _c, ...rest } = pl;
   const moved: Planting = { ...rest, featureId: bed.id, ...shape };
   return { ...g, plantings: g.plantings.map((p) => (p.id === plantingId ? moved : p)) };
 }
 
-/** A tray from the shed planted out into a bed from the list: as many plants as it holds, each carrying the tray's dates. */
-export function plantOutInList(g: Garden, trayId: string, bed: Feature, plantOf: (id: string) => Plant, date: string): Garden {
+/**
+ * A tray from the shed planted out into a bed from the list: as many of its plants as fit, each carrying the tray's
+ * dates. Any that don't fit stay in the tray, for another bed.
+ */
+export function plantOutInList(g: Garden, trayId: string, bed: Feature, plantOf: (id: string) => Plant, date: string): { garden: Garden; planted: number; left: number } {
   const tray = g.trays?.find((t) => t.id === trayId);
-  if (!tray) return g;
+  if (!tray) return { garden: g, planted: 0, left: 0 };
   const plant = plantOf(tray.plantId);
-  const { plantings } = placeInList(g, bed, plant, Math.max(1, tray.count), plantOf, true);
+  const { plantings, left } = placeInList(g, bed, plant, Math.max(1, tray.count), plantOf, true);
   const fromTray = plantings.map((pl) => ({ ...pl, sownOn: tray.sownOn, sowing: 'indoors' as const, stage: 'transplanted' as const, stageDates: { ...(tray.stageDates ?? {}), transplanted: date } }));
-  return { ...g, trays: (g.trays ?? []).filter((t) => t.id !== trayId), plantings: [...g.plantings, ...fromTray] };
+  const trays = left > 0 && plantings.length ? (g.trays ?? []).map((t) => (t.id === trayId ? { ...t, count: left } : t)) : plantings.length ? (g.trays ?? []).filter((t) => t.id !== trayId) : (g.trays ?? []);
+  return { garden: { ...g, trays, plantings: [...g.plantings, ...fromTray] }, planted: tray.count - left, left: plantings.length ? left : tray.count };
 }

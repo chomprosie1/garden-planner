@@ -1679,7 +1679,7 @@ Decided:
 | When | Release | What | Status |
 | --- | --- | --- | --- |
 | Mon 12 Oct | 31. One answer everywhere | Every sowing window read, and the open one shown. Now or This week, not "tomorrow". Seed potatoes, sets, cloves and bulbs on the shopping list. "Already in the ground" asks when. Autumn kinds in the autumn kits. Plant, not sow, for bulbs. The "(check)"s out. Sowing ticks its job and spends the seed. Save works straight away. Wider toasts. | Built 11 Oct 2026 |
-| Tue 13 Oct | 32. List mode, put right | Beds stay inside the garden. No stacked plants. Planters take rows. A pot's room measured properly. Climbers listed. Moves that fit. How many pots. Beds numbered as added. No plan words. Rows folded. A menu for the list. | |
+| Tue 13 Oct | 32. List mode, put right | Beds stay inside the garden. No stacked plants. Planters take rows. A pot's room measured properly. Climbers listed. Moves that fit. How many pots. Beds numbered as added. No plan words. Rows folded. A menu for the list. | Built 11 Oct 2026 |
 | Wed 14 Oct | Testing day | You and your two testers on 31 and 32. Fixes go out as 31.1 and 32.1. | |
 | Thu 15 Oct | 33. Today, and where things live | One list of jobs to tick at the top of Today. A smaller photo. Planning ahead in autumn and winter. Seedlings becomes Shed. One Settings. A calmer first landing. Darker captions and Extra large text. Place search kept to the UK. | |
 | Fri 16 Oct | 34. Explain the gardening | A glossary of about 40 words, tappable in jobs and plant pages. A how-to on each job, with Done. Kits sized for a first garden. Not-now notes. A warning when a bed is booked. | |
@@ -1748,6 +1748,50 @@ Parked:
 - **3D on a phone:** check once on a real phone first.
 - **Wrapped after the first pick:** held until there's a season's worth, as part of 33.
 - **Prices:** stay out.
+
+### Release 32 — List mode, put right (as built)
+- **Beds stay inside the garden** (`src/model/listLayout.ts`):
+  - `placeFor` finds the first clear place inside the outline, 30 cm in from its edge, and checks the corners against the outline itself, so an L-shaped garden works. With no room, the bed goes just to the right of the outline, and `outside` says so. The outline is never changed (`growBoundary` is gone).
+  - A list started from nothing has no outline, and still doesn't get one. Its beds are set out in rows from the corner.
+  - `addListBed` returns `[garden, id, outside]`. The toast adds "There wasn’t room inside your garden’s outline, so it’s set just outside it."
+- **No stacking** (`src/planting/listPlant.ts`, `placeInList` now returns `{ plantings, left, full }`):
+  - A row or a fill with no room plants nothing.
+  - A number plants rows, then single plants in the gaps, and stops when there's no room. `left` is how many didn't fit.
+  - A fill after rows is a block drawn in from its sides until every plant is inside the bed, so a fill keeps inside round and L-shaped beds.
+  - One plant still always goes in, in the least crowded spot.
+  - In Add a plant, a shortfall keeps the dialog open on the bed picker: "Room for 72 of 200 in Bed 4: they’re in. Put the other 128 in another bed?", with the 128 ready to place. With no room at all, nothing is added and it says so.
+  - `plantOutInList` returns `{ garden, planted, left }`. Seedlings that don't fit stay in the tray, with its count cut.
+- **Planters are beds.** Only a round pot (`kind === 'pot'`) takes plants one beside another. Planters and window boxes take rows and fills.
+- **A pot's room** is its round area against a circle of the plant's spread. One plant in a pot is never more than full.
+- **Climbers listed:** a fence, wall, trellis, arch or obelisk with something on it is in the list (`isListed`). It shows no size or fullness, its card says climbers are planted on the plan, and it isn't offered for Add a plant or moves (`plantableBeds`).
+- **Moves that fit** (`moveToListBed`): a row goes along the new bed, cut to what fits there, never squeezed closer. A block that's too big fills what room there is, or becomes one plant.
+- **Adding and editing beds:**
+  - Add a bed has **How many?** (1 to 24) for beds, pots, planters and cold frames.
+  - Beds are numbered as they're added: "Bed" beside "Bed 1" and "Bed 2" becomes "Bed 3" (`nameListBeds`).
+  - The bed's ··· menu has **Name, size, sun and soil**, with width and length, or across for a pot, in metres. It also has **Another like this** (`copyListBed`): the same kind, size, name, sun and soil, empty, in the next free place.
+- **Rows folded:** plantings of the same plant, stage, dates and layout in a bed are one line, "Garlic × 40 · 2 rows". Opening the line opens the first row. What's happened applies to every row on the line (`together`), while a pick, note or photo stays with the first.
+- **A menu for the list:** a ··· beside Add a bed holds Shopping list, Draft next year…, Clear beds… and Show it as a plan.
+- **No plan words in a list:**
+  - The bed sheet drops "Drag to move… Arrow keys nudge", Duplicate, Bring to front, the set-ground note and "drop one from Plants below the plan".
+  - "Put back on the plan" becomes "Put it back".
+  - Search lists only the list's beds and plants, with no Boundary, under a new group name, **In your garden** (for plans too). "add tomato" says "Add to a bed".
+  - Today's garden card says "4 beds and areas". Clear beds, the feed shelf and Inspire say "in your garden", not "on the plan".
+- **Version** 0.32.0.
+- **Checked** at 390 px, a new list garden from the Garden template with the autumn kit:
+  - the header's ··· menu;
+  - Add a bed with three pots, named Pot 1 to Pot 3;
+  - a default bed added after Bed 1 and Bed 2, named Bed 3;
+  - 200 lettuces into a 1.2 × 2.4 m bed (72 fit);
+  - planting into the same bed once it was full;
+  - the folded rows.
+
+Tests, in `tests/list.test.ts`:
+- Four tests from release 30 rewritten for the new rules: no outline drawn for a list from nothing, an over-full bed reached one plant at a time, a smaller bed taking what fits, and a tray leaving its rest.
+- New: beds inside a drawn garden and the outside flag, with the outline unchanged; no stacking, with what's left counted; planters in rows; a pot's room; a fill inside an L-shaped bed; climbers listed but not plantable; Another like this, and numbering as added; list-mode search.
+
+Not changed:
+- **Show it as a plan** for a list started from nothing gives a plan with no outline. Draw one there, or it can be added when switching, if testers miss it.
+- **Opening a folded line** shows the first row's own count on its Care tab ("Plants 16"), with "Row in Bed 2" above it.
 
 ## Repo layout
 ```

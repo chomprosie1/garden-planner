@@ -70,7 +70,7 @@ export function ClearBedsDialog({ garden, store, plantOf, close }: { garden: Gar
           Clear beds
         </h2>
         {rows.length === 0 ? (
-          <p>Nothing is growing on the plan, so there’s nothing to clear.</p>
+          <p>Nothing is growing, so there’s nothing to clear.</p>
         ) : (
           <>
             <div class="clear-what" role="radiogroup" aria-label="What to clear">
