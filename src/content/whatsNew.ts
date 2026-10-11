@@ -17,6 +17,19 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-12-one-answer',
+    date: '2026-10-12',
+    title: 'One answer everywhere',
+    items: [
+      'A plant’s next step now agrees with your jobs. Broad beans in October say “Sow outside now, until Nov”, not February, because their autumn sowing is open.',
+      'This week’s jobs say Now when they’re due, rather than “tomorrow” for everything, and nothing says seedlings are coming up before you’ve sown.',
+      'Garlic, onion sets, seed potatoes and bulbs are planted, not sown, and the shopping list asks for them as what they are: garlic cloves, onion sets, seed potatoes and bulbs, not “seed”. A packet with only a few seeds left no longer counts as enough, and something you’ve sown already comes off the list.',
+      'Already in the ground? Say which month it went in, so its care and next year’s plan go from then.',
+      'The autumn kits now plant autumn-sown broad beans and overwintering onion sets. Sowing a tray of something on your Want to grow list ticks its job, and the message says where it went.',
+    ],
+    tryIt: { label: 'See this week', view: 'home' },
+  },
+  {
     id: '2026-10-11-just-a-list',
     date: '2026-10-11',
     title: 'Just a list, if you prefer',

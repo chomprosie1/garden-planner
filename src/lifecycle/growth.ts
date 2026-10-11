@@ -181,6 +181,8 @@ export function seasonMonth(months: number[]): number | null {
   return run ? run[0]! : null;
 }
 
+const MONTH_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
 /** For the plant card: "Time to crop" and "About 60 to 80 days from planting out, sooner in a warm spell or under glass." */
 export function growthText(p: Plant): { label: string; text: string } | null {
   const days = p.growth?.days;
@@ -188,8 +190,17 @@ export function growthText(p: Plant): { label: string; text: string } | null {
   const crops = !!p.cropping?.harvestMonths.length;
   const span = days[0] === days[1] ? `${days[0]}` : `${days[0]} to ${days[1]}`;
   const from = p.growth?.from === 'sowing' ? 'sowing outside' : sowingOf(p) === 'none' ? 'planting' : 'planting out';
+  const label = crops ? 'Time to crop' : 'Time to flower';
+  const what = crops ? 'harvest' : 'flowers';
+  // Sown in autumn, it sits out the winter: the days (a spring sowing's) don't apply.
+  const runs = (p.sowing ?? []).flatMap((s) => runsOf(s.months));
+  const autumn = runs.some((r) => r[0]! >= 8);
+  const spring = runs.some((r) => r[0]! < 8);
+  const first = runsOf(crops ? p.cropping!.harvestMonths : (p.flowerMonths ?? [])).find((r) => r[0]! >= 3 && r[0]! <= 8)?.[0];
+  const firstText = first ? `, from about ${MONTH_LONG[first - 1]}` : '';
+  if (autumn && !spring) return { label, text: `Sown in autumn, it stands the winter and grows on in spring: the first ${what}${firstText}.` };
   return {
-    label: crops ? 'Time to crop' : 'Time to flower',
-    text: `About ${span} days from ${from} to the first ${crops ? 'harvest' : 'flowers'}: sooner in warm weather or under glass, and later in a cool spell or further north.`,
+    label,
+    text: `About ${span} days from ${from}${autumn ? ' in spring' : ''} to the first ${what}: sooner in warm weather or under glass, and later in a cool spell or further north.${autumn ? ` An autumn sowing stands the winter and is ready a few weeks before a spring one${firstText}.` : ''}`,
   };
 }

@@ -5,7 +5,7 @@
 // to a planting there, you can do here.
 
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { JOB_LABEL, jobsFor } from '../../calendar/jobs';
+import { jobLabel, jobsFor } from '../../calendar/jobs';
 import { formatLength } from '../../canvas/viewport';
 import { microclimateOf } from '../../climate/microclimate';
 import { bounds } from '../../geometry/polygon';
@@ -21,11 +21,12 @@ import { fullText, howFull, isListed, listBeds, moveToListBed, placeInList, plan
 import { isActive, plantCount, spacingStyle } from '../../planting/place';
 import { isPot } from '../../planting/pots';
 import { checkGarden } from '../../planting/rules';
+import { nextStep } from '../../planting/windows';
 import type { Prefs, PrefsStore } from '../../theme/prefs';
 import { useApp } from '../appContext';
 import { ClearBedsDialog } from '../ClearBeds';
 import { Icon } from '../icons';
-import { Inspector, nextStep } from '../Inspector';
+import { Inspector } from '../Inspector';
 import { InspireButton } from '../Inspire';
 import { MiniPlan } from '../MiniPlan';
 import { MoreMenu } from '../MoreMenu';
@@ -36,6 +37,7 @@ import { BedSoil } from '../SoilFields';
 import { usePlants } from '../usePlants';
 import { useWeatherNow } from '../useWeather';
 import type { PlanIntent } from './Plan';
+import { InGround } from '../InGround';
 
 interface Props {
   store: Store;
@@ -132,7 +134,7 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
             garden={garden}
             store={store}
             plantOf={plantOf}
-            jobs={jobs.filter((j) => j.featureId === bed.id).map((j) => `${JOB_LABEL[j.kind]}: ${j.plant}`)}
+            jobs={jobs.filter((j) => j.featureId === bed.id).map((j) => `${jobLabel(j)}: ${j.plant}`)}
             warnings={findings.filter((f) => f.level === 'warn' && (f.featureIds.includes(bed.id) || garden.plantings.some((p) => p.featureId === bed.id && f.plantingIds.includes(p.id)))).map((f) => f.message)}
             today={today}
             weather={weather}
@@ -308,7 +310,7 @@ function PlantingRow({ pl, plant, garden, today, weather, which, open }: { pl: P
   const now = stageIn(steps, today).stage;
   const marked = currentStage(pl);
   const n = plantCount(pl, plant);
-  const next = nextStep(pl, plant, microclimateOf(garden, pl)?.climate ?? null);
+  const next = nextStep(pl, plant, Number(today.slice(5, 7)), microclimateOf(garden, pl)?.climate ?? null);
   return (
     <button type="button" class={`planting-row ${marked === 'planned' ? 'is-planned' : ''}`} onClick={open}>
       <PlantIcon plant={plant} size={46} view="side" {...(now !== 'planned' && now !== 'cleared' ? { stage: now } : {})} />
@@ -484,7 +486,7 @@ function AddPlantDialog({ store, garden, plants, plantOf, month, start, close, n
   const [plantId, setPlantId] = useState(start.plantId ?? '');
   const [how, setHow] = useState<Fill | 'count'>('one');
   const [count, setCount] = useState('6');
-  const [growing, setGrowing] = useState(false);
+  const [growing, setGrowing] = useState<string | null>(null);
   const bed = beds.find((b) => b.id === bedId);
   const tray = start.trayId ? garden.trays?.find((t) => t.id === start.trayId) : undefined;
   const plant = tray ? plantOf(tray.plantId) : plantId ? plantOf(plantId) : null;
@@ -581,10 +583,7 @@ function AddPlantDialog({ store, garden, plants, plantOf, month, start, close, n
                     </label>
                   )}
                 </fieldset>
-                <label class="check">
-                  <input type="checkbox" checked={growing} onChange={(e) => setGrowing((e.currentTarget as HTMLInputElement).checked)} />
-                  Already in the ground (not just planned)
-                </label>
+                <InGround value={growing} set={setGrowing} label="Already in the ground (not just planned)" />
                 {!start.plantId && (
                   <button type="button" class="link-btn small" onClick={() => setPlantId('')}>
                     Choose another plant

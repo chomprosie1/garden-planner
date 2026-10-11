@@ -3,7 +3,7 @@
 // each group on its bed as the plan moves (data-world), and hides it when the
 // bed is too small on screen to carry it (data-world-w).
 
-import { JOB_LABEL, toggleJob, type Job, type JobKind } from '../calendar/jobs';
+import { jobLabel, toggleJob, type Job, type JobKind } from '../calendar/jobs';
 import { bounds } from '../geometry/polygon';
 import { shortDate, type Gap } from '../lifecycle/projection';
 import { todayIso } from '../model/ids';
@@ -60,7 +60,7 @@ export function PlanChips({ garden, store, plantOf, jobs, canTick, gaps, today, 
   const gapBeds = new Set(gaps.map((g) => g.bed.id));
   const tick = (j: Job) => {
     store.apply(updateGarden((g) => toggleJob(g, j, todayIso(), plantOf)));
-    app.notify(`Done: ${JOB_LABEL[j.kind].toLowerCase()}, ${j.plant.toLowerCase()}.`, { undo: true });
+    app.notify(`Done: ${jobLabel(j).toLowerCase()}, ${j.plant.toLowerCase()}.`, { undo: true });
   };
 
   return (
@@ -75,12 +75,12 @@ export function PlanChips({ garden, store, plantOf, jobs, canTick, gaps, today, 
             {list.slice(0, PER_BED).map((j) => {
               const text = `${SHORT[j.kind]} ${j.plant.toLowerCase()}`;
               return canTick ? (
-                <button key={j.key} type="button" class="plan-chip" title={`${JOB_LABEL[j.kind]}: ${j.plant}. Tap to tick it off.`} onClick={() => tick(j)}>
+                <button key={j.key} type="button" class="plan-chip" title={`${jobLabel(j)}: ${j.plant}. Tap to tick it off.`} onClick={() => tick(j)}>
                   <span class="plan-chip-box" aria-hidden="true" />
                   {text}
                 </button>
               ) : (
-                <span key={j.key} class="plan-chip plan-chip-later" title={`${JOB_LABEL[j.kind]}: ${j.plant}. Tick it off in that month.`}>
+                <span key={j.key} class="plan-chip plan-chip-later" title={`${jobLabel(j)}: ${j.plant}. Tick it off in that month.`}>
                   {text}
                 </span>
               );

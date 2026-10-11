@@ -5,11 +5,12 @@
 // ready to pick). Pure functions.
 
 import { timeline } from '../lifecycle/projection';
-import { sowingOf, type LifeStage } from '../lifecycle/stages';
+import { currentStage, sowingOf, type LifeStage } from '../lifecycle/stages';
 import { addDays, dayNumber } from '../model/dates';
 import { runningBehind } from '../lifecycle/behind';
 import { featureLabel } from '../model/features';
 import type { Garden, Plant } from '../model/types';
+import { isSown, startsAs, type StartsAs } from '../planting/windows';
 import type { Weather } from '../weather/weather';
 
 export interface Upcoming {
@@ -26,6 +27,10 @@ export interface Upcoming {
   todo: boolean;
   /** How it's sown: indoors, outside, or not at all (bought plants). */
   sowing: 'indoors' | 'direct' | 'none';
+  /** What goes in: seed, or sets, cloves, tubers, bulbs or plants, which are planted. */
+  from: StartsAs;
+  /** Due already (its window's open, or it's late): now, rather than a day. */
+  now: boolean;
 }
 
 /** Stages worth a line: the ones you act on or look out for. Growing on isn't news. */
@@ -40,8 +45,15 @@ export function upcoming(g: Garden, plantOf: (id: string) => Plant, today: strin
     const plant = plantOf(pl.plantId);
     // Weeds come and go on their own: nothing to look forward to.
     if (plant.category === 'weed') continue;
+    // Not sown or planted yet: only that first step. What follows waits until it's done.
+    const planned = currentStage(pl) === 'planned';
+    let first = true;
     for (const s of timeline(plant, pl, g, today, weather)) {
-      if (!s.guessed || s.date === null || s.date <= from || s.date > to || !SHOWN.includes(s.stage)) continue;
+      if (!s.guessed || s.date === null) continue;
+      const isFirst = first;
+      first = false;
+      if (planned && !isFirst) break;
+      if (s.date <= from || s.date > to || !SHOWN.includes(s.stage)) continue;
       // Rows of the same plant in the same bed doing the same thing are one line; batches stay apart.
       const batch = pl.batch ? `batch ${pl.batch.n} of ${pl.batch.of}` : undefined;
       const key = `${pl.plantId}|${pl.featureId}|${s.stage}|${pl.batch ? `${pl.batch.group}:${pl.batch.n}` : ''}`;
@@ -49,7 +61,21 @@ export function upcoming(g: Garden, plantOf: (id: string) => Plant, today: strin
       if (was) {
         was.plantingIds.push(pl.id);
         if (s.date < was.date) was.date = s.date;
-      } else found.set(key, { key, plantId: pl.plantId, featureId: pl.featureId, plantingIds: [pl.id], stage: s.stage, date: s.date, ...(batch ? { batch } : {}), todo: TODO.includes(s.stage), sowing: sowingOf(plant, pl) });
+        if (s.due) was.now = true;
+      } else
+        found.set(key, {
+          key,
+          plantId: pl.plantId,
+          featureId: pl.featureId,
+          plantingIds: [pl.id],
+          stage: s.stage,
+          date: s.date,
+          ...(batch ? { batch } : {}),
+          todo: TODO.includes(s.stage),
+          sowing: sowingOf(plant, pl),
+          from: startsAs(plant, Number((pl.sownOn ?? s.date).slice(5, 7)), pl),
+          now: !!s.due,
+        });
     }
   }
   return [...found.values()].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.plantId.localeCompare(b.plantId)));
@@ -67,13 +93,17 @@ export function dayWords(date: string, today: string): string {
   return `on ${Number(date.slice(8, 10))} ${MONTHS[Number(date.slice(5, 7)) - 1]}`;
 }
 
-/** "Sow outside", "Ready to pick": what's happening, in a few words. */
+/** "now" for something due already, otherwise "today", "tomorrow", "on Thursday". */
+export const whenWords = (u: Upcoming, today: string): string => (u.now ? 'now' : dayWords(u.date, today));
+
+/** "Sow outside", "Plant", "Ready to pick": what's happening, in a few words. */
 export function upcomingVerb(u: Upcoming): string {
   switch (u.stage) {
     case 'sown':
+      if (!isSown(u.from)) return 'Plant';
       return u.sowing === 'direct' ? 'Sow outside' : 'Sow indoors';
     case 'germinated':
-      return 'Seedlings up soon';
+      return isSown(u.from) ? 'Seedlings up soon' : 'Shoots up soon';
     case 'hardening':
       return 'Harden off';
     case 'transplanted':
@@ -94,7 +124,7 @@ export function upcomingText(u: Upcoming, g: Garden, plantOf: (id: string) => Pl
   const plant = plantOf(u.plantId);
   const bed = g.features.find((f) => f.id === u.featureId);
   const verb = upcomingVerb(u);
-  return `${plant.commonName}${u.batch ? ` (${u.batch})` : ''}${bed ? ` in ${featureLabel(bed)}` : ''}: ${verb.charAt(0).toLowerCase()}${verb.slice(1)} ${dayWords(u.date, today)}`;
+  return `${plant.commonName}${u.batch ? ` (${u.batch})` : ''}${bed ? ` in ${featureLabel(bed)}` : ''}: ${verb.charAt(0).toLowerCase()}${verb.slice(1)} ${whenWords(u, today)}`;
 }
 
 /** This week (today to six days on) and next (the seven days after). */

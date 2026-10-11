@@ -6,6 +6,8 @@ import flowers from '../data/plants/flower.json';
 import fruit from '../data/plants/fruit.json';
 import herbs from '../data/plants/herb.json';
 import vegetables from '../data/plants/vegetable.json';
+import varieties from '../data/varieties.json';
+import { withVarieties, type VarietyEntry } from '../src/library/library';
 import { compassPoint, headingOf, meanHeading, northFromHeading } from '../src/geometry/compass';
 import { pointInPolygon } from '../src/geometry/polygon';
 import { newGarden } from '../src/model/defaults';
@@ -20,7 +22,7 @@ import { placeText } from '../src/ui/GardenSettings';
 import { FAVOURITES } from '../src/ui/Onboarding';
 import { parseGeocoding, parseOutcode, parsePostcode, placeLabel, placeUrl, searchPlaces } from '../src/weather/places';
 
-const library = [...vegetables, ...herbs, ...fruit, ...flowers] as Plant[];
+const library = withVarieties([...vegetables, ...herbs, ...fruit, ...flowers] as Plant[], varieties as VarietyEntry[]);
 const byId = new Map(library.map((p) => [p.id, asGrown(p, 'close')]));
 const known = (id: string) => byId.get(id) ?? null;
 

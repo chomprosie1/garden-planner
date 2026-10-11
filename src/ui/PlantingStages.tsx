@@ -43,6 +43,10 @@ export function WhatsHappened({ store, garden, pl, plant, covered = false }: Pro
   // What it's probably at by now, from the warmth it's had, or simply what comes next.
   const probable = probableStage(plant, pl, garden, today, weather);
   const likely = probable ?? likelyNext(plant, pl, covered);
+  // Something's always chosen, so Save works straight away: the likely one, or the first.
+  const first = likely && options.some((o) => o.id === likely) ? likely : options[0]!.id;
+  // Planned, with one way to start: say it ("Mark as sown"); otherwise ask.
+  const ask = currentStage(pl) !== 'planned' ? 'What’s happened?' : options.length === 1 ? `Mark as ${options[0]!.label.toLowerCase()}` : 'Sown or planted it?';
 
   const save = () => {
     if (!chosen) return;
@@ -69,8 +73,8 @@ export function WhatsHappened({ store, garden, pl, plant, covered = false }: Pro
             Probably {STAGE_LABEL[probable].toLowerCase()} by now.
           </p>
         )}
-        <button type="button" class="btn btn-primary happened-btn" onClick={() => (setOpen(true), setChosen(likely && options.some((o) => o.id === likely) ? likely : null))}>
-          {currentStage(pl) === 'planned' ? 'Sown or planted it?' : 'What’s happened?'}
+        <button type="button" class="btn btn-primary happened-btn" onClick={() => (setOpen(true), setChosen(first))}>
+          {ask}
         </button>
       </div>
     );

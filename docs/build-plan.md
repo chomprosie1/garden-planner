@@ -1678,7 +1678,7 @@ Decided:
 
 | When | Release | What | Status |
 | --- | --- | --- | --- |
-| Mon 12 Oct | 31. One answer everywhere | Every sowing window read, and the open one shown. Now or This week, not "tomorrow". Seed potatoes, sets, cloves and bulbs on the shopping list. "Already in the ground" asks when. Autumn kinds in the autumn kits. Plant, not sow, for bulbs. The "(check)"s out. Sowing ticks its job and spends the seed. Save works straight away. Wider toasts. | |
+| Mon 12 Oct | 31. One answer everywhere | Every sowing window read, and the open one shown. Now or This week, not "tomorrow". Seed potatoes, sets, cloves and bulbs on the shopping list. "Already in the ground" asks when. Autumn kinds in the autumn kits. Plant, not sow, for bulbs. The "(check)"s out. Sowing ticks its job and spends the seed. Save works straight away. Wider toasts. | Built 11 Oct 2026 |
 | Tue 13 Oct | 32. List mode, put right | Beds stay inside the garden. No stacked plants. Planters take rows. A pot's room measured properly. Climbers listed. Moves that fit. How many pots. Beds numbered as added. No plan words. Rows folded. A menu for the list. | |
 | Wed 14 Oct | Testing day | You and your two testers on 31 and 32. Fixes go out as 31.1 and 32.1. | |
 | Thu 15 Oct | 33. Today, and where things live | One list of jobs to tick at the top of Today. A smaller photo. Planning ahead in autumn and winter. Seedlings becomes Shed. One Settings. A calmer first landing. Darker captions and Extra large text. Place search kept to the UK. | |
@@ -1688,6 +1688,60 @@ Decided:
 | Tue 20 Oct | 23. Help for the rest | Help for the screens as they now are, with a ? on every tab. | |
 | Wed 21 Oct | The review again | The same reviewers and the same three tasks, counted against the baseline. | |
 | Alongside | Data track | The core 150 plants, in batches of 15 you confirm. Autumn sowings and the "(check)" plants first. | |
+
+### Release 31 — One answer everywhere (as built)
+- **What goes in, and when** (`src/planting/windows.ts`, pure):
+  - Sowings can now say they're planted **from** `sets`, `cloves` or `tubers` (`Sowing.from` in the plant data, checked by `validate.ts`). Onion and shallot sets, garlic, potatoes and their kinds have it.
+  - `startsAs` says what a plant starts as in a month: seed, sets, cloves, tubers, bulbs (a bulb never sown), or plants.
+  - `nextStep` replaces the planting's "Next" line. It reads **every** sowing window, not just the first, and says the one open now or the next to open: "Sow outside now, until Nov", "Next: sow outside Feb–Apr", "Plant now, until Dec". A planned batch is matched by the month it's to be sown. Used on the planting panel and the list's bed cards.
+- **Plant, not sow** (`src/calendar/jobs.ts`):
+  - Jobs carry a `verb` where their kind's label is wrong. Garlic cloves, onion sets and seed potatoes say **Plant**, as do bulbs and anything bought as a plant; "Plant out" is kept for seedlings.
+  - `groupJobs` groups by what a job says, so the month's list has a Plant heading.
+  - The first-job note reads "Your first job: Broad bean, autumn-sown. Sow outside in Bed 2 (2 rows).", since a kind's name has a comma.
+- **Now, not tomorrow** (`src/calendar/week.ts`, `src/lifecycle/projection.ts`):
+  - A projected step due today or earlier is still shown tomorrow, but is now marked `due`, and the week's tiles say **Now** for it.
+  - A planting that's still planned shows only its first step. There's no "Seedlings up soon" before it's sown, and sets and cloves say "Shoots up soon".
+- **The shopping list says what you buy** (`src/planting/shopping.ts`):
+  - A new heading, **Bulbs, sets and seed potatoes**: "Garlic, about 40 cloves (4 bulbs or so)", "Onion sets, overwintering, about 48", "Seed potatoes", "Tulip bulbs, 144 bulbs". Items carry their whole name ("Carrot seed").
+  - A packet in the tin counts only if it has enough seeds (one with no count still counts). A short one says how many are left.
+  - Something on the Want to grow list that's growing, or sown in a tray this season, isn't on the list.
+  - A tick lasts until 1 August, when next year's shopping starts (`seasonStart`), rather than 300 days.
+- **Already in the ground, with a date:**
+  - The tick now asks which month it went in, from this month back over the year, or over a year ago (`inGroundOptions`; `src/ui/InGround.tsx`). This is on the plan's phone bar, the desktop picker and the list's Add a plant.
+  - `makePlanting` takes the date and records it as the planted-out date. Its care, and next year's draft, go from then.
+- **Autumn kits** plant autumn-sown broad beans and overwintering onion sets.
+- **Days to crop for autumn sowings:** an autumn-only kind says it stands the winter, and when its first harvest comes. A plant sown in both seasons says its days are for spring.
+- **Words:**
+  - The 14 "(check)" notes in the plant warnings are gone. The facts were checked and are right.
+  - The bulb planting text no longer says the bonemeal twice.
+  - The onion feed note reads "Raked in a week or two beforehand."
+  - Sow seeds no longer says "Nothing to sow under cover" beneath what's in your tin.
+- **Small things:**
+  - Sowing a tray of something on the Want to grow list ticks its sowing job (`sownInTray`), and the message names the place ("Sweet pea sown: Windowsill").
+  - "What's happened?" always has a choice made, so Save works straight away. A planned planting with one way to start says "Mark as sown" or "Mark as planted".
+  - Toasts are as wide as their words, up to the screen.
+- **Version** 0.31.0.
+- **Checked:** at 390 px, a new list garden with the autumn kit:
+  - the week's tiles, all Now, with Plant for garlic, onion sets and bulbs;
+  - the bed cards' next steps;
+  - the month's jobs under Sow outside and Plant;
+  - the shopping list;
+  - Add a plant with "It went in".
+- **Not changed (scheduled):** "Dates are UK averages" with a place set, and the place search, both in release 33. The seed tin's count after sowing from it was already taken off in code; the tester's "still 20" looked like the test browser losing a save.
+
+Tests: new `tests/one-answer.test.ts`:
+- the next step agrees with the month's jobs, for broad beans, garlic, onion sets, sweet peas and bulbs, in and out of their windows;
+- Now for a due sowing, with no seedlings before sowing;
+- what each plant starts as, and its shopping name and amount;
+- short packets, and sown wishlist plants off the list;
+- the season's ticks;
+- the months to choose from, and a dated planting reaching next year's draft;
+- a tray sowing ticking its job;
+- autumn days to crop;
+- no "(check)" left;
+- the autumn kits.
+
+The kit tests now load the varieties too.
 
 Parked:
 - **A share picture worth posting:** to the wishlist (M).

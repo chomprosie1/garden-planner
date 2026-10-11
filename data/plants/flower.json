@@ -43,7 +43,7 @@
     "growth": { "days": [50, 70], "from": "planting" },
     "lookOutFor": [
       "Pick the flowers every few days or they stop coming. Needs canes or netting.",
-      "The seeds are poisonous (check)."
+      "The seeds are poisonous."
     ],
     "pests": [
       {
@@ -595,7 +595,7 @@
     "lifePath": {
       "perennial": true
     },
-    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }, { "when": "after", "feed": "tomato-feed", "note": "A liquid feed as the flowers fade builds next year’s bulb." }] },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal" }, { "when": "after", "feed": "tomato-feed", "note": "A liquid feed as the flowers fade builds next year’s bulb." }] },
     "family": "Liliaceae",
     "pollinators": { "rating": "some", "visitors": ["bees"], "months": [4, 5] },
     "art": {"form":"bulb","leaf":"broad","foliage":"#7a9a7a","flower":"#d8283a","bloom":"cup"},
@@ -632,7 +632,7 @@
     ],
     "lookOutFor": [
       "Plant bulbs at twice their own depth by early autumn.",
-      "Leave the leaves for six weeks after flowering. Bulbs are poisonous (check)."
+      "Leave the leaves for six weeks after flowering. Bulbs are poisonous."
     ],
     "companions": {
       "good": [],
@@ -644,7 +644,7 @@
     "lifePath": {
       "perennial": true
     },
-    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }, { "when": "after", "feed": "tomato-feed", "note": "A liquid feed as the flowers fade builds next year’s bulb." }] },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal" }, { "when": "after", "feed": "tomato-feed", "note": "A liquid feed as the flowers fade builds next year’s bulb." }] },
     "family": "Amaryllidaceae",
     "pollinators": { "rating": "some", "visitors": ["bees"], "months": [2, 3, 4] },
     "art": {"form":"bulb","leaf":"strap","foliage":"#6a8a6a","flower":"#f2d02a","bloom":"cup"},
@@ -692,7 +692,7 @@
     "lifePath": {
       "perennial": true
     },
-    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }] },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal" }] },
     "family": "Amaryllidaceae",
     "pollinators": { "rating": "good", "visitors": ["bees"], "months": [1, 2, 3] },
     "art": {"form":"bulb","leaf":"strap","foliage":"#6a8a7a","flower":"#f8f8f4","bloom":"cup"},
@@ -745,7 +745,7 @@
     "lifePath": {
       "perennial": true
     },
-    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }] },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal" }] },
     "family": "Iridaceae",
     "pollinators": { "rating": "good", "visitors": ["bees"], "months": [2, 3] },
     "art": {"form":"bulb","leaf":"strap","foliage":"#5a7a4a","flower":"#9a6ad0","bloom":"cup"},
@@ -792,7 +792,7 @@
     "lifePath": {
       "perennial": true
     },
-    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }] },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal" }] },
     "family": "Amaryllidaceae",
     "pollinators": { "rating": "good", "visitors": ["bees", "butterflies"], "months": [5, 6] },
     "art": {"form":"bulb","leaf":"strap","foliage":"#7a9a7a","flower":"#a070d0","bloom":"umbel"},
@@ -959,7 +959,7 @@
       7
     ],
     "lookOutFor": [
-      "All parts are poisonous (check).",
+      "All parts are poisonous.",
       "Self-seeds freely."
     ],
     "germinationDays": [14, 21],
@@ -1077,7 +1077,7 @@
       7
     ],
     "lookOutFor": [
-      "Cut spent spikes for a second flush. The seeds are poisonous (check)."
+      "Cut spent spikes for a second flush. The seeds are poisonous."
     ],
     "pests": [
       {
@@ -1136,7 +1136,7 @@
       7
     ],
     "lookOutFor": [
-      "Stake the tall spikes early. All parts are poisonous (check)."
+      "Stake the tall spikes early. All parts are poisonous."
     ],
     "pests": [
       {
@@ -1244,7 +1244,7 @@
       4
     ],
     "lookOutFor": [
-      "Poisonous (check).",
+      "Poisonous.",
       "Cut off old leaves in winter before the flowers open."
     ],
     "pests": [
@@ -1862,7 +1862,7 @@
     ],
     "flowerMonths": [6, 7, 8],
     "germinationDays": [14, 21],
-    "lookOutFor": ["All parts are poisonous (check)."],
+    "lookOutFor": ["All parts are poisonous."],
     "pests": [
       { "name": "Slugs and snails", "signs": "Seedlings and young plants eaten, slime trails", "control": "Check after dark, use barriers, and encourage frogs, birds and beetles." }
     ],
@@ -2291,7 +2291,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
-    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }, { "when": "after", "feed": "tomato-feed", "note": "A liquid feed as the flowers fade builds next year’s bulb." }] },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal" }, { "when": "after", "feed": "tomato-feed", "note": "A liquid feed as the flowers fade builds next year’s bulb." }] },
     "family": "Asparagaceae",
     "pollinators": { "rating": "some", "visitors": ["bees"], "months": [3, 4] },
     "art": { "form": "bulb", "leaf": "strap", "foliage": "#5f8a5a", "flower": "#8a6ad0", "bloom": "spike" },
@@ -2312,7 +2312,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
-    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }] },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal" }] },
     "family": "Asparagaceae",
     "pollinators": { "rating": "good", "visitors": ["bees"], "months": [3, 4, 5] },
     "art": { "form": "bulb", "leaf": "strap", "foliage": "#5f8a5a", "flower": "#3a4ab0", "bloom": "spike" },
@@ -2350,7 +2350,7 @@
     "size": { "heightMm": 1200, "spreadMm": 300, "spacingMm": 300 },
     "plantOutMonths": [10, 11, 12, 1, 2, 3, 4],
     "flowerMonths": [6, 7, 8],
-    "lookOutFor": ["Lilies are deadly to cats, even the pollen (check).", "Plant two to three times the bulb’s depth; good in pots."],
+    "lookOutFor": ["Lilies are deadly to cats, even the pollen.", "Plant two to three times the bulb’s depth; good in pots."],
     "pests": [
       { "name": "Lily beetle", "signs": "Bright red beetles and their grubs eating leaves", "control": "Pick off the beetles and grubs by hand from spring." },
       { "name": "Vine weevil", "signs": "Notches in leaf edges; plants in pots wilt as grubs eat the roots", "control": "Check pots for the creamy grubs and use nematodes in late summer." }
@@ -2403,7 +2403,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
-    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }] },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal" }] },
     "family": "Liliaceae",
     "pollinators": { "rating": "good", "visitors": ["bees"], "months": [4, 5] },
     "art": { "form": "bulb", "leaf": "strap", "foliage": "#6a8a6a", "flower": "#8a3a6a", "bloom": "cup" },
@@ -2424,7 +2424,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
-    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }] },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal" }] },
     "family": "Iridaceae",
     "pollinators": { "rating": "some", "visitors": ["bees"], "months": [2, 3] },
     "art": { "form": "bulb", "leaf": "strap", "foliage": "#5f8a6a", "flower": "#4a3ab0", "bloom": "cup" },
@@ -2441,11 +2441,11 @@
     "size": { "heightMm": 100, "spreadMm": 80, "spacingMm": 80 },
     "plantOutMonths": [3, 9, 10],
     "flowerMonths": [1, 2, 3],
-    "lookOutFor": ["Best planted ‘in the green’, just after flowering. All parts are poisonous (check)."],
+    "lookOutFor": ["Best planted ‘in the green’, just after flowering. All parts are poisonous."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
-    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }] },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal" }] },
     "family": "Ranunculaceae",
     "pollinators": { "rating": "good", "visitors": ["bees"], "months": [1, 2, 3] },
     "art": { "form": "bulb", "leaf": "lobed", "foliage": "#5f8a45", "flower": "#f2d02a", "bloom": "cup" },
@@ -2490,7 +2490,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
-    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }] },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal" }] },
     "family": "Asparagaceae",
     "pollinators": { "rating": "good", "visitors": ["bees"], "months": [5, 6] },
     "art": { "form": "bulb", "leaf": "strap", "foliage": "#5f8a5a", "flower": "#6a7ad8", "bloom": "spike" },
@@ -2841,7 +2841,7 @@
     "plantOutMonths": [6],
     "flowerMonths": [7, 8, 9],
     "germinationDays": [5, 21],
-    "lookOutFor": ["The seeds are poisonous (check)."],
+    "lookOutFor": ["The seeds are poisonous."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "annual" },
     "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "garden-compost" }, { "when": "flowering", "feed": "tomato-feed", "every": 14, "note": "Most of all in pots and baskets." }] },
@@ -3878,7 +3878,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
-    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }] },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal" }] },
     "family": "Ranunculaceae",
     "pollinators": { "rating": "good", "visitors": ["bees"], "months": [2, 3, 4] },
     "art": { "form": "bulb", "leaf": "lobed", "foliage": "#5a8a4a", "flower": "#6a7ad0", "bloom": "daisy" },
@@ -3899,7 +3899,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
-    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }] },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal" }] },
     "family": "Asparagaceae",
     "pollinators": { "rating": "good", "visitors": ["bees"], "months": [3, 4] },
     "art": { "form": "bulb", "leaf": "strap", "foliage": "#4a7a3a", "flower": "#3a5ad0", "bloom": "cup" },
@@ -3920,7 +3920,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true },
-    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }, { "when": "after", "feed": "tomato-feed", "note": "A liquid feed as the flowers fade builds next year’s bulb." }] },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal" }, { "when": "after", "feed": "tomato-feed", "note": "A liquid feed as the flowers fade builds next year’s bulb." }] },
     "family": "Amaryllidaceae",
     "pollinators": { "rating": "some", "visitors": ["bees"], "months": [9, 10, 11] },
     "art": { "form": "bulb", "leaf": "strap", "foliage": "#5a8a4a", "flower": "#f060a0", "bloom": "umbel" },

@@ -5,7 +5,7 @@ import type { ComponentChildren } from 'preact';
 import { useState } from 'preact/hooks';
 import { parseLength } from '../canvas/snap';
 import { climateOf, climateText, coverEffects, DEFAULT_CLIMATE, isCover, microclimateAt, microclimateOf, placeFor, type CoverKind } from '../climate/microclimate';
-import { addPlace, makePlace, plantOutMonthsUnder } from '../lifecycle/shed';
+import { addPlace, makePlace } from '../lifecycle/shed';
 import { formatArea, formatLength } from '../canvas/viewport';
 import { lineLength, perimeter, polygonArea } from '../geometry/polygon';
 import { monthRanges } from '../library/library';
@@ -31,6 +31,7 @@ import {
   type Target,
 } from '../model/features';
 import { todayIso } from '../model/ids';
+import { nextStep } from '../planting/windows';
 import { photosOf } from '../model/notes';
 import { updateGarden, type Store } from '../model/store';
 import { asTree, findTrees, treeSizeText, treeType } from '../model/trees';
@@ -986,25 +987,6 @@ function CoverSection({ store, garden, f, locked }: { store: Store; garden: Gard
   );
 }
 
-/** "Next: sow outside Mar–Jul", from where the planting is in its life. Under a greenhouse or cold frame, planting out starts sooner. */
-export function nextStep(pl: Planting, plant: Plant, under: Climate | null = null): string | null {
-  const status = plantingStatus(pl);
-  const harvest = plant.cropping?.harvestMonths.length ? `Harvest ${monthRanges(plant.cropping.harvestMonths)}` : null;
-  const outMonths = plantOutMonthsUnder(plant, under);
-  const plantOut = outMonths.length ? `Next: plant out ${monthRanges(outMonths)}` : null;
-  if (status === 'planned') {
-    const s = plant.sowing?.[0];
-    if (s) return `Next: ${s.method === 'direct' ? 'sow outside' : 'sow indoors or under cover'} ${monthRanges(s.months)}`;
-    return plantOut ?? harvest;
-  }
-  if (status === 'sown') {
-    const indoors = plant.sowing?.some((s) => s.method !== 'direct') && !plant.sowing?.some((s) => s.method === 'direct');
-    return (indoors && plantOut) || harvest;
-  }
-  if (status === 'growing') return harvest;
-  return null;
-}
-
 const SPREADS_TEXT = { seed: 'By seed', roots: 'By its roots', both: 'By seed and by its roots' } as const;
 
 /** A weed on the plan: keep it or be rid of it, how it spreads, and how to get it out. */
@@ -1139,8 +1121,8 @@ function PlantingPanel(props: Props & { pl: Planting }) {
   const status = plantingStatus(pl);
   const stage = currentStage(pl);
   const cover = microclimateOf(garden, pl);
-  const step = nextStep(pl, plant, cover?.climate ?? null);
   const today = todayIso();
+  const step = nextStep(pl, plant, Number(today.slice(5, 7)), cover?.climate ?? null);
   // When it's likely to be ready, from the warmth it gets here (UK climate averages), and under glass if it's covered.
   const { weather } = useWeatherNow();
   const expected = status !== 'planned' ? expectedText(timeline(plant, pl, garden, today, weather), plant, today) : null;

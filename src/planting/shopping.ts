@@ -1,30 +1,32 @@
-// The shopping list: seed, plants, compost and feed for what's planned and on
-// your Want to grow list, less the seed already in the tin and the feeds on the
-// shelf. Tick things off as you buy them; a tick lasts a season. Pure
-// functions: garden and plants in, a list out.
+// The shopping list: seed, bulbs, sets, seed potatoes, plants, compost and feed
+// for what's planned and on your Want to grow list, less the seed already in the
+// tin, what's sown already, and the feeds on the shelf. Tick things off as you
+// buy them; a tick lasts the season. Pure functions: garden and plants in, a
+// list out.
 
 import { feedById } from '../feeding/feeds';
 import { shelfFor } from '../feeding/schedule';
-import { currentStage, sowingOf } from '../lifecycle/stages';
-import { daysBetween } from '../model/dates';
+import { traysOf } from '../lifecycle/shed';
+import { currentStage } from '../lifecycle/stages';
 import { placeLabel } from '../model/features';
 import type { Garden, Plant, Planting } from '../model/types';
 import { isActive, plantCount } from './place';
 import { isPot, potSize } from './pots';
 import { packetsFor, seedState } from './seeds';
+import { sowingNow, startsAs } from './windows';
 
-export const SHOP_KINDS = ['seed', 'plant', 'compost', 'feed'] as const;
+export const SHOP_KINDS = ['seed', 'bulb', 'plant', 'compost', 'feed'] as const;
 export type ShopKind = (typeof SHOP_KINDS)[number];
 
-export const SHOP_LABEL: Record<ShopKind, string> = { seed: 'Seed', plant: 'Plants', compost: 'Compost', feed: 'Feed' };
+export const SHOP_LABEL: Record<ShopKind, string> = { seed: 'Seed', bulb: 'Bulbs, sets and seed potatoes', plant: 'Plants', compost: 'Compost', feed: 'Feed' };
 
 export interface ShopItem {
-  /** Stable, so a tick finds it again: "seed:carrot", "compost:pots", "feed:tomato-feed". */
+  /** Stable, so a tick finds it again: "seed:carrot", "bulb:garlic", "compost:pots", "feed:tomato-feed". */
   key: string;
   kind: ShopKind;
-  /** "Carrot", "Multi-purpose compost". */
+  /** What to ask for: "Carrot seed", "Onion sets", "Garlic", "Seed potatoes", "Tulip bulbs", "Multi-purpose compost". */
   name: string;
-  /** How much, in words: "for about 40 plants", "about 45 litres". */
+  /** How much, in words: "for about 40 plants", "about 40 cloves (4 or 5 bulbs)", "about 45 litres". */
   amount?: string;
   /** Anything else worth knowing: what it's for, or that the seed you have is old. */
   note?: string;
@@ -33,17 +35,25 @@ export interface ShopItem {
   bought: boolean;
 }
 
-/** A tick counts for this long: a season's shopping. After that the same seed can be wanted again. */
-export const BOUGHT_DAYS = 300;
-
-/** The keys ticked as bought within the last season. */
-export function boughtKeys(g: Garden, today: string): Set<string> {
-  return new Set((g.bought ?? []).filter((b) => b.date <= today && daysBetween(b.date, today) < BOUGHT_DAYS).map((b) => b.key));
+/**
+ * When this season's shopping started: 1 August, when next year's planning begins, or the August before. A tick lasts
+ * until the next one, so seed bought in March isn't still ticked for next year's list.
+ */
+export function seasonStart(today: string): string {
+  const y = Number(today.slice(0, 4));
+  return `${Number(today.slice(5, 7)) >= 8 ? y : y - 1}-08-01`;
 }
 
-/** Ticks an item as bought, or unticks it. Ticks older than a season are tidied away. */
+const thisSeason = (date: string, today: string) => date <= today && date >= seasonStart(today);
+
+/** The keys ticked as bought this season. */
+export function boughtKeys(g: Garden, today: string): Set<string> {
+  return new Set((g.bought ?? []).filter((b) => thisSeason(b.date, today)).map((b) => b.key));
+}
+
+/** Ticks an item as bought, or unticks it. Ticks from an earlier season are tidied away. */
 export function toggleBought(g: Garden, key: string, today: string): Garden {
-  const fresh = (g.bought ?? []).filter((b) => b.date <= today && daysBetween(b.date, today) < BOUGHT_DAYS);
+  const fresh = (g.bought ?? []).filter((b) => thisSeason(b.date, today));
   const ticked = fresh.some((b) => b.key === key);
   const bought = ticked ? fresh.filter((b) => b.key !== key) : [...fresh, { key, date: today }];
   if (bought.length) return { ...g, bought };
@@ -52,6 +62,9 @@ export function toggleBought(g: Garden, key: string, today: string): Garden {
 }
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+/** "Onion sets, overwintering", "Broad bean seed, autumn-sown": the word after the plant, before its kind. */
+const named = (plant: Plant, word: string) => plant.commonName.replace(/^([^,]+)/, `$1 ${word}`);
 const listOf = (names: string[]) => (names.length > 3 ? `${names.slice(0, 3).join(', ')} and ${names.length - 3} more` : names.join(names.length === 2 ? ' and ' : ', '));
 /** Litres in words, rounded to a sensible amount: "about 45 litres". */
 const litres = (l: number) => `about ${l < 10 ? Math.max(1, Math.round(l)) : Math.round(l / 5) * 5} litres`;
@@ -61,13 +74,35 @@ export interface ShopOptions {
   feeding?: boolean;
 }
 
+/** What to call it, and how much, for what goes in: "Onion sets, about 48", "Garlic, about 40 cloves (4 or 5 bulbs)". */
+function bulbItem(plant: Plant, from: 'sets' | 'cloves' | 'tubers' | 'bulbs', n: number): { name: string; amount?: string } {
+  const potato = plant.id === 'potato' || plant.varietyOf === 'potato';
+  switch (from) {
+    case 'sets':
+      return { name: named(plant, 'sets'), ...(n ? { amount: `about ${n}` } : {}) };
+    case 'cloves': {
+      // A bulb of garlic splits into about ten cloves.
+      const bulbs = Math.max(1, Math.round(n / 10));
+      return { name: plant.commonName, ...(n ? { amount: `about ${plural(n, 'clove', 'cloves')} (${bulbs === 1 ? 'a bulb' : `${bulbs} bulbs`} or so)` } : {}) };
+    }
+    case 'tubers':
+      return potato
+        ? { name: `Seed potatoes${plant.variety ? `, ${plant.variety.toLowerCase()}` : ''}`, ...(n ? { amount: `about ${n}` } : {}) }
+        : { name: named(plant, 'tubers'), ...(n ? { amount: `about ${n}` } : {}) };
+    default:
+      return { name: named(plant, 'bulbs'), ...(n ? { amount: plural(n, 'bulb', 'bulbs') } : {}) };
+  }
+}
+
 /**
  * What to buy for what's planned (on the plan, not yet sown or planted) and on your Want to grow list:
- * - seed for what's grown from seed, unless the tin has a packet of it that's still in date;
- * - plants for what isn't: fruit, bulbs, sets;
+ * - seed for what's grown from seed, unless the tin has enough of it that's still in date;
+ * - bulbs, onion sets, garlic and seed potatoes for what's planted from them;
+ * - plants for the rest: fruit, perennials;
  * - seed compost when there's sowing to do under cover, and compost to fill the pots and planters with nothing growing in them yet;
  * - feeds their feeding calls for that you can buy, unless the feed shelf has one that will do.
- * Seed, then plants, compost and feed, each A to Z.
+ * Something on the Want to grow list that's already growing, or sown in a tray this season, isn't wanted again.
+ * Seed, then bulbs, plants, compost and feed, each A to Z.
  */
 export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: string, opts: ShopOptions = {}): ShopItem[] {
   const bought = boughtKeys(g, today);
@@ -81,26 +116,36 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
     if (plantOf(pl.plantId).category === 'weed') continue;
     planned.set(pl.plantId, [...(planned.get(pl.plantId) ?? []), pl]);
   }
-  const wanted = [...new Set(g.wishlist)].filter((id) => !planned.has(id) && plantOf(id).category !== 'weed');
+  // Already in hand: growing or sown on the plan, or sown in a tray this season.
+  const since = seasonStart(today);
+  const inHand = new Set([...g.plantings.filter((pl) => isActive(pl) && currentStage(pl) !== 'planned').map((pl) => pl.plantId), ...traysOf(g).filter((t) => t.sownOn >= since).map((t) => t.plantId)]);
+  const wanted = [...new Set(g.wishlist)].filter((id) => !planned.has(id) && !inHand.has(id) && plantOf(id).category !== 'weed');
   const plants = [...planned.keys(), ...wanted].map(plantOf);
 
   let sowUnderCover = false;
   for (const plant of plants) {
     const list = planned.get(plant.id) ?? [];
     const n = list.reduce((t, pl) => t + plantCount(pl, plant), 0);
-    const how = sowingOf(plant, list[0]);
     const forWhat = list.length ? `For ${listOf([...new Set(list.map((pl) => byId.get(pl.featureId)).filter((f) => !!f).map((f) => placeLabel(f!)))])}` : 'On your Want to grow list';
-    if (how === 'none') {
+    // When it goes in: the soonest planned sowing, or now. That decides what goes in (onions: sets in autumn, seed in winter).
+    const sowOn = list.map((pl) => pl.sowBy).filter((d): d is string => !!d && d > today).sort()[0] ?? today;
+    const from = startsAs(plant, Number(sowOn.slice(5, 7)), list[0]);
+    if (from === 'plants') {
       items.push({ key: `plant:${plant.id}`, kind: 'plant', name: plant.commonName, plantId: plant.id, ...(n ? { amount: plural(n, 'plant', 'plants') } : {}), note: forWhat });
       continue;
     }
-    if (how === 'indoors') sowUnderCover = true;
-    // Seed in date when it's sown: the soonest planned sowing, or now.
-    const sowOn = list.map((pl) => pl.sowBy).filter((d): d is string => !!d && d > today).sort()[0] ?? today;
-    const packets = packetsFor(g, plant, plantOf);
-    if (packets.some((p) => seedState(p, sowOn) !== 'old')) continue;
-    const note = packets.length ? `The packet in your tin is past its sow-by date by then: fresh seed comes up better. ${forWhat}` : forWhat;
-    items.push({ key: `seed:${plant.id}`, kind: 'seed', name: plant.commonName, plantId: plant.id, ...(n ? { amount: `for about ${plural(n, 'plant', 'plants')}` } : {}), note });
+    if (from !== 'seed') {
+      items.push({ key: `bulb:${plant.id}`, kind: 'bulb', ...bulbItem(plant, from, n), plantId: plant.id, note: forWhat });
+      continue;
+    }
+    if (sowingNow(plant, Number(sowOn.slice(5, 7)), list[0])?.method !== 'direct') sowUnderCover = true;
+    // Seed in date when it's sown, and enough of it: a packet with no count is taken to be enough.
+    const good = packetsFor(g, plant, plantOf).filter((p) => seedState(p, sowOn) !== 'old');
+    const have = good.some((p) => p.count === undefined) ? Infinity : good.reduce((t, p) => t + (p.count ?? 0), 0);
+    if (good.length && have >= Math.max(1, n)) continue;
+    const old = packetsFor(g, plant, plantOf).length > good.length && !good.length;
+    const note = old ? `The packet in your tin is past its sow-by date by then: fresh seed comes up better. ${forWhat}` : good.length ? `Your tin has about ${plural(have, 'seed', 'seeds')}. ${forWhat}` : forWhat;
+    items.push({ key: `seed:${plant.id}`, kind: 'seed', name: named(plant, 'seed'), plantId: plant.id, ...(n ? { amount: `for about ${plural(n, 'plant', 'plants')}` } : {}), note });
   }
 
   if (sowUnderCover) items.push({ key: 'compost:seed', kind: 'compost', name: 'Seed compost', amount: 'a bag', note: 'For sowing in trays and modules: finer, and lower in feed, than multi-purpose' });
@@ -144,7 +189,7 @@ export function shoppingText(items: ShopItem[], gardenName: string): string {
     const list = items.filter((i) => i.kind === kind && !i.bought);
     if (!list.length) continue;
     lines.push('', SHOP_LABEL[kind]);
-    for (const i of list) lines.push(`- ${i.name}${kind === 'seed' ? ' seed' : ''}${i.amount ? `, ${i.amount}` : ''}`);
+    for (const i of list) lines.push(`- ${i.name}${i.amount ? `, ${i.amount}` : ''}`);
   }
   return lines.length > 1 ? lines.join('\n') : `${lines[0]}\n\nNothing to buy.`;
 }

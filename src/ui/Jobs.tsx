@@ -6,7 +6,7 @@ import { PICK_SIZES, type Garden, type PickSize, type Plant } from '../model/typ
 import { PICK_LABEL } from '../planting/harvest';
 import { useApp } from './appContext';
 import { KitchenHint } from './Kitchen';
-import { groupJobs, JOB_LABEL, logPick, toggleJob, type Job } from '../calendar/jobs';
+import { groupJobs, logPick, toggleJob, type Job } from '../calendar/jobs';
 import { feedById } from '../feeding/feeds';
 import { shelfFor } from '../feeding/schedule';
 
@@ -232,9 +232,9 @@ export function PlantJobs({ jobs, garden, store, limit, plantOf }: { jobs: Job[]
   const shown = limit ? jobs.slice(0, limit) : jobs;
   return (
     <div class="job-groups">
-      {groupJobs(shown).map(([kind, list]) => (
-        <section key={kind} class="job-group">
-          <h3 class="job-kind">{JOB_LABEL[kind]}</h3>
+      {groupJobs(shown).map(([label, list]) => (
+        <section key={label} class="job-group">
+          <h3 class="job-kind">{label}</h3>
           <ul class="jobs">
             {list.map((job) => (
               <SwipeRow key={job.key} {...(store ? { onTick: () => store.apply(updateGarden((g) => toggleJob(g, job, todayIso(), plantOf))) } : {})}>

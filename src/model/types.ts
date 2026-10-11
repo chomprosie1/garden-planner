@@ -316,8 +316,14 @@ export type Light = (typeof LIGHT_LEVELS)[number];
 export const SOWING_METHODS = ['indoors', 'direct', 'cold-frame'] as const;
 export const WINTERING_TYPES = ['hardy', 'protect', 'lift-and-store', 'annual'] as const;
 
+/** What goes in the ground when it isn't seed: onion sets, garlic cloves, seed potatoes. */
+export const SOWING_FROM = ['sets', 'cloves', 'tubers'] as const;
+export type SowingFrom = (typeof SOWING_FROM)[number];
+
 export interface Sowing {
   method: (typeof SOWING_METHODS)[number];
+  /** Planted from sets, cloves or tubers rather than sown as seed. Absent: seed. */
+  from?: SowingFrom;
   months: number[]; // 1 to 12
   depthMm?: number;
   notes?: string;

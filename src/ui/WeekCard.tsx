@@ -3,7 +3,7 @@
 // first. Next week waits at the end of the row.
 
 import { useMemo } from 'preact/hooks';
-import { dayWords, upcoming, upcomingVerb, weekWindows, type Upcoming } from '../calendar/week';
+import { upcoming, upcomingVerb, weekWindows, whenWords, type Upcoming } from '../calendar/week';
 import { featureLabel } from '../model/features';
 import { todayIso } from '../model/ids';
 import type { Garden, Plant } from '../model/types';
@@ -24,8 +24,8 @@ function Tile({ u, garden, plantOf, today }: { u: Upcoming; garden: Garden; plan
   const stage = u.stage === 'sown' ? 'germinated' : u.stage === 'cleared' ? 'harvesting' : u.stage;
   return (
     <li class={`week-tile ${u.todo ? 'week-tile-todo' : 'week-tile-look'}`}>
-      <button type="button" class="week-tile-btn" onClick={() => app.showOnPlan({ type: 'planting', id: u.plantingIds[0]! })} aria-label={`${upcomingVerb(u)}: ${plant.commonName}${bed ? ` in ${featureLabel(bed)}` : ''}, ${dayWords(u.date, today)}. Show on the plan`}>
-        <span class="week-tile-when">{capital(dayWords(u.date, today))}</span>
+      <button type="button" class="week-tile-btn" onClick={() => app.showOnPlan({ type: 'planting', id: u.plantingIds[0]! })} aria-label={`${upcomingVerb(u)}: ${plant.commonName}${bed ? ` in ${featureLabel(bed)}` : ''}, ${whenWords(u, today)}. Show on the plan`}>
+        <span class="week-tile-when">{capital(whenWords(u, today))}</span>
         <PlantIcon plant={plant} size={64} stage={stage} class="week-tile-art" />
         <span class="week-tile-verb">{upcomingVerb(u)}</span>
         <span class="week-tile-what">

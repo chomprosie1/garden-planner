@@ -113,7 +113,7 @@
     "size": { "heightMm": 2000, "spreadMm": 2000, "spacingMm": 2000 },
     "plantOutMonths": [3, 4, 9, 10, 11],
     "flowerMonths": [4, 5, 6],
-    "lookOutFor": ["Needs acid soil or ericaceous compost.", "Poisonous to pets and people if eaten (check)."],
+    "lookOutFor": ["Needs acid soil or ericaceous compost.", "Poisonous to pets and people if eaten."],
     "pests": [
       { "name": "Vine weevil", "signs": "Notches in leaf edges; plants in pots wilt as grubs eat the roots", "control": "Check pots for the creamy grubs and use nematodes in late summer." }
     ],
@@ -468,7 +468,7 @@
     "size": { "heightMm": 1200, "spreadMm": 1200, "spacingMm": 1200 },
     "plantOutMonths": [3, 4, 9, 10, 11],
     "flowerMonths": [2, 3, 4],
-    "lookOutFor": ["Strongly scented in late winter. Hates being moved. All parts are poisonous (check)."],
+    "lookOutFor": ["Strongly scented in late winter. Hates being moved. All parts are poisonous."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "winter": "evergreen" },
@@ -577,7 +577,7 @@
     "size": { "heightMm": 8000, "spreadMm": 4000, "spacingMm": 3000 },
     "plantOutMonths": [3, 4, 9, 10, 11],
     "flowerMonths": [5, 6],
-    "lookOutFor": ["Prune twice a year: summer shoots to five leaves in July, then to two buds in February.", "Needs strong support. The seeds are poisonous (check)."],
+    "lookOutFor": ["Prune twice a year: summer shoots to five leaves in July, then to two buds in February.", "Needs strong support. The seeds are poisonous."],
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "feeding": { "need": "moderate", "steps": [{ "when": "spring", "feed": "sulphate-of-potash" }], "avoid": ["High-nitrogen feeds, lawn feed included: leaves and no flowers."] },

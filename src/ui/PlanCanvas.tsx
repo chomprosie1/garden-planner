@@ -75,7 +75,8 @@ export interface Placing {
   /** "auto": dropped into a bed, it fills it the usual way for the plant (one, a row, or the whole bed). */
   layout: Layout | 'auto';
   /** Already in the ground, rather than planned. */
-  growing?: boolean;
+  /** The day it went in, when it's already in the ground. */
+  growing?: string | null;
   /** Planting out this tray from the Potting Shed: the planting takes its sowing date and stages. */
   trayId?: string;
 }
@@ -724,7 +725,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const sp = plant.size.spacingMm;
     const n = layout === 'row' && end ? rowCount(start, end, sp) : layout === 'block' && end ? blockGrid(start, end, sp).cols * blockGrid(start, end, sp).rows : 1;
     if (n > MAX_PLANTS) return say(`That's ${n.toLocaleString()} plants, which is more than one planting can hold. Make it smaller.`);
-    const pl = makePlanting(plant, bed.id, layout === 'auto' ? 'single' : layout, start, end, !!placing.growing);
+    const pl = makePlanting(plant, bed.id, layout === 'auto' ? 'single' : layout, start, end, placing.growing ?? null);
     const withFence = (g: Garden) => (fence ? addFeature(g, fence) : g);
     if (placing.trayId) {
       const trayId = placing.trayId;
@@ -779,7 +780,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const filled = fillPlanting(placing.plant, bed, shared ? 'one' : defaultFill(placing.plant, bed), pt);
     const beside = shared ? spotInPot(garden(), bed, [filled.x, filled.y], p.plantOf) : null;
     const shape = beside ? { ...filled, x: beside[0], y: beside[1] } : filled;
-    const pl: Planting = { ...makePlanting(placing.plant, bed.id, 'single', [shape.x, shape.y], undefined, !!placing.growing), ...shape };
+    const pl: Planting = { ...makePlanting(placing.plant, bed.id, 'single', [shape.x, shape.y], undefined, placing.growing ?? null), ...shape };
     const n = plantCount(pl, placing.plant);
     if (n > MAX_PLANTS) return say(`That's ${n.toLocaleString()} plants, which is more than one planting can hold.`);
     const name = placing.plant.commonName.toLowerCase();
@@ -807,7 +808,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
       const plant = type ? (p.treePlant?.(type) ?? null) : null;
       if (!plant) return say(`${type?.name ?? 'This tree'} grows in the ground, so it can't go in a pot. Fruit trees and shrubs from Plants can.`);
       const placing = p.placing;
-      P.current = { ...p, placing: { plant, layout: 'auto', growing: false } };
+      P.current = { ...p, placing: { plant, layout: 'auto', growing: null } };
       placeAuto(raw);
       P.current = { ...P.current, placing };
       return;
@@ -1695,7 +1696,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
     e.preventDefault();
     const placing = p.placing;
     // Dropped plants fill the bed the usual way for the plant, whatever the Plant tool is set to.
-    P.current = { ...p, placing: { plant: p.plantOf(tray ? tray.plantId : plantId), layout: 'auto', growing: !!placing?.growing, ...(tray ? { trayId: tray.id } : {}) } };
+    P.current = { ...p, placing: { plant: p.plantOf(tray ? tray.plantId : plantId), layout: 'auto', growing: placing?.growing ?? null, ...(tray ? { trayId: tray.id } : {}) } };
     // Snapping mustn't carry it off the pot it was dropped on.
     placeAuto(plantingPoint(garden(), raw, pt));
     P.current = { ...P.current, placing };

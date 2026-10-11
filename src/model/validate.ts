@@ -24,6 +24,7 @@ import {
   SKETCH_KINDS,
   GROUND_SOILS,
   SOILS,
+  SOWING_FROM,
   SOWING_METHODS,
   STAGES,
   SUPPORTS,
@@ -246,8 +247,8 @@ export function validatePlant(p: unknown): string[] {
   if (p.sowing !== undefined)
     need(
       Array.isArray(p.sowing) &&
-        p.sowing.every((s) => isObject(s) && oneOf(SOWING_METHODS, s.method) && isMonths(s.months)),
-      'sowing entries need a method and months 1 to 12.',
+        p.sowing.every((s) => isObject(s) && oneOf(SOWING_METHODS, s.method) && isMonths(s.months) && (s.from === undefined || oneOf(SOWING_FROM, s.from))),
+      'sowing entries need a method and months 1 to 12, and come from seed, sets, cloves or tubers.',
     );
   if (p.plantOutMonths !== undefined) need(isMonths(p.plantOutMonths), 'plantOutMonths must be months 1 to 12.');
   if (p.flowerMonths !== undefined) need(isMonths(p.flowerMonths), 'flowerMonths must be months 1 to 12.');

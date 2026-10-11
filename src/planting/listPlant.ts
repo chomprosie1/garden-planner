@@ -72,7 +72,7 @@ function freePoint(bed: Feature, busy: { p: Point; r: number }[], plant: Plant):
  * number makes rows of that many plants. When there's no room, it goes in the middle anyway, and `full` says so (the
  * list's check says how over-full the bed is).
  */
-export function placeInList(g: Garden, bed: Feature, plant: Plant, how: ListHow, plantOf: (id: string) => Plant, growing = false): { plantings: Planting[]; full: boolean } {
+export function placeInList(g: Garden, bed: Feature, plant: Plant, how: ListHow, plantOf: (id: string) => Plant, growing: boolean | string | null = false): { plantings: Planting[]; full: boolean } {
   const b = bounds(bed.footprint)!;
   const middle: Point = [(b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2];
   const busy = taken(g, bed, plantOf);

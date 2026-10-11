@@ -1262,6 +1262,8 @@ button:disabled {
   bottom: calc(var(--tabbar) + 1rem);
   transform: translateX(-50%);
   z-index: 20;
+  /* As wide as its words, up to the screen less a margin: centred with left 50%, it would otherwise shrink to half. */
+  width: max-content;
   max-width: calc(100% - 2 * var(--gutter));
   padding: 0.75rem 1.1rem;
   border-radius: var(--radius);
@@ -2238,6 +2240,24 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+.toast > :first-child {
+  flex: 1;
+}
+/* The month a plant already in the ground went in. */
+.in-ground {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1rem;
+}
+.in-ground .field-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.in-ground .field-inline.small {
+  font-size: 0.85rem;
 }
 .toast-undo {
   padding: 0.3rem 0.8rem;

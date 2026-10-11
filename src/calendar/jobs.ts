@@ -57,7 +57,12 @@ export interface Job {
   stage?: Stage;
   /** For a feed job: the feeds it calls for, by id. */
   feeds?: string[];
+  /** What the job says, where its kind's label is wrong: "Plant" for garlic cloves, onion sets and bulbs. */
+  verb?: string;
 }
+
+/** What a job says: "Sow outside", "Plant". */
+export const jobLabel = (j: Job): string => j.verb ?? JOB_LABEL[j.kind];
 
 
 const ym = (year: number, month: number) => `${year}-${String(month).padStart(2, '0')}`;
@@ -81,14 +86,14 @@ function doneBefore(g: Garden, prefix: string, year: number, month: number): boo
 
 const sownThisMonth = (pl: Planting, year: number, month: number) => !!pl.sownOn && pl.sownOn.slice(0, 7) === ym(year, month);
 
-function sowingKinds(p: Plant, month: number): { kind: JobKind; detail?: string }[] {
-  const out: { kind: JobKind; detail?: string }[] = [];
+function sowingKinds(p: Plant, month: number): { kind: JobKind; detail?: string; verb?: string }[] {
+  const out: { kind: JobKind; detail?: string; verb?: string }[] = [];
   for (const s of p.sowing ?? []) {
     if (!s.months.includes(month)) continue;
     const kind: JobKind = s.method === 'direct' ? 'sow-direct' : 'sow-indoors';
     if (out.some((o) => o.kind === kind)) continue;
     const bits = [s.method === 'cold-frame' ? 'Sow in modules or a seedbed to plant out later.' : '', s.depthMm ? `About ${s.depthMm >= 10 ? `${s.depthMm / 10} cm` : `${s.depthMm} mm`} deep.` : '', s.notes ?? ''].filter(Boolean);
-    out.push(bits.length ? { kind, detail: bits.join(' ') } : { kind });
+    out.push({ kind, ...(bits.length ? { detail: bits.join(' ') } : {}), ...(s.from ? { verb: 'Plant' } : {}) });
   }
   return out;
 }
@@ -151,10 +156,13 @@ export interface JobOptions {
 /** Your jobs for a month, in the order of JOB_KINDS, then by plant name. */
 export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number, year: number, opts: JobOptions = {}): Job[] {
   const jobs: Job[] = [];
-  const add = (kind: JobKind, plant: Plant, where: string, scope: string, plantingIds: string[], detail?: string, featureId?: string) => {
+  const add = (kind: JobKind, plant: Plant, where: string, scope: string, plantingIds: string[], detail?: string, featureId?: string, verb?: string) => {
     const job: Job = { key: `${kind}:${plant.id}:${scope ? `${scope}:` : ''}${ym(year, month)}`, kind, plantId: plant.id, plant: plant.commonName, where, plantingIds };
     if (detail) job.detail = detail;
     if (featureId) job.featureId = featureId;
+    // Bulbs and bought plants are planted; only seedlings are planted out.
+    const v = verb ?? (kind === 'plant-out' && !plant.sowing?.length ? 'Plant' : undefined);
+    if (v) job.verb = v;
     jobs.push(job);
   };
 
@@ -210,7 +218,7 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     const before = opts.feeding ? plantingFeedText(plant) : undefined;
     const withFeed = (detail?: string) => [detail, before].filter(Boolean).join(' ') || undefined;
     if (plain.length)
-      for (const s of sowingKinds(plant, month)) add(s.kind, plant, s.kind === 'sow-indoors' ? `for ${where.slice(3)}` : where, featureId, ids(plain), s.kind === 'sow-direct' ? withFeed(s.detail) : s.detail, featureId);
+      for (const s of sowingKinds(plant, month)) add(s.kind, plant, s.kind === 'sow-indoors' ? `for ${where.slice(3)}` : where, featureId, ids(plain), s.kind === 'sow-direct' ? withFeed(s.detail) : s.detail, featureId, s.verb);
     // A batch not sown in its month stays on the list for the month after, as running late.
     const lastMonth = month === 1 ? ym(year - 1, 12) : ym(year, month - 1);
     for (const p of toSow.filter((x) => x.sowBy && ((x.sownOn ?? x.sowBy).slice(0, 7) === ym(year, month) || (!x.sownOn && x.sowBy.slice(0, 7) === lastMonth)))) {
@@ -218,8 +226,9 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
       if (how === 'none') continue;
       const kind: JobKind = how === 'direct' ? 'sow-direct' : 'sow-indoors';
       const bed = `${bedName}${p.batch ? ` (batch ${p.batch.n} of ${p.batch.of})` : ''}`;
-      const tip = sowingKinds(plant, month).find((s) => s.kind === kind)?.detail;
-      add(kind, plant, kind === 'sow-indoors' ? `for ${bed}` : `in ${bed}`, `${featureId}~${p.batch?.n ?? p.id}`, [p.id], [p.sowBy!.slice(0, 7) === lastMonth ? `Running late: it was due about ${shortDate(p.sowBy!)}.` : `Sow about ${shortDate(p.sowBy!)}.`, tip].filter(Boolean).join(' '), featureId);
+      const sk = sowingKinds(plant, month).find((s) => s.kind === kind);
+      const tip = sk?.detail;
+      add(kind, plant, kind === 'sow-indoors' ? `for ${bed}` : `in ${bed}`, `${featureId}~${p.batch?.n ?? p.id}`, [p.id], [p.sowBy!.slice(0, 7) === lastMonth ? `Running late: it was due about ${shortDate(p.sowBy!)}.` : `${sk?.verb ? 'Plant' : 'Sow'} about ${shortDate(p.sowBy!)}.`, tip].filter(Boolean).join(' '), featureId, sk?.verb);
     }
     if (outMonths.includes(month)) {
       // Ticking a planting-out job marks the plants as growing; the ticked job stays for the rest of the month.
@@ -284,7 +293,7 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     if (planned.has(id)) continue;
     const plant = plantOf(id);
     // Sowing-list keys have no bed: "sow-indoors:tomato:2026-03". The "2" starts the year, so bed jobs don't match.
-    for (const s of sowingKinds(plant, month)) if (!doneBefore(g, `${s.kind}:${plant.id}:2`, year, month)) add(s.kind, plant, 'on your Want to grow list', '', [], s.detail);
+    for (const s of sowingKinds(plant, month)) if (!doneBefore(g, `${s.kind}:${plant.id}:2`, year, month)) add(s.kind, plant, 'on your Want to grow list', '', [], s.detail, undefined, s.verb);
     if (plant.plantOutMonths?.includes(month) && !doneBefore(g, `plant-out:${plant.id}:2`, year, month)) add('plant-out', plant, 'on your Want to grow list', '', []);
   }
 
@@ -329,8 +338,12 @@ export function cardboardJobs(g: Garden, month: number, year: number): Job[] {
 }
 
 /** Jobs grouped by kind, skipping kinds with nothing to do. */
-export function groupJobs(jobs: Job[]): [JobKind, Job[]][] {
-  return JOB_KINDS.map((k) => [k, jobs.filter((j) => j.kind === k)] as [JobKind, Job[]]).filter(([, list]) => list.length > 0);
+/** Jobs grouped under what they say, in the order of their kinds: "Sow outside", then "Plant" (cloves, sets), and so on. */
+export function groupJobs(jobs: Job[]): [string, Job[]][] {
+  const groups = new Map<string, Job[]>();
+  const order = (k: JobKind) => JOB_KINDS.indexOf(k);
+  for (const j of [...jobs].sort((a, b) => order(a.kind) - order(b.kind))) groups.set(jobLabel(j), [...(groups.get(jobLabel(j)) ?? []), j]);
+  return [...groups];
 }
 
 /**
@@ -340,7 +353,7 @@ export function groupJobs(jobs: Job[]): [JobKind, Job[]][] {
 export function firstJob(g: Garden, plantOf: (id: string) => Plant, now: Date, opts: JobOptions = {}): { target: { type: 'planting'; id: string }; note: string } | null {
   const job = jobsFor(g, plantOf, now.getMonth() + 1, now.getFullYear(), opts).find((j) => j.plantingIds.length > 0);
   if (!job) return null;
-  return { target: { type: 'planting', id: job.plantingIds[0]! }, note: `Your first job: ${job.plant}, ${JOB_LABEL[job.kind].toLowerCase()} ${job.where}.` };
+  return { target: { type: 'planting', id: job.plantingIds[0]! }, note: `Your first job: ${job.plant}. ${jobLabel(job)} ${job.where}.` };
 }
 
 // ---------- Ticking jobs off ----------
@@ -401,3 +414,13 @@ export function toggleWishlist(g: Garden, id: string): Garden {
 }
 
 const withoutRemoved = ({ removedOn: _gone, ...rest }: Planting): Planting => rest;
+
+/**
+ * Sown in a tray in the shed: this month's sowing job for it (and for the plant it's a kind of) on your Want to grow
+ * list is done, so Today doesn't still ask you to sow it.
+ */
+export function sownInTray(g: Garden, plant: Plant, date: string): Garden {
+  const keys = [plant.id, plant.varietyOf].filter((id): id is string => !!id).map((id) => `sow-indoors:${id}:${date.slice(0, 7)}`);
+  const fresh = keys.filter((k) => !g.jobsDone.some((j) => j.key === k));
+  return fresh.length ? { ...g, jobsDone: [...g.jobsDone, ...fresh.map((key) => ({ key, date }))] } : g;
+}

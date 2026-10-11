@@ -2123,7 +2123,7 @@
     "companions": { "good": [], "avoid": [] },
     "wintering": { "type": "hardy" },
     "lifePath": { "perennial": true, "winter": "dies-back" },
-    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal", "note": "A sprinkle in the bottom of the hole." }] },
+    "feeding": { "need": "light", "steps": [{ "when": "planting", "feed": "bonemeal" }] },
     "family": "Iridaceae",
     "pollinators": { "rating": "some", "visitors": ["bees"], "months": [10, 11] },
     "art": { "form": "bulb", "leaf": "strap", "foliage": "#5a8a4a", "flower": "#9a6ac8", "bloom": "cup" },

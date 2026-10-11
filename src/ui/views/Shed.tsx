@@ -3,6 +3,7 @@
 // to move it, or pick it and tap where it should go.
 
 import { useEffect, useMemo, useState } from 'preact/hooks';
+import { sownInTray } from '../../calendar/jobs';
 import { climateOf, climateText, isCover, microclimateOf, placeClimate } from '../../climate/microclimate';
 import { canSowIn } from '../../library/library';
 import {
@@ -193,16 +194,20 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
               onCancel={() => setSowing(null)}
               onSow={(plant, o) => {
                 let made: string | null = null;
+                let where = '';
                 commit((g) => {
-                  const [next, id] = sowInTray(g, plant, o);
+                  const [sown, id] = sowInTray(g, plant, o);
                   made = id;
-                  // Seeds sown come out of the packet in the tin, if there is one.
+                  const tray = traysOf(sown).find((t) => t.id === id);
+                  where = placesOf(sown).find((p) => p.id === tray?.placeId)?.name ?? '';
+                  // Its sowing job on the Want to grow list is done, and the seeds come out of the packet in the tin.
+                  const next = sownInTray(sown, plant, o.date);
                   const packet = packetsFor(next, plant, plantOf).find((k) => k.count !== undefined);
                   return packet ? useSeeds(next, packet.id, o.count) : next;
                 });
                 setSowing(null);
                 if (made) setSelected(made);
-                app.notify(`${plant.commonName} sown in the shed.`, { undo: true });
+                app.notify(`${plant.commonName} sown${where ? `: ${where}` : ''}.`, { undo: true });
               }}
             />
           )}
@@ -600,7 +605,7 @@ function SowForm({ plants, garden, plantOf, places, sunOf, sunniest, month: sunM
           Show weeds
         </label>
         {list.tin.length > 0 && <SowTiles key={`tin|${filterKey}`} title="From your seed tin" plants={list.tin} picked={plantId} pick={setPlantId} />}
-        <SowTiles key={`now|${filterKey}`} title={`Sow under cover now, in ${MONTH_NAMES[month - 1]}`} plants={list.now} picked={plantId} pick={setPlantId} empty="Nothing of this kind to sow under cover this month. Try Later, or another kind." />
+        <SowTiles key={`now|${filterKey}`} title={`Sow under cover now, in ${MONTH_NAMES[month - 1]}`} plants={list.now} picked={plantId} pick={setPlantId} empty={list.tin.length ? 'Nothing more of this kind to sow under cover this month, besides what’s in your tin above.' : 'Nothing of this kind to sow under cover this month. Try Later, or another kind.'} />
         <SowTiles key={`later|${filterKey}`} title="Later in the year" plants={list.later} picked={plantId} pick={setPlantId} folded />
         <SowTiles key={`other|${filterKey}`} title="Everything else: usually sown outside or bought as plants" plants={list.other} picked={plantId} pick={setPlantId} folded />
         {list.more.length > 0 && <SowTiles key={`more|${filterKey}`} title={MORE_PLANTS} plants={list.more} picked={plantId} pick={setPlantId} folded />}

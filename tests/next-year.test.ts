@@ -18,7 +18,7 @@ import { checkGarden } from '../src/planting/rules';
 import { addPlanting, makePlanting, unknownPlant } from '../src/planting/place';
 import { applyDraft, draftNextYear, draftYear, follows, rotationGroup, seasonsApart, swapSources } from '../src/planting/rotation';
 import { addPacket, makePacket } from '../src/planting/seeds';
-import { boughtKeys, shoppingList, shoppingText, toggleBought, BOUGHT_DAYS } from '../src/planting/shopping';
+import { boughtKeys, shoppingList, shoppingText, toggleBought } from '../src/planting/shopping';
 import { makeWeather, roundPlace, type Weather } from '../src/weather/weather';
 
 const library = [...vegetables, ...herbs, ...fruit] as Plant[];
@@ -281,7 +281,7 @@ describe('the shopping list', () => {
     expect(shoppingList(ticked, plantOf, today).find((i) => i.key === 'seed:carrot')!.bought).toBe(true);
     expect(toggleBought(ticked, 'seed:carrot', today).bought).toBeUndefined();
     // A season on, it's wanted again, and the old tick is tidied away with the next one.
-    const later = addDays(today, BOUGHT_DAYS);
+    const later = '2027-08-01';
     expect(boughtKeys(ticked, later).has('seed:carrot')).toBe(false);
     expect(toggleBought(ticked, 'seed:lettuce', later).bought).toEqual([{ key: 'seed:lettuce', date: later }]);
     const text = shoppingText(shoppingList(ticked, plantOf, today), 'Home');

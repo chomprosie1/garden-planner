@@ -23,6 +23,8 @@ export interface Step {
   date: string | null;
   /** From the plant's usual months, not marked by you. */
   guessed: boolean;
+  /** Guessed for today or earlier, so due now: shown tomorrow, the soonest a guess goes. */
+  due?: true;
 }
 
 export interface Projected {
@@ -298,7 +300,7 @@ export function timeline(plant: Plant, pl: Planting, g: Garden, today: string, w
   for (let i = 0; last && i < MAX_STEPS && last.date! <= horizon; i++) {
     // Each step follows from when the last was due. Nothing guessed shows on or before today: steps that are
     // overdue all land tomorrow, so it's shown at the latest of them.
-    steps.push(last.date! <= today ? { ...last, date: tomorrow } : last);
+    steps.push(last.date! <= today ? { ...last, date: tomorrow, due: true } : last);
     if (startsGrowth(last, plant, pl)) c.start = last.date;
     last = after(c, last.stage, last.date!);
   }

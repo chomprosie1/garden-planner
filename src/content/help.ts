@@ -162,7 +162,7 @@ export const HELP: HelpTopic[] = [
         computer: 'Drag a plant onto a bed, pot or patch of lawn. Or click it, then click where it goes.',
       },
       'It’s planted the usual way for that plant: carrots in a row, a courgette on its own, lettuce filling the bed. The other ways are offered beside it: One, A row, or Fill the bed.',
-      'Tick “Already in the ground” for plants that are growing now rather than planned, so their jobs start from today.',
+      'Tick “Already in the ground” for plants that are growing now rather than planned, and say which month they went in, so their jobs and next year’s plan go from then.',
     ],
     notes: [
       'A plant can’t go on paving, decking or a path. If it won’t go in, drop it inside a bed’s outline, zoomed in a little for small pots.',

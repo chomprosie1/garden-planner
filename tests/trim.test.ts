@@ -77,7 +77,7 @@ describe('after setting up', () => {
     const first = firstJob(g, plantOf, new Date(2026, 9, 11));
     expect(first).not.toBeNull();
     expect(g.plantings.some((p) => p.id === first!.target.id)).toBe(true);
-    expect(first!.note).toMatch(/^Your first job: [A-Z][\w ’'-]*, [a-z ]+ (in|for|on|along|up) .+\.$/);
+    expect(first!.note).toMatch(/^Your first job: [A-Z][\w ’',-]*\. [A-Z][a-z ]+ (in|for|on|along|up) .+\.$/);
   });
 
   it('has no first job for an empty garden', () => {

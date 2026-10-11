@@ -127,14 +127,14 @@ export const KITS: Kit[] = [
     space: 'patio',
     title: 'Autumn planting',
     blurb: 'Garlic, broad beans and onion sets in the raised bed, and tulips and daffodils in pots for spring.',
-    beds: [{ items: [row('garlic'), row('broad-bean'), row('onion')] }, { items: [one('tulip')] }, { items: [one('daffodil')] }],
+    beds: [{ items: [row('garlic'), row('broad-bean-autumn-sown'), row('onion-overwintering')] }, { items: [one('tulip')] }, { items: [one('daffodil')] }],
   },
   {
     id: 'autumn-bed',
     space: 'bed',
     title: 'Autumn bed',
     blurb: 'Garlic, broad beans and onion sets, planted this autumn for some of the first crops next year.',
-    beds: [{ items: [row('garlic'), row('garlic'), row('broad-bean'), row('broad-bean'), row('onion')] }],
+    beds: [{ items: [row('garlic'), row('garlic'), row('broad-bean-autumn-sown'), row('broad-bean-autumn-sown'), row('onion-overwintering')] }],
   },
   {
     id: 'autumn-garden',
@@ -143,8 +143,8 @@ export const KITS: Kit[] = [
     blurb: 'Spring bulbs along the border, garlic and onion sets in one bed, broad beans in the other.',
     beds: [
       { items: [block('crocus'), block('daffodil'), block('tulip'), block('ornamental-allium')], split: 'side' },
-      { items: [row('garlic'), row('garlic'), row('onion'), row('onion')] },
-      { items: [row('broad-bean'), row('broad-bean')] },
+      { items: [row('garlic'), row('garlic'), row('onion-overwintering'), row('onion-overwintering')] },
+      { items: [row('broad-bean-autumn-sown'), row('broad-bean-autumn-sown')] },
     ],
   },
   {
@@ -154,8 +154,8 @@ export const KITS: Kit[] = [
     blurb: 'Garlic and onion sets, autumn broad beans, and raspberry canes; the other beds wait for spring.',
     beds: [
       { items: [] },
-      { items: [row('onion'), row('onion'), row('garlic'), row('garlic')] },
-      { items: [row('broad-bean'), row('broad-bean')] },
+      { items: [row('onion-overwintering'), row('onion-overwintering'), row('garlic'), row('garlic')] },
+      { items: [row('broad-bean-autumn-sown'), row('broad-bean-autumn-sown')] },
       { items: [] },
       { items: [] },
       { items: [] },

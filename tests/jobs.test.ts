@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import vegetables from '../data/plants/vegetable.json';
-import { groupJobs, jobsFor, runEnds, toggleJob, toggleWishlist, type Job } from '../src/calendar/jobs';
+import flowers from '../data/plants/flower.json';
+import { groupJobs, jobLabel, jobsFor, runEnds, toggleJob, toggleWishlist, type Job } from '../src/calendar/jobs';
 import { newAppState } from '../src/model/defaults';
 import { addFeature, makeFeature, rectPoints } from '../src/model/features';
 import type { Garden, Plant, Planting } from '../src/model/types';
 import { addPlanting, makePlanting, unknownPlant } from '../src/planting/place';
 
-const library = vegetables as Plant[];
+const library = [...vegetables, ...flowers] as Plant[];
 const byId = new Map(library.map((p) => [p.id, p]));
 const plantOf = (id: string) => byId.get(id) ?? unknownPlant(id);
 
@@ -139,7 +140,21 @@ describe('helpers', () => {
     const { g: g0, bed } = garden();
     let [g] = plant(g0, bed, 'carrot', '2027-04-01');
     g = toggleWishlist(g, 'leek');
-    expect(groupJobs(jobsFor(g, plantOf, 4, 2027)).map(([k]) => k)).toEqual(['sow-indoors', 'sow-direct']);
+    expect(groupJobs(jobsFor(g, plantOf, 4, 2027)).map(([k]) => k)).toEqual(['Sow under cover', 'Sow outside']);
+  });
+
+  it('plants garlic cloves, onion sets and bulbs rather than sowing them, under their own heading', () => {
+    const { g: g0, bed } = garden();
+    let [g] = plant(g0, bed, 'garlic');
+    [g] = plant(g, bed, 'daffodil');
+    [g] = plant(g, bed, 'broad-bean');
+    const jobs = jobsFor(g, plantOf, 10, 2026);
+    const garlic = jobs.find((j) => j.plantId === 'garlic')!;
+    expect(garlic.kind).toBe('sow-direct');
+    expect(jobLabel(garlic)).toBe('Plant');
+    expect(jobLabel(jobs.find((j) => j.plantId === 'broad-bean')!)).toBe('Sow outside');
+    expect(jobLabel(jobs.find((j) => j.plantId === 'daffodil')!)).toBe('Plant');
+    expect(groupJobs(jobs).map(([k]) => k)).toEqual(['Sow outside', 'Plant']);
   });
 
   it('unticking leaves the sowing date alone', () => {

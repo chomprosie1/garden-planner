@@ -8,6 +8,7 @@ import type { FeatureKind } from '../model/types';
 import type { ComponentChildren } from 'preact';
 import { HelpLink } from './HelpLink';
 import { canDrawByHand, geometryForTool, type CanvasApi, type Placing, type Tool } from './PlanCanvas';
+import { InGround } from './InGround';
 
 /** Sizes offered when placing a rectangle by size. */
 const DEFAULT_SIZE: Partial<Record<Tool, [number, number]>> = {
@@ -252,8 +253,9 @@ export function PhoneSheet({ title, open, setOpen, onClose, children, fixed = fa
 interface PlantingBarProps {
   placing: Placing;
   setLayout: (l: Placing['layout']) => void;
-  growing: boolean;
-  setGrowing: (g: boolean) => void;
+  /** Null while planned; the day it went in, once ticked as already in the ground. */
+  growing: string | null;
+  setGrowing: (g: string | null) => void;
   /** Points placed so far: the start of a row or block. */
   points: number;
   api: { current: CanvasApi | null };
@@ -300,10 +302,7 @@ export function PlantingBar({ placing, setLayout, growing, setGrowing, points, a
             </label>
           ))}
         </div>
-        <label class="check small">
-          <input type="checkbox" checked={growing} onChange={(e) => setGrowing((e.currentTarget as HTMLInputElement).checked)} />
-          Already in the ground
-        </label>
+        <InGround value={growing} set={setGrowing} small />
       </div>
       <p class="draw-hint" role="status">
         {message ?? hint}

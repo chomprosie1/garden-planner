@@ -4,7 +4,8 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { canSowIn, emptyFilter, filterPlants } from '../src/library/library';
+import { canSowIn, emptyFilter, filterPlants, withVarieties, type VarietyEntry } from '../src/library/library';
+import varieties from '../data/varieties.json';
 import { beginnerOrder, CORE, EASY, isEasy, POPULAR } from '../src/library/order';
 import { newGarden } from '../src/model/defaults';
 import { makeSpace, spaceInfo, SPACES } from '../src/model/spaces';
@@ -66,7 +67,7 @@ describe('easy to start', () => {
 });
 
 describe('kits for every season', () => {
-  const byId = new Map(library.map((p) => [p.id, p]));
+  const byId = new Map(withVarieties(library, varieties as VarietyEntry[]).map((p) => [p.id, p]));
   const plantOf = (id: string) => byId.get(id) ?? null;
 
   it('offers something to plant in October for every space, first', () => {

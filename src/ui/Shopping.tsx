@@ -47,7 +47,7 @@ export function ShoppingDialog({ garden, store, plantOf, feeding, close }: { gar
           Shopping list
         </h2>
         {items.length === 0 ? (
-          <p>Nothing to buy: everything planned has seed in the tin. Plan something on the plan, or tap the heart on plants you want to grow, and what you need shows here.</p>
+          <p>Nothing to buy: everything planned has seed in the tin. Plan something, or tap the heart on plants you want to grow, and what you need shows here.</p>
         ) : (
           <>
             {groups.map((g) => (
@@ -59,10 +59,7 @@ export function ShoppingDialog({ garden, store, plantOf, feeding, close }: { gar
                       <label class={`clear-option shop-item${i.bought ? ' shop-bought' : ''}`}>
                         <input type="checkbox" checked={i.bought} onChange={() => tick(i)} />
                         <span>
-                          <strong>
-                            {i.name}
-                            {i.kind === 'seed' ? ' seed' : ''}
-                          </strong>
+                          <strong>{i.name}</strong>
                           {i.amount && <span>, {i.amount}</span>}
                           {i.note && <span class="muted small shop-note">{i.note}</span>}
                         </span>
@@ -72,7 +69,7 @@ export function ShoppingDialog({ garden, store, plantOf, feeding, close }: { gar
                 </ul>
               </fieldset>
             ))}
-            <p class="muted small">From what’s planned on the plan and your Want to grow list, less the seed in your tin{feeding ? ' and the feeds on your shelf' : ''}. A tick lasts the season.</p>
+            <p class="muted small">From what’s planned and your Want to grow list, less the seed in your tin and what’s sown already{feeding ? ', and the feeds on your shelf' : ''}. A tick lasts until next August, when the new season’s shopping starts.</p>
           </>
         )}
         <div class="button-row">

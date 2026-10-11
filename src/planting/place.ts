@@ -230,10 +230,15 @@ export const activePlantings = (g: Garden) => g.plantings.filter(isActive);
 
 // ---------- Edits. Each returns a new Garden, so each is one undo step. ----------
 
-export function makePlanting(plant: Plant, featureId: string, layout: Layout, start: Point, end?: Point, growing = false): Planting {
+/**
+ * A new planting. `growing`: already in the ground rather than planned, best given as the day it went in (ISO), so its
+ * jobs, care and next year's draft go from then.
+ */
+export function makePlanting(plant: Plant, featureId: string, layout: Layout, start: Point, end?: Point, growing: boolean | string | null = false): Planting {
   const pl: Planting = { id: newId('p'), plantId: plant.id, featureId, x: Math.round(start[0]), y: Math.round(start[1]), layout };
   // A weed is already there when you mark it.
   if (growing || plant.category === 'weed') pl.stage = 'transplanted';
+  if (typeof growing === 'string') pl.stageDates = { transplanted: growing };
   if (layout !== 'single' && end) pl.endPoint = [Math.round(end[0]), Math.round(end[1])];
   if (layout === 'row') pl.count = rowCount(start, end ?? start, plant.size.spacingMm);
   return pl;
@@ -417,4 +422,23 @@ export function asGrown(plant: Plant, style: SpacingStyle): Plant {
   const close = plant.size.closeSpacingMm;
   if (style !== 'close' || !close) return plant;
   return { ...plant, size: { ...plant.size, spacingMm: close, rowSpacingMm: close, spreadMm: Math.min(plant.size.spreadMm ?? close, close) } };
+}
+
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+/**
+ * When something already in the ground might have gone in: this month (today), then each month back over the last
+ * year (its 15th), then over a year ago. The first is the default.
+ */
+export function inGroundOptions(today: string): { label: string; date: string }[] {
+  const y = Number(today.slice(0, 4));
+  const m = Number(today.slice(5, 7));
+  const out = [{ label: 'This month', date: today }];
+  for (let back = 1; back <= 11; back++) {
+    const mm = ((m - back - 1 + 12) % 12) + 1;
+    const yy = m - back < 1 ? y - 1 : y;
+    out.push({ label: `${MONTH_NAMES[mm - 1]}${yy === y ? '' : ` ${yy}`}`, date: `${yy}-${String(mm).padStart(2, '0')}-15` });
+  }
+  out.push({ label: 'Over a year ago', date: `${y - 1}-${String(m).padStart(2, '0')}-01` });
+  return out;
 }

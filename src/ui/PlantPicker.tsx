@@ -7,6 +7,7 @@ import type { Plant } from '../model/types';
 import { rowSpacingOf, spreadOf, type Layout } from '../planting/place';
 import { PLANT_DRAG_TYPE } from './PlanCanvas';
 import { PlantIcon } from './PlantIcon';
+import { InGround } from './InGround';
 
 const LAYOUTS: { value: Layout; label: string; hint: string }[] = [
   { value: 'single', label: 'Single', hint: 'One plant where you click.' },
@@ -20,9 +21,9 @@ interface Props {
   setPlantId: (id: string) => void;
   layout: Layout;
   setLayout: (l: Layout) => void;
-  /** Already in the ground, rather than planned. */
-  growing: boolean;
-  setGrowing: (g: boolean) => void;
+  /** Null while planned; the day it went in, once ticked as already in the ground. */
+  growing: string | null;
+  setGrowing: (g: string | null) => void;
   month: number;
   /** Phones: no drag and drop, shorter hints. */
   phone?: boolean;
@@ -88,10 +89,7 @@ export function PlantPicker({ plants, plantId, setPlantId, layout, setLayout, gr
         {!phone && <p class="muted small">{LAYOUTS.find((l) => l.value === layout)!.hint}</p>}
       </fieldset>
 
-      <label class="check">
-        <input type="checkbox" checked={growing} onChange={(e) => setGrowing((e.currentTarget as HTMLInputElement).checked)} />
-        Already in the ground (not just planned)
-      </label>
+      <InGround value={growing} set={setGrowing} label="Already in the ground (not just planned)" />
 
       {chosen && (
         <dl class="facts">
