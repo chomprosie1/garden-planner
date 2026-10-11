@@ -41,6 +41,11 @@ export interface Garden {
   soilPh?: number;
   /** Ticks on the shopping list: what's been bought, by the item's key ("seed:carrot"), and when. */
   bought?: Bought[];
+  /**
+   * Kept as a list of beds rather than a plan. The beds and plantings still have shapes and spots, laid out for you,
+   * so everything else works the same and the plan can be shown any time. Absent: a plan.
+   */
+  view?: 'list';
 }
 
 /** A tick on the shopping list. It counts for one season (see src/planting/shopping.ts). */
@@ -215,6 +220,8 @@ export interface Feature {
   support?: Support;
   /** Next door's tree or house, over the fence: it casts shade, and is drawn faintly. */
   nextDoor?: boolean;
+  /** How sunny a bed is, as you said: for a garden kept as a list, where there's no plan to work the sun out from. */
+  light?: Light;
 }
 
 /** Under glass: degrees warmer than outside by day and at night, and whether it's heated (kept frost-free). */

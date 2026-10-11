@@ -6290,3 +6290,240 @@ h2 {
 .more-plants[open] > summary::before {
   content: '▾';
 }
+
+/* ---------- Release 30: a garden kept as a list ---------- */
+.beds-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.beds-head .title {
+  margin-bottom: 0.1rem;
+}
+.bed-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.bed-card-head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.8rem;
+  align-items: center;
+}
+.bed-picture {
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--plan-paper, var(--bg));
+  cursor: pointer;
+  line-height: 0;
+  overflow: hidden;
+}
+.bed-mini {
+  display: block;
+}
+.bed-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+}
+.bed-card-title p {
+  margin: 0.1rem 0 0;
+}
+.bed-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.bed-tags span {
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  background: var(--selected-bg);
+  color: var(--selected-text);
+}
+.bed-tags .bed-over {
+  background: var(--warn-bg);
+  color: var(--warn-text);
+  border: 1px solid var(--warn-border);
+}
+.bed-jobs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.bed-warn {
+  margin: 0;
+  color: var(--warn-text);
+  display: flex;
+  gap: 0.35rem;
+  align-items: flex-start;
+}
+.bed-plants {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.bed-plants li + li {
+  border-top: 1px solid var(--border);
+}
+.planting-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
+  padding: 0.45rem 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.planting-row.is-planned canvas {
+  opacity: 0.6;
+}
+.planting-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+.planting-row-name {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+.season-bar {
+  width: 100%;
+  height: 8px;
+  display: block;
+}
+.season-track {
+  fill: var(--border);
+}
+.season-seed {
+  fill: #b89a6a;
+}
+.season-leaf {
+  fill: var(--accent);
+}
+.season-flower {
+  fill: #d98cb3;
+}
+.season-crop {
+  fill: #e0a33a;
+}
+.season-guess {
+  opacity: 0.45;
+}
+.season-today {
+  fill: var(--text);
+}
+.bed-room {
+  margin: 0;
+}
+.bed-actions {
+  margin-top: 0.1rem;
+}
+.beds-foot {
+  text-align: center;
+  margin: 1rem 0 0.5rem;
+}
+.list-sheet {
+  width: min(32rem, calc(100% - 1rem));
+  position: relative;
+}
+.list-sheet-close {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  z-index: 1;
+}
+.list-sheet .inspector-body {
+  padding: 1rem 1.1rem 1.2rem;
+}
+.kind-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+.kind-option {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.kind-option:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--selected-bg);
+}
+.size-row {
+  display: flex;
+  gap: 0.75rem;
+}
+.size-row .field {
+  flex: 1;
+}
+.add-plant-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.add-plant-head p {
+  margin: 0;
+}
+.count-field {
+  max-width: 8rem;
+}
+.bed-pick {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.bed-pick-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  text-align: left;
+}
+.bed-pick-btn canvas {
+  width: 48px !important;
+  height: 48px !important;
+}
+.plant-chooser {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.chooser-grid {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+.track-picture {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.1rem;
+  width: 96px;
+  min-height: 56px;
+  flex: none;
+  color: var(--accent);
+}
+.plant-chooser .dock-search {
+  flex: none;
+}

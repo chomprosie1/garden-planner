@@ -17,6 +17,17 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-11-just-a-list',
+    date: '2026-10-11',
+    title: 'Just a list, if you prefer',
+    items: [
+      'You can now keep your garden as a list of beds, with no plan to draw. Each bed or pot is a card with a picture of it as it looks this week, and its plants under it, each with a bar showing its year.',
+      'Add a bed with a name (and its rough size and sun, if you like), then add plants to it: one, a row, fill the bed, or a number. Tap a plant for everything you can do on the plan: what’s happened, stages, feeding, notes.',
+      'Jobs, reminders, the seed tin, harvests and next year’s draft all work the same. New gardens ask which you’d like, and you can switch any time in Your garden.',
+    ],
+    tryIt: { label: 'Open your garden', view: 'profile' },
+  },
+  {
     id: '2026-10-11-trim-and-tidy',
     date: '2026-10-11',
     title: 'Quicker in, and tidier',

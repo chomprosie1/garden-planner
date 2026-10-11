@@ -20,6 +20,7 @@ import { Home } from './views/Home';
 import { Month } from './views/Month';
 import { Notes } from './views/Notes';
 import { Plan, type PlanIntent } from './views/Plan';
+import { Beds } from './views/Beds';
 import { Plants } from './views/Plants';
 import { Settings } from './views/Settings';
 import { Shed } from './views/Shed';
@@ -268,6 +269,9 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
       case 'home':
         return <Home store={store} garden={garden} userPlants={userPlants} prefs={prefs} prefsStore={prefsStore} go={navigate} />;
       case 'plan':
+        // A garden kept as a list shows its beds as a list instead of the plan.
+        if (garden.view === 'list')
+          return <Beds store={store} garden={garden} userPlants={userPlants} prefs={prefs} prefsStore={prefsStore} intent={planIntent} clearIntent={() => setPlanIntent(null)} />;
         return (
           <Plan
             store={store}

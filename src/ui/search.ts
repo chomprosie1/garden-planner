@@ -135,8 +135,11 @@ function actions(g: Garden, locked: boolean): Candidate[] {
     out.push({ key: `sticker-${s.id}`, group: 'Actions', label: `Add ${withArticle(s.label)}`, detail: s.size, words: `put place new ${KINDS[s.kind].label} ${s.material ?? ''}`, command: { kind: 'sticker', id: s.id } });
   for (const t of TREE_TYPES)
     out.push({ key: `tree-${t.id}`, group: 'Actions', label: `Add a tree: ${t.name}`, detail: treeSizeText(t, 'medium'), words: `put place new tree ${t.latinName} ${t.evergreen ? 'evergreen conifer' : ''}`, command: { kind: 'sticker', id: treeStickerId(t.id, 'medium') } });
-  return out;
+  // A garden kept as a list has no plan: none of the plan's views, tools or things to drop on it.
+  return g.view === 'list' ? out.filter((c) => !PLAN_ONLY.test(c.key)) : out;
 }
+
+const PLAN_ONLY = /^(lens-|share$|3d$|lock$|unlock$|fit$|tool-|setup$|sticker-|tree-)/;
 
 /** Help topics: found by their title, what they're for, and the words people use when they're stuck. Made once. */
 const HELP_RESULTS: Candidate[] = HELP.map((t) => ({ key: `help-${t.id}`, group: 'Help', label: t.title, words: `help ${t.summary} ${t.words}`, command: { kind: 'help', id: t.id } }));

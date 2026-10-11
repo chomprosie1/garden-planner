@@ -100,11 +100,13 @@ export function validateGarden(g: unknown): string[] {
       need(f.ph === undefined || isPh(f.ph), `${at}.ph must be from 3.5 to 9.`);
       need(f.support === undefined || oneOf(SUPPORTS, f.support), `${at}.support must be a trellis, arch or obelisk.`);
       need(f.nextDoor === undefined || typeof f.nextDoor === 'boolean', `${at}.nextDoor must be true or false.`);
+      need(f.light === undefined || oneOf(LIGHT_LEVELS, f.light), `${at}.light must be full sun, part shade or shade.`);
     });
 
   need(g.spacing === undefined || g.spacing === 'close' || g.spacing === 'rows', 'spacing must be close or rows.');
   need(g.soil === undefined || oneOf(GROUND_SOILS, g.soil), 'soil must be clay, loam, sandy, chalky or peaty.');
   need(g.soilPh === undefined || isPh(g.soilPh), 'soilPh must be from 3.5 to 9.');
+  need(g.view === undefined || g.view === 'list', 'view must be list, or left out for a plan.');
 
   if (g.trace !== undefined) {
     const t = g.trace;

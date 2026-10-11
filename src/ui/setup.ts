@@ -18,7 +18,7 @@ export interface Step {
 export const isDefaultLocation = (g: Garden) => g.latitude === 52.5 && g.longitude === -1.5;
 
 export function setupSteps(g: Garden, prefs: Pick<Prefs, 'northChecked' | 'lastBackup'>): Step[] {
-  return [
+  const steps: Step[] = [
     { id: 'boundary', title: 'Set up your space', why: 'A balcony, a patio, a garden or an allotment: the plan is drawn to scale.', done: g.boundary.length >= 3 || g.features.length > 0 },
     { id: 'bed', title: 'Add a bed or pot', why: 'Beds, pots and planters are where plants go. Drag one in from below the plan.', done: g.features.some(isContainer) },
     { id: 'location', title: 'Say where your garden is', why: 'A postcode or town is enough. It times the sun and shade, the frosts and the seasons.', done: !isDefaultLocation(g) },
@@ -26,6 +26,9 @@ export function setupSteps(g: Garden, prefs: Pick<Prefs, 'northChecked' | 'lastB
     { id: 'plants', title: 'Put plants in a bed', why: 'Then you get spacing checks and a job list for each month.', done: g.plantings.length > 0 },
     { id: 'backup', title: 'Download a backup', why: 'Your garden is kept only in this browser. A backup keeps it safe.', done: !!prefs.lastBackup },
   ];
+  // Kept as a list: no plan to set up or turn north.
+  if (g.view !== 'list') return steps;
+  return steps.filter((s) => s.id !== 'boundary' && s.id !== 'north').map((s) => (s.id === 'bed' ? { ...s, why: 'Beds, pots and planters are where plants go. Add one on the Garden tab: a name is enough.' } : s.id === 'plants' ? { ...s, why: 'Then you get a job list for each month, and how full each bed is.' } : s));
 }
 
 /** Days since the last backup, or null if there's never been one. */

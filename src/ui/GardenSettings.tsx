@@ -1,5 +1,8 @@
 import { useRef, useState } from 'preact/hooks';
 import { updateGarden, type Store } from '../model/store';
+import { featureLabel } from '../model/features';
+import { nameListBeds } from '../model/listLayout';
+import { isListed } from '../planting/listPlant';
 import type { Garden } from '../model/types';
 import { todayIso } from '../model/ids';
 import type { PrefsStore } from '../theme/prefs';
@@ -176,6 +179,35 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
       <section class="card" aria-labelledby="about-garden">
         <h2 id="about-garden">About it</h2>
         <GardenNameField store={store} garden={garden} />
+        <fieldset class="choice">
+          <legend>How you keep track</legend>
+          <div class="choice-row">
+            {(
+              [
+                ['list', 'A list of beds'],
+                ['plan', 'A plan'],
+              ] as const
+            ).map(([value, label]) => (
+              <label key={value} class="choice-option">
+                <input
+                  type="radio"
+                  name="garden-view"
+                  checked={(garden.view === 'list' ? 'list' : 'plan') === value}
+                  onChange={() =>
+                    store.apply(
+                      updateGarden(({ view: _v, ...g }) => (value === 'list' ? nameListBeds({ ...g, view: 'list' }, isListed(g), featureLabel) : g)),
+                    )
+                  }
+                />
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
+          <p class="muted small">
+            A list: your beds and pots, with their plants under each, and no plan to draw. A plan: the garden drawn to scale, with sun and shade. Switching keeps
+            everything; beds added in a list are set out neatly on the plan, ready to arrange.
+          </p>
+        </fieldset>
         <h3>Where it is</h3>
         <p>{placeText(garden)}</p>
         <PlaceSearch store={store} />
@@ -194,6 +226,8 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
             </label>
           </div>
         </details>
+        {garden.view !== 'list' && (
+          <>
         <h3>Which way is north</h3>
         <label class="field">
           Degrees clockwise from the top of your plan to north
@@ -201,6 +235,8 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
         </label>
         <CompassNorth store={store} />
         <p class="muted small">0 if the top of your plan faces north. On a phone, the compass can work it out for you.</p>
+          </>
+        )}
         <fieldset class="choice">
           <legend>How you space plants</legend>
           <div class="choice-row">

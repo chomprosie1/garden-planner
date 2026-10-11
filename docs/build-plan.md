@@ -1368,6 +1368,7 @@ Decided:
 | 28. Listening | A feedback form in the app; private counts of opens, first plant and return visits | B10, B11 | ~3 evenings | Parked 11 Oct 2026 |
 | Data track | Check the core 150 plants, in batches of 15 that you confirm | A1 | ~2 wk of evenings, alongside | |
 | 29. Trim and tidy | The welcome once a day with no pause; UV out of the way; stale prices; unchecked plants under "More plants"; onboarding's default kit and landing; a shorter Getting started; Report a mistake to the form | C1, C2, C4, C5, D4–D6 | ~1 wk | Built 11 Oct 2026 (Report a mistake parked with 28) |
+| 30. Just a list | Keep a garden as a list of beds, with no plan to draw (added 11 Oct 2026, at your request) | — | ~1.5 wk | Built 11 Oct 2026 |
 | 23. Help for the rest | Help for the screens as they now are | D3 | ~1 wk | |
 | Later | A business decision: sync and accounts, the paid tier, hosting off GitHub Pages, commercial weather terms | B12, D7 | L | |
 
@@ -1564,6 +1565,93 @@ Tests: new `tests/trim.test.ts`: the core 150 (real, once each, the most-grown f
 **Reviewed** before release: the review's fixes were made (Skip planting an unseen kit, the default plant card under More plants, an empty dock list with no word, a plant's name lower-cased in the note, Getting started's first day counted while hidden, a duplicate style). Not changed: the review also suggested one helper for when lists split, and removing the now-unused price sums, kept for Wrapped and later.
 
 **Tests changed:** `tests/welcome.test.ts` tested the 1 to 5 second pause; it now tests the welcome showing once a day. `tests/good-start.test.ts` said everything after `POPULAR` was A to Z; it now says the rest of the core 150 A to Z, then everything else A to Z.
+
+### Release 30 — Just a list (as built, schema 20)
+Added 11 Oct 2026, at your request. Some people are put off by a planner with every tool on show, so a garden can now be kept as a **list of beds**, with no plan to draw and the same feel as the rest of the app. Decided with you: set-up asks, with the list first; schema 20 on main; built next, before the data track and help.
+
+- **The idea:** a list garden is the same garden underneath (`Garden.view: 'list'`).
+  - Each bed still has a shape and each planting a spot, set out out of sight.
+  - So jobs, stages, feeding, harvests, rotation, the shopping list, kits, backups and Wrapped all work unchanged, and the plan can be shown any time.
+  - Switching either way is just a different view: nothing is converted.
+- **Set-up:** a new question after Where's your garden: **How would you like to keep track?**
+  - **Just a list of my beds**: marked Simplest, chosen to start with, with three plants drawn from the side;
+  - **A plan of my garden**.
+
+  A list still asks what you grow in, and gets that space's beds and kit. Beds that would share a name are numbered ("Bed 1", "Bed 2", `nameListBeds`), never onto a name already used. Set-up finishes on the list with the first job's planting open.
+- **The Garden tab for a list** (`src/ui/views/Beds.tsx`):
+  - **The page:** the month's photo band, the garden's name, how many beds and plantings, and **Add a bed**.
+  - **A card for each bed or area:** beds, pots, planters, greenhouses, cold frames, and soft ground that has something in it or was added as a patch. Each card has:
+    - a **picture of the bed** from above, drawn by the plan's renderer with its plants (`MiniPlan`);
+    - its name, kind and size, and **how full** it is (Empty, Plenty of room, About half full, Nearly full, Over-full);
+    - its sun, if said; this month's jobs as chips; and its warnings;
+    - then its plants. Each is **drawn from the side at its stage this week**, with its name and count ("row 1 of 2" when a bed has the same plant twice), a stage chip and what's next;
+    - each plant also has a **season bar** for the year ahead (from two months back): seed, leaf, flowers and picking, with guesses paler and today marked;
+    - **Add a plant**, and Inspire me on an empty bed.
+  - **Tap a plant** for the plan's own planting panel in a sheet: What's happened, stages, batches, feeding, notes. It has **Move to another bed** in place of Copy, and nothing about dragging.
+  - **Tap a bed's picture** for its panel: history, soil, Clear, Inspire.
+  - **A bed's ⋯:** name, sun and soil; move up or down the list; delete (with undo).
+  - **Add a bed:** what it is (bed, pot, planter or window box, greenhouse, cold frame, patch of ground), a name, a rough size if you like (otherwise the usual: bed 1.2 × 2.4 m, pot 30 cm), and how sunny it is.
+  - **Add a plant**, in three steps:
+    - the bed, if it isn't chosen yet;
+    - the plant, from a grid of side-on drawings with the drawer's lists and search (`src/ui/PlantChooser.tsx`);
+    - **how many**: One, A row or Fill the bed (as offered for that plant and bed), or **a number**; and Already in the ground.
+
+    A tray from the shed plants out the same way, every seedling in it.
+- **Placing plants** (`src/planting/listPlant.ts`, pure):
+  - a row goes along the bed, after the rows already there;
+  - Fill takes the room that's left;
+  - One goes in the first clear spot (in a pot, beside what's there: `spotInPot`);
+  - a number makes rows of as many as fit, the last cut to length.
+
+  With no room, the plants go in anyway and the bed shows as over-full. **Moving** to another bed keeps the planting's number of plants: a row keeps its count, a block its size, turned to suit the bed.
+- **Setting out beds** (`src/model/listLayout.ts`, pure): each bed added from the list goes in the first free place along rows, 600 mm from anything else (lawns and meadows aside), and the boundary grows round it. Reordering changes the list only.
+- **Checks for a list:**
+  - **How full** replaces spacing, as spacing between made-up spots means nothing. Over 115% is flagged: "Veg is over-full: its plants want about 130% of the room it has". Everything in a bed now counts together; plantings planned for a date count, for their year, with what comes back each year.
+  - **Light** comes from the bed's sun as you said, compared by level with the plant card's (a sun lover in part shade or shade, a part-shade plant in shade, a shade lover in full sun). It applies only to a list.
+  - **Neighbours** are only plants in the same bed.
+  - Soil and pots are checked as before.
+  - Inspire me uses the bed's sun as you said (full sun about 7 hours, part shade 4, shade 2: a design call).
+- **Elsewhere:**
+  - Show links (Today, This week, Running behind, Inspire, Plants) open the list at that bed, with the planting's sheet.
+  - Your garden has **How you keep track: A list of beds / A plan**, and hides the north arrow for a list.
+  - Getting started drops the boundary and north steps.
+  - Search leaves out the plan's views, tools and stickers.
+- **Save format 20:** `view` on the garden and `light` on features, both optional. Nothing to convert. On main, as you chose.
+- **Changed from the plan:**
+  - the plant chooser is a new small component with the drawer's lists, rather than the dock's code lifted out, so the dock is unchanged;
+  - beds are never re-flowed when shown as a plan, since adding them never overlaps.
+- **Help:** a new tier-1 topic, **Keeping it as a list**.
+- **Version** 0.30.0.
+- **Checked:** at 390 px, with no errors in the console:
+  - set-up choosing the list, and the first job's sheet;
+  - the list with a kit's beds, their pictures, side-on plants and season bars;
+  - adding a pot, then three basil by number (over-full, and flagged);
+  - the plant chooser;
+  - Today's Show opening the list;
+  - switching to the plan and back;
+  - the list in Heritage, dark.
+- **Reviewed** before release, and the review's fixes were made:
+  - moving a planting kept its number of plants;
+  - a big tray kept every seedling;
+  - how full counts crops from different years together;
+  - light compared by level, and only for a list;
+  - no neighbours across made-up gaps;
+  - names never numbered onto one already used;
+  - two clean-ups.
+
+Tests: new `tests/list.test.ts`:
+- setting out beds: no overlaps, inside a growing boundary, and in a laid-out space clear of its beds and paths;
+- reordering, and numbering names;
+- soft ground shown only when used;
+- placing plants: rows apart and inside the bed, a number of plants, a pot and a fill;
+- how full, and the over-full check (and the usual spacing checks for a plan);
+- light from the bed's sun;
+- jobs, a kit, the first job and next year's draft on a list;
+- switching and back;
+- the review's fixes;
+- schema 20.
+
+**Tests changed:** `tests/next-year.test.ts` said the schema was 19; it now says at least 19.
 
 ### Later — a business decision
 Sync and accounts (a household or allotment partner sharing a garden, iPhone push, gardens on every device), the paid tier, moving off GitHub Pages, and commercial terms for the weather. Each costs money and needs your decision; see the review's section 3.

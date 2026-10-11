@@ -382,13 +382,13 @@ describe('the job fixes', () => {
 
 describe('save format 19', () => {
   it('checks the ticks, and brings schema 18 up to date', () => {
-    expect(SCHEMA_VERSION).toBe(19);
+    expect(SCHEMA_VERSION).toBeGreaterThanOrEqual(19);
     const g: Garden = { ...newGarden(), bought: [{ key: 'seed:carrot', date: '2027-01-10' }] };
     expect(validateGarden(JSON.parse(JSON.stringify(g)))).toEqual([]);
     expect(validateGarden({ ...g, bought: [{ key: 'seed:carrot' }] }).join(' ')).toMatch(/bought entries/);
     expect(validateGarden({ ...g, bought: 'carrot' }).join(' ')).toMatch(/bought entries/);
     const migrated = migrateGarden({ ...newGarden(), schemaVersion: 18 }) as Garden;
-    expect(migrated.schemaVersion).toBe(19);
+    expect(migrated.schemaVersion).toBe(SCHEMA_VERSION);
     expect(validateGarden(migrated)).toEqual([]);
   });
 });

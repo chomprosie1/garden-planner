@@ -30,6 +30,25 @@ export const TIER_LABEL: Record<HelpTopic['tier'], string> = { 1: 'Getting start
 
 export const HELP: HelpTopic[] = [
   {
+    id: 'list',
+    title: 'Keeping it as a list',
+    summary: 'Your beds and pots, with the plants in each, and no plan to draw.',
+    view: 'plan',
+    tier: 1,
+    steps: [
+      'When you set up, choose Just a list of my beds. To change later, open Your garden and choose under How you keep track.',
+      'On the Garden tab, tap Add a bed: say what it is (a bed, a pot, a greenhouse, a patch of ground), give it a name, and if you like its rough size and how sunny it is.',
+      'Tap Add a plant on a bed, pick the plant, and say how many: one, a row, fill the bed, or a number.',
+      'Tap a plant to say what’s happened, see its stages, feeding and notes, or move it to another bed. Tap a bed’s picture for its history and soil.',
+    ],
+    notes: [
+      'Each bed shows how full it is. Its picture shows its plants as they look this week, and each plant’s bar shows its year: seed, leaf, flowers and picking, with today marked.',
+      'Everything else is the same as with a plan: the month’s jobs, reminders, the seed tin, the harvest and next year’s draft. Switch to a plan whenever you like: your beds are set out neatly, ready to arrange.',
+    ],
+    related: ['setting-up', 'adding-plants'],
+    words: 'list simple simpler no plan without drawing beds pots easy plain basic just track keep',
+  },
+  {
     id: 'setting-up',
     title: 'Setting up your garden',
     summary: 'Where it is, what you’re growing in, and a start on what to grow.',

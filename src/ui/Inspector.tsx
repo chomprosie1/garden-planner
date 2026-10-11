@@ -104,6 +104,10 @@ interface Props {
   startPlanting: () => void;
   /** Zooms the plan to these points. */
   zoomTo: (pts: Point[]) => void;
+  /** Shown for a garden kept as a list: nothing about dragging or zooming, and Move to another bed in place of Copy. */
+  list?: boolean;
+  /** For a list: move a planting to another bed. */
+  moveToBed?: (plantingId: string) => void;
 }
 
 type Shared = Omit<Props, 'calibration' | 'clearCalibration' | 'selected' | 'setTool'>;
@@ -848,9 +852,11 @@ function BedPanel(props: Shared & { bed: Feature }) {
         </button>
         {/* Nothing in the ground or planned, bar batches still to sow: room for an idea. */}
         {!growing.some((p) => !p.sowBy) && <InspireButton store={store} garden={garden} f={bed} />}
-        <button type="button" class="btn" onClick={() => zoomTo(bed.footprint)}>
-          Zoom to bed
-        </button>
+        {!props.list && (
+          <button type="button" class="btn" onClick={() => zoomTo(bed.footprint)}>
+            Zoom to bed
+          </button>
+        )}
       </div>
 
       <Section id="growing" title={`Growing here${growing.length ? ` (${growing.length})` : ''}`}>
@@ -1252,9 +1258,11 @@ function PlantingPanel(props: Props & { pl: Planting }) {
               }}
             />
           </label>
-          <p class="muted small">
-            Drag to move{layout !== 'single' ? '; drag the square handles to change its size' : ''}. Arrow keys nudge by 10 mm.
-          </p>
+          {!props.list && (
+            <p class="muted small">
+              Drag to move{layout !== 'single' ? '; drag the square handles to change its size' : ''}. Arrow keys nudge by 10 mm.
+            </p>
+          )}
                   </details>
                 )}
                 <button type="button" class="link-btn about-plant" onClick={() => app.openPlant(plant.id)}>
@@ -1296,7 +1304,9 @@ function PlantingPanel(props: Props & { pl: Planting }) {
           <MoreMenu
             label="More for this planting"
             items={[
-              {
+              props.list && props.moveToBed
+                ? { label: 'Move to another bed', icon: 'plan' as const, onSelect: () => props.moveToBed!(pl.id) }
+                : {
                 label: 'Copy, to paste in another bed',
                 icon: 'copy',
                 keys: 'Ctrl+C',
@@ -1304,7 +1314,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
                   copyPlanting(pl);
                   app.notify(`${plant.commonName} copied. Pick a bed or pot and choose Paste, or press Ctrl+V over it.`);
                 },
-              },
+                  },
               status !== 'cleared'
                 ? {
                     label: 'Mark as cleared',

@@ -17,6 +17,10 @@ import { PlantIcon } from './PlantIcon';
 import { SeasonPhoto } from './SeasonPhoto';
 import { SpacePicker, type SpaceChoice } from './SpacePicker';
 import { usePlants } from './usePlants';
+import { featureLabel } from '../model/features';
+import { nameListBeds } from '../model/listLayout';
+import { isListed } from '../planting/listPlant';
+import { Icon } from './icons';
 
 interface Props {
   store: Store;
@@ -30,7 +34,7 @@ interface Props {
   showFirst?: (target: Target, note: string) => void;
 }
 
-type Step = 'where' | 'space' | 'grow';
+type Step = 'where' | 'track' | 'space' | 'grow';
 
 /** Popular, easy plants to pick from on the first run: things people most often want to grow first. */
 export const FAVOURITES = ['tomato', 'lettuce', 'strawberry', 'basil', 'potato', 'courgette', 'carrot', 'radish', 'french-bean', 'pea', 'chilli', 'mint', 'sweet-pea', 'sunflower', 'cosmos', 'lavender'];
@@ -46,6 +50,8 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
   /** The kit you chose, or none; undefined until you choose, when it's the first offered (the one that can go in soonest). */
   const [kitChosen, setKit] = useState<Kit | null | undefined>(undefined);
   const [picked, setPicked] = useState<Set<string>>(new Set());
+  /** Kept as a list of beds (the simplest, offered first) or a plan. */
+  const [asList, setAsList] = useState(true);
   /** The garden as it was before a space was made, so going back and choosing again replaces it. */
   const [before] = useState(garden);
   const { plants, plantOf } = usePlants([], spacingStyle(garden));
@@ -53,7 +59,7 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
   const month = new Date().getMonth() + 1;
   // "What are you growing in?" is only asked of an empty garden (not one restored from a backup).
   const empty = before.boundary.length === 0 && before.features.length === 0;
-  const steps: Step[] = empty ? ['where', 'space', 'grow'] : ['where', 'grow'];
+  const steps: Step[] = empty ? ['where', 'track', 'space', 'grow'] : ['where', 'grow'];
   const current = steps[step - 1];
   const kits = choice && plants ? kitsFor(choice.space, month, (id) => byId.get(id) ?? null) : [];
   const kit = kitChosen === undefined ? (kits[0] ?? null) : kitChosen;
@@ -69,6 +75,8 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
           const planted = kitChosen !== undefined ? kitChosen : current === 'grow' ? kit : null;
           if (planted && plants) next = applyKit(next, planted, (id) => byId.get(id) ?? null, todayIso());
           for (const id of picked) if (!next.wishlist.includes(id)) next = toggleWishlist(next, id);
+          // A list, if that was chosen (or left as it was offered) once the question was asked.
+          if (empty && asList && steps.indexOf('track') <= step - 1) next = nameListBeds({ ...next, view: 'list' }, isListed(next), featureLabel);
           return next;
         }),
       );
@@ -130,10 +138,43 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
             )}
             <GardenNameField store={store} garden={garden} />
           </>
+        ) : current === 'track' ? (
+          <>
+            <h1 class="title">How would you like to keep track?</h1>
+            <p class="muted">You can change your mind later, in Your garden.</p>
+            <div class="kit-picker track-picker" role="radiogroup" aria-label="How to keep track">
+              <label class="kit-option">
+                <input type="radio" name="track" checked={asList} onChange={() => setAsList(true)} />
+                <span class="kit-card">
+                  <span class="track-picture track-list" aria-hidden="true">
+                    {['lettuce', 'tomato', 'carrot'].filter((id) => byId.has(id)).map((id) => (
+                      <PlantIcon key={id} plant={byId.get(id)!} size={30} view="side" />
+                    ))}
+                  </span>
+                  <span class="kit-text">
+                    <span class="kit-title">Just a list of my beds <span class="badge badge-ok">Simplest</span></span>
+                    <span class="kit-blurb">Your beds, pots and greenhouse, with the plants in each. No drawing: jobs, reminders and harvests all the same.</span>
+                  </span>
+                </span>
+              </label>
+              <label class="kit-option">
+                <input type="radio" name="track" checked={!asList} onChange={() => setAsList(false)} />
+                <span class="kit-card">
+                  <span class="track-picture track-plan" aria-hidden="true">
+                    <Icon name="plan" size={34} />
+                  </span>
+                  <span class="kit-text">
+                    <span class="kit-title">A plan of my garden</span>
+                    <span class="kit-blurb">Drawn to scale, with sun and shade through the year, spacing checks and 3D.</span>
+                  </span>
+                </span>
+              </label>
+            </div>
+          </>
         ) : current === 'space' ? (
           <>
             <h1 class="title">What are you growing in?</h1>
-            <p class="muted">Pick the nearest, then its size. It’s laid out for you, ready for plants; you can move and change everything.</p>
+            <p class="muted">{asList ? 'Pick the nearest, and its rough size. It comes with beds ready for plants; you can rename them, add more or take some away.' : 'Pick the nearest, then its size. It’s laid out for you, ready for plants; you can move and change everything.'}</p>
             <SpacePicker
               value={choice}
               onChange={(c) => {

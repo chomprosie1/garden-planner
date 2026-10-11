@@ -5,10 +5,11 @@
 import { formatLength } from '../canvas/viewport';
 import { distance, distanceToSegment, pointInPolygon } from '../geometry/polygon';
 import { featureLabel, placeLabel } from '../model/features';
-import type { Garden, Plant, Planting, Point } from '../model/types';
+import type { Garden, Light, Plant, Planting, Point } from '../model/types';
 import { averageHours, type SunGrid } from '../sun/hours';
 import { activePlantings, canHold, plantCount, plantingShape, plantPositions, rowSpacingOf, sizedPlant, type PlantingShape } from './place';
 import { isPot, potProblems } from './pots';
+import { fullnessFindings, isList } from './listPlant';
 import { seasonsApart } from './rotation';
 import { phOf, soilClash, soilOf } from './soil';
 import { holdsOne, holdsPoint, isSupport } from './supports';
@@ -32,7 +33,10 @@ export const NEIGHBOUR_MM = 1000;
 
 type PlantOf = (id: string) => Plant;
 
-/** Checks everything. With a sun-hours grid (normally June's), light is checked too. */
+/**
+ * Checks everything. With a sun-hours grid (normally June's), light is checked too. A garden kept as a list has spots made
+ * up for it, so instead of the gaps between plants, how full each bed is; and light from each bed's sun, as you said.
+ */
 export function checkGarden(g: Garden, plantOf: PlantOf, sun: SunGrid | null = null): Finding[] {
   // Weeds aren't checked for spacing, neighbours or light: they're not a planting choice.
   const active = activePlantings(g).filter((pl) => plantOf(pl.plantId).category !== 'weed');
@@ -40,9 +44,9 @@ export function checkGarden(g: Garden, plantOf: PlantOf, sun: SunGrid | null = n
     ...checkPlacement(g, active, plantOf),
     ...checkPots(g, plantOf),
     ...checkSupports(g, active, plantOf),
-    ...checkSpacing(g, active, plantOf),
+    ...(isList(g) ? checkFullness(g, plantOf) : checkSpacing(g, active, plantOf)),
     ...checkNeighbours(g, active, plantOf),
-    ...checkLight(active, plantOf, sun),
+    ...(sun ? checkLight(active, plantOf, sun) : isList(g) ? checkStatedLight(g, active, plantOf) : []),
     ...checkSoil(g, active, plantOf),
   ];
   return findings.sort((a, b) => (a.level === b.level ? 0 : a.level === 'warn' ? -1 : 1));
@@ -151,6 +155,7 @@ function halfNeed(pl: Planting, plant: Plant, s: PlantingShape, dir: Point): num
 // ---------- Neighbours ----------
 
 function checkNeighbours(g: Garden, active: Planting[], plantOf: PlantOf): Finding[] {
+  const list = isList(g);
   const groups = new Map<string, Finding>();
   const shapes = new Map(active.map((pl) => [pl.id, plantingShape(pl, plantOf(pl.plantId))]));
   const bedName = (id: string) => {
@@ -170,7 +175,8 @@ function checkNeighbours(g: Garden, active: Planting[], plantOf: PlantOf): Findi
       const good = !avoid && (!!pa.companions?.good.includes(pb.id) || !!pb.companions?.good.includes(pa.id));
       if (!avoid && !good) continue;
       const sameBed = a.featureId === b.featureId;
-      if (!sameBed && closest(shapes.get(a.id)!, shapes.get(b.id)!).d > NEIGHBOUR_MM) continue;
+      // In a list, beds are set out for you, so only plants in the same bed are neighbours.
+      if (!sameBed && (list || closest(shapes.get(a.id)!, shapes.get(b.id)!).d > NEIGHBOUR_MM)) continue;
       const where = sameBed ? `bed:${a.featureId}` : `near:${[a.featureId, b.featureId].sort().join(':')}`;
       const key = `${avoid ? 'avoid' : 'good'}:${pa.id}:${pb.id}:${where}`;
       const existing = groups.get(key);
@@ -217,6 +223,33 @@ export function checkLight(active: Planting[], plantOf: PlantOf, sun: SunGrid | 
     else if (plant.conditions.light === 'shade' && hours > 6) out.push({ ...base, message: `${got}; it prefers shade and may scorch.` });
   }
   return out;
+}
+
+/** Rough hours of direct sun a day for each kind of spot, as you said it: a design call, for when there's no plan to work it out. */
+export const STATED_HOURS: Record<Light, number> = { 'full-sun': 7, 'part-shade': 4, shade: 2 };
+const LIGHT_WORDS: Record<Light, string> = { 'full-sun': 'full sun', 'part-shade': 'part shade', shade: 'shade' };
+const LIGHT_RANK: Record<Light, number> = { shade: 0, 'part-shade': 1, 'full-sun': 2 };
+
+/** Light from each bed's sun, as you said: a sun lover in shade, or a shade lover in full sun. Nothing where it isn't said. */
+export function checkStatedLight(g: Garden, active: Planting[], plantOf: PlantOf): Finding[] {
+  const out: Finding[] = [];
+  const byId = new Map(g.features.map((f) => [f.id, f]));
+  for (const pl of active) {
+    const bed = byId.get(pl.featureId);
+    if (!bed?.light) continue;
+    const plant = plantOf(pl.plantId);
+    const where = `${describe(pl, plant)} is in ${placeLabel(bed)}, which you said is in ${LIGHT_WORDS[bed.light]}`;
+    const base = { id: `light:${pl.id}`, kind: 'light' as const, level: 'warn' as const, plantingIds: [pl.id], featureIds: [bed.id] };
+    // By light level, as you said it and as the plant's card says it: a sun lover in part shade or shade, a part-shade plant in shade.
+    if (LIGHT_RANK[bed.light] < LIGHT_RANK[plant.conditions.light]) out.push({ ...base, message: `${where}; it wants ${LIGHT_WORDS[plant.conditions.light]}.` });
+    else if (plant.conditions.light === 'shade' && bed.light === 'full-sun') out.push({ ...base, message: `${where}; it prefers shade and may scorch.` });
+  }
+  return out;
+}
+
+/** Beds kept in a list with more plants than room for them. */
+function checkFullness(g: Garden, plantOf: PlantOf): Finding[] {
+  return fullnessFindings(g, plantOf).map((f) => ({ id: f.id, kind: 'spacing' as const, level: 'warn' as const, plantingIds: f.plantingIds, featureIds: [f.featureId], message: f.message }));
 }
 
 /** A quarter of an hour short isn't worth a warning. */

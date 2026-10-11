@@ -30,6 +30,7 @@ import {
 } from '../planting/inspire';
 import { isSoftGround, spacingStyle } from '../planting/place';
 import { areaHours, hoursAt, type SunGrid } from '../sun/hours';
+import { STATED_HOURS } from '../planting/rules';
 import { useApp } from './appContext';
 import { PlantIcon } from './PlantIcon';
 import { usePlants } from './usePlants';
@@ -97,7 +98,9 @@ export function InspireDialog({ store, garden, featureId, close, onPlanted }: { 
     if (d && !d.open) d.showModal();
   }, []);
 
-  const spot = useMemo(() => (feature ? spotOf(garden, feature, plantOf, grid ? hoursFrom(grid) : null) : null), [garden, feature, plantOf, grid]);
+  // In a list, the sun as you said it for the bed; on a plan, worked out from what's drawn.
+  const hoursOf = garden.view === 'list' ? (f: Feature) => (f.light ? STATED_HOURS[f.light] : null) : grid ? hoursFrom(grid) : null;
+  const spot = useMemo(() => (feature ? spotOf(garden, feature, plantOf, hoursOf) : null), [garden, feature, plantOf, grid]);
   const ideas = useMemo(() => (spot && plants ? inspire(garden, spot, answers, { plants, plantOf, today }) : null), [spot, plants, answers, garden, plantOf, today]);
   const set = <K extends keyof Answers>(k: K) => (v: Answers[K]) => setAnswers((a) => ({ ...a, [k]: v }));
 
@@ -106,7 +109,7 @@ export function InspireDialog({ store, garden, featureId, close, onPlanted }: { 
     store.apply(
       updateGarden((g) => {
         const f = g.features.find((x) => x.id === feature.id);
-        return f ? plantIdea(g, spotOf(g, f, plantOf, grid ? hoursFrom(grid) : null), idea, plantOf, today) : g;
+        return f ? plantIdea(g, spotOf(g, f, plantOf, hoursOf), idea, plantOf, today) : g;
       }),
     );
     const seeds = idea.plants.some((id) => buyAs(plantOf(id)) === 'packet' && !garden.wishlist.includes(id));
