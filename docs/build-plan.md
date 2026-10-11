@@ -1663,6 +1663,38 @@ Sync and accounts (a household or allotment partner sharing a garden, iPhone pus
 
 ---
 
+## The sixth round: one answer everywhere, releases 31 to 35 (added 11 Oct 2026)
+From the review of 11 Oct 2026 ([review-2026-10-11.md](review-2026-10-11.md)): a bug hunt, a UX designer, and three testers (Priya, a millennial gardener; Margaret, a technogran; Jordan, new to gardening but not to apps), all using the running app. The details of each release are in that file.
+
+What it found:
+- **The foundations held.** Migrations, validation, saved files, undo and the rotation's maths are all sound, and the advice is mostly right.
+- **The trouble is trust.** The app contradicts itself on when to sow, calls garlic "seed", says everything is "tomorrow", and doesn't tick a job when you do it. List mode, three days old, has placement bugs.
+
+Decided:
+- **One release a day at most, with a day for testing after the first two.** Releases 19 to 30 shipped in three days, often several a morning, so there was no time to test one before building on it. Most of these bugs got through in that gap.
+- **Trust first, then list mode,** since all four testers chose it. Then where things live, then teaching, then next year.
+- **The same three tasks are run again at the end:** set up a garden, say what to do this week, and draft next year. The baseline: everyone hit the timing contradiction, three of four hit the shopping words, and Jordan counted about 35 unexplained words.
+- **Release 23 (help) moves to after 33,** so it's written for the screens as they'll be.
+
+| When | Release | What | Status |
+| --- | --- | --- | --- |
+| Mon 12 Oct | 31. One answer everywhere | Every sowing window read, and the open one shown. Now or This week, not "tomorrow". Seed potatoes, sets, cloves and bulbs on the shopping list. "Already in the ground" asks when. Autumn kinds in the autumn kits. Plant, not sow, for bulbs. The "(check)"s out. Sowing ticks its job and spends the seed. Save works straight away. Wider toasts. | |
+| Tue 13 Oct | 32. List mode, put right | Beds stay inside the garden. No stacked plants. Planters take rows. A pot's room measured properly. Climbers listed. Moves that fit. How many pots. Beds numbered as added. No plan words. Rows folded. A menu for the list. | |
+| Wed 14 Oct | Testing day | You and your two testers on 31 and 32. Fixes go out as 31.1 and 32.1. | |
+| Thu 15 Oct | 33. Today, and where things live | One list of jobs to tick at the top of Today. A smaller photo. Planning ahead in autumn and winter. Seedlings becomes Shed. One Settings. A calmer first landing. Darker captions and Extra large text. Place search kept to the UK. | |
+| Fri 16 Oct | 34. Explain the gardening | A glossary of about 40 words, tappable in jobs and plant pages. A how-to on each job, with Done. Kits sized for a first garden. Not-now notes. A warning when a bed is booked. | |
+| Sat 17 – Sun 18 Oct | Testing weekend | Your testers on 33 and 34. You check the glossary's wording and its gardening. | |
+| Mon 19 Oct | 35. Next year, and the seasons | Overwintering crops in the year they're picked. Using the draft twice replaces the first. Every bed in the draft. "What did you grow this summer?" Autumn sowings filled in. Season-aware care. The climate's station and season checked. | |
+| Tue 20 Oct | 23. Help for the rest | Help for the screens as they now are, with a ? on every tab. | |
+| Wed 21 Oct | The review again | The same reviewers and the same three tasks, counted against the baseline. | |
+| Alongside | Data track | The core 150 plants, in batches of 15 you confirm. Autumn sowings and the "(check)" plants first. | |
+
+Parked:
+- **A share picture worth posting:** to the wishlist (M).
+- **3D on a phone:** check once on a real phone first.
+- **Wrapped after the first pick:** held until there's a season's worth, as part of 33.
+- **Prices:** stay out.
+
 ## Repo layout
 ```
 garden-planner/
