@@ -20,6 +20,8 @@ import type { Prefs, PrefsStore } from '../../theme/prefs';
 import type { WalkSpot } from '../../three/walk';
 import { ActionPill } from '../ActionPill';
 import { ClearBedsDialog } from '../ClearBeds';
+import { NextYearDialog } from '../NextYear';
+import { ShoppingDialog } from '../Shopping';
 import { Dock, ToolsHandle, type Drawer } from '../Dock';
 import { FillPopover, type Placed } from '../FillPopover';
 import { useIsPhone } from '../hooks';
@@ -144,6 +146,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const [measuring, setMeasuring] = useState(false);
   const [measured, setMeasured] = useState<Point[]>([]);
   const [clearing, setClearing] = useState(false);
+  const [drafting, setDrafting] = useState(false);
+  const [shopping, setShopping] = useState(false);
   const mode = prefs.planMode;
   const simple = mode === 'simple';
   // The padlock is Advanced; in Simple nothing's ever stuck.
@@ -282,8 +286,9 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const monthJobs = useMemo(() => {
     if (!plants || when.slice(0, 7) < todayIso.slice(0, 7)) return [];
     const done = new Set(garden.jobsDone.map((j) => j.key));
-    return jobsFor(garden, plantOf, shownMonth, Number(when.slice(0, 4)), { weeding: prefs.weeding, feeding: prefs.feeding }).filter((j) => !done.has(j.key));
-  }, [garden, plants, plantOf, when, todayIso, shownMonth, prefs.weeding, prefs.feeding]);
+    // Watering is for the whole garden, on Today, not a chip on one bed: it's left out.
+    return jobsFor(garden, plantOf, shownMonth, Number(when.slice(0, 4)), { weeding: prefs.weeding, feeding: prefs.feeding, today: todayIso, weather, watering: false }).filter((j) => !done.has(j.key));
+  }, [garden, plants, plantOf, when, todayIso, shownMonth, prefs.weeding, prefs.feeding, weather]);
   const hoverHours = lens === 'sun' && viewGrid && hoverPoint ? hoursAt(viewGrid, hoverPoint) : null;
   const tapHours = lens === 'sun' && viewGrid && tapPoint ? hoursAt(viewGrid, tapPoint) : null;
   const warnings = findings.filter((f) => f.level === 'warn').length;
@@ -664,6 +669,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               ...(!empty ? [{ label: 'See it in 3D', icon: 'cube' as const, onSelect: () => setThreeD(true) }] : []),
               { label: 'Measure', icon: 'size' as const, onSelect: () => (setSelected(null), setMeasured([]), setMeasuring(true)) },
               ...(growing ? [{ label: 'Clear beds…', icon: 'trash' as const, onSelect: () => setClearing(true) }] : []),
+              ...(garden.plantings.length ? [{ label: 'Draft next year…', icon: 'month' as const, onSelect: () => setDrafting(true) }] : []),
+              { label: 'Shopping list', icon: 'check', onSelect: () => setShopping(true) },
               { label: 'Share a picture of the plan', icon: 'share', onSelect: () => setSharing(true) },
               { label: 'Your garden: location and backups', icon: 'settings', onSelect: () => app.go('profile') },
               { label: 'Your gardens: switch, or start a new one', icon: 'plan', onSelect: () => app.go('settings') },
@@ -896,6 +903,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
         />
       )}
       {clearing && plants && <ClearBedsDialog garden={garden} store={store} plantOf={plantOf} close={() => setClearing(false)} />}
+      {drafting && plants && <NextYearDialog garden={garden} store={store} plantOf={plantOf} close={() => setDrafting(false)} />}
+      {shopping && plants && <ShoppingDialog garden={garden} store={store} plantOf={plantOf} feeding={prefs.feeding} close={() => setShopping(false)} />}
       {sharing && timelines && <ShareDialog garden={garden} plantOf={plantOf} ideaOf={ideaOf} timelines={timelines} date={when} look={prefs.look} mode={colourMode} close={() => setSharing(false)} />}
     </div>
   );

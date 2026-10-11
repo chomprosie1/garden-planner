@@ -9,7 +9,10 @@ import { microclimateOf } from '../climate/microclimate';
 import { feedDetail, feedingDue, isOnce, plantingFeedText } from '../feeding/schedule';
 import { addDays, frostDates, plantOutMonthsUnder } from '../lifecycle/shed';
 import { currentStage, pathFor, setStage, sowingOf, STAGE_LABEL, stageTips, suggestedStage } from '../lifecycle/stages';
-import { shortDate } from '../lifecycle/projection';
+import { probableStage, shortDate } from '../lifecycle/projection';
+import { behindOf } from '../lifecycle/behind';
+import type { Weather } from '../weather/weather';
+import { waterJob } from './watering';
 import { featureLabel, placeLabel } from '../model/features';
 import { runEnds } from '../library/library';
 import { STAGES, type Garden, type PickSize, type Plant, type Planting, type Stage } from '../model/types';
@@ -19,10 +22,11 @@ import { wherePhrase } from '../planting/supports';
 
 export { runEnds };
 
-export const JOB_KINDS = ['sow-indoors', 'sow-direct', 'plant-out', 'check', 'feed', 'harvest', 'protect', 'lift', 'tidy', 'weed'] as const;
+export const JOB_KINDS = ['water', 'sow-indoors', 'sow-direct', 'plant-out', 'check', 'feed', 'harvest', 'protect', 'lift', 'tidy', 'weed'] as const;
 export type JobKind = (typeof JOB_KINDS)[number];
 
 export const JOB_LABEL: Record<JobKind, string> = {
+  water: 'Water',
   'sow-indoors': 'Sow under cover',
   'sow-direct': 'Sow outside',
   'plant-out': 'Plant out',
@@ -132,6 +136,16 @@ export interface JobOptions {
   weeding?: boolean;
   /** Feed jobs, and what goes in before planting. The app asks for them unless they're turned off in Your garden. */
   feeding?: boolean;
+  /**
+   * Today, ISO. With it: a sowing outside that's running behind to come up has no harvest or other growing jobs (Today
+   * asks whether it's up instead), and "probably flowering" goes by the warmth where the plant has days to crop. Without
+   * it, both go by the months alone.
+   */
+  today?: string;
+  /** This year's weather, with today: the warmth it's had, and watering in a dry spell (in today's month). */
+  weather?: Weather | null;
+  /** The watering job, with the weather. Off for the plan's chips, as it's for the whole garden. */
+  watering?: boolean;
 }
 
 /** Your jobs for a month, in the order of JOB_KINDS, then by plant name. */
@@ -146,6 +160,22 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
 
   // Protect tender plants in the month before the first frost is due (about ten days ahead).
   const protectMonth = Number(addDays(`2027-${frostDates(g).firstFrost}`, -10).slice(5, 7));
+  const { today, weather = null } = opts;
+  const thisMonth = !!today && today.slice(0, 7) === ym(year, month);
+  // "Probably flowering by now": by tomorrow this month, by the month's end for a month ahead.
+  const flowerBy = thisMonth ? addDays(today!, 1) : addDays(`${ym(month === 12 ? year + 1 : year, (month % 12) + 1)}-01`, -1);
+
+  /** Probably in flower by then, and not yet marked so: by the warmth it's had where the plant has days, otherwise its months. */
+  const floweringBy = (plant: Plant, p: Planting): boolean => {
+    if (!today || !plant.growth?.days) return suggestedStage(plant, p, month) === 'flowering';
+    const at = probableStage(plant, p, g, today, weather, flowerBy);
+    return at === 'flowering' || (at === 'harvesting' && currentStage(p) !== 'flowering' && pathFor(plant, p).includes('flowering'));
+  };
+
+  if (thisMonth && opts.watering !== false) {
+    const water = waterJob(g, plantOf, weather, today!);
+    if (water) jobs.push({ key: water.key, kind: 'water', plantId: '', plant: water.title, where: water.where, detail: water.detail, plantingIds: water.plantingIds });
+  }
 
   // What's on the plan, grouped by plant and bed so three rows of carrots are one job.
   const groups = new Map<string, Planting[]>();
@@ -193,14 +223,17 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     }
     if (outMonths.includes(month)) {
       // Ticking a planting-out job marks the plants as growing; the ticked job stays for the rest of the month.
-      // A batch waits until after the month it's sown in.
+      // A batch waits until after the month it's sown in; something bought as a plant (next year's draft) goes in in its month.
       const tickedNow = g.jobsDone.some((j) => j.key === `plant-out:${plant.id}:${featureId}:${ym(year, month)}`);
-      const toPlant = (tickedNow ? group : notGrowing).filter((p) => (!p.sownOn || p.sownOn.slice(0, 7) <= ym(year, month)) && (!p.sowBy || p.sowBy.slice(0, 7) < ym(year, month)));
+      const due = (p: Planting) => !p.sowBy || (sowingOf(plant, p) === 'none' ? p.sowBy.slice(0, 7) <= ym(year, month) : p.sowBy.slice(0, 7) < ym(year, month));
+      const toPlant = (tickedNow ? group : notGrowing).filter((p) => (!p.sownOn || p.sownOn.slice(0, 7) <= ym(year, month)) && due(p));
       if (toPlant.length && !doneBefore(g, `plant-out:${plant.id}:${featureId}:`, year, month))
         add('plant-out', plant, where, featureId, ids(toPlant), withFeed(cover ? 'Under glass, so there’s no need to harden them off first.' : undefined), featureId);
     }
 
-    const growing = group.filter((p) => isGrowing(p) || afterSowing(p, year, month));
+    // Sown outside and running behind to come up: nothing to pick or feed until it's up. Today asks about it instead.
+    const notUp = (p: Planting) => !!today && currentStage(p) === 'sown' && sowingOf(plant, p) === 'direct' && behindOf(plant, p, g, today, weather)?.next === 'germinated';
+    const growing = group.filter((p) => (isGrowing(p) || afterSowing(p, year, month)) && !notUp(p));
     if (!growing.length) continue;
     const harvest = plant.cropping?.harvestMonths ?? [];
     const harvesting = harvest.includes(month);
@@ -209,7 +242,7 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     // Probably flowering by now? Ask, unless it's harvest time anyway. The key holds the stage, so a tick is per stage.
     if (!harvesting) {
       const ticked = g.jobsDone.find((j) => j.key.startsWith(`check:${plant.id}:${featureId}:`) && j.key.endsWith(`:${ym(year, month)}`));
-      const due = ticked ? growing.filter((p) => currentStage(p) === ticked.key.split(':')[3]) : growing.filter((p) => suggestedStage(plant, p, month) === 'flowering');
+      const due = ticked ? growing.filter((p) => currentStage(p) === ticked.key.split(':')[3]) : growing.filter((p) => floweringBy(plant, p));
       const stage = (ticked?.key.split(':')[3] as Stage | undefined) ?? (due.length ? 'flowering' : undefined);
       if (stage && due.length) {
         const job: Job = { key: `check:${plant.id}:${featureId}:${stage}:${ym(year, month)}`, kind: 'check', plantId: plant.id, plant: plant.commonName, where, plantingIds: ids(due), featureId, stage };

@@ -181,6 +181,10 @@ export function validateGarden(g: unknown): string[] {
         need(k.price === undefined || (isNum(k.price) && k.price >= 0 && k.price < 1000), `${at}.price must be in pounds.`);
       });
   }
+  need(
+    g.bought === undefined || (Array.isArray(g.bought) && g.bought.every((b) => isObject(b) && isStr(b.key) && b.key.length <= 120 && isStr(b.date) && /^\d{4}-\d{2}-\d{2}$/.test(b.date))),
+    'bought entries need a key and a date.',
+  );
   need(g.feedShelf === undefined || (Array.isArray(g.feedShelf) && g.feedShelf.every((f) => isStr(f) && /^[a-z0-9-]{1,40}$/.test(f))), 'feedShelf must be a list of feed ids.');
   const placeIds = new Set<string>();
   if (g.shedPlaces !== undefined) {

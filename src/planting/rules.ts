@@ -9,6 +9,7 @@ import type { Garden, Plant, Planting, Point } from '../model/types';
 import { averageHours, type SunGrid } from '../sun/hours';
 import { activePlantings, canHold, plantCount, plantingShape, plantPositions, rowSpacingOf, sizedPlant, type PlantingShape } from './place';
 import { isPot, potProblems } from './pots';
+import { seasonsApart } from './rotation';
 import { phOf, soilClash, soilOf } from './soil';
 import { holdsOne, holdsPoint, isSupport } from './supports';
 
@@ -108,8 +109,8 @@ function checkSpacing(g: Garden, active: Planting[], plantOf: PlantOf): Finding[
       const b = active[j]!;
       const pa = sizedPlant(plantOf(a.plantId), a);
       const pb = sizedPlant(plantOf(b.plantId), b);
-      // Bulbs under a tree or shrub are the usual way to grow them, not a squeeze.
-      if (underplanted(pa, pb) || underplanted(pb, pa)) continue;
+      // Bulbs under a tree or shrub are the usual way to grow them, not a squeeze. Next year's plan over this year's crops never meets them.
+      if (underplanted(pa, pb) || underplanted(pb, pa) || seasonsApart(a, b, pa, pb)) continue;
       // Single plants sharing a pot are checked as a pot; rows and blocks in a planter still keep their spacing.
       if (a.featureId === b.featureId && pots.has(a.featureId) && (a.layout ?? 'single') === 'single' && (b.layout ?? 'single') === 'single') continue;
       const near = closest(shapes[i]!, shapes[j]!);
@@ -164,6 +165,7 @@ function checkNeighbours(g: Garden, active: Planting[], plantOf: PlantOf): Findi
       if (a.plantId > b.plantId) [a, b] = [b, a];
       const pa = plantOf(a.plantId);
       const pb = plantOf(b.plantId);
+      if (seasonsApart(a, b, pa, pb)) continue;
       const avoid = !!pa.companions?.avoid.includes(pb.id) || !!pb.companions?.avoid.includes(pa.id);
       const good = !avoid && (!!pa.companions?.good.includes(pb.id) || !!pb.companions?.good.includes(pa.id));
       if (!avoid && !good) continue;

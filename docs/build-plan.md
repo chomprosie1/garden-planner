@@ -1364,7 +1364,7 @@ Decided:
 | 24. Off to a good start | Plants in a beginner's order and an Easy chip; kits for every season; recognisable plants in the pickers; more plan on a phone; keeping the garden safe | A2–A5 | ~1.5 wk | Built 9 Oct 2026 |
 | 25. Build the garden | A house and everyday things; garden shapes, including an L with a side return; tap a length to type it; a tape measure; straighten a photo | B1, B2, B6 | ~1.5 wk | Built 9 Oct 2026 |
 | 26. Along the fence | Climbers along fences and walls, with trellis, arch and obelisk; soil for the garden and each bed; shade from over the fence | B3–B5 | ~1.5 wk | Built 10 Oct 2026 |
-| 27. Next year | Next year drafted, with crop rotation; a shopping list; watering in dry spells; the open job fixes | B7–B9, A6 | ~2 wk | |
+| 27. Next year | Next year drafted, with crop rotation; a shopping list; watering in dry spells; the open job fixes | B7–B9, A6 | ~2 wk | Built 11 Oct 2026 |
 | 28. Listening | A feedback form in the app; private counts of opens, first plant and return visits | B10, B11 | ~3 evenings | |
 | Data track | Check the core 150 plants, in batches of 15 that you confirm | A1 | ~2 wk of evenings, alongside | |
 | 29. Trim and tidy | The welcome once a day with no pause; UV out of the way; stale prices; unchecked plants under "More plants"; onboarding's default kit and landing; a shorter Getting started; Report a mistake to the form | C1, C2, C4, C5, D4–D6 | ~1 wk | |
@@ -1497,16 +1497,42 @@ Tests: new `tests/fence.test.ts`:
 
 **Tests changed:** `tests/sowing-cardboard.test.ts` said the schema was 17; it now says at least 17.
 
-### Release 27 — Next year (planned)
-- **Next year, drafted** (moved up from release 18): from this year's plantings, a draft of next year's plan:
-  - crop families rotated bed by bed (brassicas, legumes, potatoes and tomatoes, onions, roots), from `Plant.family`;
-  - what did well kept (picked, not running behind), what failed or ran behind dropped or moved;
-  - shown as a second plan to look at and change, then "Use this for next year", which adds planned plantings with next year's dates.
-- **A shopping list:** seeds, sets, plants, compost and feed for what's planned and on your Want to grow list, less what's in the seed tin; tick off as you buy; share it as text.
-- **Watering in dry spells:** with the weather on, a job to water pots and new plantings after a few dry, warm days, and none after rain.
-- **The open job fixes:** no harvest job for a direct sowing that never came up; check jobs by warmth where the plant has days.
-- **Model:** the shopping list's ticks, optional. A schema bump, so on a branch.
-- **Tests:** rotation by family across four beds, kept and dropped plantings, the shopping list's sums and the seed tin, watering after dry days and not after rain, the job fixes, the migration.
+### Release 27 — Next year (as built, schema 19)
+- **Next year, drafted** (`src/planting/rotation.ts`, pure; `src/ui/NextYear.tsx`):
+  - **The rotation is the RHS's** ("Crop rotation", rhs.org.uk, checked 11 Oct 2026): its four-year plan moves each section a step on every year: peas and beans, then the cabbage family, then potatoes (with tomatoes), then onions and roots, then peas and beans again. Swedes, turnips and radishes count as brassicas, and beetroot, parsley, salsify and scorzonera as roots. Peppers, aubergines, squashes, salads and sweetcorn "can be grown wherever convenient", and perennials stay put. Groups come from `Plant.family` (Fabaceae, Brassicaceae, Amaryllidaceae, Apiaceae), vegetables only, with potato and tomato by id.
+  - **What's drafted:** each bed's crops of this year (sown, or a stage reached, in the year before the draft's), not pots, planters, anything under glass, perennials or weeds. A draft is for next year from August, and for this year before then.
+  - **Moving round:** each bed's crops move together to another bed. The beds are put in order round the rotation, and every turn of that order is tried; the one where most beds get the group that follows theirs, and none the same again, wins. With one bed, the crops stay. The arrangement keeps its shape, centred in the new bed, and turns a quarter if one bed runs across and the other up and down.
+  - **Kept and left out:** anything picked, or marked as harvesting, is marked **Did well** and always kept. Left out unless you tick it back: a sowing outside still not up when it should be (**didn’t come up**), anything else on the plan running behind (**ran behind**), anything that doesn't fit its new bed (**no room**), and anything already planned there for that year (**already planned**), so using a draft twice adds nothing the second time.
+  - **Next year's dates:** each is planned with `sowBy` the same day next year as it was sown (or planted out, if it's bought as a plant), never before today. Its sowing job comes in that month. **Changed in the jobs:** something bought as a plant (no sowing) with a `sowBy` now gets its planting job in that month, not the month after.
+  - **On screen:** Planning ahead on the month's jobs (**Draft it**), and **Draft next year…** in the plan's ⋯ menu. A small plan of next year (the draft's crops, and what stays), then each bed: this year's group → next year's, **Takes the crops from** (choosing another bed swaps the two), and each crop with a tick. Then **Use this for 2027**: one undo step.
+  - **Checks:** next year's plan over this year's crops isn't flagged for spacing or neighbours (`seasonsApart`) when they're never in the bed together: one planned for a later year than the other was grown, and the other not perennial and out of the ground by then (cleared, or past the run of harvest months after its start). Garlic planted in autumn, standing until summer, is still checked against a row planned for April.
+  - **Changed from the plan:** not a second editable plan. The draft is looked at and changed in its own screen (which bed takes which crops, what goes in), then goes on the plan as planned plantings, where it can be changed like any other.
+- **A shopping list** (`src/planting/shopping.ts`, pure; `src/ui/Shopping.tsx`): for what's planned (on the plan, not yet sown) and on Want to grow:
+  - **seed**, for about so many plants, unless the tin has a packet of it (or of its parent or a variety) still in date when it's to be sown; a packet past its sow-by date keeps it on the list, saying so;
+  - **plants**, for what isn't grown from seed;
+  - **seed compost**, when there's sowing under cover; **multi-purpose** (or **ericaceous**, by the pot's soil) to fill pots and planters with something planned and nothing growing, in litres from their size;
+  - **feed**, with feeding on: what their feeding calls for that can be bought (not home-made), unless the shelf has it or one that does the same job.
+
+  Tick as you buy; a tick lasts 300 days, then the same thing can be wanted again (`Garden.bought`). **Share the list** sends what's left as text (the share sheet, or copied). On the month's jobs (Planning ahead, with how many to buy) and in the plan's ⋯ menu. No prices.
+- **Watering in a dry spell** (`src/calendar/watering.ts`, pure): with this year's weather on, in today's month only, a **Water** job (first in the list) when the last three days had under 2 mm of rain between them and averaged 18 °C or more by day. It's for pots and planters outside, and anything planted out or sown outside in the last six weeks; not under glass, weeds, or anything not in the ground yet. With 5 mm or more forecast tomorrow, only the pots. The key has the day, so a tick lasts the day. Not a chip on the plan. These thresholds are a design call, not a plant fact.
+- **The job fixes:** with today given (as the app always does):
+  - a sowing outside that's running behind to come up (`behindOf` says germinated is next) gets no harvest, check, feed or winter jobs. Today's running-behind card asks about it instead;
+  - **Probably flowering** goes by the warmth it's had (`probableStage`, by tomorrow this month or the month's end ahead) for plants with days to crop; others still by the months.
+- **Save format 19:** `bought` on the garden (key and date), optional. Nothing to convert. On `main`, as you chose (11 Oct 2026).
+- **Help:** **Next year, with the crops rotated** and **The shopping list, and watering**.
+- **Reviewed** before release: the review's fixes were made (a draft used twice, crops standing over winter, seed in date at sowing, a bed's crops chosen twice, the warmest day of a dry spell, two speed-ups). Not changed: the review also said features shouldn't import each other's logic (CLAUDE.md's rule); the jobs, rotation and watering lean on the lifecycle and planting code as the jobs already did.
+- **Version** 0.27.0.
+- **Checked:** at 390 px, with four beds grown in 2026 (potatoes, peas, cabbages, carrots and late lettuce) and a pot: Planning ahead on the month's jobs; the shopping list, with an item ticked; the draft (each bed's crops a step on, Did well, the lettuce left out as not up); Use this; and the plan with next year's crops in their new beds. No errors in the console. The water job needs live weather, so it's checked in the tests.
+
+Tests: new `tests/next-year.test.ts`:
+- rotation: the groups (with the RHS's exceptions and the go-anywhere crops), the order, the draft's year;
+- the draft: four beds a step on, the arrangement kept, next year's dates; never the same group back where it can be helped, and one bed staying; did well, didn't come up, ran behind; no room, and pots, perennials and last year's crops left alone; swapping beds, and a partial choice kept whole; a draft used twice; a crop standing over winter still checked; on the plan as planned, with jobs next year and none now, and no clash with this year's crops; a bought plant planted in its month;
+- the shopping list: seed, plants and compost; the seed tin, old seed, and seed out of date by its sowing; pots to fill, ericaceous, and none while something grows; feeds and the shelf; ticks for a season, and the text;
+- watering: a dry spell, and none after rain or when cool; pots and new plantings only; in this month's jobs only;
+- the job fixes: no harvest for a sowing not up (and as before without today); flowering by the warmth, in the north and the south;
+- schema 19.
+
+**Tests changed:** `tests/fence.test.ts` said the schema was 18; it now says at least 18.
 
 ### Release 28 — Listening (planned)
 - **A feedback form in the app:** in Settings and the ⋯ menu, a few lines and an optional email, sent with the app's version and the screen. Where it goes needs your choice first (a form service or an email address).

@@ -17,6 +17,18 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-11-next-year',
+    date: '2026-10-11',
+    title: 'Next year, and the shopping',
+    items: [
+      'Next year, drafted for you: open the month’s jobs and tap Draft it under Planning ahead. Each bed’s crops move on a step, so peas and beans, the cabbage family, potatoes and tomatoes, and onions and roots each go to a fresh bed, as the RHS’s rotation has it. Change which bed takes which, untick what you won’t grow again, then Use this, and next year’s crops go on the plan with their dates.',
+      'A shopping list, beside it: seed, plants, compost and feed for what you’ve planned and want to grow, less the seed already in your tin. Tick things off as you buy them, or share the list to a note.',
+      'Watering in a dry spell: with this year’s weather on, a Water job appears after a few dry, warm days, for pots and anything newly planted. After rain it goes.',
+      'Jobs you can trust more: no “Ready to pick” for a sowing that hasn’t come up yet, and “Probably flowering” now goes by the warmth your plants have had.',
+    ],
+    tryIt: { label: 'See the month', view: 'month' },
+  },
+  {
     id: '2026-10-10-along-the-fence',
     date: '2026-10-10',
     title: 'Along the fence',

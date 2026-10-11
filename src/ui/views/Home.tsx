@@ -1,3 +1,4 @@
+import { useMemo } from 'preact/hooks';
 import { photoForMonth } from '../../content/photos';
 import { seasonFor } from '../../content/seasons';
 import type { Store } from '../../model/store';
@@ -19,6 +20,8 @@ import { doneOf, JobList, jobsDoneCount, PlantJobs } from '../Jobs';
 import { PhotoCredit, SeasonPhoto } from '../SeasonPhoto';
 import { ReadyCard } from '../ShedCards';
 import { BehindCard } from '../BehindCard';
+import { useWeatherNow } from '../useWeather';
+import { todayIso } from '../../model/ids';
 
 interface Props {
   store: Store;
@@ -40,7 +43,12 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
   const layout = prefs.photos === 'full' ? LOOKS[prefs.look].home : 'band';
   // Jobs for your own plants when you have any; otherwise the general UK jobs.
   const { plants, plantOf } = usePlants(userPlants, spacingStyle(garden));
-  const mine = plants ? jobsFor(garden, plantOf, month, year, { weeding: prefs.weeding, feeding: prefs.feeding }) : [];
+  const { weather } = useWeatherNow();
+  const today = todayIso(now);
+  const mine = useMemo(
+    () => (plants ? jobsFor(garden, plantOf, month, year, { weeding: prefs.weeding, feeding: prefs.feeding, today, weather }) : []),
+    [garden, plants, plantOf, month, year, prefs.weeding, prefs.feeding, today, weather],
+  );
   const total = mine.length || seasonFor(month).jobs.length;
   const doneCount = mine.length ? doneOf(garden, mine) : jobsDoneCount(garden, month, year);
 

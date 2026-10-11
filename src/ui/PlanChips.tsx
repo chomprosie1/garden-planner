@@ -12,6 +12,7 @@ import type { Feature, Garden, Plant } from '../model/types';
 import { useApp } from './appContext';
 
 const SHORT: Record<JobKind, string> = {
+  water: 'Water',
   'sow-indoors': 'Sow',
   'sow-direct': 'Sow',
   'plant-out': 'Plant out',

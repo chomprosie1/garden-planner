@@ -272,6 +272,43 @@ export const HELP: HelpTopic[] = [
     related: ['climbers', 'adding-plants'],
     words: 'soil clay loam sand sandy chalk chalky peat peaty ph acid alkaline lime ericaceous compost drainage heavy light',
   },
+  {
+    id: 'next-year',
+    title: 'Next year, with the crops rotated',
+    summary: 'Planning next year from this one, so each crop family moves to a fresh bed.',
+    view: 'month',
+    tier: 3,
+    steps: [
+      'Open the month’s jobs and tap Draft it under Planning ahead, or choose Draft next year in the plan’s ⋯ menu.',
+      'Each bed’s crops move on a step, as the RHS’s four-year rotation has it: peas and beans, then the cabbage family, then potatoes and tomatoes, then onions and roots. Salads, squashes, sweetcorn and peppers can go anywhere, so they move with the bed they’re in.',
+      'Change which bed takes which crops with Takes the crops from. Untick anything you won’t grow again.',
+      'Crops that didn’t come up or ran behind are left out; tick one to put it back. Ones you picked from are marked Did well.',
+      'Tap Use this. Next year’s crops go on the plan as planned, to sow or plant on the same day as this year, and their jobs come in their months.',
+    ],
+    notes: [
+      'It’s drafted from what you marked as sown or planted this year, so ticking sowing and planting jobs as you go makes next year’s draft better.',
+      'Pots and planters get fresh compost, so they keep what they have, as do greenhouses and plants that come back each year.',
+    ],
+    related: ['shopping', 'adding-plants'],
+    words: 'next year rotation crop rotation rotate families brassicas legumes potatoes onions roots plan ahead draft season',
+  },
+  {
+    id: 'shopping',
+    title: 'The shopping list, and watering',
+    summary: 'What to buy for what you’ve planned, and when to water in a dry spell.',
+    view: 'month',
+    tier: 3,
+    steps: [
+      'Open the month’s jobs and tap Open beside Shopping list, or choose Shopping list in the plan’s ⋯ menu.',
+      'It lists seed, plants, compost and feed for what’s planned on the plan and on your Want to grow list. Seed already in your tin, and feeds on your shelf, are left off.',
+      'Tick things as you buy them. A tick lasts the season.',
+      'Share the list sends what’s left to buy to a message or a note.',
+      'With this year’s weather turned on in Your garden, a Water job appears after a few dry, warm days: for pots, and for anything planted out or sown in the last six weeks. After rain it goes.',
+    ],
+    notes: ['A packet past its sow-by date stays on the list, as fresh seed comes up better.'],
+    related: ['next-year', 'sowing'],
+    words: 'shopping list buy seeds seed packets compost feed bags garden centre order water watering dry spell drought hot weather pots',
+  },
 ];
 
 export const helpTopic =(id: string): HelpTopic | undefined => HELP.find((t) => t.id === id);

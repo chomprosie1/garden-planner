@@ -304,8 +304,8 @@ describe('next door', () => {
 });
 
 describe('saving', () => {
-  it('is schema 18, with soil, pH, supports and next door checked, and schema 17 brought up to date', () => {
-    expect(SCHEMA_VERSION).toBe(18);
+  it('is schema 18 or later, with soil, pH, supports and next door checked, and schema 17 brought up to date', () => {
+    expect(SCHEMA_VERSION).toBeGreaterThanOrEqual(18);
     const ob = stickerFeature(stickerById('obelisk')!, [0, 0]);
     const g: Garden = { ...addFeature(addFeature(newGarden(), { ...bed(0, 0, 1000, 1000), soil: 'peaty', ph: 5.2 }), ob), soil: 'loam', soilPh: 6.5 };
     expect(validateGarden(JSON.parse(JSON.stringify(g)))).toEqual([]);
@@ -318,7 +318,7 @@ describe('saving', () => {
     expect(bad({}, { nextDoor: 'yes' as never })).toMatch(/nextDoor/);
     const old = { ...newGarden(), schemaVersion: 17 };
     const migrated = migrateGarden(old) as Garden;
-    expect(migrated.schemaVersion).toBe(18);
+    expect(migrated.schemaVersion).toBe(SCHEMA_VERSION);
     expect(validateGarden(migrated)).toEqual([]);
   });
 

@@ -1,4 +1,8 @@
-import { useMemo } from 'preact/hooks';
+import { useMemo, useState } from 'preact/hooks';
+import { draftYear } from '../../planting/rotation';
+import { shoppingList } from '../../planting/shopping';
+import { NextYearDialog } from '../NextYear';
+import { ShoppingDialog } from '../Shopping';
 import { jobsFor } from '../../calendar/jobs';
 import { seasonFor } from '../../content/seasons';
 import type { Store } from '../../model/store';
@@ -9,6 +13,8 @@ import { doneOf, JobList, PlantJobs } from '../Jobs';
 import { SeasonPhoto } from '../SeasonPhoto';
 import { ShedSummary } from '../ShedCards';
 import { usePlants } from '../usePlants';
+import { useWeatherNow } from '../useWeather';
+import { todayIso } from '../../model/ids';
 
 interface Props {
   store: Store;
@@ -28,9 +34,15 @@ export function Month({ store, garden, userPlants, prefs, go, back, now = new Da
   const season = seasonFor(month);
   const photoMonth = prefs.photoMonth === 'auto' ? month : prefs.photoMonth;
   const { plants, plantOf } = usePlants(userPlants);
-  const jobs = useMemo(() => (plants ? jobsFor(garden, plantOf, month, year, { weeding: prefs.weeding, feeding: prefs.feeding }) : []), [garden, plantOf, plants, month, year, prefs.weeding, prefs.feeding]);
-  const comingUp = useMemo(() => (plants ? jobsFor(garden, plantOf, next, nextYear, { weeding: prefs.weeding, feeding: prefs.feeding }) : []), [garden, plantOf, plants, next, nextYear, prefs.weeding, prefs.feeding]);
+  const { weather } = useWeatherNow();
+  const today = todayIso(now);
+  const opts = { weeding: prefs.weeding, feeding: prefs.feeding, today, weather };
+  const jobs = useMemo(() => (plants ? jobsFor(garden, plantOf, month, year, opts) : []), [garden, plantOf, plants, month, year, prefs.weeding, prefs.feeding, today, weather]);
+  const comingUp = useMemo(() => (plants ? jobsFor(garden, plantOf, next, nextYear, opts) : []), [garden, plantOf, plants, next, nextYear, prefs.weeding, prefs.feeding, today, weather]);
   const hasPlants = garden.plantings.some((p) => !p.removedOn) || garden.wishlist.length > 0;
+  const [shopping, setShopping] = useState(false);
+  const [drafting, setDrafting] = useState(false);
+  const toBuy = useMemo(() => (plants ? shoppingList(garden, plantOf, today, { feeding: prefs.feeding }).filter((i) => !i.bought).length : 0), [garden, plantOf, plants, today, prefs.feeding]);
 
   return (
     <div class="page month-page">
@@ -75,6 +87,34 @@ export function Month({ store, garden, userPlants, prefs, go, back, now = new Da
         )}
         {hasPlants && <p class="muted small">Harvest and winter jobs start once a planting has a sowing date. Ticking its sowing job sets the date, or you can set it on the plan.</p>}
       </section>
+
+      {plants && hasPlants && (
+        <section class="card plan-ahead">
+          <h2>Planning ahead</h2>
+          <div class="plan-ahead-row">
+            <span>
+              <strong>Shopping list</strong>
+              <span class="muted small"> · {toBuy ? `${toBuy} to buy` : 'nothing to buy'}</span>
+            </span>
+            <button type="button" class="btn btn-small" onClick={() => setShopping(true)}>
+              Open
+            </button>
+          </div>
+          {garden.plantings.length > 0 && (
+            <div class="plan-ahead-row">
+              <span>
+                <strong>Next year</strong>
+                <span class="muted small"> · {draftYear(today)}, with the crops rotated</span>
+              </span>
+              <button type="button" class="btn btn-small" onClick={() => setDrafting(true)}>
+                Draft it
+              </button>
+            </div>
+          )}
+        </section>
+      )}
+      {shopping && plants && <ShoppingDialog garden={garden} store={store} plantOf={plantOf} feeding={prefs.feeding} close={() => setShopping(false)} />}
+      {drafting && plants && <NextYearDialog garden={garden} store={store} plantOf={plantOf} close={() => setDrafting(false)} />}
 
       {plants && <ShedSummary garden={garden} plantOf={plantOf} />}
 

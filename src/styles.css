@@ -6227,3 +6227,55 @@ h2 {
 .shed-sow-plant strong {
   font-size: 1.05rem;
 }
+
+/* ---------- Release 27: next year, the shopping list ---------- */
+.plan-ahead-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.45rem 0;
+}
+.plan-ahead-row + .plan-ahead-row {
+  border-top: 1px solid var(--border);
+}
+.next-plan {
+  align-self: center;
+  max-width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.next-groups,
+.next-from {
+  margin: 0.1rem 0 0.35rem;
+}
+.next-from {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.next-from select {
+  min-height: 36px;
+}
+.next-badge {
+  margin-left: 0.4rem;
+}
+.shop-item {
+  align-items: flex-start;
+  padding: 0.25rem 0;
+}
+.shop-item input {
+  margin-top: 0.15rem;
+}
+.shop-note {
+  display: block;
+}
+.shop-bought strong {
+  text-decoration: line-through;
+  font-weight: 500;
+}
+.shop-dialog .clear-group ul,
+.next-dialog .clear-group ul {
+  max-height: none;
+}

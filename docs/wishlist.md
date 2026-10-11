@@ -27,7 +27,7 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Ideas for an empty bed from your own sowing list | Build, Stage 14 | S | Built in Stage 17 |
 | Days to crop for your own plants, in the plant form | Build, Stage 16 | S | Your own plants go by their months, moved with the season |
 | A warmer or cooler correction for your garden (a city, a hillside, a frost pocket) | Build, Stage 16 | S | For now, the nearest stations’ averages and your own frost dates |
-| Check-progress jobs from the warmth, not the month | Build, Stage 16 | S | Partly: running behind uses the warmth (release 8); the month's check jobs still use the months |
+| Check-progress jobs from the warmth, not the month | Build, Stage 16 | S | Built in release 27, for plants with days to crop |
 | Frost warnings as notifications, when the app is closed | Build, Stage 17 | M | Partly built in UX release 4 (installed, on Android); an iPhone or a computer needs a server |
 | This year’s warmth moving perennials’ seasons (an early spring brings strawberries on) | Build, Stage 17 | S | Their seasons go by the averages; crops with days use the real weather |
 | Join batches back together | Build, Stage 17 | S | For now, undo straight after splitting |
@@ -44,12 +44,12 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Plants (a fruit tree, a big shrub) casting shade in the sun views | Build, release 6 | M | Only features cast shade; a fruit tree planted as a plant doesn't |
 | Small, medium and large for rows and blocks | Build, release 6 | S | Single plants only for now |
 | A simpler details panel in Simple | Build, release 7 | S | More shows the full details in both modes |
-| No harvest job for a direct sowing that's running behind (not up) | Build, release 8 | S | Today can say it's not up and to harvest it in the same month |
+| No harvest job for a direct sowing that's running behind (not up) | Build, release 8 | S | Built in release 27 |
 | Weeds marked as a patch across a lawn or bed | Build, release 8 | S | One weed at a time for now |
 | Straighten a photo taken at an angle before tracing: tap four corners of something rectangular and give its size | Aerial spike, 7 Oct 2026 | S | Built in release 25 |
 | Ask the browser to keep the garden's storage, and push iPhone users to install | Review, 7 Oct 2026 | S | Parked until beta testing. Safari can clear a site's data after about 7 days without a visit unless it's on the home screen, and gardeners leave the app for weeks in winter |
 | "What grows here?": tap any spot for its sun hours through the year, frost and warmth, and the plants that suit it best | Review, 7 Oct 2026 | M | Partly built in release 16: Inspire me suggests plants for a bed, pot or lawn from its June sun and cover. Still to do: any spot, and its sun through the year |
-| Next year, drafted for you: crop families rotated bed by bed, what did well kept, what failed or ran behind dropped or moved | Review, 7 Oct 2026 | L | Moved up to release 27 (review, 9 Oct 2026). Needs a plant family on each plant, added in release 15 |
+| Next year, drafted for you: crop families rotated bed by bed, what did well kept, what failed or ran behind dropped or moved | Review, 7 Oct 2026 | L | Built in release 27 |
 | Water forecast: roof areas into water butts, rain and evaporation from Open-Meteo, "the butt runs dry on Thursday; water the pots tonight" | Review, 7 Oct 2026 | M | Planned in release 18 |
 | Nature calendar: what's in flower for bees each month, with gaps filled ("Nothing for bees in March: crocus?") | Review, 7 Oct 2026 | S–M | Planned in release 18 |
 | Same-spot photo timelapse: the last photo shown faintly over the camera to line up, stitched into a real timelapse | Review, 7 Oct 2026 | M | Planned in release 18 |
@@ -109,5 +109,5 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Ask the browser to keep the garden's storage; backup and home-screen nudges | Review, 9 Oct 2026 | S | Planned in release 24 (was parked until beta testing) |
 | Check the core 150 plants; the rest marked draft | Review, 9 Oct 2026 | L | The data track, alongside releases 24 to 28 |
 | A feedback form in the app, and private counts of first plant and return visits | Review, 9 Oct 2026 | S | Planned in release 28 |
-| A shopping list of seeds, sets, compost and feed for what's planned | Review, 9 Oct 2026 | S | Planned in release 27 |
-| Watering jobs for pots and new plantings in dry spells | Review, 9 Oct 2026 | S | Planned in release 27 |
+| A shopping list of seeds, sets, compost and feed for what's planned | Review, 9 Oct 2026 | S | Built in release 27 |
+| Watering jobs for pots and new plantings in dry spells | Review, 9 Oct 2026 | S | Built in release 27 |

@@ -39,6 +39,14 @@ export interface Garden {
   soil?: GroundSoil;
   /** Its pH, if you've tested it: 3.5 to 9. */
   soilPh?: number;
+  /** Ticks on the shopping list: what's been bought, by the item's key ("seed:carrot"), and when. */
+  bought?: Bought[];
+}
+
+/** A tick on the shopping list. It counts for one season (see src/planting/shopping.ts). */
+export interface Bought {
+  key: string;
+  date: string; // ISO date it was ticked
 }
 
 /** What the ground is: heavy clay to light sand, chalk, peat, or good loam. */
