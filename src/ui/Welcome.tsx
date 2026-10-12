@@ -62,7 +62,7 @@ export function Welcome({ gardenName, prefs, prefsStore, done }: Props) {
             <button type="button" class="btn btn-on-photo" onClick={() => done('month')}>
               See my tasks
             </button>
-            <button type="button" class="btn btn-on-photo" onClick={() => done('profile')}>
+            <button type="button" class="btn btn-on-photo" onClick={() => done('settings')}>
               About my garden
             </button>
             <button type="button" class="btn btn-on-photo" onClick={() => done('new')}>

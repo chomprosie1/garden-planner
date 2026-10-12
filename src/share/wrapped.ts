@@ -17,6 +17,8 @@ export interface SeasonStats {
   grams: number;
   top: CropTotal[];
   busiest: { month: number; count: number } | null;
+  /** How many months of the year had something dated in them. */
+  activeMonths: number;
   /** Photos on notes in the year, newest first, by photo id. */
   photos: { photo: string; text: string; date: string }[];
   /** Easy crops not grown this year, to try next. */
@@ -52,6 +54,7 @@ export function seasonStats(g: Garden, year: number, known: (id: string) => bool
     grams: top.reduce((a, t) => a + t.grams, 0),
     top,
     busiest: peak > 0 ? { month: months.indexOf(peak) + 1, count: peak } : null,
+    activeMonths: months.filter((n) => n > 0).length,
     photos: g.notes
       .filter((n) => n.photo && inYear(n.date))
       .sort((a, b) => (a.date < b.date ? 1 : -1))
@@ -59,6 +62,12 @@ export function seasonStats(g: Garden, year: number, known: (id: string) => bool
     tryNext: SUGGEST.filter((id) => known(id) && !crops.includes(id)).slice(0, 2),
   };
 }
+
+/**
+ * A season's worth to wrap up: three crops or more, over three months or more. Before that, one early pick ("2
+ * plantings, of 1 crop") is no story to tell.
+ */
+export const seasonsWorth = (s: SeasonStats): boolean => s.crops.length >= 3 && s.activeMonths >= 3;
 
 export interface WrappedCard {
   eyebrow: string;

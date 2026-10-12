@@ -1681,7 +1681,7 @@ Decided:
 | Mon 12 Oct | 31. One answer everywhere | Every sowing window read, and the open one shown. Now or This week, not "tomorrow". Seed potatoes, sets, cloves and bulbs on the shopping list. "Already in the ground" asks when. Autumn kinds in the autumn kits. Plant, not sow, for bulbs. The "(check)"s out. Sowing ticks its job and spends the seed. Save works straight away. Wider toasts. | Built 11 Oct 2026 |
 | Tue 13 Oct | 32. List mode, put right | Beds stay inside the garden. No stacked plants. Planters take rows. A pot's room measured properly. Climbers listed. Moves that fit. How many pots. Beds numbered as added. No plan words. Rows folded. A menu for the list. | Built 11 Oct 2026 |
 | Wed 14 Oct | Testing day | You and your two testers on 31 and 32. Fixes go out as 31.1 and 32.1. | |
-| Thu 15 Oct | 33. Today, and where things live | One list of jobs to tick at the top of Today. A smaller photo. Planning ahead in autumn and winter. Seedlings becomes Shed. One Settings. A calmer first landing. Darker captions and Extra large text. Place search kept to the UK. | |
+| Thu 15 Oct | 33. Today, and where things live | One list of jobs to tick at the top of Today. A smaller photo. Planning ahead in autumn and winter. Seedlings becomes Shed. One Settings. A calmer first landing. Darker captions and Extra large text. Place search kept to the UK. | Built 12 Oct 2026 |
 | Fri 16 Oct | 34. Explain the gardening | A glossary of about 40 words, tappable in jobs and plant pages. A how-to on each job, with Done. Kits sized for a first garden. Not-now notes. A warning when a bed is booked. | |
 | Sat 17 – Sun 18 Oct | Testing weekend | Your testers on 33 and 34. You check the glossary's wording and its gardening. | |
 | Mon 19 Oct | 35. Next year, and the seasons | Overwintering crops in the year they're picked. Using the draft twice replaces the first. Every bed in the draft. "What did you grow this summer?" Autumn sowings filled in. Season-aware care. The climate's station and season checked. | |
@@ -1792,6 +1792,80 @@ Tests, in `tests/list.test.ts`:
 Not changed:
 - **Show it as a plan** for a list started from nothing gives a plan with no outline. Draw one there, or it can be added when switching, if testers miss it.
 - **Opening a folded line** shows the first row's own count on its Care tab ("Plants 16"), with "Row in Bed 2" above it.
+
+### Release 33 — Today, and where things live (as built)
+Built 12 Oct 2026, ahead of its Thu 15 slot, at your request, so the Wed 14 testing day now covers 31 to 33.
+
+- **The top of Today is one list to tick** (`src/ui/TodayJobs.tsx`):
+  - **Now**, then **Later this month**, then **To look out for this week** (seedlings up, flowers, ready to pick), then "All October jobs". Now shows eight, then "And N more".
+  - `jobTiming` (`src/calendar/week.ts`, pure) splits the month's jobs. Only sowing and planting out can be later: a batch's day, or seedlings still growing on, by the plantings' timelines. Anything due this week, anything else, and anything ticked is Now.
+  - The swipe-through week tiles are gone (`WeekCard.tsx`), and so is the second "This month" card with its own ticks.
+  - Without plants of your own, it's the month's general UK jobs, as before.
+- **The photo is a band:** about 168 px (in rem, so it grows with the text) for Cottage and Modern, and smaller photos for Heritage, Allotment and Minimal. The "This month" eyebrow and the packet's fold line went.
+- **At most two things that need you now** follow the jobs: frost, ready for the garden, running behind, a moment, then UV, in that order. The CSS shows the first two that have anything to say (`.home-now`).
+- **Below them:** Planning ahead (September to February), Getting started, the kitchen, Inspire, the season and the journal. Then, below the fold: What's new, Install, the garden card and the backup reminder.
+- **Backups asked once:** the reminder card waits while Getting started is showing with its backup step to do (`setupShowing`).
+- **The month's line fits the garden** (`monthLine`, `src/content/seasons.ts`):
+  - Each month has a line for any garden that tells nobody to do anything to a plant, and three or four about one plant each.
+  - The first line about something growing or on the Want to grow list is used, and a kind counts as its plant. October with garlic: "Leaves turning, and garlic cloves going in."
+  - It's used on Today and the month's page.
+- **Planning ahead** (`src/ui/PlanAhead.tsx`), the shopping list and next year's draft, is now one card. It's on Today from September to February, and still on the month's page.
+- **Seedlings is now the Shed.** The tab and page are called Shed, with Trays · Seed tin · Feed shelf as before.
+  - The address is `#/shed`, and `#/seedlings` still works.
+  - Messages say where a tray is (`placePhrase`, `trayFrom` in `src/lifecycle/shed.ts`): "Sweet pea sown on the windowsill." and "Planted out 12 sweet pea plants from the windowsill into Bed 2."
+- **One Settings:**
+  - Your garden's page is folded in. Settings runs Your garden, Seasons and weather, Reminders (its own card now), Backups, Your gardens, Look and text size (text size first), then Help and What's new. Keyboard, More, Credits, Advanced and Start again follow.
+  - `#/your-garden` and the `profile` view open Settings; `Profile.tsx` is gone.
+  - The same Settings button (`SettingsButton`) is at the top right of every tab on a phone: Today, Garden (plan and list), Shed and Plants. The rail has it on a wider screen.
+  - The garden's name on Today and the plan opens Settings too.
+  - The plan's ··· menu loses its two "Your garden" and "Your gardens" items.
+- **Simple and Advanced** moved from the plan's toolbar into its ··· menu ("Advanced tools: draw, reshape, sun and shade" / "Simple tools: drop and drag").
+- **A calmer first landing:**
+  - After setting up, it's Today, with the first job about something in the garden marked **Start here**.
+  - Nothing is selected on the plan, and there's no toast.
+  - Skipping lands on Today too.
+  - The plan's first tips wait for the first tap on the plan.
+- **Legibility:**
+  - Grey captions (`muted`) and tab labels (`chromeMuted`) are darker in every look, light and dark. `tests/contrast.test.ts` now holds them to 7:1 on every background they sit on.
+  - **Extra large** text (131%) is in Settings, next to Standard and Large.
+  - The list has a key to its season bars: what each colour means, and the months they span.
+  - On a phone, the year slider shows "Winter ’27" and "Summer" instead of 25 month letters.
+  - Zoomed out to the whole garden, a bed narrower than 150 px on screen shows a count of its jobs on its corner (or "Empty"), clear of its name, instead of its chips.
+- **Place search keeps to the UK** (`src/weather/places.ts`):
+  - Open-Meteo is asked for GB only, and any other country it returns is dropped (the Isle of Man and Channel Islands are kept).
+  - "LS6 3" and "LS6 3A" find LS6. "LS63", if it doesn't exist, is tried as "LS6 3".
+  - Enter searches. A postcode's one match is set straight away.
+  - Next with places showing asks "Which of these is your garden?". With a search typed but not run, Next runs it.
+  - The stray bullet beside results is gone.
+- **"Dates are UK averages"** on the month's page shows only when no place is set.
+- **Wrapped waits for a season's worth:** three crops over three months (`seasonsWorth`, with `activeMonths` added to the season's stats). One early pick no longer offers it.
+- **Fixed while checking:** the plan's job chips said "Plant out crocus". They now use the job's own word ("Plant crocus").
+- **Words:** help, search, the welcome and messages say Settings and the Shed where they said Your garden and Seedlings.
+- **Version** 0.33.0.
+- **Checked** at 390 px, a new list garden in Leeds from the Garden template with the autumn kit:
+  - place search with Enter, and Next asking for a pick;
+  - landing on Today, with Start here, the garlic line and the short band;
+  - Settings;
+  - the Shed;
+  - the list with its bar key;
+  - the plan, with counts on the small beds and the ··· menu;
+  - Today in Extra large.
+
+Tests: new `tests/today.test.ts`:
+- Now and Later: open windows, a late batch, one due this week, ticked jobs, other kinds always Now;
+- the month's line for gardens with and without the plant, kinds, cleared plantings, and that every line's plant exists;
+- the UK place search, partial postcodes and the retry;
+- Wrapped's season's worth;
+- tray place phrases;
+- the backup asked once;
+- the Shed's address, old and new;
+- Extra large surviving the preferences check.
+
+`tests/contrast.test.ts` has the 7:1 check for captions.
+
+Not changed:
+- **Today's look per style:** each look keeps its own header, only shorter.
+- **The Garden tab's photo band** in list mode is as it was.
 
 ## Repo layout
 ```

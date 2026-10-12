@@ -41,6 +41,21 @@ describe('contrast', () => {
           .map(([name, ratio]) => `${name}: ${ratio.toFixed(2)}`);
         expect(failures).toEqual([]);
       });
+
+      // Captions and tab labels are small, so they're held to 7:1 (AAA), on every background they sit on.
+      it(`${id} ${mode}: small grey captions meet 7:1`, () => {
+        const { ui } = LOOKS[id][mode];
+        const failures = ([
+          ['muted', 'bg'],
+          ['muted', 'surface'],
+          ['muted', 'surface2'],
+          ['chromeMuted', 'chrome'],
+        ] as [keyof UiPalette, keyof UiPalette][])
+          .map(([fg, bg]) => [`${fg} on ${bg}`, contrast(ui[fg], ui[bg])] as const)
+          .filter(([, ratio]) => ratio < 7)
+          .map(([name, ratio]) => `${name}: ${ratio.toFixed(2)}`);
+        expect(failures).toEqual([]);
+      });
     }
   }
 });

@@ -70,7 +70,7 @@ const listOf = (names: string[]) => (names.length > 3 ? `${names.slice(0, 3).joi
 const litres = (l: number) => `about ${l < 10 ? Math.max(1, Math.round(l)) : Math.round(l / 5) * 5} litres`;
 
 export interface ShopOptions {
-  /** Feeds too. The app asks for them unless feeding is turned off in Your garden. */
+  /** Feeds too. The app asks for them unless feeding is turned off in Settings. */
   feeding?: boolean;
 }
 

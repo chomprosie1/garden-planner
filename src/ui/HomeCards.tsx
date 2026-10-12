@@ -47,11 +47,11 @@ export function SaveIndicator() {
 
 // ---------- The garden's name ----------
 
-/** The garden's name, which opens Your garden: its place, seasons and backups. */
+/** The garden's name, which opens Settings, where the garden's place, seasons and backups are first. */
 export function GardenName({ name, class: cls = '' }: { name: string; class?: string }) {
   const app = useApp();
   return (
-    <button type="button" class={`garden-name-btn ${cls}`} title="Your garden: location, frosts and backups" onClick={() => app.go('profile')}>
+    <button type="button" class={`garden-name-btn ${cls}`} title="Settings: your garden’s place, frosts and backups" onClick={() => app.go('settings')}>
       {name}
       <Icon name="chevron" size={14} />
     </button>

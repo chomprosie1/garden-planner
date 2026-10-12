@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-15-today-and-where',
+    date: '2026-10-15',
+    title: 'Today, and where things live',
+    items: [
+      'Today starts with one list of jobs to tick: Now, then Later this month, then what to look out for this week. The photo is a short band at the top, and the month’s line is about what you’re growing.',
+      'Below the jobs come at most two things that need you now, such as a frost warning or seedlings ready for the garden. From September to February, Planning ahead has your shopping list and next year’s draft.',
+      'Seedlings is now called the Shed: your trays, seed tin and feed shelf. Messages say where a tray is, such as “Sweet pea sown on the windowsill”.',
+      'There’s one Settings, with the same button on every screen. Your garden comes first, then reminders, backups, and look and text size, which now has Extra large. Grey captions are darker and easier to read.',
+      'Place search keeps to the UK, finds part of a postcode such as “LS6 3”, and searches when you press Enter. If you press Next before picking a place, it asks you to pick one.',
+      'After setting up, you land on Today with your first job picked out. On the plan, Simple and Advanced tools are in the ··· menu, and zoomed right out, each bed shows a count of its jobs.',
+    ],
+    tryIt: { label: 'See Today', view: 'home' },
+  },
+  {
     id: '2026-10-13-list-put-right',
     date: '2026-10-13',
     title: 'Your list, put right',

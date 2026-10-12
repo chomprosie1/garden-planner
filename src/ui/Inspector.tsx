@@ -976,7 +976,7 @@ function CoverSection({ store, garden, f, locked }: { store: Store; garden: Gard
       )}
       {place ? (
         <p class="small">
-          Seedlings raised in here are on <strong>{place.name}</strong> in Seedlings.{' '}
+          Seedlings raised in here are on <strong>{place.name}</strong> in the Shed.{' '}
           <button type="button" class="link-btn" onClick={() => app.go('shed')}>
             Open the shed
           </button>
@@ -987,7 +987,7 @@ function CoverSection({ store, garden, f, locked }: { store: Store; garden: Gard
           class="btn"
           onClick={() => {
             commit((g) => addPlace(g, { ...makePlace(f.kind === 'greenhouse' ? 'greenhouse-bench' : 'cold-frame', featureLabel(f)), featureId: f.id }));
-            app.notify(`${featureLabel(f)} added to Seedlings, for trays raised in here.`, { undo: true });
+            app.notify(`${featureLabel(f)} added to the Shed, for trays raised in here.`, { undo: true });
           }}
         >
           Raise seedlings in here

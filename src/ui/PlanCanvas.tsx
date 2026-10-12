@@ -12,7 +12,7 @@ import { fit, pan, toScreen, toWorld, zoomAt, type Viewport } from '../canvas/vi
 import { bounds, distance, type Bounds } from '../geometry/polygon';
 import { pointAtLength } from '../geometry/snap';
 import { simplify, simplifyClosed } from '../geometry/simplify';
-import { plantOutTray } from '../lifecycle/shed';
+import { plantOutTray, trayFrom } from '../lifecycle/shed';
 import { todayIso } from '../model/ids';
 import { addSketch, deleteSketches, makeSketch, sketchesAt } from '../model/sketches';
 import {
@@ -410,13 +410,16 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const v = view.current;
     if (!v || !wrap.current) return;
     for (const el of wrap.current.querySelectorAll<HTMLElement>('[data-world]')) {
-      const [x = 0, y = 0] = el.dataset.world!.split(',').map(Number);
+      const w = Number(el.dataset.worldW ?? 0);
+      // At whole-garden zoom, a bed's chips give way to a count on its corner, clear of its name.
+      const small = !!w && !!el.dataset.worldCorner && w * v.scale < 150;
+      el.classList.toggle('plan-chips-small', small);
+      const [x = 0, y = 0] = (small ? el.dataset.worldCorner! : el.dataset.world!).split(',').map(Number);
       const [sx, sy] = toScreen(v, [x, y]);
       el.style.left = `${Math.round(sx)}px`;
       el.style.top = `${Math.round(sy)}px`;
-      // Chips on a bed too small on screen to carry them are hidden until you zoom in.
-      const w = Number(el.dataset.worldW ?? 0);
-      el.style.visibility = w && w * v.scale < 56 ? 'hidden' : '';
+      // Chips on a bed too small on screen even for a count are hidden until you zoom in.
+      el.style.visibility = w && w * v.scale < (small ? 24 : 56) ? 'hidden' : '';
       // No wider than the bed, so chips on neighbouring beds don't run into each other.
       if (w) el.style.maxWidth = `${Math.round(Math.max(140, w * v.scale + 16))}px`;
     }
@@ -729,8 +732,9 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const withFence = (g: Garden) => (fence ? addFeature(g, fence) : g);
     if (placing.trayId) {
       const trayId = placing.trayId;
+      const from = trayFrom(garden(), trayId);
       commit((g) => plantOutTray(withFence(g), trayId, pl, todayIso()));
-      A.current.notify(`Planted out ${n === 1 ? `a ${plant.commonName.toLowerCase()}` : `${n} ${plant.commonName.toLowerCase()} plants`} from the shed into ${placeLabel(bed)}.`, { undo: true });
+      A.current.notify(`Planted out ${n === 1 ? `a ${plant.commonName.toLowerCase()}` : `${n} ${plant.commonName.toLowerCase()} plants`} ${from} into ${placeLabel(bed)}.`, { undo: true });
       say(null);
       p.setTool('select');
       return;
@@ -786,8 +790,9 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const name = placing.plant.commonName.toLowerCase();
     if (placing.trayId) {
       const trayId = placing.trayId;
+      const from = trayFrom(garden(), trayId);
       commit((g) => plantOutTray(withFence(g), trayId, pl, todayIso()));
-      A.current.notify(`Planted out ${n === 1 ? `a ${name}` : `${n} ${name} plants`} from the shed ${whereOn(bed, !!fence).replace(/^in /, 'into ')}.`, { undo: true });
+      A.current.notify(`Planted out ${n === 1 ? `a ${name}` : `${n} ${name} plants`} ${from} ${whereOn(bed, !!fence).replace(/^in /, 'into ')}.`, { undo: true });
     } else {
       commit((g) => addPlanting(withFence(g), pl));
       say(`Planted ${n === 1 ? `a ${name}` : `${n} ${name} plants`} ${whereOn(bed, !!fence)}.`);

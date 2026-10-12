@@ -28,23 +28,22 @@ import { WhatsNew } from './views/WhatsNew';
 import { Help } from './views/Help';
 import { welcomeDue, welcomesAt } from './launch';
 import { Welcome } from './Welcome';
-import { Profile } from './views/Profile';
 import { WrappedHost } from './WrappedHost';
 import { ReminderKeeper } from './ReminderKeeper';
 import { worthKeeping } from './setup';
 import { askToKeep, asksOutLoud, shouldAskToKeep } from '../storage/persist';
 import { todayIso } from '../model/ids';
 
-/** The four tabs: what's to do, the garden itself, seedlings in the shed, and plants to grow. */
+/** The four tabs: what's to do, the garden itself, the shed (trays, seed tin and feed shelf), and plants to grow. */
 const NAV: { view: View; label: string; icon: IconName }[] = [
   { view: 'home', label: 'Today', icon: 'home' },
   { view: 'plan', label: 'Garden', icon: 'plan' },
-  { view: 'shed', label: 'Seedlings', icon: 'shed' },
+  { view: 'shed', label: 'Shed', icon: 'shed' },
   { view: 'plants', label: 'Plants', icon: 'plants' },
 ];
 
 /** Pages that sit under a tab rather than being one: they highlight their parent. */
-const PARENT: Partial<Record<View, View>> = { notes: 'home', check: 'plants', month: 'home', new: 'home', profile: 'home' };
+const PARENT: Partial<Record<View, View>> = { notes: 'home', check: 'plants', month: 'home', new: 'home' };
 
 /** Pages you go into and come back from. */
 const SUB_PAGES: View[] = ['settings', 'check', 'notes', 'month', 'new', 'profile', 'help'];
@@ -72,6 +71,8 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   const [searching, setSearching] = useState(false);
   const [shedSow, setShedSow] = useState<string | null>(null);
   const [wrapping, setWrapping] = useState(false);
+  /** Just set up: Today picks out the first job, until you go elsewhere. */
+  const [startHere, setStartHere] = useState(false);
   // The welcome, on the day's first launch: not the very first (setting up runs then), nor a link or reminder to a particular screen.
   const [welcoming, setWelcoming] = useState(() => prefs.onboarded && welcomesAt(location.hash) && welcomeDue(prefs.welcomedOn, todayIso()));
   const weather = useWeatherFeed(garden, prefs.weather && prefs.onboarded);
@@ -81,6 +82,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
    * Plan → Settings → Help → Back → Back is the plan again. A main screen starts the trail afresh.
    */
   const navigate = (v: View, sub?: string) => {
+    if (v !== 'home') setStartHere(false);
     if (!SUB_PAGES.includes(v)) setTrail([]);
     else if (view !== v) setTrail((t) => [...t, view]);
     go(v, sub);
@@ -165,7 +167,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
     const p = prefsStore.get();
     // Not while the welcome is up: the note would be lost behind it.
     if (!p.onboarded || p.seenMonth === month || welcoming) return;
-    if (p.seenMonth !== null) actions.notify(`Welcome to ${seasonFor(month).name}. Your jobs for the month are on Home.`);
+    if (p.seenMonth !== null) actions.notify(`Welcome to ${seasonFor(month).name}. Your jobs for the month are on Today.`);
     prefsStore.set({ seenMonth: month });
   }, [prefsStore, prefs.onboarded, welcoming]);
 
@@ -196,9 +198,10 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
         prefsStore={prefsStore}
         go={navigate}
         again={gardenCount() > 1}
-        showFirst={(target, note) => {
-          actions.showOnPlan(target);
-          actions.notify(note);
+        showFirst={() => {
+          // A calm first landing: Today, with the first job picked out. Nothing selected on the plan, no toast.
+          setStartHere(true);
+          navigate('home');
         }}
       />
     );
@@ -267,7 +270,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   const screen = (() => {
     switch (view) {
       case 'home':
-        return <Home store={store} garden={garden} userPlants={userPlants} prefs={prefs} prefsStore={prefsStore} go={navigate} />;
+        return <Home store={store} garden={garden} userPlants={userPlants} prefs={prefs} prefsStore={prefsStore} go={navigate} startHere={startHere} />;
       case 'plan':
         // A garden kept as a list shows its beds as a list instead of the plan.
         if (garden.view === 'list')
@@ -309,10 +312,10 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
         return <CheckPlants store={store} userPlants={userPlants} startAt={checkFrom} back={back} />;
       case 'new':
         return <WhatsNew prefs={prefs} prefsStore={prefsStore} back={back} go={navigate} />;
-      case 'profile':
-        return <Profile store={store} garden={garden} prefsStore={prefsStore} back={back} />;
       case 'help':
         return <Help back={back} go={navigate} />;
+      // Your garden's page is part of Settings now; old links to it land there.
+      case 'profile':
       case 'settings':
         return (
           <Settings
@@ -356,7 +359,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
           <a
             href={hashFor('settings')}
             class="nav-item nav-settings"
-            aria-current={view === 'settings' ? 'page' : undefined}
+            aria-current={view === 'settings' || view === 'profile' ? 'page' : undefined}
             onClick={(e) => {
               e.preventDefault();
               navigate('settings');

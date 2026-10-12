@@ -1,8 +1,8 @@
 // Finding your garden by a postcode or a place name, so nobody has to know
-// their latitude. UK postcodes (whole, or just the first half, like "LS6") go
-// to postcodes.io; anything else to Open-Meteo's place search, the same free,
-// keyless service the weather comes from. Only what you type is sent, when you
-// search.
+// their latitude. UK postcodes (whole, the first half like "LS6", or part of
+// the second half like "LS6 3") go to postcodes.io; anything else to
+// Open-Meteo's place search, the same free, keyless service the weather comes
+// from, kept to the UK. Only what you type is sent, when you search.
 
 export interface Place {
   /** "Headingley", "LS6 3AB". */
@@ -15,6 +15,10 @@ export interface Place {
 
 /** A UK postcode, whole ("LS6 3AB") or its first half ("LS6"). */
 export const POSTCODE = /^\s*([A-Z]{1,2}\d[A-Z\d]?)(\s*\d[A-Z]{2})?\s*$/i;
+/** The first half and part of the second ("LS6 3", "LS6 3A"): found by its first half. */
+const PARTIAL = /^\s*([A-Z]{1,2}\d[A-Z\d]?)\s+\d[A-Z]?\s*$/i;
+/** Places Open-Meteo calls the UK (with the Isle of Man and the Channel Islands, which share its postcodes). */
+const UK = new Set(['GB', 'IM', 'JE', 'GG']);
 
 const num = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 const str = (v: unknown): string => (typeof v === 'string' ? v : '');
@@ -35,13 +39,15 @@ export function parseOutcode(json: unknown): Place[] {
   return [{ name: str(r.outcode), detail: joined(district, Array.isArray(r.country) ? r.country[0] : r.country), lat: r.latitude, lon: r.longitude }];
 }
 
-/** Places from Open-Meteo's search: { results: [{ name, latitude, longitude, admin2, admin1, country }] }. */
+/** Places from Open-Meteo's search: { results: [{ name, latitude, longitude, admin2, admin1, country, country_code }] }. Only UK places. */
 export function parseGeocoding(json: unknown): Place[] {
   const results = (json as { results?: unknown[] } | null)?.results;
   if (!Array.isArray(results)) return [];
   return results.flatMap((x) => {
     const r = x as Record<string, unknown>;
     if (!num(r.latitude) || !num(r.longitude) || !str(r.name)) return [];
+    // Leeds, Alabama is no use for a UK garden.
+    if (str(r.country_code) && !UK.has(str(r.country_code).toUpperCase())) return [];
     return [{ name: str(r.name), detail: joined(r.admin2, r.admin1, r.country), lat: r.latitude, lon: r.longitude }];
   });
 }
@@ -50,8 +56,9 @@ export function placeUrl(query: string): { url: string; kind: 'postcode' | 'outc
   const q = query.trim();
   const m = POSTCODE.exec(q);
   if (m && m[2]) return { url: `https://api.postcodes.io/postcodes/${encodeURIComponent(q.replace(/\s+/g, ' ').toUpperCase())}`, kind: 'postcode' };
-  if (m) return { url: `https://api.postcodes.io/outcodes/${encodeURIComponent(m[1]!.toUpperCase())}`, kind: 'outcode' };
-  return { url: `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=en&format=json`, kind: 'name' };
+  const outcode = m?.[1] ?? PARTIAL.exec(q)?.[1];
+  if (outcode) return { url: `https://api.postcodes.io/outcodes/${encodeURIComponent(outcode.toUpperCase())}`, kind: 'outcode' };
+  return { url: `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=en&format=json&countryCode=GB`, kind: 'name' };
 }
 
 /** Places matching what you typed; none if nothing matches. Throws if the search couldn't be made (offline, say). */
@@ -59,6 +66,8 @@ export async function searchPlaces(query: string, get: typeof fetch = fetch): Pr
   if (query.trim().length < 2) return [];
   const { url, kind } = placeUrl(query);
   const res = await get(url);
+  // "LS63", typed without its space, reads as a first half that doesn't exist: try it as "LS6 3".
+  if (res.status === 404 && kind === 'outcode' && /^[A-Z]{1,2}\d[A-Z\d]?\d$/i.test(query.trim())) return searchPlaces(`${query.trim().slice(0, -1)} ${query.trim().slice(-1)}`, get);
   // postcodes.io says 404 for a postcode it doesn't know: that's no match, not a failure.
   if (res.status === 404) return [];
   if (!res.ok) throw new Error(`The search said ${res.status}.`);

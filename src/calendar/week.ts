@@ -12,6 +12,7 @@ import { featureLabel } from '../model/features';
 import type { Garden, Plant } from '../model/types';
 import { isSown, startsAs, type StartsAs } from '../planting/windows';
 import type { Weather } from '../weather/weather';
+import type { Job } from './jobs';
 
 export interface Upcoming {
   key: string;
@@ -125,6 +126,32 @@ export function upcomingText(u: Upcoming, g: Garden, plantOf: (id: string) => Pl
   const bed = g.features.find((f) => f.id === u.featureId);
   const verb = upcomingVerb(u);
   return `${plant.commonName}${u.batch ? ` (${u.batch})` : ''}${bed ? ` in ${featureLabel(bed)}` : ''}: ${verb.charAt(0).toLowerCase()}${verb.slice(1)} ${whenWords(u, today)}`;
+}
+
+/**
+ * When in the month each of its jobs falls, for Today: "now" (due already, or this week) or "later" this month. Only
+ * sowing and planting out can wait: a sowing on its planned day, a batch's day, or seedlings still growing on, by when
+ * the plantings' timelines expect them. Everything else in the month's list is for now, as is a job ticked already.
+ */
+export function jobTiming(jobs: Job[], g: Garden, plantOf: (id: string) => Plant, today: string, weather: Weather | null = null): Map<string, 'now' | 'later'> {
+  const weekEnd = addDays(today, 6);
+  const done = new Set(g.jobsDone.map((j) => j.key));
+  const out = new Map<string, 'now' | 'later'>();
+  for (const job of jobs) {
+    const stage: LifeStage | null = job.kind === 'sow-indoors' || job.kind === 'sow-direct' ? 'sown' : job.kind === 'plant-out' ? 'transplanted' : null;
+    let soonest: string | null = null;
+    if (stage && !done.has(job.key))
+      for (const id of job.plantingIds) {
+        const pl = g.plantings.find((p) => p.id === id);
+        if (!pl) continue;
+        const step = timeline(plantOf(pl.plantId), pl, g, today, weather).find((s) => s.guessed && s.stage === stage && s.date !== null);
+        // Nothing expected for it (it's marked already): it's for now.
+        const date = step?.date ?? today;
+        if (soonest === null || date < soonest) soonest = date;
+      }
+    out.set(job.key, soonest !== null && soonest > weekEnd ? 'later' : 'now');
+  }
+  return out;
 }
 
 /** This week (today to six days on) and next (the seven days after). */

@@ -17,6 +17,7 @@ import {
   makePlace,
   moveTray,
   PLACE_LABEL,
+  placePhrase,
   placesOf,
   plantingNext,
   plantingsIndoors,
@@ -43,6 +44,7 @@ import { updateGarden, type Store } from '../../model/store';
 import { CONTAINERS, FACINGS, SHED_PLACE_KINDS, type Container, type Facing, type Garden, type Plant, type ShedPlace, type ShedPlaceKind, type Tray, type TrayStage } from '../../model/types';
 import { useApp } from '../appContext';
 import { HelpButton, HelpLink } from '../HelpLink';
+import { SettingsButton } from '../SettingsButton';
 import { Icon } from '../icons';
 import { SOW_KINDS, sowList, type SowKind } from '../../lifecycle/sowList';
 import { MORE_PLANTS } from '../../library/order';
@@ -118,8 +120,9 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
   return (
     <div class="page shed-page">
       <header class="page-head">
-        <h1 class="title">Seedlings</h1>
+        <h1 class="title">Shed</h1>
         <HelpButton topic="sowing" />
+        <SettingsButton />
         <button type="button" class="btn btn-primary shed-sow-btn" onClick={() => (show('trays'), setSowing(''))}>
           Sow seeds
         </button>
@@ -128,10 +131,10 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
         Last frost about {short(inYear(frost.lastFrost, 2027))}, first frost about {short(inYear(frost.firstFrost, 2027))}
         {frost.estimated ? ', estimated from your location' : ''}.{' '}
         <a
-          href="#/your-garden"
+          href="#/settings"
           onClick={(e) => {
             e.preventDefault();
-            app.go('profile');
+            app.go('settings');
           }}
         >
           Change
@@ -199,7 +202,8 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
                   const [sown, id] = sowInTray(g, plant, o);
                   made = id;
                   const tray = traysOf(sown).find((t) => t.id === id);
-                  where = placesOf(sown).find((p) => p.id === tray?.placeId)?.name ?? '';
+                  const place = placesOf(sown).find((p) => p.id === tray?.placeId);
+                  where = place ? placePhrase(place) : '';
                   // Its sowing job on the Want to grow list is done, and the seeds come out of the packet in the tin.
                   const next = sownInTray(sown, plant, o.date);
                   const packet = packetsFor(next, plant, plantOf).find((k) => k.count !== undefined);
@@ -207,7 +211,7 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
                 });
                 setSowing(null);
                 if (made) setSelected(made);
-                app.notify(`${plant.commonName} sown${where ? `: ${where}` : ''}.`, { undo: true });
+                app.notify(`${plant.commonName} sown${where ? ` ${where}` : ''}.`, { undo: true });
               }}
             />
           )}

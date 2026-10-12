@@ -1,4 +1,4 @@
-// Feeding, on screen: the feed shelf on the Seedlings page (what you have in,
+// Feeding, on screen: the feed shelf in the Shed (what you have in,
 // and what this season's plants call for), and how to feed a plant on its card.
 // No prices: they go stale.
 

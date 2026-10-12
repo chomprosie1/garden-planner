@@ -6,7 +6,7 @@ import { todayIso } from '../model/ids';
 import type { Garden, Plant } from '../model/types';
 import { formatWeight, picksIn } from '../planting/harvest';
 import { fileSafe, posterFile } from '../share/poster';
-import { drawWrappedCard, seasonStats, seasonYear, wrappedCards } from '../share/wrapped';
+import { drawWrappedCard, seasonStats, seasonsWorth, seasonYear, wrappedCards } from '../share/wrapped';
 import { photoUrl } from '../storage/photos';
 import { useApp } from './appContext';
 import { PlantIcon } from './PlantIcon';
@@ -98,7 +98,7 @@ export function WrappedDialog({ garden, plantOf, known, close }: { garden: Garde
   );
 }
 
-/** Today: what you've picked this year, and the season wrapped from September on. */
+/** Today: what you've picked this year, and the season wrapped from September on, once there's a season's worth. */
 export function SeasonCard({ garden, plantOf }: { garden: Garden; plantOf: (id: string) => Plant }) {
   const app = useApp();
   const today = todayIso();
@@ -106,7 +106,12 @@ export function SeasonCard({ garden, plantOf }: { garden: Garden; plantOf: (id: 
   const picked = useMemo(() => picksIn(garden, year), [garden, year]);
   const month = Number(today.slice(5, 7));
   const wrapTime = month >= 9 || month === 1;
-  const grown = useMemo(() => (wrapTime ? seasonStats(garden, seasonYear(today), undefined, (id) => plantOf(id).category === 'weed').plantings : 0), [garden, wrapTime, today]);
+  // Wrapped only once there's a season's worth: not after the first pick of the year.
+  const grown = useMemo(() => {
+    if (!wrapTime) return 0;
+    const s = seasonStats(garden, seasonYear(today), undefined, (id) => plantOf(id).category === 'weed');
+    return seasonsWorth(s) ? s.plantings : 0;
+  }, [garden, wrapTime, today]);
   if (!picked.length && !grown) return null;
   const total = picked.reduce((a, t) => a + t.grams, 0);
   return (

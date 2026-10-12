@@ -31,6 +31,7 @@ import { GardenName } from '../HomeCards';
 import { Inspector } from '../Inspector';
 import { isFocusLens, LensBar, LensLegend, LensPicker, type Lens } from '../Lenses';
 import { MoreMenu } from '../MoreMenu';
+import { SettingsButton } from '../SettingsButton';
 import { PhoneDrawBar, PhoneHandBar, PhoneSheet, PlantingBar } from '../PhonePlanControls';
 import { canDrawByHand, geometryForTool, helpForMessage, PlanCanvas, type CanvasApi, type Placing, type SketchPen, type Tool } from '../PlanCanvas';
 import { HelpLink, StuckNote } from '../HelpLink';
@@ -41,6 +42,7 @@ import { ShareDialog } from '../ShareDialog';
 import { SketchBar } from '../SketchBar';
 import { SpaceDialog } from '../SpacePicker';
 import { applyKit, type Kit } from '../../planting/kits';
+import { trayFrom } from '../../lifecycle/shed';
 import { useApp } from '../appContext';
 import { clockText, SunBar, type CalendarDate, type SunView } from '../SunBar';
 import { usePlants } from '../usePlants';
@@ -51,7 +53,7 @@ import { useSunHours } from '../useSunHours';
 import { useWeatherNow } from '../useWeather';
 import { yearScene } from '../yearScene';
 import { YearScrubber } from '../YearScrubber';
-import { isAdvancedLens, isAdvancedTool, isLocked, MODE_LABEL, type PlanMode } from '../planMode';
+import { isAdvancedLens, isAdvancedTool, isLocked, type PlanMode } from '../planMode';
 
 /** Something another screen (or search) asked the plan to do. */
 export type PlanIntent =
@@ -148,6 +150,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const [clearing, setClearing] = useState(false);
   const [drafting, setDrafting] = useState(false);
   const [shopping, setShopping] = useState(false);
+  // The first tips wait for your first tap on the plan, so it opens calm.
+  const [tapped, setTapped] = useState(false);
   const mode = prefs.planMode;
   const simple = mode === 'simple';
   // The padlock is Advanced; in Simple nothing's ever stuck.
@@ -191,7 +195,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
     // Asked for a drawing tool in Simple (from search, or "Redraw the boundary"): switch rather than refuse.
     if (simple && isAdvancedTool(t)) {
       prefsStore.set({ planMode: 'advanced' });
-      setMessage('Switched to Advanced, for drawing. Switch back to Simple at the top whenever you like.');
+      setMessage('Switched to Advanced, for drawing. Switch back to Simple in the ··· menu whenever you like.');
     }
   };
 
@@ -327,7 +331,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       const t = garden.trays?.find((x) => x.id === intent.trayId);
       if (t) {
         startPlanting(t.plantId, t.id);
-        setMessage(`Planting out ${t.count} ${plantOf(t.plantId).commonName.toLowerCase()} ${t.count === 1 ? 'plant' : 'plants'} from the shed: ${phone ? 'tap' : 'click'} the bed they go in.`);
+        setMessage(`Planting out ${t.count} ${plantOf(t.plantId).commonName.toLowerCase()} ${t.count === 1 ? 'plant' : 'plants'} ${trayFrom(garden, t.id)}: ${phone ? 'tap' : 'click'} the bed they go in.`);
       }
     } else {
       const t = intent.target;
@@ -508,22 +512,6 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
     </button>
   );
   const lensBar = phone ? <LensPicker lens={lens} setLens={chooseLens} mode={mode} {...(!empty ? { open3d: () => setThreeD(true) } : {})} /> : <LensBar lens={lens} setLens={chooseLens} mode={mode} {...(!empty ? { open3d: () => setThreeD(true) } : {})} />;
-  const modeSwitch = (
-    <div class="mode-switch" role="radiogroup" aria-label="Tools">
-      {(['simple', 'advanced'] as const).map((m) => (
-        <button
-          key={m}
-          type="button"
-          role="radio"
-          aria-checked={mode === m}
-          title={m === 'simple' ? 'Drop and drag beds, pots, plants and trees' : 'Draw by corners or by hand, reshape, type sizes, sketch, sun and shade'}
-          onClick={() => switchMode(m)}
-        >
-          {MODE_LABEL[m]}
-        </button>
-      ))}
-    </div>
-  );
   /** The plant checks, in the details for the whole garden. */
   const showChecks = () => {
     setSelected(null);
@@ -644,7 +632,6 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
             <Icon name="search" />
           </button>
           {/* Sun and shade fold the switch, lock and undo into the menu, for room to see. */}
-          {!sunOn && modeSwitch}
           {!simple && !sunOn && lockButton}
           {!sunOn && (
             <button type="button" class="icon-btn" aria-label="Undo" title="Undo (Ctrl+Z)" disabled={!store.canUndo()} onClick={() => store.undo()}>
@@ -657,9 +644,11 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
                 ? [
                     { label: 'Undo', icon: 'undo' as const, keys: 'Ctrl+Z', disabled: !store.canUndo(), onSelect: () => store.undo() },
                     { label: locked ? 'Unlock the layout' : 'Lock the layout', icon: (locked ? 'unlock' : 'lock') as IconName, onSelect: toggleLock },
-                    { label: 'Switch to Simple', icon: 'plan' as const, onSelect: () => switchMode('simple') },
                   ]
                 : []),
+              simple
+                ? { label: 'Advanced tools: draw, reshape, sun and shade', icon: 'pencil' as const, onSelect: () => switchMode('advanced') }
+                : { label: 'Simple tools: drop and drag', icon: 'plan' as const, onSelect: () => switchMode('simple') },
               { label: 'Redo', icon: 'redo', keys: 'Ctrl+Y', disabled: !store.canRedo(), onSelect: () => store.redo() },
               ...(!phone ? [{ label: 'Fit the garden to the screen', icon: 'fit' as const, keys: '0', onSelect: () => setFitSignal((n) => n + 1) }] : []),
               ...(phone ? [{ label: 'Details of the whole garden', icon: 'info' as const, onSelect: () => (setSelected(null), setSheetOpen(true)) }] : []),
@@ -672,11 +661,10 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               ...(garden.plantings.length ? [{ label: 'Draft next year…', icon: 'month' as const, onSelect: () => setDrafting(true) }] : []),
               { label: 'Shopping list', icon: 'check', onSelect: () => setShopping(true) },
               { label: 'Share a picture of the plan', icon: 'share', onSelect: () => setSharing(true) },
-              { label: 'Your garden: location and backups', icon: 'settings', onSelect: () => app.go('profile') },
-              { label: 'Your gardens: switch, or start a new one', icon: 'plan', onSelect: () => app.go('settings') },
               { label: 'Help with the plan', icon: 'help', onSelect: () => app.openHelp() },
             ]}
           />
+          <SettingsButton />
         </div>
       </header>
 
@@ -699,7 +687,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       )}
       {!phone && tool === 'sketch' && sketchBar}
       <div class="plan-body">
-        <main class="plan-stage">
+        <main class="plan-stage" onPointerDownCapture={() => !tapped && setTapped(true)}>
           {showPhoto && <SeasonPhoto month={photoMonth} sizes="100vw" class="plan-margin-photo" credit={false} />}
           <div class="sheet">
             <PlanCanvas
@@ -804,7 +792,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
                 <LensLegend kind={focus.kind} count={focus.ids.size} guessed={focusGuessed} live={!!weather} rain={focus.kind === 'water' ? (wetness(weather, when)?.rain3 ?? null) : null} />
               </div>
             )}
-            {!empty && tool === 'select' && !prefs.seenTips && plants && <PlanTips phone={phone} done={() => prefsStore.set({ seenTips: true })} />}
+            {!empty && tapped && tool === 'select' && !prefs.seenTips && plants && <PlanTips phone={phone} done={() => prefsStore.set({ seenTips: true })} />}
             {/* The two places people most often give up: nothing drawn, or beds and no plants, a minute on. */}
             <StuckNote
               class="plan-stuck"

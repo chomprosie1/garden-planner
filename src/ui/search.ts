@@ -98,10 +98,9 @@ const VIEWS: { view: View; label: string; words: string }[] = [
   { view: 'plan', label: 'Go to your garden', words: 'open page plan map layout' },
   { view: 'plants', label: 'Go to Plants', words: 'open page library list' },
   { view: 'month', label: 'This month’s jobs', words: 'open page month jobs calendar' },
-  { view: 'shed', label: 'Go to Seedlings', words: 'open page potting shed trays sow indoors propagator windowsill' },
-  { view: 'profile', label: 'Your garden: location, frosts and backups', words: 'open page where location north frost climate weather backup restore spacing name' },
+  { view: 'shed', label: 'Go to the Shed', words: 'open page potting shed seedlings trays sow indoors propagator windowsill seed tin feed shelf' },
   { view: 'notes', label: 'Go to the journal', words: 'open page notes diary' },
-  { view: 'settings', label: 'Go to Settings', words: 'open page backup location look theme dark frost weather forecast climate' },
+  { view: 'settings', label: 'Settings: your garden, reminders, backups and text size', words: 'open page your garden where location north frost climate weather forecast backup restore spacing name soil reminders look theme dark text size bigger larger' },
   { view: 'new', label: 'What’s new', words: 'open page news changes updates latest release' },
   { view: 'help', label: 'Help', words: 'open page how stuck guide instructions tips' },
 ];

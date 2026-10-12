@@ -1,6 +1,6 @@
 import { useMemo } from 'preact/hooks';
 import { photoForMonth } from '../../content/photos';
-import { seasonFor } from '../../content/seasons';
+import { monthLine, seasonFor } from '../../content/seasons';
 import type { Store } from '../../model/store';
 import type { Garden, Plant } from '../../model/types';
 import { jobsFor } from '../../calendar/jobs';
@@ -10,18 +10,19 @@ import { LOOKS } from '../../theme/looks';
 import type { Prefs, PrefsStore, View } from '../../theme/prefs';
 import { BackupCard, GardenCard, GardenName, JournalCard, MomentCard, SaveIndicator, SetupCard, WhatsNewCard } from '../HomeCards';
 import { FrostCard, UvCard } from '../WeatherCards';
-import { WeekCard } from '../WeekCard';
 import { KitchenCard } from '../Kitchen';
 import { InspireCard } from '../Inspire';
 import { SeasonCard } from '../Wrapped';
 import { InstallCard } from '../Install';
-import { Icon } from '../icons';
-import { doneOf, JobList, jobsDoneCount, PlantJobs } from '../Jobs';
+import { SettingsButton } from '../SettingsButton';
 import { PhotoCredit, SeasonPhoto } from '../SeasonPhoto';
 import { ReadyCard } from '../ShedCards';
 import { BehindCard } from '../BehindCard';
 import { useWeatherNow } from '../useWeather';
 import { todayIso } from '../../model/ids';
+import { PLAN_AHEAD_MONTHS, PlanAheadCard } from '../PlanAhead';
+import { TodayJobs } from '../TodayJobs';
+import { setupShowing } from '../setup';
 
 interface Props {
   store: Store;
@@ -30,10 +31,16 @@ interface Props {
   prefs: Prefs;
   prefsStore: PrefsStore;
   go: (v: View) => void;
+  /** Just set up: the first job is picked out. */
+  startHere?: boolean;
   now?: Date;
 }
 
-export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = new Date() }: Props) {
+/**
+ * Today: the month in a short band, then one list of jobs to tick, then at most two things that need you now (frost,
+ * seedlings ready, something running behind), then planning ahead in autumn and winter, and the rest further down.
+ */
+export function Home({ store, garden, userPlants, prefs, prefsStore, startHere = false, now = new Date() }: Props) {
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
   const season = seasonFor(month);
@@ -49,20 +56,14 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
     () => (plants ? jobsFor(garden, plantOf, month, year, { weeding: prefs.weeding, feeding: prefs.feeding, today, weather }) : []),
     [garden, plants, plantOf, month, year, prefs.weeding, prefs.feeding, today, weather],
   );
-  const total = mine.length || seasonFor(month).jobs.length;
-  const doneCount = mine.length ? doneOf(garden, mine) : jobsDoneCount(garden, month, year);
-
-  const settingsButton = (
-    <button type="button" class="icon-btn home-settings" aria-label="Settings" onClick={() => go('settings')}>
-      <Icon name="settings" />
-    </button>
-  );
+  // The month's line fits the garden: nobody's told to lift dahlias they don't have.
+  const line = plants ? monthLine(month, garden, plantOf) : season.line;
+  const settingsButton = <SettingsButton class="home-settings" />;
 
   const monthTitle = (
     <>
-      <p class="eyebrow">This month</p>
       <h1 class="title month-title">{season.name}</h1>
-      <p class="month-line">{season.line}</p>
+      <p class="month-line">{line}</p>
     </>
   );
 
@@ -96,7 +97,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
             <h1 class="title month-title">{season.name}</h1>
             <span class="rule" />
           </div>
-          <p class="month-line">{season.line}</p>
+          <p class="month-line">{line}</p>
         </header>
       ) : layout === 'packet' ? (
         <header class="home-packet">
@@ -112,10 +113,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
                 <span>No. {month}</span>
               </div>
               <h1 class="title month-title">{season.name}</h1>
-              <div class="packet-fold">
-                <span>sow · plant · lift · store</span>
-              </div>
-              <p class="month-line">{season.line}</p>
+              <p class="month-line">{line}</p>
             </div>
           </div>
           {photo && <PhotoCredit photo={photo} inline />}
@@ -126,8 +124,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
             <GardenName name={garden.name} class="garden-label" />
             {settingsButton}
           </div>
-          <h1 class="title month-title">{season.name}</h1>
-          <p class="month-line">{season.line}</p>
+          {monthTitle}
           {prefs.photos !== 'off' && photo && (
             <>
               <SeasonPhoto month={photoMonth} day={now.getDate()} sizes="(max-width: 700px) 92vw, 640px" class="band-photo" credit={false} />
@@ -138,49 +135,32 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, go, now = n
       )}
 
       <div class="home-body">
-        {/* What needs you now first, in panels; then the week, the month and the rest, as a page. */}
-        {plants && <MomentCard garden={garden} plantOf={plantOf} />}
-        {plants && <FrostCard garden={garden} plantOf={plantOf} />}
-        {prefs.uvOnToday && <UvCard garden={garden} />}
-        {plants && <ReadyCard store={store} garden={garden} plantOf={plantOf} />}
-        {plants && <WeekCard garden={garden} plantOf={plantOf} />}
-        {plants && <KitchenCard garden={garden} plantOf={plantOf} />}
-        <SetupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} />
-        <InspireCard store={store} garden={garden} />
-        {plants && <BehindCard store={store} garden={garden} plantOf={plantOf} />}
-        <section class="card">
-          <div class="card-head">
-            <h2>{layout === 'packet' ? 'Jobs on the plot' : layout === 'framed' ? 'Jobs for the month' : 'This month'}</h2>
-            <span class="muted small">
-              {doneCount} of {total} done
-            </span>
-          </div>
-          {layout === 'sheet' && (
-            <div class="progress" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={doneCount}>
-              <div style={{ width: `${(doneCount / total) * 100}%` }} />
-            </div>
-          )}
-          {mine.length > 0 ? <PlantJobs jobs={mine} garden={garden} store={store} limit={4} plantOf={plantOf} /> : <JobList store={store} garden={garden} month={month} year={year} limit={3} />}
-          <p class="card-foot">
-            <a
-              href="#/month"
-              onClick={(e) => {
-                e.preventDefault();
-                go('month');
-              }}
-            >
-              All {season.name} jobs
-            </a>
-            {mine.length === 0 && <span class="muted small"> · general UK jobs until you add plants</span>}
-          </p>
-        </section>
+        {/* One list to tick, first. */}
+        <TodayJobs store={store} garden={garden} plantOf={plants ? plantOf : null} jobs={mine} month={month} year={year} startHere={startHere} />
 
+        {/* What needs you now, two at most: the rest wait their turn (the CSS shows only the first two that have anything to say). */}
+        {plants && (
+          <div class="home-now">
+            <FrostCard garden={garden} plantOf={plantOf} />
+            <ReadyCard store={store} garden={garden} plantOf={plantOf} />
+            <BehindCard store={store} garden={garden} plantOf={plantOf} />
+            <MomentCard garden={garden} plantOf={plantOf} />
+            {prefs.uvOnToday && <UvCard garden={garden} />}
+          </div>
+        )}
+
+        {plants && PLAN_AHEAD_MONTHS.includes(month) && <PlanAheadCard store={store} garden={garden} plantOf={plantOf} feeding={prefs.feeding} />}
+        <SetupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} />
+        {plants && <KitchenCard garden={garden} plantOf={plantOf} />}
+        <InspireCard store={store} garden={garden} />
         {plants && <SeasonCard garden={garden} plantOf={plantOf} />}
         <JournalCard store={store} garden={garden} plantOf={plantOf} />
+
+        {/* Below the fold: news, installing, the garden at a glance, and a backup (asked here only when Getting started isn't asking). */}
         <WhatsNewCard prefs={prefs} prefsStore={prefsStore} />
         <InstallCard hidden={prefs.installHidden} prefsStore={prefsStore} />
         <GardenCard garden={garden} prefs={prefs} plants={plants} plantOf={plantOf} />
-        <BackupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} now={now} />
+        {!setupShowing(garden, prefs) && <BackupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} now={now} />}
         <SaveIndicator />
       </div>
     </div>

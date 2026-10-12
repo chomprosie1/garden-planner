@@ -1,4 +1,4 @@
-// Soil: the garden's in Your garden, and a bed's own in its panel. Plants
+// Soil: the garden's in Settings, and a bed's own in its panel. Plants
 // whose cards say the soil doesn't suit them get a check, as light does.
 
 import { useEffect, useState } from 'preact/hooks';

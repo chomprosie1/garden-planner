@@ -1,4 +1,4 @@
-// The seed tin, on the Seedlings page: your packets of seed, how many are left,
+// The seed tin, in the Shed: your packets of seed, how many are left,
 // whether they're still good, and a photo of the packet. Add one, change it,
 // or sow from it.
 

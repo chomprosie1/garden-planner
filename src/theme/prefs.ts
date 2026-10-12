@@ -6,7 +6,7 @@ import { LOOK_IDS, type LookId } from './looks';
 export const VIEWS = ['home', 'plan', 'plants', 'month', 'notes', 'settings', 'check', 'shed', 'new', 'profile', 'help'] as const;
 export type View = (typeof VIEWS)[number];
 
-/** What each screen is called in the address bar: Today, Garden and Seedlings are the tabs' names. Old names still work. */
+/** What each screen is called in the address bar: Today, Garden and Shed are the tabs' names. Old names still work. */
 export const VIEW_HASH: Record<View, string> = {
   home: 'today',
   plan: 'garden',
@@ -15,7 +15,7 @@ export const VIEW_HASH: Record<View, string> = {
   notes: 'journal',
   settings: 'settings',
   check: 'check',
-  shed: 'seedlings',
+  shed: 'shed',
   new: 'new',
   profile: 'your-garden',
   help: 'help',
@@ -25,6 +25,8 @@ export const VIEW_HASH: Record<View, string> = {
 export function viewForHash(name: string): View | null {
   const found = (Object.entries(VIEW_HASH) as [View, string][]).find(([, h]) => h === name);
   if (found) return found[0];
+  // The Shed was called Seedlings until release 33.
+  if (name === 'seedlings') return 'shed';
   return (VIEWS as readonly string[]).includes(name) ? (name as View) : null;
 }
 
@@ -33,7 +35,7 @@ export interface Prefs {
   mode: 'auto' | 'light' | 'dark';
   photos: 'full' | 'subtle' | 'off';
   photoMonth: 'auto' | number; // 1 to 12
-  textSize: 'standard' | 'large';
+  textSize: 'standard' | 'large' | 'xlarge';
   /** Photos hidden in Plan. null = the look's default. */
   focus: boolean | null;
   onboarded: boolean;
@@ -164,7 +166,7 @@ export function sanitisePrefs(raw: unknown): Prefs {
       typeof r.photoMonth === 'number' && Number.isInteger(r.photoMonth) && r.photoMonth >= 1 && r.photoMonth <= 12
         ? r.photoMonth
         : 'auto',
-    textSize: oneOf(['standard', 'large'] as const, r.textSize, d.textSize),
+    textSize: oneOf(['standard', 'large', 'xlarge'] as const, r.textSize, d.textSize),
     focus: typeof r.focus === 'boolean' ? r.focus : null,
     onboarded: r.onboarded === true,
     lastView: oneOf(VIEWS, r.lastView, d.lastView),

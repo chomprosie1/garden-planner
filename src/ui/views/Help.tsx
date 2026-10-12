@@ -8,7 +8,7 @@ import type { View } from '../../theme/prefs';
 import { hashForHelp, useHelpTopic, useIsPhone } from '../hooks';
 import { Icon } from '../icons';
 
-const SCREEN_NAME: Partial<Record<View, string>> = { plan: 'the garden', shed: 'Seedlings', home: 'Today', plants: 'Plants', settings: 'Settings', profile: 'your garden’s page' };
+const SCREEN_NAME: Partial<Record<View, string>> = { plan: 'the garden', shed: 'the Shed', home: 'Today', plants: 'Plants', settings: 'Settings', profile: 'your garden’s page' };
 
 interface Props {
   back: () => void;

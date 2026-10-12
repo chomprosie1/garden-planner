@@ -147,13 +147,14 @@ function shelfLine(garden: Garden | undefined, job: Job): string | null {
   return null;
 }
 
-function PlantJob({ job, done, onToggle, onPick, plantOf, garden }: { job: Job; done?: boolean; onToggle?: () => void; onPick?: (size: PickSize) => void; plantOf?: (id: string) => Plant; garden?: Garden }) {
+function PlantJob({ job, done, onToggle, onPick, plantOf, garden, startHere = false }: { job: Job; done?: boolean; onToggle?: () => void; onPick?: (size: PickSize) => void; plantOf?: (id: string) => Plant; garden?: Garden; startHere?: boolean }) {
   const [picking, setPicking] = useState(false);
   /** Just picked: what to do with it, from the kitchen. */
   const [picked, setPicked] = useState(false);
   const shelf = shelfLine(garden, job);
   const text = (
     <span class="job-text">
+      {startHere && <span class="job-start-label">Start here</span>}
       <span>
         <strong>{job.plant}</strong> {job.where}
       </span>
@@ -225,8 +226,8 @@ function PlantJob({ job, done, onToggle, onPick, plantOf, garden }: { job: Job; 
   );
 }
 
-/** Your jobs, grouped by what kind of job they are. Without a store they're a preview, with no ticks. */
-export function PlantJobs({ jobs, garden, store, limit, plantOf }: { jobs: Job[]; garden: Garden; store?: Store; limit?: number; plantOf?: (id: string) => Plant }) {
+/** Your jobs, grouped by what kind of job they are. Without a store they're a preview, with no ticks. startHere: a job to pick out, by key. */
+export function PlantJobs({ jobs, garden, store, limit, plantOf, startHere }: { jobs: Job[]; garden: Garden; store?: Store; limit?: number; plantOf?: (id: string) => Plant; startHere?: string | null }) {
   const app = useApp();
   const done = new Set(garden.jobsDone.map((j) => j.key));
   const shown = limit ? jobs.slice(0, limit) : jobs;
@@ -237,10 +238,11 @@ export function PlantJobs({ jobs, garden, store, limit, plantOf }: { jobs: Job[]
           <h3 class="job-kind">{label}</h3>
           <ul class="jobs">
             {list.map((job) => (
-              <SwipeRow key={job.key} {...(store ? { onTick: () => store.apply(updateGarden((g) => toggleJob(g, job, todayIso(), plantOf))) } : {})}>
+              <SwipeRow key={job.key} {...(job.key === startHere ? { class: 'job-start' } : {})} {...(store ? { onTick: () => store.apply(updateGarden((g) => toggleJob(g, job, todayIso(), plantOf))) } : {})}>
                 <PlantJob
                   job={job}
                   garden={garden}
+                  startHere={job.key === startHere}
                   {...(plantOf ? { plantOf } : {})}
                   done={done.has(job.key)}
                   {...(store ? { onToggle: () => store.apply(updateGarden((g) => toggleJob(g, job, todayIso(), plantOf))) } : {})}

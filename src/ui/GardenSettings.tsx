@@ -116,7 +116,7 @@ export function BackupButtons({ store, prefsStore, primary = true }: { store: St
 
 type Message = { kind: 'ok' | 'error'; lines: string[] } | null;
 
-/** Your garden: its name and place, north, spacing, frosts and climate, and backups. Facts about the garden, not this device. */
+/** The garden's part of Settings: its name and place, north, spacing, frosts and climate, reminders, and backups. */
 export function GardenSettings({ store, garden, prefsStore }: Props) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<Message>(null);
@@ -177,7 +177,7 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
   return (
     <>
       <section class="card" aria-labelledby="about-garden">
-        <h2 id="about-garden">About it</h2>
+        <h2 id="about-garden">Your garden</h2>
         <GardenNameField store={store} garden={garden} />
         <fieldset class="choice">
           <legend>How you keep track</legend>
@@ -269,8 +269,9 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
         <h2 id="seasons">Seasons and weather</h2>
         <FrostDates store={store} garden={garden} />
         <Warmth garden={garden} prefsStore={prefsStore} />
-        {prefsStore && <Reminders prefsStore={prefsStore} />}
       </section>
+
+      {prefsStore && <Reminders prefsStore={prefsStore} />}
 
       <section class="card" aria-labelledby="backup">
         <h2 id="backup">Backups</h2>
@@ -410,7 +411,7 @@ function FrostDates({ store, garden }: { store: Store; garden: Garden }) {
         {f.estimated
           ? 'Estimated from your location. Local weather records or neighbours will know better: frost pockets and coastal gardens can be weeks either side.'
           : 'Your own dates.'}{' '}
-        They decide when Seedlings suggests hardening off and planting out tender plants, and when to protect plants for winter.
+        They decide when the Shed suggests hardening off and planting out tender plants, and when to protect plants for winter.
         {!f.estimated && (
           <>
             {' '}
@@ -554,8 +555,8 @@ export function useReminders(prefsStore: PrefsStore) {
 function Reminders({ prefsStore }: { prefsStore: PrefsStore }) {
   const { prefs, status, toggle } = useReminders(prefsStore);
   return (
-    <div class="weather-switch">
-      <h3>Reminders</h3>
+    <section class="card weather-switch" aria-labelledby="reminders">
+      <h2 id="reminders">Reminders</h2>
       <label class="check-row">
         <input type="checkbox" checked={prefs.reminders} onChange={toggle('reminders')} />
         <span>Frost warnings</span>
@@ -584,6 +585,6 @@ function Reminders({ prefsStore }: { prefsStore: PrefsStore }) {
           {REMINDER_TEXT[status]}
         </p>
       )}
-    </div>
+    </section>
   );
 }

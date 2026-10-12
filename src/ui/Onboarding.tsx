@@ -5,7 +5,6 @@ import { seasonFor } from '../content/seasons';
 import { todayIso } from '../model/ids';
 import { makeSpace } from '../model/spaces';
 import { updateGarden, type Store } from '../model/store';
-import type { Target } from '../model/features';
 import type { Garden } from '../model/types';
 import { applyKit, kitsFor, type Kit } from '../planting/kits';
 import { spacingStyle } from '../planting/place';
@@ -30,8 +29,8 @@ interface Props {
   go: (v: View) => void;
   /** Setting up another garden, or starting again: straight to the questions, with no welcome. */
   again?: boolean;
-  /** At the end: the plan, with the first job's plants picked out and a note of what it is. */
-  showFirst?: (target: Target, note: string) => void;
+  /** At the end, with a job to do: Today, with the first job picked out. */
+  showFirst?: () => void;
 }
 
 type Step = 'where' | 'track' | 'space' | 'grow';
@@ -83,12 +82,16 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
     }
     // Everything's new to someone just starting: no "What's new" until the next change. Someone setting up another garden has seen it.
     prefsStore.set({ onboarded: true, seenNews: again ? prefs.seenNews : latestNews().id });
-    // Straight to the plan, with the first job picked out: what to do first, where it is.
+    // Today, with the first job picked out: what to do first. Skipped, or nothing to do yet: Today with Getting started.
     const first = skipped || !plants ? null : firstJob(store.get().garden, plantOf, new Date(), { weeding: prefs.weeding, feeding: prefs.feeding });
-    if (first && showFirst) showFirst(first.target, first.note);
-    else go('plan');
+    if (first && showFirst) showFirst();
+    else go('home');
   };
-  const next = () => (step < steps.length ? setStep(step + 1) : finish());
+  /** Something typed or found in the place search, but not chosen. */
+  const [placePending, setPlacePending] = useState(false);
+  const [askPlace, setAskPlace] = useState(0);
+  // Next with a place typed or found but not chosen asks for it, rather than keeping the middle of England.
+  const next = () => (current === 'where' && placePending ? setAskPlace((n) => n + 1) : step < steps.length ? setStep(step + 1) : finish());
   const toggle = (id: string) => {
     const s = new Set(picked);
     if (s.has(id)) s.delete(id);
@@ -126,7 +129,7 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
           <>
             <h1 class="title">Where’s your garden?</h1>
             <p class="muted">A postcode or town is enough. It times the sun and shade, the frosts and the seasons.</p>
-            <PlaceSearch store={store} />
+            <PlaceSearch store={store} onPending={setPlacePending} ask={askPlace} />
             <UseLocationButton store={store} onMessage={setMessage} />
             <p class="place-now">{placeText(garden)}</p>
             {message && (
@@ -141,7 +144,7 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
         ) : current === 'track' ? (
           <>
             <h1 class="title">How would you like to keep track?</h1>
-            <p class="muted">You can change your mind later, in Your garden.</p>
+            <p class="muted">You can change your mind later, in Settings.</p>
             <div class="kit-picker track-picker" role="radiogroup" aria-label="How to keep track">
               <label class="kit-option">
                 <input type="radio" name="track" checked={asList} onChange={() => setAsList(true)} />

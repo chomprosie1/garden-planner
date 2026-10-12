@@ -15,6 +15,7 @@ import type { View } from '../../theme/prefs';
 import { formatLength } from '../../canvas/viewport';
 import { useIsPhone } from '../hooks';
 import { Icon } from '../icons';
+import { SettingsButton } from '../SettingsButton';
 import { CATEGORY_LABEL, LIGHT_LABEL, PlantCard } from '../PlantCard';
 import { PlantForm } from '../PlantForm';
 import { PlantIcon } from '../PlantIcon';
@@ -38,7 +39,7 @@ interface Props {
 
 type Panel = { kind: 'card'; id: string } | { kind: 'form'; plant: Plant } | null;
 
-export function Plants({ store, garden, userPlants, go, openId = null, clearOpen, checkPlant, editor = false, now = new Date() }: Props) {
+export function Plants({ store, garden, userPlants, openId = null, clearOpen, checkPlant, editor = false, now = new Date() }: Props) {
   const app = useApp();
   const phone = useIsPhone();
   const month = now.getMonth() + 1;
@@ -114,9 +115,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
     <div class="plants-list-pane">
       <header class="page-head">
         <h1 class="title">Plants</h1>
-        <button type="button" class="icon-btn phone-only" aria-label="Settings" onClick={() => go('settings')}>
-          <Icon name="settings" />
-        </button>
+        <SettingsButton />
       </header>
       <label class="field search">
         <span class="visually-hidden">Search plants</span>

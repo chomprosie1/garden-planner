@@ -15,6 +15,10 @@
 :root[data-text='large'] {
   font-size: 112.5%;
 }
+/* Extra large: for tired eyes on a phone. Layouts that fit at 390 px wrap rather than overflow. */
+:root[data-text='xlarge'] {
+  font-size: 131.25%;
+}
 
 * {
   box-sizing: border-box;
@@ -579,8 +583,8 @@ button:disabled {
 /* hero (Cottage) and sheet (Modern) */
 .home-hero {
   position: relative;
-  height: min(56vh, 460px);
-  min-height: 340px;
+  /* About 168 px: a band, not a poster. In rem, so it grows with the text. */
+  height: 10.5rem;
 }
 .home-hero-photo {
   position: absolute;
@@ -591,26 +595,30 @@ button:disabled {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.38) 0%, rgba(0, 0, 0, 0) 24%, rgba(0, 0, 0, 0) 42%, rgba(0, 0, 0, 0.74) 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.42) 0%, rgba(0, 0, 0, 0.12) 40%, rgba(0, 0, 0, 0.72) 100%);
 }
 .home-hero-text {
   position: absolute;
   left: var(--gutter);
   right: var(--gutter);
-  bottom: 3.2rem;
+  bottom: 0.7rem;
   z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.1rem;
 }
 .home-hero .month-title {
-  font-size: 2.9rem;
+  font-size: 2rem !important;
+}
+.home-hero .month-line {
+  font-size: 0.95rem;
 }
 .home-hero .credit {
-  bottom: 0.75rem;
+  top: 4rem;
+  bottom: auto;
 }
 .home-sheet .home-hero {
-  height: min(62vh, 520px);
+  height: 12.25rem;
 }
 .home-sheet .home-body {
   position: relative;
@@ -621,9 +629,6 @@ button:disabled {
   border-radius: 28px 28px 0 0;
 }
 .home-sheet .home-hero-text {
-  bottom: 5.2rem;
-}
-.home-sheet .home-hero .credit {
   bottom: 2.6rem;
 }
 
@@ -650,7 +655,7 @@ button:disabled {
   background: var(--surface);
 }
 .print .season-photo {
-  height: 240px;
+  height: 110px;
 }
 .print figcaption {
   margin-top: 0.4rem;
@@ -680,7 +685,7 @@ button:disabled {
   position: relative;
 }
 .packet-photo {
-  height: 300px;
+  height: 150px;
 }
 .sign {
   font-family: var(--font-plan);
@@ -723,7 +728,7 @@ button:disabled {
   color: var(--decor);
 }
 .packet .month-title {
-  font-size: 2.4rem;
+  font-size: 2rem !important;
 }
 .packet-fold {
   display: flex;
@@ -763,7 +768,7 @@ button:disabled {
   color: var(--muted);
 }
 .band-photo {
-  height: 190px;
+  height: 110px;
   border-radius: var(--radius-card);
   margin-top: 0.5rem;
 }
@@ -4164,6 +4169,23 @@ kbd {
 button.plan-chip:hover {
   border-color: var(--accent);
 }
+/* At whole-garden zoom: one count on the bed's corner, instead of its chips. */
+.plan-chips:not(.plan-chips-small) > .plan-chips-n,
+.plan-chips-small > :not(.plan-chips-n) {
+  display: none;
+}
+.plan-chips-small {
+  transform: translate(-60%, -40%);
+}
+.plan-chips-n {
+  min-height: 22px;
+  min-width: 22px;
+  justify-content: center;
+  padding: 0 0.4rem;
+  font-weight: 700;
+  font-size: 0.78rem;
+  cursor: default;
+}
 .plan-chip-box {
   width: 11px;
   height: 11px;
@@ -4498,6 +4520,8 @@ button.plan-chip:hover {
   display: grid;
   gap: 0.3rem;
   margin: 0.5rem 0;
+  padding: 0;
+  list-style: none;
 }
 .place-result {
   width: 100%;
@@ -5352,8 +5376,7 @@ h2 {
   padding-top: var(--space-m);
   padding-bottom: var(--space-l);
 }
-.home-body > .card:not(.panel),
-.home-body > .week-section {
+.home-body > .card:not(.panel) {
   background: transparent;
   box-shadow: none;
   border: 0;
@@ -5379,20 +5402,39 @@ h2 {
   justify-content: space-between;
   gap: 0.5rem;
 }
-/* What needs you now: a tinted panel, no outline. */
+/* What needs you now: a tinted panel, no outline. Two at most, after the jobs; the rest wait their turn. */
+.home-now {
+  display: flex;
+  flex-direction: column;
+}
+.home-now:empty {
+  display: none;
+}
+.home-now > :nth-child(n + 3) {
+  display: none;
+}
+.home-now > .card {
+  border: 0;
+  border-radius: var(--radius-card);
+  padding: 1.1rem 1.2rem;
+  margin-bottom: var(--space-m);
+}
+.home-now > .card:not(.panel) {
+  background: var(--surface2);
+}
 .home-body > .panel {
   border: 0;
   border-radius: var(--radius-card);
   padding: 1.1rem 1.2rem;
   margin-bottom: var(--space-m);
 }
-.home-body > .shed-ready,
-.home-body > .moment-card {
+.home-now > .shed-ready,
+.home-now > .moment-card {
   background: var(--selected-bg);
   color: var(--selected-text);
 }
-.home-body > .shed-ready .muted,
-.home-body > .moment-card .muted {
+.home-now > .shed-ready .muted,
+.home-now > .moment-card .muted {
   color: inherit;
   opacity: 0.85;
 }
@@ -5404,8 +5446,40 @@ h2 {
   background: var(--surface);
 }
 .home-body > .panel + .card:not(.panel),
-.home-body > .panel + .week-section {
+.home-body > .home-now + .card:not(.panel) {
   border-top: 0;
+}
+/* The jobs: Now, then Later this month and what to look out for. */
+.today-sub {
+  margin-top: var(--space-m);
+  font-size: var(--step-1) !important;
+}
+.look-out {
+  list-style: none;
+  padding: 0;
+  margin-top: 0.4rem;
+}
+.look-out li {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.job-start {
+  background: var(--selected-bg);
+  color: var(--selected-text);
+  border-radius: var(--radius);
+  padding: 0 0.5rem;
+  margin: 0 -0.5rem;
+}
+.job-start .muted {
+  color: inherit;
+}
+.job-start-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 /* Rows in a section on the page sit on the page's own colour. */
 .home-body > .card:not(.panel) {
@@ -5424,101 +5498,6 @@ h2 {
 }
 .moment-art {
   flex: none;
-}
-
-/* ---------- This week, as cards to swipe ---------- */
-.week-cards {
-  list-style: none;
-  margin: 0.8rem calc(-1 * var(--gutter)) 0;
-  padding: 0.2rem var(--gutter) 0.9rem;
-  display: flex;
-  gap: 0.75rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-padding: 0 var(--gutter);
-  scrollbar-width: none;
-  overscroll-behavior-x: contain;
-}
-.week-cards::-webkit-scrollbar {
-  display: none;
-}
-.week-tile {
-  flex: 0 0 auto;
-  width: 9.75rem;
-  scroll-snap-align: start;
-  border-radius: var(--radius-card);
-  background: var(--surface);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 8px 22px rgb(0 0 0 / 0.07);
-}
-.week-tile-todo {
-  background: var(--selected-bg);
-  color: var(--selected-text);
-}
-.week-tile-btn {
-  all: unset;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  width: 100%;
-  height: 100%;
-  padding: 0.85rem 0.9rem 1rem;
-  border-radius: var(--radius-card);
-  cursor: pointer;
-}
-.week-tile-btn:focus-visible {
-  outline: 2px solid var(--link);
-  outline-offset: 2px;
-}
-.week-tile-when {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.8;
-}
-.week-tile-art {
-  margin: 0.35rem 0 0.2rem;
-}
-.week-tile-verb {
-  font-family: var(--font-display);
-  font-size: var(--step-1);
-  line-height: 1.15;
-  font-weight: 700;
-}
-.week-tile-what {
-  font-size: var(--step--1);
-  line-height: 1.3;
-}
-.week-tile-where {
-  opacity: 0.8;
-}
-.week-tile-next,
-.week-tile-more {
-  width: 12.5rem;
-  padding: 0.85rem 0.9rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  background: transparent;
-  box-shadow: inset 0 0 0 1px var(--border);
-}
-.week-next-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  font-size: var(--step--1);
-}
-.week-next-list li {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-.week-basis {
-  margin-top: 0.1rem;
 }
 
 /* ---------- Jobs that breathe, and swipe to tick ---------- */
@@ -5622,15 +5601,6 @@ h2 {
     max-width: 760px;
     margin: 0 auto;
     width: 100%;
-  }
-  /* No swiping on a desktop: the week wraps onto rows instead. */
-  .week-cards {
-    margin-left: 0;
-    margin-right: 0;
-    padding-left: 0;
-    padding-right: 0;
-    flex-wrap: wrap;
-    overflow: visible;
   }
 }
 /* Running behind: its three answers sit on one line where they fit. */
@@ -6451,6 +6421,38 @@ h2 {
 }
 .season-today {
   fill: var(--text);
+}
+/* The key to the bars, above the beds. The swatches are spans, so they take background, not fill. */
+.season-key-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.3rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.9rem;
+}
+.season-key-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.season-swatch {
+  display: inline-block;
+  width: 18px;
+  height: 6px;
+  border-radius: 2px;
+}
+.season-swatch.season-seed {
+  background: #b89a6a;
+}
+.season-swatch.season-leaf {
+  background: var(--accent);
+}
+.season-swatch.season-flower {
+  background: #d98cb3;
+}
+.season-swatch.season-crop {
+  background: #e0a33a;
 }
 .bed-room {
   margin: 0;

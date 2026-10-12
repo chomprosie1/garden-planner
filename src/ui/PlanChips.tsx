@@ -1,7 +1,8 @@
 // Small chips on the beds: the month's jobs (tap to tick one off) and, on a bed
 // standing empty, when it's empty from and what could go in. The canvas keeps
-// each group on its bed as the plan moves (data-world), and hides it when the
-// bed is too small on screen to carry it (data-world-w).
+// each group on its bed as the plan moves (data-world). When the bed is small
+// on screen (data-world-w), at whole-garden zoom, the chips give way to a count
+// on the bed's corner (data-world-corner), clear of its name.
 
 import { jobLabel, toggleJob, type Job, type JobKind } from '../calendar/jobs';
 import { bounds } from '../geometry/polygon';
@@ -9,6 +10,7 @@ import { shortDate, type Gap } from '../lifecycle/projection';
 import { todayIso } from '../model/ids';
 import { updateGarden, type Store } from '../model/store';
 import type { Feature, Garden, Plant } from '../model/types';
+import { featureLabel } from '../model/features';
 import { useApp } from './appContext';
 
 const SHORT: Record<JobKind, string> = {
@@ -42,11 +44,11 @@ interface Props {
   plant: (id: string) => void;
 }
 
-/** Where a bed's chips sit: the middle of its top edge, and how wide it is. Null for something with no shape. */
+/** Where a bed's chips sit: the middle of its top edge, and how wide it is; and its top right corner, for a count. Null for something with no shape. */
 const anchor = (f: Feature) => {
   const c = f.circle;
   const b = c ? { minX: c.centre[0] - c.radiusMm, maxX: c.centre[0] + c.radiusMm, maxY: c.centre[1] + c.radiusMm } : bounds(f.footprint);
-  return b ? { world: `${Math.round((b.minX + b.maxX) / 2)},${Math.round(b.maxY)}`, w: String(Math.round(b.maxX - b.minX)) } : null;
+  return b ? { world: `${Math.round((b.minX + b.maxX) / 2)},${Math.round(b.maxY)}`, w: String(Math.round(b.maxX - b.minX)), corner: `${Math.round(b.maxX)},${Math.round(b.maxY)}` } : null;
 };
 
 export function PlanChips({ garden, store, plantOf, jobs, canTick, gaps, today, plant }: Props) {
@@ -71,9 +73,13 @@ export function PlanChips({ garden, store, plantOf, jobs, canTick, gaps, today, 
         if (!a) return null;
         const more = list.length - PER_BED;
         return (
-          <div key={`jobs-${bedId}`} class="plan-chips" data-world={a.world} data-world-w={a.w}>
+          <div key={`jobs-${bedId}`} class="plan-chips" data-world={a.world} data-world-w={a.w} data-world-corner={a.corner}>
+            <span class="plan-chip plan-chips-n" title={`${list.length} ${list.length === 1 ? 'job' : 'jobs'} on ${f ? featureLabel(f) : 'this bed'}. Zoom in to see them.`}>
+              {list.length}
+            </span>
             {list.slice(0, PER_BED).map((j) => {
-              const text = `${SHORT[j.kind]} ${j.plant.toLowerCase()}`;
+              // Garlic, sets and bulbs are planted, not planted out: the job's own word where it has one.
+              const text = `${j.verb ?? SHORT[j.kind]} ${j.plant.toLowerCase()}`;
               return canTick ? (
                 <button key={j.key} type="button" class="plan-chip" title={`${jobLabel(j)}: ${j.plant}. Tap to tick it off.`} onClick={() => tick(j)}>
                   <span class="plan-chip-box" aria-hidden="true" />
@@ -98,7 +104,10 @@ export function PlanChips({ garden, store, plantOf, jobs, canTick, gaps, today, 
         if (!a) return null;
         const from = gap.emptyFrom && gap.emptyFrom > today ? `Empty from ${shortDate(gap.emptyFrom)}` : gap.until ? `Empty until ${shortDate(gap.until)}` : 'Empty';
         return (
-          <div key={`gap-${gap.bed.id}`} class="plan-chips" data-world={a.world} data-world-w={a.w}>
+          <div key={`gap-${gap.bed.id}`} class="plan-chips" data-world={a.world} data-world-w={a.w} data-world-corner={a.corner}>
+            <span class="plan-chip plan-chips-n plan-gap" title={`${from}. Zoom in for what could go in.`}>
+              Empty
+            </span>
             <span class="plan-chip plan-gap">
               {from}
               {gap.ideas.length > 0 && (

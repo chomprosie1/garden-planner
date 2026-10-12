@@ -66,6 +66,24 @@ export const PLACE_LABEL: Record<ShedPlaceKind, string> = {
   'cold-frame': 'Cold frame',
 };
 
+/**
+ * Where a tray is, in a few words, for messages: "on the windowsill", "in the cold frame", "on the kitchen windowsill".
+ * A name that's all capitals at the start (an acronym) keeps them. With from: "from the windowsill".
+ */
+export function placePhrase(place: Pick<ShedPlace, 'kind' | 'name'>, from = false): string {
+  const prep = from ? 'from' : place.kind === 'propagator' || place.kind === 'cold-frame' ? 'in' : 'on';
+  const name = place.name.trim() || PLACE_LABEL[place.kind];
+  const lower = /^[A-Z][a-z]/.test(name) ? name.charAt(0).toLowerCase() + name.slice(1) : name;
+  return `${prep} ${/^(the|my|our) /i.test(lower) ? lower : `the ${lower}`}`;
+}
+
+/** Where a tray comes from, for planting it out: "from the windowsill", or "from the shed" if its place has gone. */
+export function trayFrom(g: Garden, trayId: string): string {
+  const t = traysOf(g).find((x) => x.id === trayId);
+  const place = t && placesOf(g).find((p) => p.id === t.placeId);
+  return place ? placePhrase(place, true) : 'from the shed';
+}
+
 /** A sensible size for each kind of place: shelves, and trays per shelf. */
 export const PLACE_SIZE: Record<ShedPlaceKind, [number, number]> = {
   shelves: [3, 4],

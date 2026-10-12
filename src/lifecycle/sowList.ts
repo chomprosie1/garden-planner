@@ -1,4 +1,4 @@
-// What to sow, for the Seedlings sowing list: what you have seed for, what to
+// What to sow, for the Shed's sowing list: what you have seed for, what to
 // sow under cover now, what later, and everything else, narrowed by kind
 // (vegetables, herbs and so on) and by name. Weeds only when asked for: a few
 // people grow them on purpose, most don't. Pure.

@@ -10,6 +10,7 @@ import { formatLength } from '../../canvas/viewport';
 import { microclimateOf } from '../../climate/microclimate';
 import { bounds } from '../../geometry/polygon';
 import { stageIn, timeline, type Step } from '../../lifecycle/projection';
+import { trayFrom } from '../../lifecycle/shed';
 import { currentStage, STAGE_LABEL, type LifeStage } from '../../lifecycle/stages';
 import { deleteFeatures, featureLabel, KINDS, rectInfo, resizeRectAny, updateFeature, type Target } from '../../model/features';
 import { todayIso } from '../../model/ids';
@@ -32,6 +33,7 @@ import { Inspector } from '../Inspector';
 import { InspireButton } from '../Inspire';
 import { MiniPlan } from '../MiniPlan';
 import { MoreMenu } from '../MoreMenu';
+import { SettingsButton } from '../SettingsButton';
 import { PlantChooser } from '../PlantChooser';
 import { PlantIcon } from '../PlantIcon';
 import { SeasonPhoto } from '../SeasonPhoto';
@@ -135,11 +137,12 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
                 icon: 'plan',
                 onSelect: () => {
                   store.apply(updateGarden(({ view: _v, ...g }) => g));
-                  app.notify('Now a plan: your beds are set out neatly, ready to arrange. Your garden has the list again.', { undo: true });
+                  app.notify('Now a plan: your beds are set out neatly, ready to arrange. Settings has the list again.', { undo: true });
                 },
               },
             ]}
           />
+          <SettingsButton />
         </div>
       </header>
 
@@ -152,6 +155,8 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
           </button>
         </section>
       )}
+
+      {plants && growing > 0 && <SeasonKey today={today} />}
 
       {plants &&
         beds.map((bed, i) => (
@@ -177,15 +182,15 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
       <p class="muted small beds-foot">
         Want to see it laid out?{' '}
         <a
-          href="#/your-garden"
+          href="#/settings"
           onClick={(e) => {
             e.preventDefault();
-            app.go('profile');
+            app.go('settings');
           }}
         >
           Switch to a plan
         </a>{' '}
-        in Your garden: your beds are set out neatly, ready to arrange.
+        in Settings: your beds are set out neatly, ready to arrange.
       </p>
 
       {sheet && plants && (
@@ -408,6 +413,39 @@ function PlantingRow({ pl, plant, count, garden, today, weather, which, open }: 
 /** Where each stage falls in the year ahead (from two months back, for twelve months): seed, leaf, flower, crop, with today marked. Guesses are paler. */
 const BAND: Partial<Record<LifeStage, string>> = { sown: 'seed', germinated: 'seed', hardening: 'seed', transplanted: 'leaf', vegetative: 'leaf', flowering: 'flower', harvesting: 'crop' };
 
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** What the bars under each plant mean, once, above the beds. */
+function SeasonKey({ today }: { today: string }) {
+  const m = Number(today.slice(5, 7));
+  const from = MONTH_SHORT[(m + 9) % 12]!;
+  const to = MONTH_SHORT[(m + 8) % 12]!;
+  return (
+    <div class="season-key small">
+      <p class="muted">
+        The bar under each plant is its year, {from} to {to}, with today’s line:
+      </p>
+      <ul class="season-key-list">
+        <li>
+          <span class="season-swatch season-seed" /> Seed and seedling
+        </li>
+        <li>
+          <span class="season-swatch season-leaf" /> Growing
+        </li>
+        <li>
+          <span class="season-swatch season-flower" /> In flower
+        </li>
+        <li>
+          <span class="season-swatch season-crop" /> To pick
+        </li>
+        <li>
+          <span class="season-swatch season-leaf season-guess" /> Paler: expected
+        </li>
+      </ul>
+    </div>
+  );
+}
+
 function SeasonBar({ steps, today }: { steps: Step[]; today: string }) {
   const [y, m] = [Number(today.slice(0, 4)), Number(today.slice(5, 7))];
   const from = new Date(Date.UTC(y, m - 3, 1));
@@ -614,10 +652,11 @@ function AddPlantDialog({ store, garden, plants, plantOf, month, start, close, n
     if (tray) {
       // As many as fit; the rest stay in the tray, for another bed.
       const { planted, left } = plantOutInList(garden, tray.id, bed, plantOf, today);
+      const from = trayFrom(garden, tray.id);
       if (!planted) return theRest(`There’s no room left in ${featureLabel(bed)}. Choose another bed.`);
       store.apply(updateGarden((g) => plantOutInList(g, tray.id, bed, plantOf, today).garden));
       if (left) return theRest(`Room for ${planted} of ${planted + left} in ${featureLabel(bed)}: they’re planted out. Put the other ${left} in another bed?`);
-      app.notify(`${plant.commonName} planted out in ${featureLabel(bed)}.`, { undo: true });
+      app.notify(`${plant.commonName} planted out ${from} into ${featureLabel(bed)}.`, { undo: true });
       ref.current?.close();
       return;
     }
@@ -671,7 +710,7 @@ function AddPlantDialog({ store, garden, plants, plantOf, month, start, close, n
             <div class="add-plant-head">
               <PlantIcon plant={plant} size={56} view="side" />
               <p>
-                {tray ? `${plural(tray.count, 'seedling', 'seedlings')} from the shed, ` : ''}in <strong>{featureLabel(bed)}</strong>
+                {tray ? `${plural(tray.count, 'seedling', 'seedlings')} ${trayFrom(garden, tray.id)}, ` : ''}in <strong>{featureLabel(bed)}</strong>
                 {!start.bedId && (
                   <>
                     {' '}

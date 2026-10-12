@@ -8,7 +8,6 @@ import { shortDate } from '../lifecycle/projection';
 import { Icon } from './icons';
 
 export const WEEKS = 52;
-const MONTHS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 /** Weeks from today to a day, a year either side at most. */
@@ -50,17 +49,23 @@ export function YearScrubber({ today, date, setDate, playing, setPlaying, phone,
     return () => clearInterval(t);
   }, [playing, today]);
 
-  // Where each month starts along the track.
+  // Where each month starts along the track. On a phone, two years of month letters run together, so it's the seasons
+  // instead: winter (with its year) from January, summer from July.
   const ticks: { pos: number; label: string; year?: number }[] = [];
   for (let w = -WEEKS; w <= WEEKS; w++) {
     const d = addDays(today, w * 7);
     const prev = addDays(today, (w - 1) * 7);
     if (w === -WEEKS || d.slice(5, 7) !== prev.slice(5, 7)) {
       const m = Number(d.slice(5, 7));
-      // January is marked with its year instead.
       const year = Number(d.slice(0, 4));
-      const label = m === 1 ? (phone ? `’${String(year).slice(2)}` : String(year)) : phone ? MONTHS[m - 1]! : MONTH_NAMES[m - 1]!;
-      ticks.push({ pos: ((w + WEEKS) / (2 * WEEKS)) * 100, label, ...(m === 1 ? { year } : {}) });
+      const pos = ((w + WEEKS) / (2 * WEEKS)) * 100;
+      if (phone) {
+        if (m === 1) ticks.push({ pos, label: `Winter ’${String(year).slice(2)}`, year });
+        else if (m === 7) ticks.push({ pos, label: 'Summer' });
+        continue;
+      }
+      // January is marked with its year instead.
+      ticks.push({ pos, label: m === 1 ? String(year) : MONTH_NAMES[m - 1]!, ...(m === 1 ? { year } : {}) });
     }
   }
   const label = week === 0 ? 'This week' : `${phone ? '' : 'Week of '}${shortDate(date)} ${date.slice(0, 4)}`;

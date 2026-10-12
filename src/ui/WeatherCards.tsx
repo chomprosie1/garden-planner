@@ -51,7 +51,7 @@ export function UvCard({ garden }: { garden: Garden }) {
         UV {UV_LABEL[uv.band].toLowerCase()} today ({uv.index})
       </h2>
       <p>{UV_ADVICE[uv.band]}</p>
-      <p class="muted small">{uv.live ? `The forecast’s highest for today. ${ATTRIBUTION}.` : 'On a sunny day at this time of year; cloud brings it down. Turn on this year’s weather in Your garden for the forecast’s.'}</p>
+      <p class="muted small">{uv.live ? `The forecast’s highest for today. ${ATTRIBUTION}.` : 'On a sunny day at this time of year; cloud brings it down. Turn on this year’s weather in Settings for the forecast’s.'}</p>
     </section>
   );
 }

@@ -94,10 +94,10 @@ export const LOOKS: Record<LookId, Look> = {
     plan: { bedRadiusMm: 220, pattern: 'stipple', labels: 'hand' },
     light: {
       ui: {
-        bg: '#f6f1e4', surface: '#fffaf0', surface2: '#f1eadb', text: '#2f3a2c', muted: '#5f6a58',
+        bg: '#f6f1e4', surface: '#fffaf0', surface2: '#f1eadb', text: '#2f3a2c', muted: '#475042',
         border: '#e2d8c3', accent: '#5d7a4d', accentText: '#fffaf0', link: '#4f6b40',
         selectedBg: '#e4ebd8', selectedText: '#3a5130', chrome: '#fffaf0', chromeText: '#2f3a2c',
-        chromeMuted: '#5f6a58', warnBg: '#f8ead9', warnBorder: '#e4c3a0', warnText: '#6b3a17', decor: '#b5643c',
+        chromeMuted: '#50594a', warnBg: '#f8ead9', warnBorder: '#e4c3a0', warnText: '#6b3a17', decor: '#b5643c',
       },
       plan: {
         paper: '#fbf6ea', lawn: '#cfdcb8', lawnAlt: '#b9cb9d', path: '#e6dccb', patio: '#ddd3c0',
@@ -108,10 +108,10 @@ export const LOOKS: Record<LookId, Look> = {
     },
     dark: {
       ui: {
-        bg: '#1b1f19', surface: '#232920', surface2: '#2b3227', text: '#ece6d6', muted: '#b3ad9c',
+        bg: '#1b1f19', surface: '#232920', surface2: '#2b3227', text: '#ece6d6', muted: '#c1bdaf',
         border: '#343c30', accent: '#a9c98f', accentText: '#172012', link: '#b9d6a0',
         selectedBg: '#33402c', selectedText: '#d6e9c6', chrome: '#232920', chromeText: '#ece6d6',
-        chromeMuted: '#b3ad9c', warnBg: '#3a2a1c', warnBorder: '#6b4a2c', warnText: '#f2c9a2', decor: '#e0946a',
+        chromeMuted: '#b8b2a2', warnBg: '#3a2a1c', warnBorder: '#6b4a2c', warnText: '#f2c9a2', decor: '#e0946a',
       },
       plan: {
         paper: '#20251e', lawn: '#2c3727', lawnAlt: '#364330', path: '#3a372f', patio: '#34302a',
@@ -144,7 +144,7 @@ export const LOOKS: Record<LookId, Look> = {
     plan: { bedRadiusMm: 0, pattern: 'hatch', labels: 'serif' },
     light: {
       ui: {
-        bg: '#f1e8d2', surface: '#f8f1de', surface2: '#e6dcc0', text: '#2a2a1f', muted: '#5e5642',
+        bg: '#f1e8d2', surface: '#f8f1de', surface2: '#e6dcc0', text: '#2a2a1f', muted: '#4a4434',
         border: '#b9ab88', accent: '#1f3d2b', accentText: '#f8f1de', link: '#1f3d2b',
         selectedBg: '#e6dcc0', selectedText: '#1f3d2b', chrome: '#1f3d2b', chromeText: '#f1e8d2',
         chromeMuted: '#d8cfb4', warnBg: '#f6e3d9', warnBorder: '#8c3b2a', warnText: '#6e2c1f', decor: '#a8823a',
@@ -158,10 +158,10 @@ export const LOOKS: Record<LookId, Look> = {
     },
     dark: {
       ui: {
-        bg: '#13201a', surface: '#1a2a22', surface2: '#22342a', text: '#eadfc2', muted: '#bfb393',
+        bg: '#13201a', surface: '#1a2a22', surface2: '#22342a', text: '#eadfc2', muted: '#c7bda1',
         border: '#3a4a3f', accent: '#c9a65a', accentText: '#13201a', link: '#d9bd7c',
         selectedBg: '#22342a', selectedText: '#eadfc2', chrome: '#0e1813', chromeText: '#eadfc2',
-        chromeMuted: '#a99e80', warnBg: '#2a1b16', warnBorder: '#e08a72', warnText: '#f0b6a6', decor: '#c9a65a',
+        chromeMuted: '#aca184', warnBg: '#2a1b16', warnBorder: '#e08a72', warnText: '#f0b6a6', decor: '#c9a65a',
       },
       plan: {
         paper: '#18261e', lawn: '#1f3127', lawnAlt: '#6f8466', path: '#22342a', patio: '#23332a',
@@ -194,10 +194,10 @@ export const LOOKS: Record<LookId, Look> = {
     plan: { bedRadiusMm: 40, pattern: 'stripes', labels: 'sign' },
     light: {
       ui: {
-        bg: '#e9dcc1', surface: '#f6efe0', surface2: '#efe4cc', text: '#2a251e', muted: '#5c5142',
+        bg: '#e9dcc1', surface: '#f6efe0', surface2: '#efe4cc', text: '#2a251e', muted: '#4d4437',
         border: '#cdbd9c', accent: '#2b5753', accentText: '#f6efe0', link: '#2b5753',
         selectedBg: '#2b5753', selectedText: '#f6efe0', chrome: '#f6efe0', chromeText: '#2a251e',
-        chromeMuted: '#5c5142', warnBg: '#f3e2d6', warnBorder: '#e3c2b2', warnText: '#5e2419', decor: '#8e3626',
+        chromeMuted: '#594f40', warnBg: '#f3e2d6', warnBorder: '#e3c2b2', warnText: '#5e2419', decor: '#8e3626',
       },
       plan: {
         paper: '#f6efe0', lawn: '#b3bf8f', lawnAlt: '#aab786', path: '#c7ad86', patio: '#d9cbb0',
@@ -208,7 +208,7 @@ export const LOOKS: Record<LookId, Look> = {
     },
     dark: {
       ui: {
-        bg: '#1e1a15', surface: '#2a241d', surface2: '#352e25', text: '#efe4cc', muted: '#bfb197',
+        bg: '#1e1a15', surface: '#2a241d', surface2: '#352e25', text: '#efe4cc', muted: '#c7bba5',
         border: '#4a3f31', accent: '#5f9f96', accentText: '#10201d', link: '#8fcfc4',
         selectedBg: '#5f9f96', selectedText: '#10201d', chrome: '#2a241d', chromeText: '#efe4cc',
         chromeMuted: '#bfb197', warnBg: '#3d2620', warnBorder: '#6e3a2c', warnText: '#f3cfc3', decor: '#e39a83',
@@ -244,10 +244,10 @@ export const LOOKS: Record<LookId, Look> = {
     plan: { bedRadiusMm: 160, pattern: 'flat', labels: 'pill' },
     light: {
       ui: {
-        bg: '#f3f5f2', surface: '#ffffff', surface2: '#f1f3f0', text: '#16181a', muted: '#5d6560',
+        bg: '#f3f5f2', surface: '#ffffff', surface2: '#f1f3f0', text: '#16181a', muted: '#4c534f',
         border: '#e3e7e3', accent: '#16181a', accentText: '#ffffff', link: '#187a42',
         selectedBg: '#16181a', selectedText: '#ffffff', chrome: '#ffffff', chromeText: '#16181a',
-        chromeMuted: '#5d6560', warnBg: '#fff4e5', warnBorder: '#ffe0b2', warnText: '#7a3d00', decor: '#2fb36b',
+        chromeMuted: '#535a55', warnBg: '#fff4e5', warnBorder: '#ffe0b2', warnText: '#7a3d00', decor: '#2fb36b',
       },
       plan: {
         paper: '#ffffff', lawn: '#e2efdf', lawnAlt: '#d6e8d2', path: '#f3f4f1', patio: '#eceeea',
@@ -258,7 +258,7 @@ export const LOOKS: Record<LookId, Look> = {
     },
     dark: {
       ui: {
-        bg: '#111413', surface: '#181c1a', surface2: '#1f2421', text: '#f1f4f2', muted: '#9aa39e',
+        bg: '#111413', surface: '#181c1a', surface2: '#1f2421', text: '#f1f4f2', muted: '#a7afab',
         border: '#2a302d', accent: '#4fd18a', accentText: '#08130d', link: '#6fe0a1',
         selectedBg: '#f1f4f2', selectedText: '#111413', chrome: '#111413', chromeText: '#f1f4f2',
         chromeMuted: '#9aa39e', warnBg: '#2e2210', warnBorder: '#4a3615', warnText: '#ffd9a3', decor: '#4fd18a',
@@ -290,10 +290,10 @@ export const LOOKS: Record<LookId, Look> = {
     plan: { bedRadiusMm: 0, pattern: 'line', labels: 'caps' },
     light: {
       ui: {
-        bg: '#ffffff', surface: '#ffffff', surface2: '#f0f0ee', text: '#16181a', muted: '#5c605e',
+        bg: '#ffffff', surface: '#ffffff', surface2: '#f0f0ee', text: '#16181a', muted: '#4d514f',
         border: '#e3e3e0', accent: '#16181a', accentText: '#ffffff', link: '#1f6b43',
         selectedBg: '#f0f0ee', selectedText: '#16181a', chrome: '#ffffff', chromeText: '#16181a',
-        chromeMuted: '#5c605e', warnBg: '#fff8ef', warnBorder: '#e6c9a3', warnText: '#6b3a10', decor: '#1f6b43',
+        chromeMuted: '#565a58', warnBg: '#fff8ef', warnBorder: '#e6c9a3', warnText: '#6b3a10', decor: '#1f6b43',
       },
       plan: {
         paper: '#ffffff', lawn: '#ffffff', lawnAlt: '#f6f6f4', path: '#ffffff', patio: '#ffffff',
@@ -304,10 +304,10 @@ export const LOOKS: Record<LookId, Look> = {
     },
     dark: {
       ui: {
-        bg: '#141515', surface: '#1b1c1c', surface2: '#2a2c2b', text: '#e8eae9', muted: '#9a9e9c',
+        bg: '#141515', surface: '#1b1c1c', surface2: '#2a2c2b', text: '#e8eae9', muted: '#b5b8b7',
         border: '#2f3130', accent: '#e8eae9', accentText: '#141515', link: '#7fd4a5',
         selectedBg: '#2a2c2b', selectedText: '#e8eae9', chrome: '#141515', chromeText: '#e8eae9',
-        chromeMuted: '#9a9e9c', warnBg: '#221a10', warnBorder: '#5c4526', warnText: '#f0c98f', decor: '#6cc795',
+        chromeMuted: '#9ea2a0', warnBg: '#221a10', warnBorder: '#5c4526', warnText: '#f0c98f', decor: '#6cc795',
       },
       plan: {
         paper: '#181919', lawn: '#181919', lawnAlt: '#101111', path: '#181919', patio: '#181919',

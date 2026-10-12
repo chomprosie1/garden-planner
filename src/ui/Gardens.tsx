@@ -1,4 +1,4 @@
-// Your gardens, at the top of Settings: switch between them, add a new one,
+// Your gardens, in Settings: switch between them, add a new one,
 // rename or delete one, and bring back one you cleared or deleted. And a
 // careful way to start again or delete everything: the gentler choices first,
 // what goes, what to keep, a copy to save, and a button you hold to confirm.
@@ -182,7 +182,7 @@ export function NewGardenDialog({ store, prefsStore, garden, close }: { store: S
         <h2 id="new-garden-title" class="title">
           New garden
         </h2>
-        <p class="muted small">{garden.name} is kept as it is. Switch between them at the top of Settings.</p>
+        <p class="muted small">{garden.name} is kept as it is. Switch between them in Settings, under Your gardens.</p>
         <label class="field">
           Name
           <input value={name} maxLength={60} placeholder="The allotment" autoFocus onInput={(e) => setName((e.currentTarget as HTMLInputElement).value)} />

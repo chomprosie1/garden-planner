@@ -137,9 +137,9 @@ const WEEDING_TIP: Record<number, string> = {
 };
 
 export interface JobOptions {
-  /** A monthly "Weed the beds" reminder, March to October. The app asks for it unless it's turned off in Your garden. */
+  /** A monthly "Weed the beds" reminder, March to October. The app asks for it unless it's turned off in Settings. */
   weeding?: boolean;
-  /** Feed jobs, and what goes in before planting. The app asks for them unless they're turned off in Your garden. */
+  /** Feed jobs, and what goes in before planting. The app asks for them unless they're turned off in Settings. */
   feeding?: boolean;
   /**
    * Today, ISO. With it: a sowing outside that's running behind to come up has no harvest or other growing jobs (Today

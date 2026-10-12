@@ -9,7 +9,7 @@ import { usePlants } from '../usePlants';
 import { Icon } from '../icons';
 import { Choice, LookPicker } from '../LookPicker';
 import { GardenSwitcher, StartAgainCard } from '../Gardens';
-import { useReminders } from '../GardenSettings';
+import { GardenSettings, useReminders } from '../GardenSettings';
 
 interface Props {
   store: Store;
@@ -34,11 +34,26 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
         <h1 class="title">Settings</h1>
       </header>
 
+      <p class="muted">Your garden first, then how the app looks on this device.</p>
+
+      <GardenSettings store={store} garden={garden} prefsStore={prefsStore} />
+
       <GardenSwitcher store={store} prefsStore={prefsStore} garden={garden} />
 
       <section class="card" aria-labelledby="appearance">
-        <h2 id="appearance">Appearance</h2>
-        <p class="muted small">These settings belong to this device, so each person sharing a garden file can have their own look.</p>
+        <h2 id="appearance">Look and text size</h2>
+        <Choice
+          legend="Text size"
+          name="text"
+          value={prefs.textSize}
+          options={[
+            { value: 'standard', label: 'Standard' },
+            { value: 'large', label: 'Large' },
+            { value: 'xlarge', label: 'Extra large' },
+          ]}
+          onChange={(textSize) => prefsStore.set({ textSize })}
+        />
+        <p class="muted small">These belong to this device, so each person sharing a garden file can have their own.</p>
         <LookPicker prefs={prefs} prefsStore={prefsStore} />
         <Choice
           legend="Light or dark"
@@ -53,81 +68,58 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
         />
         <details class="advanced more-display">
           <summary>More display options</summary>
-        <Choice
-          legend="Seasonal photos"
-          name="photos"
-          value={prefs.photos}
-          options={[
-            { value: 'full', label: 'Full' },
-            { value: 'subtle', label: 'Subtle' },
-            { value: 'off', label: 'Off' },
-          ]}
-          onChange={(photos) => prefsStore.set({ photos })}
-        />
-        <label class="field">
-          Photo month
-          <select
-            value={prefs.photoMonth === 'auto' ? 'auto' : String(prefs.photoMonth)}
-            onChange={(e) => {
-              const v = (e.currentTarget as HTMLSelectElement).value;
-              prefsStore.set({ photoMonth: v === 'auto' ? 'auto' : Number(v) });
-            }}
-          >
-            <option value="auto">Follow the calendar</option>
-            {SEASONS.map((s) => (
-              <option key={s.month} value={String(s.month)}>
-                Always {s.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <Choice
-          legend="Text size"
-          name="text"
-          value={prefs.textSize}
-          options={[
-            { value: 'standard', label: 'Standard' },
-            { value: 'large', label: 'Large' },
-          ]}
-          onChange={(textSize) => prefsStore.set({ textSize })}
-        />
-        <Choice
-          legend="Soft shadows on the plan"
-          name="depth"
-          value={(prefs.depth ?? prefs.look !== 'minimal') ? 'on' : 'off'}
-          options={[
-            { value: 'on', label: 'On' },
-            { value: 'off', label: 'Off' },
-          ]}
-          onChange={(v) => prefsStore.set({ depth: v === 'on' })}
-        />
+          <Choice
+            legend="Seasonal photos"
+            name="photos"
+            value={prefs.photos}
+            options={[
+              { value: 'full', label: 'Full' },
+              { value: 'subtle', label: 'Subtle' },
+              { value: 'off', label: 'Off' },
+            ]}
+            onChange={(photos) => prefsStore.set({ photos })}
+          />
+          <label class="field">
+            Photo month
+            <select
+              value={prefs.photoMonth === 'auto' ? 'auto' : String(prefs.photoMonth)}
+              onChange={(e) => {
+                const v = (e.currentTarget as HTMLSelectElement).value;
+                prefsStore.set({ photoMonth: v === 'auto' ? 'auto' : Number(v) });
+              }}
+            >
+              <option value="auto">Follow the calendar</option>
+              {SEASONS.map((s) => (
+                <option key={s.month} value={String(s.month)}>
+                  Always {s.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <Choice
+            legend="Soft shadows on the plan"
+            name="depth"
+            value={(prefs.depth ?? prefs.look !== 'minimal') ? 'on' : 'off'}
+            options={[
+              { value: 'on', label: 'On' },
+              { value: 'off', label: 'Off' },
+            ]}
+            onChange={(v) => prefsStore.set({ depth: v === 'on' })}
+          />
         </details>
       </section>
 
-      <section class="card" aria-labelledby="garden-link">
-        <h2 id="garden-link">{garden.name}</h2>
-        <p class="muted small">Where your garden is, which way is north, its frosts and climate, this year’s weather, and backups.</p>
-        <button type="button" class="btn" onClick={() => go('profile')}>
-          Your garden
-        </button>
-      </section>
-
-
-
       <section class="card" aria-labelledby="help">
-        <h2 id="help">Help</h2>
-        <p class="muted small">Short steps for setting up, drawing your garden, adding plants and sowing.</p>
-        <button type="button" class="btn" onClick={() => go('help')}>
-          Open help
-        </button>
-      </section>
-
-      <section class="card" aria-labelledby="news">
-        <h2 id="news">What’s new</h2>
-        <p class="muted small">The latest changes to the app, in plain English.</p>
-        <button type="button" class="btn" onClick={() => go('new')}>
-          See what’s new
-        </button>
+        <h2 id="help">Help and What’s new</h2>
+        <p class="muted small">Short steps for setting up, adding plants and sowing, and the latest changes to the app in plain English.</p>
+        <div class="button-row">
+          <button type="button" class="btn" onClick={() => go('help')}>
+            Open help
+          </button>
+          <button type="button" class="btn" onClick={() => go('new')}>
+            See what’s new
+          </button>
+        </div>
       </section>
 
       <section class="card desktop-only" aria-labelledby="keys">
