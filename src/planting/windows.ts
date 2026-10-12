@@ -98,6 +98,30 @@ export function nextStep(pl: Planting, plant: Plant, month: number, under: Clima
   return null;
 }
 
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+/**
+ * For a plant page out of season: when it can start, if nothing can be sown or planted in `month`. "Not now: sow under
+ * cover from February, then plant out from May." Null when something can be done now, or the plant gives no months.
+ */
+export function notNow(plant: Plant, month: number): string | null {
+  if (plant.category === 'weed') return null;
+  const sowings = plant.sowing ?? [];
+  const out = plant.plantOutMonths ?? [];
+  if (sowings.some((s) => s.months.includes(month)) || out.includes(month)) return null;
+  const sow = pick(sowings.map((s) => ({ sowing: s, months: s.months })), month);
+  // Plants out after the sowing it follows, or the next planting-out run if it's never sown.
+  const outFrom = sow?.sowing && sow.sowing.method !== 'direct' && !sow.sowing.from ? pick([{ sowing: null, months: out }], sow.run[0]!) : null;
+  const parts: string[] = [];
+  if (sow?.sowing) parts.push(`${sowingVerb(sow.sowing).toLowerCase()} from ${MONTH_NAMES[sow.run[0]! - 1]}`);
+  if (outFrom) parts.push(`plant out from ${MONTH_NAMES[outFrom.run[0]! - 1]}`);
+  if (!parts.length && out.length) {
+    const w = pick([{ sowing: null, months: out }], month)!;
+    parts.push(`plant from ${MONTH_NAMES[w.run[0]! - 1]}`);
+  }
+  return parts.length ? `Not now: ${parts.join(', then ')}.` : null;
+}
+
 /** "seed", "onion sets", "garlic cloves", "seed potatoes", "bulbs", "plants": what to buy, in words. */
 export function buyWord(from: StartsAs, plant: Plant): string {
   switch (from) {

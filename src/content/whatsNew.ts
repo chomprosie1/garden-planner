@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-16-explain',
+    date: '2026-10-16',
+    title: 'The gardening, explained',
+    items: [
+      'Tap a job to see how to do it: what you need, the steps, and about how long it takes, with this plant’s own advice underneath. Tap Done when you have.',
+      'Garden words such as hardening off, under cover, sets and mulch have a dotted line under them in jobs and plant pages. Tap one for what it means in two plain lines. All 42 are in Help, under Garden words, and search finds them too.',
+      'Starter kits are sized for a first garden: tens of bulbs, not hundreds. Tick Make it bigger to fill the beds. Pots of bulbs or garlic get a cluster, not one.',
+      'A plant’s page says when it can start if it’s out of season, such as “Not now: sow under cover from February, then plant out from May.”',
+      'Adding to a bed that’s taken for months says so: “Bed 1 is taken until about August by garlic.”',
+      'A list can have Cardboard over weeds, with its check six months on. Help has new topics on this week’s jobs, recording a harvest and feeding, and there’s a ? at the top of every tab.',
+    ],
+    tryIt: { label: 'See Today', view: 'home' },
+  },
+  {
     id: '2026-10-15-today-and-where',
     date: '2026-10-15',
     title: 'Today, and where things live',

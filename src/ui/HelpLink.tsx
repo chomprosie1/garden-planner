@@ -8,11 +8,11 @@ import { useApp } from './appContext';
 import { Icon } from './icons';
 
 /** A "?" that opens a help topic. */
-export function HelpButton({ topic }: { topic: string }) {
+export function HelpButton({ topic, class: cls = '' }: { topic: string; class?: string }) {
   const app = useApp();
   const t = helpTopic(topic);
   return (
-    <button type="button" class="icon-btn help-btn" aria-label={`Help: ${t?.title ?? 'help'}`} title={`Help: ${t?.title ?? 'help'}`} onClick={() => app.openHelp(topic)}>
+    <button type="button" class={`icon-btn help-btn ${cls}`} aria-label={`Help: ${t?.title ?? 'help'}`} title={`Help: ${t?.title ?? 'help'}`} onClick={() => app.openHelp(topic)}>
       <Icon name="help" />
     </button>
   );

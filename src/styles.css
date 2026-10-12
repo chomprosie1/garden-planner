@@ -568,6 +568,10 @@ button:disabled {
 .home-settings {
   background: var(--surface);
 }
+.home-top-actions {
+  display: inline-flex;
+  gap: 0.4rem;
+}
 .on-photo .home-settings {
   background: rgba(0, 0, 0, 0.3);
   border-color: transparent;
@@ -2111,6 +2115,91 @@ button:disabled {
 }
 .job-preview {
   cursor: default;
+}
+/* A job opens its how-to: a button that reads as the job's text. */
+.job-open {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+/* Garden words: a dotted underline, and a tap opens their two lines. */
+.gloss {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-decoration: underline dotted;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.2em;
+  cursor: help;
+}
+.word-dialog {
+  width: min(26rem, calc(100% - 2rem));
+}
+.word-dialog p {
+  margin-bottom: 0.9rem;
+}
+.howto-dialog {
+  width: min(32rem, calc(100% - 1rem));
+}
+.howto-where {
+  font-weight: 400;
+  font-size: 0.95rem;
+}
+.howto-need,
+.howto-steps {
+  margin: 0.3rem 0 0.6rem;
+  padding-left: 1.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.howto-time {
+  margin-bottom: 0.6rem;
+}
+.howto-this {
+  border-top: 1px solid var(--border);
+  padding-top: 0.4rem;
+  margin-bottom: 0.9rem;
+}
+/* Make it bigger, under the kits. */
+.kit-bigger {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+.kit-bigger input {
+  width: 20px;
+  height: 20px;
+  margin: 0.15rem 0 0;
+  flex: none;
+  accent-color: var(--accent);
+}
+.not-now {
+  margin: 0.2rem 0 0.6rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius);
+  background: var(--surface2);
+}
+.booked-note {
+  margin: 0.4rem 0;
+}
+.words-list dt {
+  font-weight: 700;
+  margin-top: 0.7rem;
+}
+.words-list dd {
+  margin: 0.15rem 0 0;
 }
 .sowing-list {
   list-style: none;

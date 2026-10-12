@@ -9,7 +9,7 @@ import { addFeature, makeFeature, rectPoints } from './features';
 import type { Feature, FeatureKind, Garden, Point } from './types';
 
 /** What can be added from a list, and its usual size, mm (width × depth, or across for a pot). */
-export const LIST_KINDS = ['bed', 'pot', 'planter', 'greenhouse', 'cold-frame', 'ground'] as const;
+export const LIST_KINDS = ['bed', 'pot', 'planter', 'greenhouse', 'cold-frame', 'ground', 'cardboard'] as const;
 export type ListKind = (typeof LIST_KINDS)[number];
 
 export const LIST_KIND_LABEL: Record<ListKind, string> = {
@@ -19,6 +19,7 @@ export const LIST_KIND_LABEL: Record<ListKind, string> = {
   greenhouse: 'A greenhouse',
   'cold-frame': 'A cold frame',
   ground: 'A patch of ground',
+  cardboard: 'Cardboard over weeds',
 };
 
 export const LIST_SIZE: Record<ListKind, [number, number]> = {
@@ -28,6 +29,7 @@ export const LIST_SIZE: Record<ListKind, [number, number]> = {
   greenhouse: [1800, 2400],
   'cold-frame': [1200, 600],
   ground: [3000, 2000],
+  cardboard: [2000, 1200],
 };
 
 /** The space left between beds. */
@@ -92,10 +94,12 @@ export const freeSpot = (g: Garden, w: number, d: number): Point => placeFor(g, 
 export function addListBed(g: Garden, kind: ListKind, name: string, size?: [number, number]): [Garden, string, boolean] {
   const [w, d] = size ?? LIST_SIZE[kind];
   const { at: [x, y], outside } = placeFor(g, w, kind === 'pot' ? w : d);
-  const featureKind: FeatureKind = kind === 'ground' ? 'surface' : kind;
+  const featureKind: FeatureKind = kind === 'ground' || kind === 'cardboard' ? 'surface' : kind;
   const shape = kind === 'pot' ? { circle: { centre: [x + w / 2, y + w / 2] as Point, radiusMm: w / 2 } } : { area: rectPoints({ x, y, w, h: d }) };
   let f = makeFeature(featureKind, shape);
   if (kind === 'ground') f = { ...f, material: 'soil' };
+  // Cardboard laid over a weedy patch, to plant into its mulch; it gets a job to check it once it's rotted down.
+  if (kind === 'cardboard') f = { ...f, material: 'cardboard' };
   if (name.trim()) f = { ...f, name: name.trim() };
   return [addFeature(g, f), f.id, outside];
 }
@@ -138,7 +142,7 @@ export function nameListBeds(g: Garden, isListed: (f: Feature) => boolean, label
 
 /** The kind to add from the list that a bed is, if it's one the list adds. */
 export function listKindOf(f: Feature): ListKind | null {
-  const kind = f.kind === 'surface' ? 'ground' : f.kind;
+  const kind = f.kind === 'surface' ? (f.material === 'cardboard' ? 'cardboard' : 'ground') : f.kind;
   return (LIST_KINDS as readonly string[]).includes(kind) ? (kind as ListKind) : null;
 }
 

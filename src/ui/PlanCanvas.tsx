@@ -14,6 +14,7 @@ import { pointAtLength } from '../geometry/snap';
 import { simplify, simplifyClosed } from '../geometry/simplify';
 import { plantOutTray, trayFrom } from '../lifecycle/shed';
 import { todayIso } from '../model/ids';
+import { bookedText, bookedUntil } from '../planting/booked';
 import { addSketch, deleteSketches, makeSketch, sketchesAt } from '../model/sketches';
 import {
   addFeature,
@@ -739,8 +740,9 @@ export function PlanCanvas(props: PlanCanvasProps) {
       p.setTool('select');
       return;
     }
+    const booked = bookedNow(bed);
     commit((g) => addPlanting(withFence(g), pl));
-    say(`Planted ${n === 1 ? `a ${plant.commonName.toLowerCase()}` : `${n} ${plant.commonName.toLowerCase()} plants`} ${whereOn(bed, !!fence)}.`);
+    say(`Planted ${n === 1 ? `a ${plant.commonName.toLowerCase()}` : `${n} ${plant.commonName.toLowerCase()} plants`} ${whereOn(bed, !!fence)}.${booked}`);
   };
 
   /**
@@ -760,6 +762,12 @@ export function PlanCanvas(props: PlanCanvasProps) {
     const on = holdsOne(bed) ? garden().plantings.find((x) => x.featureId === bed.id && !x.removedOn) : undefined;
     if (on) say(`${featureLabel(bed)} already has ${P.current.plantOf(on.plantId).commonName.toLowerCase()} growing up it. It holds one climber.`);
     return !!on;
+  };
+
+  /** A bed taken for months by what's in it already (garlic until July): a word after the message, or nothing. */
+  const bookedNow = (bed: Feature): string => {
+    const b = bookedUntil(garden(), bed, P.current.plantOf, todayIso());
+    return b ? ` ${bookedText(b, bed, P.current.plantOf)}` : '';
   };
 
   /** "in Bed 1", "along the fence", "up the obelisk", or "along a new fence on the boundary". */
@@ -794,8 +802,9 @@ export function PlanCanvas(props: PlanCanvasProps) {
       commit((g) => plantOutTray(withFence(g), trayId, pl, todayIso()));
       A.current.notify(`Planted out ${n === 1 ? `a ${name}` : `${n} ${name} plants`} ${from} ${whereOn(bed, !!fence).replace(/^in /, 'into ')}.`, { undo: true });
     } else {
+      const booked = bookedNow(bed);
       commit((g) => addPlanting(withFence(g), pl));
-      say(`Planted ${n === 1 ? `a ${name}` : `${n} ${name} plants`} ${whereOn(bed, !!fence)}.`);
+      say(`Planted ${n === 1 ? `a ${name}` : `${n} ${name} plants`} ${whereOn(bed, !!fence)}.${booked}`);
     }
     p.setTool('select');
     p.setSelected({ type: 'planting', id: pl.id });

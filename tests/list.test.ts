@@ -59,7 +59,8 @@ describe('beds added from a list', () => {
     expect(g.features.find((f) => f.id === ids[6])!.material).toBe('soil');
     expect(listBeds(g).map((f) => f.name)).toEqual(['Veg', 'Salad', 'Mint', 'Glasshouse', 'Window box', 'Frame', 'Plot', 'Fruit']);
     expect(validateGarden(JSON.parse(JSON.stringify(g)))).toEqual([]);
-    expect(LIST_KINDS).toHaveLength(6);
+    // Six kinds, and cardboard over weeds (release 34).
+    expect(LIST_KINDS).toHaveLength(7);
   });
 
   it('find room in a laid-out space without landing on its beds, paths or house', () => {

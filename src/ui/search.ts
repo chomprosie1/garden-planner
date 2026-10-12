@@ -2,7 +2,8 @@
 // one box. "add tomato", "go to the shed" and "show sun" all work: every word
 // must start a word in the result, and the result's own name counts most.
 
-import { HELP } from '../content/help';
+import { GLOSSARY } from '../content/glossary';
+import { HELP, WORDS_TOPIC } from '../content/help';
 import { featureLabel, KINDS, MATERIAL_LABEL, type Target } from '../model/features';
 import { STICKERS, treeStickerId } from '../model/stickers';
 import { TREE_TYPES, treeSizeText } from '../model/trees';
@@ -142,7 +143,11 @@ function actions(g: Garden, locked: boolean): Candidate[] {
 const PLAN_ONLY = /^(lens-|share$|3d$|lock$|unlock$|fit$|tool-|setup$|sticker-|tree-)/;
 
 /** Help topics: found by their title, what they're for, and the words people use when they're stuck. Made once. */
-const HELP_RESULTS: Candidate[] = HELP.map((t) => ({ key: `help-${t.id}`, group: 'Help', label: t.title, words: `help ${t.summary} ${t.words}`, command: { kind: 'help', id: t.id } }));
+const HELP_RESULTS: Candidate[] = [
+  ...[...HELP, WORDS_TOPIC].map((t): Candidate => ({ key: `help-${t.id}`, group: 'Help', label: t.title, words: `help ${t.summary} ${t.words}`, command: { kind: 'help', id: t.id } })),
+  // Each garden word, with its meaning shown in the result: "what is hardening off".
+  ...GLOSSARY.map((w): Candidate => ({ key: `word-${w.id}`, group: 'Help', label: `${w.term}: what it means`, detail: w.text, words: `meaning what is means explain word ${w.forms.join(' ').replace(/[^a-z ]/gi, ' ')}`, command: { kind: 'help', id: 'words' } })),
+];
 
 function onPlan(g: Garden, plantOf: (id: string) => Plant): Candidate[] {
   const out: Candidate[] = [];

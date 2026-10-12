@@ -11,6 +11,7 @@ import { microclimateOf } from '../../climate/microclimate';
 import { bounds } from '../../geometry/polygon';
 import { stageIn, timeline, type Step } from '../../lifecycle/projection';
 import { trayFrom } from '../../lifecycle/shed';
+import { bookedText, bookedUntil } from '../../planting/booked';
 import { currentStage, STAGE_LABEL, type LifeStage } from '../../lifecycle/stages';
 import { deleteFeatures, featureLabel, KINDS, rectInfo, resizeRectAny, updateFeature, type Target } from '../../model/features';
 import { todayIso } from '../../model/ids';
@@ -34,6 +35,7 @@ import { InspireButton } from '../Inspire';
 import { MiniPlan } from '../MiniPlan';
 import { MoreMenu } from '../MoreMenu';
 import { SettingsButton } from '../SettingsButton';
+import { HelpButton } from '../HelpLink';
 import { PlantChooser } from '../PlantChooser';
 import { PlantIcon } from '../PlantIcon';
 import { SeasonPhoto } from '../SeasonPhoto';
@@ -142,6 +144,7 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
               },
             ]}
           />
+          <HelpButton topic="list" />
           <SettingsButton />
         </div>
       </header>
@@ -671,6 +674,10 @@ function AddPlantDialog({ store, garden, plants, plantOf, month, start, close, n
     ref.current?.close();
   };
 
+  // A bed taken until the summer by garlic says so, before anything else is planned on top.
+  const booked = bed ? bookedUntil(garden, bed, plantOf, todayIso()) : null;
+  const bookedNote = booked && bed ? <p class="bed-warn booked-note small">{bookedText(booked, bed, plantOf)}</p> : null;
+
   return (
     <dialog ref={ref} class="dialog add-plant-dialog" aria-labelledby="add-plant-title" onClose={close}>
       <div class="dialog-body">
@@ -703,6 +710,7 @@ function AddPlantDialog({ store, garden, plants, plantOf, month, start, close, n
         ) : !plant ? (
           <>
             <p class="muted small">In {featureLabel(bed)}.</p>
+            {bookedNote}
             <PlantChooser plants={plants} garden={garden} month={month} pick={setPlantId} />
           </>
         ) : (
@@ -721,6 +729,7 @@ function AddPlantDialog({ store, garden, plants, plantOf, month, start, close, n
                 )}
               </p>
             </div>
+            {bookedNote}
             {!tray && (
               <>
                 <fieldset class="choice">

@@ -16,6 +16,7 @@ import { formatLength } from '../../canvas/viewport';
 import { useIsPhone } from '../hooks';
 import { Icon } from '../icons';
 import { SettingsButton } from '../SettingsButton';
+import { HelpButton } from '../HelpLink';
 import { CATEGORY_LABEL, LIGHT_LABEL, PlantCard } from '../PlantCard';
 import { PlantForm } from '../PlantForm';
 import { PlantIcon } from '../PlantIcon';
@@ -115,6 +116,7 @@ export function Plants({ store, garden, userPlants, openId = null, clearOpen, ch
     <div class="plants-list-pane">
       <header class="page-head">
         <h1 class="title">Plants</h1>
+        <HelpButton topic="adding-plants" />
         <SettingsButton />
       </header>
       <label class="field search">

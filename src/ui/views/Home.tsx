@@ -15,6 +15,7 @@ import { InspireCard } from '../Inspire';
 import { SeasonCard } from '../Wrapped';
 import { InstallCard } from '../Install';
 import { SettingsButton } from '../SettingsButton';
+import { HelpButton } from '../HelpLink';
 import { PhotoCredit, SeasonPhoto } from '../SeasonPhoto';
 import { ReadyCard } from '../ShedCards';
 import { BehindCard } from '../BehindCard';
@@ -58,7 +59,13 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, startHere =
   );
   // The month's line fits the garden: nobody's told to lift dahlias they don't have.
   const line = plants ? monthLine(month, garden, plantOf) : season.line;
-  const settingsButton = <SettingsButton class="home-settings" />;
+  // Help for Today, and Settings: the same two buttons as every tab.
+  const settingsButton = (
+    <span class="home-top-actions">
+      <HelpButton topic="this-week" class="home-settings" />
+      <SettingsButton class="home-settings" />
+    </span>
+  );
 
   const monthTitle = (
     <>

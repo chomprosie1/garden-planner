@@ -236,6 +236,70 @@ export const HELP: HelpTopic[] = [
     words: 'sow seeds seedlings shed tray module propagator windowsill indoors under cover germinate harden off plant out',
   },
   {
+    id: 'this-week',
+    title: 'This week’s jobs',
+    summary: 'What Today asks you to do, how to do it, and ticking it off.',
+    view: 'home',
+    tier: 2,
+    steps: [
+      'Today starts with your jobs. Now is what’s due, or due this week. Later this month can wait. To look out for is what’s likely to happen anyway, such as seedlings coming up.',
+      'Tap a job to see how to do it: what you need, the steps, and about how long it takes. Tap Done when you have.',
+      'Or tick its box, or swipe it to the right. Ticking a sowing or planting job dates the plants, so the jobs that follow are timed from then.',
+      'A word with a dotted line under it, such as hardening off, opens what it means.',
+    ],
+    notes: ['Every job for the month, and the general ones for any UK garden, are under All … jobs at the foot of the list. Ticked something by mistake? Tick it again, or Undo.'],
+    related: ['harvest', 'feeding', 'words'],
+    words: 'jobs today this week tasks to do tick done how to now later month what does it mean',
+  },
+  {
+    id: 'harvest',
+    title: 'Recording a harvest',
+    summary: 'Noting what you pick, for your season’s totals and next year’s draft.',
+    view: 'home',
+    tier: 2,
+    steps: [
+      'When a crop is ready, Today has a Ready to pick job for it.',
+      'Tap Picked some? under the job and choose A handful, A bowl or A basket. That’s it.',
+      'To weigh it instead, or to note a picking another day, tap the plant in your garden, open What’s happened?, choose the picking and type the grams.',
+      'Your totals show on Today as Picked this year, and crops you picked from are marked Did well in next year’s draft.',
+    ],
+    notes: ['Rough is fine: a handful of beans or a bowl of tomatoes is enough to see what did well.'],
+    related: ['this-week', 'next-year'],
+    words: 'harvest pick picked picking record log weigh weight grams crop yield total how much',
+  },
+  {
+    id: 'feeding',
+    title: 'Feeding',
+    summary: 'When plants want feeding, with what, and your feed shelf.',
+    view: 'shed',
+    tier: 2,
+    steps: [
+      'A Feed job comes when a plant wants feeding, from its own notes: which feed, and about how much.',
+      'Before planting, a job says what to dig in first, such as a handful of blood, fish and bone a square metre.',
+      'In the Shed, open Feed shelf and tick the feeds you have. Jobs then say when one of yours will do instead, and when you’re out of one.',
+      'Feeding reminders can be turned off in Settings, under Reminders.',
+    ],
+    notes: ['Most vegetables in good soil need little more than compost dug in each year. Hungry crops, such as tomatoes and anything in a pot, need feeding most.'],
+    related: ['this-week', 'shopping'],
+    words: 'feed feeding fertiliser fertilizer tomato feed liquid granular blood fish bone bonemeal seaweed manure compost hungry shelf',
+  },
+  {
+    id: 'cardboard-list',
+    title: 'Cardboard over weeds, in a list',
+    summary: 'Clearing a weedy patch for a new bed, without digging, when you keep a list.',
+    view: 'plan',
+    tier: 2,
+    steps: [
+      'On the Garden tab, tap Add a bed and choose Cardboard over weeds. Give it a name, such as New bed, and its rough size.',
+      'Outside, take off any tape and staples, lay the card two layers thick with the sheets overlapping, and wet it well.',
+      'Cover it with a thick mulch of compost or well-rotted manure. You can plant into the mulch straight away: tap Add a plant on its card.',
+      'Tap its picture and choose Laid it today, or set the day you laid it. About six months on, a job reminds you to check it’s rotted down.',
+    ],
+    notes: ['Cardboard rots away and feeds the soil. Plastic weed membrane breaks into tiny fibres in the soil as it ages, so it isn’t offered here.'],
+    related: ['cardboard', 'list'],
+    words: 'cardboard weeds list no dig smother clear lawn new bed mulch',
+  },
+  {
     id: 'cardboard',
     title: 'Cardboard over weeds',
     summary: 'Clearing a weedy patch or a bit of lawn for a new bed, without digging.',
@@ -332,7 +396,19 @@ export const HELP: HelpTopic[] = [
   },
 ];
 
-export const helpTopic =(id: string): HelpTopic | undefined => HELP.find((t) => t.id === id);
+export const helpTopic =(id: string): HelpTopic | undefined => HELP.find((t) => t.id === id) ?? (id === 'words' ? WORDS_TOPIC : undefined);
+
+/** Garden words: the glossary, as a page of Help (src/ui/views/Help.tsx draws it). */
+export const WORDS_TOPIC: HelpTopic = {
+  id: 'words',
+  title: 'Garden words',
+  summary: 'What the words gardeners use mean, in two plain lines each.',
+  view: 'home',
+  tier: 1,
+  steps: [],
+  related: ['this-week'],
+  words: 'glossary words meaning what does it mean explain jargon terms dictionary',
+};
 
 /** A step as worded for this screen. */
 export const stepText = (s: HelpStep, phone: boolean): string => (typeof s === 'string' ? s : phone ? s.phone : s.computer);

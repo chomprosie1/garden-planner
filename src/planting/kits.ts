@@ -1,8 +1,10 @@
 // Starter kits: a plan you can drop in, so a new garden isn't a blank page.
 // Each kit goes with a space from "Where are you growing?" and says what to
 // plant in each of its beds and pots, in order: rows across a bed, blocks side
-// by side along a border, one plant to a pot. Salads come in batches, sown a
-// few weeks apart. Pure functions: garden in, garden out.
+// by side along a border, one plant to a pot (or a cluster of bulbs). Salads
+// come in batches, sown a few weeks apart. Sized for a first garden: a block is
+// tens of plants, not hundreds, unless you ask for it bigger. Pure functions:
+// garden in, garden out.
 
 import { toggleWishlist } from '../calendar/jobs';
 import { canSowIn } from '../library/library';
@@ -12,7 +14,8 @@ import { addDays } from '../model/dates';
 import type { Space } from '../model/spaces';
 import type { Feature, Garden, Plant, Point } from '../model/types';
 import { splitIntoBatches } from './batches';
-import { addPlanting, isContainer, makePlanting, type Layout } from './place';
+import { addPlanting, isContainer, makePlanting, plantCount, type Layout } from './place';
+import type { Planting } from '../model/types';
 
 export interface KitItem {
   plant: string;
@@ -120,14 +123,14 @@ export const KITS: Kit[] = [
     space: 'balcony',
     title: 'Bulbs and garlic',
     blurb: 'Crocuses and tulips in the trough for spring, daffodils in one pot and garlic in the other.',
-    beds: [{ items: [block('crocus'), block('tulip')], split: 'side' }, { items: [one('daffodil')] }, { items: [one('garlic')] }],
+    beds: [{ items: [block('crocus'), block('tulip')], split: 'side' }, { items: [block('daffodil')] }, { items: [block('garlic')] }],
   },
   {
     id: 'autumn-patio',
     space: 'patio',
     title: 'Autumn planting',
     blurb: 'Garlic, broad beans and onion sets in the raised bed, and tulips and daffodils in pots for spring.',
-    beds: [{ items: [row('garlic'), row('broad-bean-autumn-sown'), row('onion-overwintering')] }, { items: [one('tulip')] }, { items: [one('daffodil')] }],
+    beds: [{ items: [row('garlic'), row('broad-bean-autumn-sown'), row('onion-overwintering')] }, { items: [block('tulip')] }, { items: [block('daffodil')] }],
   },
   {
     id: 'autumn-bed',
@@ -197,7 +200,14 @@ const boxOf = (f: Feature): Box => {
 function placeIn(f: Feature, bed: KitBed, plantOf: (id: string) => Plant): { item: KitItem; start: Point; end: Point }[] {
   if (f.circle) {
     const item = bed.items[0];
-    return item ? [{ item: { ...item, layout: 'single' }, start: f.circle.centre, end: f.circle.centre }] : [];
+    if (!item) return [];
+    // A pot of bulbs or garlic: a cluster in the square inside the pot. Anything else: one plant.
+    if (item.layout === 'block') {
+      const [cx, cy] = f.circle.centre;
+      const h = (f.circle.radiusMm / Math.SQRT2) * 0.95;
+      return [{ item, start: [Math.round(cx - h), Math.round(cy - h)], end: [Math.round(cx + h), Math.round(cy + h)] }];
+    }
+    return [{ item: { ...item, layout: 'single' }, start: f.circle.centre, end: f.circle.centre }];
   }
   const b = boxOf(f);
   const wide = b.x1 - b.x0 >= b.y1 - b.y0;
@@ -222,29 +232,48 @@ function placeIn(f: Feature, bed: KitBed, plantOf: (id: string) => Plant): { ite
   });
 }
 
+/** A block in a kit for a first garden: at most this many plants, in the middle of its patch. Tens of bulbs, not hundreds. */
+export const STARTER_BLOCK = 24;
+
+/** A block cut down to at most `most` plants, kept centred on where it was. */
+function smallerBlock(pl: Planting, plant: Plant, most: number): Planting {
+  if (!pl.endPoint || plantCount(pl, plant) <= most) return pl;
+  const [cx, cy] = [(pl.x + pl.endPoint[0]) / 2, (pl.y + pl.endPoint[1]) / 2];
+  let [hx, hy] = [Math.abs(pl.endPoint[0] - pl.x) / 2, Math.abs(pl.endPoint[1] - pl.y) / 2];
+  let next = pl;
+  for (let i = 0; i < 60 && plantCount(next, plant) > most; i++) {
+    hx *= 0.95;
+    hy *= 0.95;
+    next = { ...pl, x: Math.round(cx - hx), y: Math.round(cy - hy), endPoint: [Math.round(cx + hx), Math.round(cy + hy)] };
+  }
+  return next;
+}
+
 /**
  * Plants a kit in the garden's beds and pots, in the order they were made, and puts its plants on your sowing list.
  * Salads in batches start at their next sowing time from `today`. Plants missing from the library are left out.
+ * Sized for a first garden unless `full`: then blocks fill their part of the bed ("Make it bigger").
  */
-export function applyKit(g: Garden, kit: Kit, plantOf: (id: string) => Plant | null, today: string): Garden {
+export function applyKit(g: Garden, kit: Kit, plantOf: (id: string) => Plant | null, today: string, full = false): Garden {
   const beds = g.features.filter(isContainer);
   let next = g;
   kit.beds.forEach((bed, i) => {
     const f = beds[i];
-    if (f) next = plantKitBed(next, f, bed, plantOf, today);
+    if (f) next = plantKitBed(next, f, bed, plantOf, today, full);
   });
   for (const id of kitPlants(kit)) if (plantOf(id) && !next.wishlist.includes(id)) next = toggleWishlist(next, id);
   return next;
 }
 
-/** One kit bed's plants, set out in a bed or pot. Salads in batches start at their next sowing time from `today`. */
-export function plantKitBed(g: Garden, f: Feature, bed: KitBed, plantOf: (id: string) => Plant | null, today: string): Garden {
+/** One kit bed's plants, set out in a bed or pot. Salads in batches start at their next sowing time from `today`. Not full: blocks are kept small. */
+export function plantKitBed(g: Garden, f: Feature, bed: KitBed, plantOf: (id: string) => Plant | null, today: string, full = true): Garden {
   const known = (id: string) => plantOf(id)!;
   const usable = { ...bed, items: bed.items.filter((it) => plantOf(it.plant)) };
   let next = g;
   for (const { item, start, end } of placeIn(f, usable, known)) {
     const plant = known(item.plant);
-    const pl = makePlanting(plant, f.id, item.layout, start, item.layout === 'single' ? undefined : end);
+    const made = makePlanting(plant, f.id, item.layout, start, item.layout === 'single' ? undefined : end);
+    const pl = item.layout === 'block' && !full ? smallerBlock(made, plant, STARTER_BLOCK) : made;
     next = addPlanting(next, pl);
     if (item.batches && item.layout !== 'single') {
       const how = sowingOf(plant);

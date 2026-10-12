@@ -49,6 +49,8 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
   /** The kit you chose, or none; undefined until you choose, when it's the first offered (the one that can go in soonest). */
   const [kitChosen, setKit] = useState<Kit | null | undefined>(undefined);
   const [picked, setPicked] = useState<Set<string>>(new Set());
+  /** The kit at full size, not a first garden's. */
+  const [bigger, setBigger] = useState(false);
   /** Kept as a list of beds (the simplest, offered first) or a plan. */
   const [asList, setAsList] = useState(true);
   /** The garden as it was before a space was made, so going back and choosing again replaces it. */
@@ -72,7 +74,7 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
           if (empty && choice) next = makeSpace({ ...next, boundary: before.boundary, features: before.features, plantings: before.plantings }, choice.space, choice.w, choice.d, choice.sideReturn ?? null);
           // The kit chosen for you only if you saw it: Skip before the last step plants none.
           const planted = kitChosen !== undefined ? kitChosen : current === 'grow' ? kit : null;
-          if (planted && plants) next = applyKit(next, planted, (id) => byId.get(id) ?? null, todayIso());
+          if (planted && plants) next = applyKit(next, planted, (id) => byId.get(id) ?? null, todayIso(), bigger);
           for (const id of picked) if (!next.wishlist.includes(id)) next = toggleWishlist(next, id);
           // A list, if that was chosen (or left as it was offered) once the question was asked.
           if (empty && asList && steps.indexOf('track') <= step - 1) next = nameListBeds({ ...next, view: 'list' }, isListed(next), featureLabel);
@@ -193,7 +195,7 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
               <>
                 <h2 class="onboarding-sub">Start from a kit</h2>
                 <p class="muted small">Planted for you, ready to sow when the time comes. You can change anything.</p>
-                <KitPicker kits={kits} value={kit} onChange={setKit} plantOf={plantOf} />
+                <KitPicker kits={kits} value={kit} onChange={setKit} plantOf={plantOf} bigger={bigger} setBigger={setBigger} />
               </>
             )}
             <h2 class="onboarding-sub">{kits.length ? 'And anything else?' : 'Pick some favourites'}</h2>

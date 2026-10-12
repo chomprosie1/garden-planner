@@ -136,10 +136,11 @@ export function SpacePicker({ value, onChange }: { value: SpaceChoice | null; on
 }
 
 /** "Where are you growing?" over an empty plan, with a starter kit to plant it up if you like. */
-export function SpaceDialog({ make, close, plantOf }: { make: (c: SpaceChoice, kit: Kit | null) => void; close: () => void; plantOf: ((id: string) => Plant) | null }) {
+export function SpaceDialog({ make, close, plantOf }: { make: (c: SpaceChoice, kit: Kit | null, bigger: boolean) => void; close: () => void; plantOf: ((id: string) => Plant) | null }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [choice, setChoice] = useState<SpaceChoice | null>(null);
   const [kit, setKit] = useState<Kit | null>(null);
+  const [bigger, setBigger] = useState(false);
   const kits = choice && plantOf ? kitsFor(choice.space, new Date().getMonth() + 1, plantOf) : [];
   useEffect(() => {
     const d = ref.current;
@@ -161,7 +162,7 @@ export function SpaceDialog({ make, close, plantOf }: { make: (c: SpaceChoice, k
         {kits.length > 0 && plantOf && (
           <>
             <h3>Plant it up?</h3>
-            <KitPicker kits={kits} value={kit} onChange={setKit} plantOf={plantOf} />
+            <KitPicker kits={kits} value={kit} onChange={setKit} plantOf={plantOf} bigger={bigger} setBigger={setBigger} />
           </>
         )}
         <div class="button-row">
@@ -170,7 +171,7 @@ export function SpaceDialog({ make, close, plantOf }: { make: (c: SpaceChoice, k
             class="btn btn-primary"
             disabled={!choice}
             onClick={() => {
-              if (choice) make(choice, kit);
+              if (choice) make(choice, kit, bigger);
               ref.current?.close();
             }}
           >

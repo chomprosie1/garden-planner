@@ -8,6 +8,8 @@ import { PlantKitchen } from './Kitchen';
 import { PlantFeeding } from './FeedShelf';
 import { unknownPlant } from '../planting/place';
 import { useApp } from './appContext';
+import { GlossText } from './Glossary';
+import { notNow } from '../planting/windows';
 import { EASY, isEasy } from '../library/order';
 
 /** A new issue on the app's GitHub page, about this plant. */
@@ -196,6 +198,8 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
         )}
       </div>
 
+      {notNow(p, month) && <p class="not-now small">{notNow(p, month)}</p>}
+
       {where && where.length > 0 && (
         <p class="where-growing">
           <span class="muted">Growing in </span>
@@ -242,7 +246,9 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
           {c.hardiness && (
             <div>
               <dt>Hardiness</dt>
-              <dd>{c.hardiness}</dd>
+              <dd>
+                <GlossText text={c.hardiness} />
+              </dd>
             </div>
           )}
           <div>
@@ -305,13 +311,13 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
               sw.notes || sw.depthMm ? (
                 <li key={i}>
                   <strong>{METHOD_LABEL[sw.method]}</strong>
-                  {sw.depthMm ? ` ${sw.depthMm} mm deep.` : '.'} {sw.notes}
+                  {sw.depthMm ? ` ${sw.depthMm} mm deep.` : '.'} {sw.notes && <GlossText text={sw.notes} />}
                 </li>
               ) : null,
             )}
             {p.cropping?.notes && (
               <li>
-                <strong>Harvest.</strong> {p.cropping.notes}
+                <strong>Harvest.</strong> <GlossText text={p.cropping.notes} />
               </li>
             )}
             {growth && (
@@ -360,7 +366,9 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
           <h2>Look out for</h2>
           <ul class="plain-list">
             {p.lookOutFor.map((t) => (
-              <li key={t}>{t}</li>
+              <li key={t}>
+                <GlossText text={t} />
+              </li>
             ))}
           </ul>
         </section>
@@ -379,7 +387,7 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
                 </dd>
                 <dd>
                   <span class="muted">What to do: </span>
-                  {x.control}
+                  <GlossText text={x.control} />
                 </dd>
               </div>
             ))}
@@ -424,7 +432,7 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
         <section class="plant-section">
           <h2>Winter</h2>
           <p>
-            <strong>{WINTER_LABEL[p.wintering.type]}.</strong> {p.wintering.notes}
+            <strong>{WINTER_LABEL[p.wintering.type]}.</strong> {p.wintering.notes && <GlossText text={p.wintering.notes} />}
           </p>
         </section>
       )}

@@ -3,6 +3,7 @@
 // so the back button steps between topics and the list.
 
 import { useState } from 'preact/hooks';
+import { GLOSSARY } from '../../content/glossary';
 import { helpByTier, helpTopic, stepText } from '../../content/help';
 import type { View } from '../../theme/prefs';
 import { hashForHelp, useHelpTopic, useIsPhone } from '../hooks';
@@ -29,6 +30,32 @@ export function Help({ back, go }: Props) {
     scrollTo(0, 0);
   };
 
+  // Garden words: the glossary, A to Z.
+  if (topicId === 'words')
+    return (
+      <div class="page help-page">
+        <header class="page-head">
+          <button type="button" class="icon-btn" aria-label="Back" onClick={() => (topicId === arrivedAt ? back() : open(null))}>
+            <Icon name="back" />
+          </button>
+          <h1 class="title">Garden words</h1>
+        </header>
+        <p class="muted">What the words gardeners use mean, in two plain lines each. In jobs and plant pages, a word with a dotted line under it opens its lines.</p>
+        <section class="card">
+          <dl class="words-list">
+            {[...GLOSSARY]
+              .sort((a, b) => a.term.localeCompare(b.term))
+              .map((w) => (
+                <div key={w.id} id={`word-${w.id}`}>
+                  <dt>{w.term}</dt>
+                  <dd>{w.text}</dd>
+                </div>
+              ))}
+          </dl>
+        </section>
+      </div>
+    );
+
   if (!topic)
     return (
       <div class="page help-page">
@@ -39,6 +66,20 @@ export function Help({ back, go }: Props) {
           <h1 class="title">Help</h1>
         </header>
         <p class="muted">Short steps for the things people most often get stuck on.</p>
+        <a
+          class="card card-link help-words-link"
+          href={hashForHelp('words')}
+          onClick={(e) => {
+            e.preventDefault();
+            open('words');
+          }}
+        >
+          <span class="card-link-text">
+            <strong>Garden words</strong>
+            <span class="muted small">Hardening off, under cover, sets, mulch and {GLOSSARY.length - 4} more, in plain English.</span>
+          </span>
+          <Icon name="chevron" />
+        </a>
         {helpByTier().map((g) => (
           <section key={g.tier} class="card help-group" aria-labelledby={`help-tier-${g.tier}`}>
             <h2 id={`help-tier-${g.tier}`}>{g.label}</h2>

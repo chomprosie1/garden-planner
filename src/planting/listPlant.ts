@@ -21,7 +21,7 @@ export const isList = (g: Garden) => g.view === 'list';
  */
 export function isListed(g: Garden): (f: Feature) => boolean {
   const used = new Set(g.plantings.filter(isActive).map((p) => p.featureId));
-  return (f) => !f.nextDoor && (isContainer(f) || (isSoftGround(f) && (f.material === 'soil' || used.has(f.id))) || (isSupport(f) && used.has(f.id)));
+  return (f) => !f.nextDoor && (isContainer(f) || (isSoftGround(f) && (f.material === 'soil' || f.material === 'cardboard' || used.has(f.id))) || (isSupport(f) && used.has(f.id)));
 }
 
 /** The beds and areas the list shows, in their order. */

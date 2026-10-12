@@ -34,7 +34,7 @@ import { MoreMenu } from '../MoreMenu';
 import { SettingsButton } from '../SettingsButton';
 import { PhoneDrawBar, PhoneHandBar, PhoneSheet, PlantingBar } from '../PhonePlanControls';
 import { canDrawByHand, geometryForTool, helpForMessage, PlanCanvas, type CanvasApi, type Placing, type SketchPen, type Tool } from '../PlanCanvas';
-import { HelpLink, StuckNote } from '../HelpLink';
+import { HelpButton, HelpLink, StuckNote } from '../HelpLink';
 import { SeasonPhoto } from '../SeasonPhoto';
 import { PlanChips } from '../PlanChips';
 import { PlanTips } from '../PlanTips';
@@ -447,8 +447,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
     const others = Object.fromEntries(Object.entries(prefs.walkFrom).filter(([id]) => id !== open && known.has(id)));
     return { walkFrom: prefs.walkFrom[open] ?? null, setWalkFrom: (spot: WalkSpot | null) => prefsStore.set({ walkFrom: spot ? { ...others, [open]: { at: spot.at, heading: spot.heading } } : others }) };
   };
-  const makeTheSpace = (space: Parameters<typeof makeSpace>[1], w: number, d: number, kit: Kit | null = null, side: SideReturn | null = null) => {
-    store.apply(updateGarden((g) => (kit ? applyKit(makeSpace(g, space, w, d, side), kit, (id) => plantById.get(id) ?? null, todayIso) : makeSpace(g, space, w, d, side))));
+  const makeTheSpace = (space: Parameters<typeof makeSpace>[1], w: number, d: number, kit: Kit | null = null, side: SideReturn | null = null, bigger = false) => {
+    store.apply(updateGarden((g) => (kit ? applyKit(makeSpace(g, space, w, d, side), kit, (id) => plantById.get(id) ?? null, todayIso, bigger) : makeSpace(g, space, w, d, side))));
     setFitSignal((n) => n + 1);
     if (kit) {
       setMessage(`${kit.title}: planted up and ready. Drag the timeline below to see it grow, or see what to sow on Today.`);
@@ -664,6 +664,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               { label: 'Help with the plan', icon: 'help', onSelect: () => app.openHelp() },
             ]}
           />
+          <HelpButton topic="adding-plants" />
           <SettingsButton />
         </div>
       </header>
@@ -874,7 +875,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
         )}
       </div>
       {phone && bottom}
-      {settingUp && <SpaceDialog make={(c, kit) => makeTheSpace(c.space, c.w, c.d, kit, c.sideReturn ?? null)} close={() => setSettingUp(false)} plantOf={plants ? plantOf : null} />}
+      {settingUp && <SpaceDialog make={(c, kit, bigger) => makeTheSpace(c.space, c.w, c.d, kit, c.sideReturn ?? null, bigger)} close={() => setSettingUp(false)} plantOf={plants ? plantOf : null} />}
       {threeD && plants && (
         <Garden3D
           garden={garden}

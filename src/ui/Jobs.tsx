@@ -6,7 +6,9 @@ import { PICK_SIZES, type Garden, type PickSize, type Plant } from '../model/typ
 import { PICK_LABEL } from '../planting/harvest';
 import { useApp } from './appContext';
 import { KitchenHint } from './Kitchen';
-import { groupJobs, logPick, toggleJob, type Job } from '../calendar/jobs';
+import { groupJobs, jobLabel, logPick, toggleJob, type Job } from '../calendar/jobs';
+import { GlossText } from './Glossary';
+import { JobHowTo } from './JobHowTo';
 import { feedById } from '../feeding/feeds';
 import { shelfFor } from '../feeding/schedule';
 
@@ -151,17 +153,20 @@ function PlantJob({ job, done, onToggle, onPick, plantOf, garden, startHere = fa
   const [picking, setPicking] = useState(false);
   /** Just picked: what to do with it, from the kitchen. */
   const [picked, setPicked] = useState(false);
+  /** Its how-to, open. */
+  const [opened, setOpened] = useState(false);
   const shelf = shelfLine(garden, job);
-  const text = (
-    <span class="job-text">
+  const inner = (
+    <>
       {startHere && <span class="job-start-label">Start here</span>}
       <span>
         <strong>{job.plant}</strong> {job.where}
       </span>
       {job.detail && <span class="job-detail small muted">{job.detail}</span>}
       {shelf && <span class="job-detail small">{shelf}</span>}
-    </span>
+    </>
   );
+  const text = <span class="job-text">{inner}</span>;
   const app = useApp();
   const first = job.plantingIds[0];
   // Jump to the planting on the plan, to the plant's card for something on your sowing list, or to the thing on the
@@ -200,17 +205,22 @@ function PlantJob({ job, done, onToggle, onPick, plantOf, garden, startHere = fa
   return (
     <>
       <span class="job-line">
-        <label class="job">
-          <input type="checkbox" checked={done} onChange={() => (buzz(), onToggle())} />
-          {text}
-        </label>
-        {(shed || pick || link) && (
-          <span class="job-actions">
-            {shed}
-            {pick}
-            {link}
-          </span>
-        )}
+        {/* The tick box ticks; the job itself opens how to do it. */}
+        <span class="job">
+          <input type="checkbox" checked={done} aria-label={`Done: ${jobLabel(job).toLowerCase()}, ${job.plant} ${job.where}`} onChange={() => (buzz(), onToggle())} />
+          <button type="button" class="job-text job-open" aria-haspopup="dialog" onClick={() => setOpened(true)}>
+            {inner}
+          </button>
+        </span>
+        <span class="job-actions">
+          <button type="button" class="job-link link-btn small" aria-haspopup="dialog" onClick={() => setOpened(true)}>
+            How to
+            <span class="visually-hidden"> {job.plant}</span>
+          </button>
+          {shed}
+          {pick}
+          {link}
+        </span>
       </span>
       {picking && onPick && (
         <span class="happened-chips job-pick" role="group" aria-label={`How much ${job.plant.toLowerCase()} did you pick?`}>
@@ -222,6 +232,7 @@ function PlantJob({ job, done, onToggle, onPick, plantOf, garden, startHere = fa
         </span>
       )}
       {picked && plantOf && <KitchenHint plantId={job.plantId} plantOf={plantOf} />}
+      {opened && <JobHowTo job={job} {...(plantOf ? { plantOf } : {})} done={!!done} toggle={onToggle} shelf={shelf} close={() => setOpened(false)} />}
     </>
   );
 }
@@ -235,7 +246,9 @@ export function PlantJobs({ jobs, garden, store, limit, plantOf, startHere }: { 
     <div class="job-groups">
       {groupJobs(shown).map(([label, list]) => (
         <section key={label} class="job-group">
-          <h3 class="job-kind">{label}</h3>
+          <h3 class="job-kind">
+            <GlossText text={label} />
+          </h3>
           <ul class="jobs">
             {list.map((job) => (
               <SwipeRow key={job.key} {...(job.key === startHere ? { class: 'job-start' } : {})} {...(store ? { onTick: () => store.apply(updateGarden((g) => toggleJob(g, job, todayIso(), plantOf))) } : {})}>

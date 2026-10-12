@@ -1682,7 +1682,7 @@ Decided:
 | Tue 13 Oct | 32. List mode, put right | Beds stay inside the garden. No stacked plants. Planters take rows. A pot's room measured properly. Climbers listed. Moves that fit. How many pots. Beds numbered as added. No plan words. Rows folded. A menu for the list. | Built 11 Oct 2026 |
 | Wed 14 Oct | Testing day | You and your two testers on 31 and 32. Fixes go out as 31.1 and 32.1. | |
 | Thu 15 Oct | 33. Today, and where things live | One list of jobs to tick at the top of Today. A smaller photo. Planning ahead in autumn and winter. Seedlings becomes Shed. One Settings. A calmer first landing. Darker captions and Extra large text. Place search kept to the UK. | Built 12 Oct 2026 |
-| Fri 16 Oct | 34. Explain the gardening | A glossary of about 40 words, tappable in jobs and plant pages. A how-to on each job, with Done. Kits sized for a first garden. Not-now notes. A warning when a bed is booked. | |
+| Fri 16 Oct | 34. Explain the gardening | A glossary of about 40 words, tappable in jobs and plant pages. A how-to on each job, with Done. Kits sized for a first garden. Not-now notes. A warning when a bed is booked. | Built 12 Oct 2026 |
 | Sat 17 – Sun 18 Oct | Testing weekend | Your testers on 33 and 34. You check the glossary's wording and its gardening. | |
 | Mon 19 Oct | 35. Next year, and the seasons | Overwintering crops in the year they're picked. Using the draft twice replaces the first. Every bed in the draft. "What did you grow this summer?" Autumn sowings filled in. Season-aware care. The climate's station and season checked. | |
 | Tue 20 Oct | 23. Help for the rest | Help for the screens as they now are, with a ? on every tab. | |
@@ -1866,6 +1866,71 @@ Tests: new `tests/today.test.ts`:
 Not changed:
 - **Today's look per style:** each look keeps its own header, only shorter.
 - **The Garden tab's photo band** in list mode is as it was.
+
+### Release 34 — Explain the gardening (as built)
+Built 12 Oct 2026, the same day as 33, at your request, ahead of its Fri 16 slot. That's two releases in a day, against the round's rule. The Wed 14 testing day now covers 31 to 34.
+
+- **Garden words** (`src/content/glossary.ts`):
+  - **42 words, two plain lines each.** They're Jordan's 36, plus hardy, tender, drill, fine tilth, deadheading and seedbed. Variety uses Aquadulce as its example.
+  - **Matching:** each word has the forms it's found by, as whole-word patterns. `glossed(text)` splits text into plain runs and words. It picks each word out once, and the longer match wins ("onion sets", not "sets").
+  - **Everyday uses are left alone:** "fruit sets", "clove-scented", "young and tender", "rotate the tray", "a pot on the patio" and "little and often" for weeding.
+- **Tappable words** (`src/ui/Glossary.tsx`):
+  - `GlossText` gives a word a dotted underline. Tapping it opens a small dialog with its two lines, "Got it" and "All garden words".
+  - **Where:** jobs' headings ("Sow under cover"), the how-to, and plant pages (sowing, harvest and winter notes, look out for, what to do about pests, and hardiness).
+- **Garden words in Help:**
+  - It's a page of its own (`#/help/words`, `WORDS_TOPIC`), A to Z, with a card at the top of Help.
+  - Search finds each word ("what is hardening off") and shows its meaning in the result.
+- **A how-to for every job** (`src/content/howto.ts`, `src/ui/JobHowTo.tsx`):
+  - Each how-to has what you need, three or four steps and about how long it takes.
+  - **By kind of job and what goes in:** seed outside, under cover, garlic cloves, onion sets, seed potatoes, bulbs, bought plants, planting out, harvest, feed, protect, lift, tidy, weed, water, and check.
+  - Underneath is the plant's own advice (depth, feed, the feed shelf), then **Done** (or "Not done after all") and "Show in the garden".
+  - **Opening it:** tapping a job opens its how-to, as does a "How to" link beside Show. The tick box ticks on its own, with its own label for screen readers.
+- **Kits sized for a first garden** (`src/planting/kits.ts`):
+  - A block is cut to at most 24 plants (`STARTER_BLOCK`), kept centred. The garden's autumn kit gives 24 crocuses, not 324.
+  - **Make it bigger** under the kits fills the beds as before (`applyKit(..., full)`). Inspire's ideas stay full size.
+  - A pot can now take a cluster: daffodils, tulips and garlic in the autumn kits' pots are blocks in the square inside the pot, not one each.
+  - Every kit's plants go in at both sizes: its promises are kept.
+- **Not now** (`notNow` in `src/planting/windows.ts`): a plant page out of season says when it can start. Tomatoes in October: "Not now: sow under cover from February, then plant out from May." Tulips in August: "Not now: plant from November."
+- **A booked bed** (`src/planting/booked.ts`):
+  - **When it counts:** what's in a bed, or planned for now, takes about half its room or more (what the list calls about half full) and won't be cleared for two months or more. Perennials don't count.
+  - **The message:** "Bed 1 is taken until about August by garlic and overwintering onion. Anything else may not have room until then."
+  - **Where it shows:** in the list's Add a plant once the bed is chosen, and after planting into it on the plan.
+- **Cardboard over weeds in a list:**
+  - It's a new kind in Add a bed (`LIST_KINDS`). It's a surface of cardboard, listed and plantable.
+  - Its sheet has Laid it today, and the check comes six months on.
+- **Help:**
+  - New topics: This week's jobs, Recording a harvest, Feeding, and Cardboard over weeds in a list.
+  - A **?** is at the top of every tab: Today, Garden (plan and list), Shed and Plants.
+- **Words:** "Water the plants an hour before, so they slide out of their pots without tearing the roots." The plain-words test caught "easily".
+- **Version** 0.34.0.
+- **Checked** at 390 px:
+  - a new list garden with LS6 3 and the Garden autumn kit;
+  - the kits with Make it bigger;
+  - Today's jobs with How to;
+  - the how-to for autumn broad beans, and "drill" opened from it;
+  - Garden words;
+  - the tomato's not-now note;
+  - Cardboard over weeds added to the list, with Laid it today;
+  - Add a plant on Bed 1 saying it's taken until about August.
+
+Tests: new `tests/explain.test.ts`:
+- every word on the list has an entry, in two lines;
+- every list word the plant notes use is picked out;
+- everyday words left alone;
+- once each, longest first;
+- search;
+- a how-to for every kind of job, and garlic, sets, seed potatoes, bulbs and plants each getting their own;
+- not-now notes, and none when something can be done;
+- booked beds, and not for empty, roomy or soon-cleared ones;
+- kits: tens not hundreds, bigger when asked, every plant kept, bulbs clustered in pots;
+- cardboard in a list, with its check;
+- the new help topics.
+
+`tests/list.test.ts` counts seven list kinds.
+
+Not changed:
+- **Words in the job rows themselves** aren't underlined: the row opens the how-to, where they are.
+- **The plan's kits** keep their rows at full length. Only blocks are cut.
 
 ## Repo layout
 ```
