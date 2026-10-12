@@ -81,6 +81,7 @@ import { PanelTabs } from './PanelTabs';
 import { BedSoil } from './SoilFields';
 import { isSupport } from '../planting/supports';
 import { useWeatherNow } from './useWeather';
+import { HelpLink } from './HelpLink';
 
 interface Props {
   store: Store;
@@ -994,6 +995,7 @@ function CoverSection({ store, garden, f, locked }: { store: Store; garden: Gard
         </button>
       )}
       <p class="assumption">Rough averages for a sunny day and a clear night in spring. Shade it and open the vents on hot days.</p>
+      <HelpLink topic="greenhouse">How growing under glass works</HelpLink>
     </Section>
   );
 }

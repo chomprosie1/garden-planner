@@ -60,6 +60,23 @@ const STOP = new Set(['the', 'a', 'an', 'to', 'my', 'in', 'on', 'of', 'for', 'so
 /** How a question starts ("how do I", "why does it", "can I"): left off the front of a query, never from the middle. */
 const ASKING = new Set(['how', 'do', 'does', 'i', 'can', 'why', 'is', 'it', 'should', 'will']);
 
+/**
+ * Words a question carries that say nothing about which help it wants ("what should I grow in my empty bed", "my
+ * seedlings haven't come up"): left out when matching help, so long as something's left.
+ */
+const FILLER = new Set([
+  ...ASKING,
+  ...['what', 'whats', 'where', 'when', 'which', 'who', 'are', 'was', 'be', 'did', 'would', 'get', 'got', 'make', 'with', 'and', 'or', 'you', 'your', 'there', 'this', 'that'],
+  ...['these', 'from', 'any', 'way', 'need', 'please', 'mean', 'means', 'mine', 'we', 'our', 'so', 'just', 'still', 'all', 's', 't', 've', 'll', 'd', 'm'],
+  ...['isn', 'isnt', 'haven', 'havent', 'hasn', 'hasnt', 'didn', 'didnt', 'won', 'wont', 'doesn', 'doesnt', 'can', 'cant', 'not', 'no'],
+]);
+
+/** A query's words for matching help: without the filler, unless that's all there is. */
+export function helpWords(words: string[]): string[] {
+  const kept = words.filter((w) => !FILLER.has(w));
+  return kept.length ? kept : words;
+}
+
 /** Lower-case words, without accents. */
 export const wordsOf = (s: string) =>
   s
@@ -208,9 +225,10 @@ export function search(query: string, ctx: SearchContext): Result[] {
   const acts = actions(ctx.garden, ctx.locked);
   if (!words.length) return SUGGESTED.map((k) => acts.find((a) => a.key === k)).filter((a): a is Candidate => !!a).map(strip);
 
+  const asked = helpWords(words);
   const scored: { r: Candidate; score: number }[] = [];
   for (const r of [...acts, ...HELP_RESULTS, ...onPlan(ctx.garden, ctx.plantOf)]) {
-    const score = scoreOf(words, r.label, `${r.words} ${r.detail ?? ''}`);
+    const score = scoreOf(r.group === 'Help' ? asked : words, r.label, `${r.words} ${r.detail ?? ''}`);
     if (score !== null) scored.push({ r, score });
   }
   // Plants match on their name alone, so "add" or "sow" before it says what to do.

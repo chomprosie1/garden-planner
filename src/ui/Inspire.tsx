@@ -35,6 +35,7 @@ import { useApp } from './appContext';
 import { PlantIcon } from './PlantIcon';
 import { usePlants } from './usePlants';
 import { useSunHours } from './useSunHours';
+import { HelpTitle } from './HelpLink';
 
 /** June's sun at a point on a lawn, or over a whole bed. */
 const hoursFrom = (grid: SunGrid) => (f: Feature, at: Point) => (f.kind === 'surface' ? hoursAt(grid, at) : areaHours(grid, f.footprint));
@@ -181,7 +182,7 @@ export function InspireCard({ store, garden }: { store: Store; garden: Garden })
   return (
     <section class="card inspire-card">
       <div class="card-head">
-        <h2>Room to grow</h2>
+        <HelpTitle topic="inspire">Room to grow</HelpTitle>
         {empty.length > 0 && <span class="muted small">{empty.length === 1 ? 'One place is empty' : `${empty.length} places are empty`}</span>}
       </div>
       <p class="small">Choose a place, say what you’d spend and how much time you have, and get three ideas that suit its sun.</p>

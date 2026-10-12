@@ -25,6 +25,7 @@ import { backUp, BackupButtons, KeptNote, UseLocationButton } from './GardenSett
 import { Icon } from './icons';
 import { NoteForm, NoteList, noteAbout } from './NotesSection';
 import { backupDue, daysSinceBackup, setupFolded, setupSteps, type StepId } from './setup';
+import { HelpTitle } from './HelpLink';
 
 // ---------- Saved ----------
 
@@ -147,7 +148,9 @@ export function SetupCard({ store, garden, prefs, prefsStore }: { store: Store; 
   return (
     <section class="card setup-card" aria-labelledby="setup-title">
       <div class="card-head">
-        <h2 id="setup-title">Getting started</h2>
+        <HelpTitle id="setup-title" topic="setting-up">
+          Getting started
+        </HelpTitle>
         <span class="muted small">
           {done} of {steps.length} done
         </span>
@@ -277,7 +280,9 @@ export function JournalCard({ store, garden, plantOf }: { store: Store; garden: 
   return (
     <section class="card" aria-labelledby="journal-title">
       <div class="card-head">
-        <h2 id="journal-title">Garden journal</h2>
+        <HelpTitle id="journal-title" topic="journal">
+          Garden journal
+        </HelpTitle>
         {garden.notes.length > 0 && (
           <a
             href="#/notes"
@@ -351,7 +356,9 @@ export function BackupCard({ store, garden, prefs, prefsStore, now = new Date() 
   const days = daysSinceBackup(prefs.lastBackup, now);
   return (
     <section class="card backup-card" aria-labelledby="backup-title">
-      <h2 id="backup-title">Keep a copy</h2>
+      <HelpTitle id="backup-title" topic="backups">
+        Keep a copy
+      </HelpTitle>
       <p class="muted">
         Your garden lives only in this browser. {days === null ? 'There’s no copy of it yet.' : `The last copy is ${days} days old.`} A copy keeps it safe, and moves it to another
         device.

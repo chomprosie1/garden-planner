@@ -1211,7 +1211,7 @@ Decided:
 | 21. Pots, properly | Several plants to a pot, crowding and companions, pots too small, potting on, trees in pots | ~1.5 wk | Built 9 Oct 2026 |
 | 22. Sowing and cardboard | Seedlings' sowing list by now and by kind, weeds hidden; cardboard for weeds, membrane discouraged | ~1 wk | Built 9 Oct 2026 |
 | 22b. Set ground, and where a walk starts | Lawns and patios set, so beds and plants on them are easy to tap; walks start in the middle, or where you choose | Small | Built 9 Oct 2026 |
-| 23. Help for the rest | First-week and deeper help topics, with links from each screen | ~1 wk | |
+| 23. Help for the rest | First-week and deeper help topics, with links from each screen | ~1 wk | Built 12 Oct 2026, as release 36 |
 
 ### Fix — Plants go in small pots (as built)
 - **What was wrong:** not trees in particular, but any plant dropped on a small pot.
@@ -1369,7 +1369,7 @@ Decided:
 | Data track | Check the core 150 plants, in batches of 15 that you confirm | A1 | ~2 wk of evenings, alongside | |
 | 29. Trim and tidy | The welcome once a day with no pause; UV out of the way; stale prices; unchecked plants under "More plants"; onboarding's default kit and landing; a shorter Getting started; Report a mistake to the form | C1, C2, C4, C5, D4–D6 | ~1 wk | Built 11 Oct 2026 (Report a mistake parked with 28) |
 | 30. Just a list | Keep a garden as a list of beds, with no plan to draw (added 11 Oct 2026, at your request) | — | ~1.5 wk | Built 11 Oct 2026 |
-| 23. Help for the rest | Help for the screens as they now are | D3 | ~1 wk | |
+| 23. Help for the rest | Help for the screens as they now are | D3 | ~1 wk | Built 12 Oct 2026, as release 36 |
 | Later | A business decision: sync and accounts, the paid tier, hosting off GitHub Pages, commercial weather terms | B12, D7 | L | |
 
 ### Release 24 — Off to a good start (as built)
@@ -1656,7 +1656,7 @@ Tests: new `tests/list.test.ts`:
 ### Later — a business decision
 Sync and accounts (a household or allotment partner sharing a garden, iPhone push, gardens on every device), the paid tier, moving off GitHub Pages, and commercial terms for the weather. Each costs money and needs your decision; see the review's section 3.
 
-### Release 23 — Help for the rest (planned, after release 29)
+### Release 23 — Help for the rest (built as release 36)
 - The first-week and depth topics (tiers 2 and 3), with "?" links on those screens.
 - Help checked on a phone and a computer.
 - Help search tuned to the words people would type.
@@ -1685,7 +1685,7 @@ Decided:
 | Fri 16 Oct | 34. Explain the gardening | A glossary of about 40 words, tappable in jobs and plant pages. A how-to on each job, with Done. Kits sized for a first garden. Not-now notes. A warning when a bed is booked. | Built 12 Oct 2026 |
 | Sat 17 – Sun 18 Oct | Testing weekend | Your testers on 33 and 34. You check the glossary's wording and its gardening. | |
 | Mon 19 Oct | 35. Next year, and the seasons | Overwintering crops in the year they're picked. Using the draft twice replaces the first. Every bed in the draft. "What did you grow this summer?" Autumn sowings filled in. Season-aware care. The climate's station and season checked. | Built 12 Oct 2026 |
-| Tue 20 Oct | 23. Help for the rest | Help for the screens as they now are, with a ? on every tab. | |
+| Tue 20 Oct | 36. Help for the rest (was 23) | Help for the screens as they now are, with a ? on every tab. | Built 12 Oct 2026 |
 | Wed 21 Oct | The review again | The same reviewers and the same three tasks, counted against the baseline. | |
 | Alongside | Data track | The core 150 plants, in batches of 15 you confirm. Autumn sowings and the "(check)" plants first. | |
 
@@ -2011,6 +2011,55 @@ Not changed:
 - **When the app plants out tender plants** still goes by the 50:50 date. Only the wording is new. Moving it to the play-safe date would shift every tender crop two weeks; that's worth a decision first.
 - **The first frost estimate** (about 28 October for SY5) is as it was.
 - **Only Shawbury was added.** Other gaps in the 17 stations (East Midlands, the south coast, Norfolk) are for the data track.
+
+### Release 36 — Help for the rest (as built)
+Release 23, built 12 Oct 2026 and numbered 36 at your request, since the releases were past 35. It was planned for Tue 20 Oct, so it's the fourth release today. Testing now covers 31 to 36. Part of it was done in 34 (a ? on every tab, and four topics).
+
+- **13 new topics** (`src/content/help.ts`), each with 4 or 5 steps, a note or two, related topics and the words people type:
+  - **Week to week:**
+    - **Saying what's happened:** the stages, the date, and Running behind (It's moved on, Still waiting, Sowing failed).
+    - **Your seed tin.**
+    - **The garden journal.**
+    - **Reminders and frost warnings:** including that reminders with the app closed need it installed on an Android phone.
+    - **Keeping your garden safe:** backups, moving to a new phone or computer, photos, and Safari on an iPhone.
+  - **Going further:**
+    - **Frosts and your climate:** the 50:50 date and playing safe, your own frost dates, the stations, and this year's weather.
+    - **Sun and shade:** north first, then Advanced tools, Sun hours, Shade and the year slider.
+    - **Greenhouses and cold frames:** adding one in a plan or a list, its warmth, Heated, and Raise seedlings in here.
+    - **The year ahead, and 3D:** the year slider, Play the year, the Show: views, and walking in 3D, worded for each screen.
+    - **Sharing a picture:** Post or Story, the timelapse, and your season wrapped.
+    - **More than one garden:** New garden, Open now, Rename, and Delete with 30 days to bring it back.
+    - **Plants that aren't listed, and kinds to grow:** Kinds to grow, Add your own plant, and the Want to grow heart.
+    - **Ideas for an empty bed:** Room to grow and Inspire me.
+- **Older topics, for the screens as they are now:**
+  - **Next year and the shopping list** start from Planning ahead on Today (September to February) or All … jobs, not "the month's jobs".
+  - **Backup words** moved from Setting up to Keeping your garden safe, which Setting up now links to.
+- **Help reads right on a phone and a computer:**
+  - **Shared steps:** 23 steps and notes written once for both said "tap". They now say choose, pick, use or mark. Steps written for each screen keep tap and click.
+  - **A test** keeps tap and click out of the shared ones.
+- **A quiet ? beside a heading** (`HelpTitle` in `src/ui/HelpLink.tsx`, a borderless 34 px "?"):
+  - **Today:** Getting started, Running behind, Planning ahead, Garden journal, Room to grow and Keep a copy.
+  - **The Shed:** the seed tin and the feed shelf.
+  - **Settings:** Seasons and weather, Reminders, Backups and Your gardens.
+  - **Elsewhere:** the journal page and the month's page have a ? in the header. Two links in text: "How growing under glass works" under a greenhouse's details, and "More about your own plants" in Add your own plant.
+- **Search hears questions** (`helpWords` in `src/ui/search.ts`):
+  - **Help results skip filler words.** These include "what", "my", "haven't", "isn't", "which" and "should", so long as something's left. Before, every word had to match.
+  - **These now find the right topic:** "my seedlings haven't come up", "what does running behind mean", "when is the last frost", "which corner is shady" and "what should I grow in my empty bed". So do "how do I back up my garden", "move to a new phone", "polytunnel", "share on instagram", "my plant isn't listed" and "second garden for my allotment".
+- **Version** 0.36.0.
+- **Checked:**
+  - **At 390 px:** the Help list, Keeping your garden safe, Saying what's happened, Today's cards with their ?, Settings' Seasons and weather, and the seed tin's ? opening its topic.
+  - **At 1280 px:** the Help list, and Greenhouses and cold frames, which is where the computer showing "Tap" was spotted.
+
+Tests: `tests/help.test.ts`:
+- the new topics are in their tiers;
+- the 15 questions above find their topics;
+- a query that needs a word no topic has still finds nothing;
+- an all-filler query is kept;
+- no tap or click in shared steps and notes.
+
+Not changed:
+- **Topics' "Take me to" screens** are as they were. Next year and the shopping list still take you to the month's page, where Planning ahead always shows.
+- **No ? inside dialogs** (next year, shopping, share). Opening help from a dialog would leave it open over the help.
 
 ## Repo layout
 ```

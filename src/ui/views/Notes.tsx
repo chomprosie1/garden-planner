@@ -9,6 +9,7 @@ import { Icon } from '../icons';
 import { formatDate, NoteForm, NoteList, noteAbout } from '../NotesSection';
 import { Photo } from '../Photo';
 import { usePlants } from '../usePlants';
+import { HelpButton } from '../HelpLink';
 
 interface Props {
   store: Store;
@@ -38,6 +39,7 @@ export function Notes({ store, garden, userPlants, back }: Props) {
           <Icon name="back" />
         </button>
         <h1 class="title">Garden journal</h1>
+        <HelpButton topic="journal" />
       </header>
       <section class="card">
         <label class="field">

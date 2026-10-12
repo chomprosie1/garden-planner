@@ -22,6 +22,7 @@ import { disableReminders, enableReminders, type ReminderStatus } from '../stora
 import { CompassNorth } from './CompassNorth';
 import { PlaceSearch } from './PlaceSearch';
 import { GardenSoil } from './SoilFields';
+import { HelpTitle } from './HelpLink';
 
 interface Props {
   store: Store;
@@ -266,7 +267,9 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
       </section>
 
       <section class="card" aria-labelledby="seasons">
-        <h2 id="seasons">Seasons and weather</h2>
+        <HelpTitle id="seasons" topic="climate">
+          Seasons and weather
+        </HelpTitle>
         <FrostDates store={store} garden={garden} />
         <Warmth garden={garden} prefsStore={prefsStore} />
       </section>
@@ -274,7 +277,9 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
       {prefsStore && <Reminders prefsStore={prefsStore} />}
 
       <section class="card" aria-labelledby="backup">
-        <h2 id="backup">Backups</h2>
+        <HelpTitle id="backup" topic="backups">
+          Backups
+        </HelpTitle>
         <p class="muted small">
           Your garden is saved automatically, but only in this browser on this device. Clearing your browsing data would delete it. Download a backup now and then
           to keep it safe, or to move it to another device.{photoCount > 0 ? ' Photos make a backup much bigger, so they’re only in one made with photos.' : ''}
@@ -557,7 +562,9 @@ function Reminders({ prefsStore }: { prefsStore: PrefsStore }) {
   const { prefs, status, toggle } = useReminders(prefsStore);
   return (
     <section class="card weather-switch" aria-labelledby="reminders">
-      <h2 id="reminders">Reminders</h2>
+      <HelpTitle id="reminders" topic="reminders">
+        Reminders
+      </HelpTitle>
       <label class="check-row">
         <input type="checkbox" checked={prefs.reminders} onChange={toggle('reminders')} />
         <span>Frost warnings</span>

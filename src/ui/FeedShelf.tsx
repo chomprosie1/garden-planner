@@ -19,6 +19,7 @@ import {
 import { onShelf, seasonFeeding, toggleShelf, toBuy } from '../feeding/schedule';
 import { updateGarden, type Store } from '../model/store';
 import type { FeedStep, Garden, Plant } from '../model/types';
+import { HelpTitle } from './HelpLink';
 
 const KIND_TITLE: Record<Feed['kind'], string> = { organic: 'Organic', mineral: 'Mineral' };
 
@@ -107,7 +108,9 @@ export function FeedShelf({ store, garden, plantOf }: { store: Store; garden: Ga
       </section>
 
       <section class="card" aria-labelledby="feed-shelf-title">
-        <h2 id="feed-shelf-title">The feed shelf</h2>
+        <HelpTitle id="feed-shelf-title" topic="feeding">
+          The feed shelf
+        </HelpTitle>
         <p class="muted small">Tick what you have in. Plain names only, never brands: any make will do.</p>
         {FEED_KINDS.map((kind) => (
           <div key={kind} class="feed-kind">

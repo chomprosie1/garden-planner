@@ -11,6 +11,7 @@ import type { Garden, Plant } from '../model/types';
 import { useApp } from './appContext';
 import { PlantIcon } from './PlantIcon';
 import { useWeatherNow } from './useWeather';
+import { HelpTitle } from './HelpLink';
 
 /** At most this many on Today: the latest first. */
 const SHOWN = 3;
@@ -77,7 +78,9 @@ export function BehindCard({ store, garden, plantOf }: { store: Store; garden: G
   if (!late.length) return null;
   return (
     <section class="card behind-card" aria-labelledby="behind-card-head">
-      <h2 id="behind-card-head">Running behind</h2>
+      <HelpTitle id="behind-card-head" topic="whats-happened">
+        Running behind
+      </HelpTitle>
       <ul class="plain-list">
         {late.slice(0, SHOWN).map((b) => {
           const p = plantOf(b.plantId);

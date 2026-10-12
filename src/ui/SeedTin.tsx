@@ -11,6 +11,7 @@ import { addPacket, makePacket, packetDetail, removePacket, seedsOf, seedState, 
 import { useApp } from './appContext';
 import { Photo, PhotoInput } from './Photo';
 import { PlantIcon } from './PlantIcon';
+import { HelpTitle } from './HelpLink';
 
 const STATE_TEXT = { good: '', soon: 'Sow it soon', old: 'Past its date: try a few on damp kitchen paper first' } as const;
 
@@ -145,7 +146,9 @@ export function SeedTin({ store, garden, plants, plantOf }: { store: Store; gard
       )}
       <section class="card seed-tin" aria-labelledby="seed-tin-title">
         <div class="section-head">
-          <h2 id="seed-tin-title">The seed tin</h2>
+          <HelpTitle id="seed-tin-title" topic="seed-tin">
+            The seed tin
+          </HelpTitle>
           {editing === null && (
             <button type="button" class="btn" onClick={() => setEditing('')}>
               Add a packet

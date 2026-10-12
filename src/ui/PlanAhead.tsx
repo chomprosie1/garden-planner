@@ -10,6 +10,7 @@ import { draftYear } from '../planting/rotation';
 import { shoppingList } from '../planting/shopping';
 import { NextYearDialog } from './NextYear';
 import { ShoppingDialog } from './Shopping';
+import { HelpTitle } from './HelpLink';
 
 /** The months Today offers it: from the last of the harvest to the first sowings. */
 export const PLAN_AHEAD_MONTHS = [9, 10, 11, 12, 1, 2];
@@ -23,7 +24,9 @@ export function PlanAheadCard({ store, garden, plantOf, feeding }: { store: Stor
   if (!hasPlants) return null;
   return (
     <section class="card plan-ahead" aria-labelledby="plan-ahead-title">
-      <h2 id="plan-ahead-title">Planning ahead</h2>
+      <HelpTitle id="plan-ahead-title" topic="next-year">
+        Planning ahead
+      </HelpTitle>
       <div class="plan-ahead-row">
         <span>
           <strong>Shopping list</strong>

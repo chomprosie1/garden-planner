@@ -6301,6 +6301,23 @@ h2 {
 .next-badge {
   margin-left: 0.4rem;
 }
+/* Release 36: a quiet "?" beside a card's heading. */
+.help-title {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+.icon-btn.help-quiet {
+  width: 34px;
+  height: 34px;
+  margin: -5px 0;
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+}
+.icon-btn.help-quiet:hover {
+  color: var(--text);
+}
 .next-bed-on {
   border-color: var(--accent);
 }

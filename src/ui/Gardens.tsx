@@ -15,6 +15,7 @@ import { useApp } from './appContext';
 import { backUp } from './GardenSettings';
 import { bringBack, deleteEverything, deleteGardenFor30Days, makeNewGarden, startAgain, switchGarden } from './gardenActions';
 import { MiniPlan } from './MiniPlan';
+import { HelpTitle } from './HelpLink';
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
@@ -44,7 +45,9 @@ export function GardenSwitcher({ store, prefsStore, garden }: { store: Store; pr
 
   return (
     <section class="card gardens" aria-labelledby="gardens-head">
-      <h2 id="gardens-head">Your gardens</h2>
+      <HelpTitle id="gardens-head" topic="gardens">
+        Your gardens
+      </HelpTitle>
       <ul class="garden-list">
         {gardens.map((e) => {
           const g = other(e);

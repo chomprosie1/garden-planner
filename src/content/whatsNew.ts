@@ -17,6 +17,19 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-20-help',
+    date: '2026-10-20',
+    title: 'Help for the rest',
+    items: [
+      'Help has 13 new topics. For week to week: saying what’s happened to a plant, your seed tin, the garden journal, reminders and frost warnings, and keeping your garden safe with backups.',
+      'For going further: frosts and your climate, sun and shade, greenhouses and cold frames, the year ahead and 3D, sharing a picture, more than one garden, plants that aren’t listed, and ideas for an empty bed.',
+      'A small ? beside a heading opens its help: on Running behind, Planning ahead, the journal, Room to grow, the seed tin, the feed shelf, and Settings’ seasons, reminders, backups and gardens.',
+      'Search understands questions as people ask them, such as “my seedlings haven’t come up” or “how do I move to a new phone”.',
+      'Help now reads the same on a phone and a computer: steps say choose or pick, unless they’re written for each.',
+    ],
+    tryIt: { label: 'Open Help', view: 'help' },
+  },
+  {
     id: '2026-10-19-seasons',
     date: '2026-10-19',
     title: 'Next year, and the seasons',

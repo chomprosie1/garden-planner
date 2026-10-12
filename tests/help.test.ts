@@ -7,7 +7,7 @@ import { HELP, helpByTier, helpTopic, stepText } from '../src/content/help';
 import { newAppState } from '../src/model/defaults';
 import { unknownPlant } from '../src/planting/place';
 import { defaultPrefs, sanitisePrefs, VIEWS, viewForHash } from '../src/theme/prefs';
-import { queryWords, search } from '../src/ui/search';
+import { helpWords, queryWords, search } from '../src/ui/search';
 
 const ctx = { garden: newAppState().garden, plants: [], plantOf: unknownPlant, locked: false };
 
@@ -64,6 +64,45 @@ describe('finding help', () => {
   it('opens at a topic from the address, and the list without one', () => {
     expect(viewForHash('help')).toBe('help');
     expect(search('help', ctx).some((r) => r.command.kind === 'go' && r.command.view === 'help')).toBe(true);
+  });
+});
+
+describe('help for the rest (release 36)', () => {
+  const top = (q: string) => search(q, ctx).find((r) => r.group === 'Help')?.command;
+  const topic = (id: string) => ({ kind: 'help', id });
+
+  it('says neither tap nor click in what both a phone and a computer read', () => {
+    for (const t of HELP) for (const s of [...t.steps.filter((x): x is string => typeof x === 'string'), ...(t.notes ?? [])]) expect(s, t.id).not.toMatch(/\b(tap|taps|tapping|click|clicks|clicking)\b/i);
+  });
+
+  it('has the first week’s topics, and the ones for going further', () => {
+    const tiers = Object.fromEntries(helpByTier().map((g) => [g.tier, g.topics.map((t) => t.id)]));
+    for (const id of ['whats-happened', 'seed-tin', 'journal', 'reminders', 'backups']) expect(tiers[2], id).toContain(id);
+    for (const id of ['climate', 'sun-and-shade', 'greenhouse', 'year-and-3d', 'sharing', 'gardens', 'your-own-plant', 'inspire']) expect(tiers[3], id).toContain(id);
+  });
+
+  it('finds them by the questions people type', () => {
+    expect(top('how do I back up my garden')).toEqual(topic('backups'));
+    expect(top('move to a new phone')).toEqual(topic('backups'));
+    expect(top('my seedlings haven’t come up')).toEqual(topic('whats-happened'));
+    expect(top('what does running behind mean')).toEqual(topic('whats-happened'));
+    expect(top('seed packets')).toEqual(topic('seed-tin'));
+    expect(top('frost warning')).toEqual(topic('reminders'));
+    expect(top('when is the last frost')).toEqual(topic('climate'));
+    expect(top('diary')).toEqual(topic('journal'));
+    expect(top('which corner is shady')).toEqual(topic('sun-and-shade'));
+    expect(top('polytunnel')).toEqual(topic('greenhouse'));
+    expect(top('walk round in 3d')).toEqual(topic('year-and-3d'));
+    expect(top('share on instagram')).toEqual(topic('sharing'));
+    expect(top('second garden for my allotment')).toEqual(topic('gardens'));
+    expect(top('my plant isn’t listed')).toEqual(topic('your-own-plant'));
+    expect(top('what should I grow in my empty bed')).toEqual(topic('inspire'));
+  });
+
+  it('still needs the words that matter, and keeps a query that’s all filler', () => {
+    expect(top('back up my piano')).toBeUndefined();
+    expect(helpWords(['what', 'is', 'mulch'])).toEqual(['mulch']);
+    expect(helpWords(['what'])).toEqual(['what']);
   });
 });
 

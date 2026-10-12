@@ -13,6 +13,7 @@ import { ShedSummary } from '../ShedCards';
 import { usePlants } from '../usePlants';
 import { useWeatherNow } from '../useWeather';
 import { todayIso } from '../../model/ids';
+import { HelpButton } from '../HelpLink';
 
 interface Props {
   store: Store;
@@ -47,6 +48,7 @@ export function Month({ store, garden, userPlants, prefs, go, back, now = new Da
           <Icon name="back" />
         </button>
         <h1 class="title">{season.name}</h1>
+        <HelpButton topic="this-week" />
       </header>
       <p class="month-line">{plants ? monthLine(month, garden, plantOf) : season.line}</p>
 

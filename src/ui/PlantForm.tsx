@@ -3,6 +3,7 @@ import { LIGHT_LEVELS, PLANT_CATEGORIES, SOWING_METHODS, WINTERING_TYPES, type P
 import { validatePlant } from '../model/validate';
 import { ArtFields } from './ArtFields';
 import { CATEGORY_LABEL, LIGHT_LABEL, METHOD_LABEL, WINTER_LABEL } from './PlantCard';
+import { HelpLink } from './HelpLink';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -80,7 +81,9 @@ export function PlantForm({ initial, onSave, onCancel }: Props) {
   return (
     <form class="plant-form" onSubmit={submit}>
       <h1 class="plant-name">{isNew ? 'Add your own plant' : `Edit ${initial.commonName}`}</h1>
-      <p class="muted small">Only the first four are needed. Add the rest whenever you like.</p>
+      <p class="muted small">
+        Only the first four are needed. Add the rest whenever you like. <HelpLink topic="your-own-plant">More about your own plants</HelpLink>
+      </p>
 
       <label class="field">
         Name

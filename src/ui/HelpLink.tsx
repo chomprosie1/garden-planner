@@ -2,6 +2,7 @@
 // link in a message, and "Stuck?" notes at the moments people most often give
 // up. A note offered once isn't offered again.
 
+import type { ComponentChildren } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import { helpTopic } from '../content/help';
 import { useApp } from './appContext';
@@ -15,6 +16,17 @@ export function HelpButton({ topic, class: cls = '' }: { topic: string; class?: 
     <button type="button" class={`icon-btn help-btn ${cls}`} aria-label={`Help: ${t?.title ?? 'help'}`} title={`Help: ${t?.title ?? 'help'}`} onClick={() => app.openHelp(topic)}>
       <Icon name="help" />
     </button>
+  );
+}
+
+/** A card's or section's heading with a quiet "?" just after it. */
+export function HelpTitle({ id, topic, level = 2, children }: { id?: string; topic: string; level?: 2 | 3; children: ComponentChildren }) {
+  const H = level === 3 ? 'h3' : 'h2';
+  return (
+    <div class="help-title">
+      <H id={id}>{children}</H>
+      <HelpButton topic={topic} class="help-quiet" />
+    </div>
   );
 }
 
