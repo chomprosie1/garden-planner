@@ -5,7 +5,7 @@
 // less time in the south, in summer or under glass. Pure functions.
 //
 // The averages are each month's mean day (max) and night (min) temperatures
-// for 16 UK stations, 1991–2020. A garden's are weighted from its three
+// for 17 UK stations, 1991–2020. A garden's are weighted from its three
 // nearest stations. They're averages, not this year's weather.
 
 import data from '../../data/climate/uk-stations.json';
@@ -235,14 +235,28 @@ export function yearSoFar(w: Weather, av: Averages, today: string): { actual: nu
 
 // ---------- In a sentence ----------
 
-/** Days in a usual year with the average temperature above a base: the growing season. */
+/** How far a day's average temperature usually strays from the month's, °C: one standard deviation. */
+export const DAY_SPREAD_C = 3;
+
+/** The share of a normal spread above x standard deviations: Abramowitz and Stegun's 7.1.26 for erf, good to 1.5e-7. */
+function above(x: number): number {
+  const t = 1 / (1 + (0.3275911 * Math.abs(x)) / Math.SQRT2);
+  const erf = 1 - ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp((-x * x) / 2);
+  return x >= 0 ? (1 - erf) / 2 : (1 + erf) / 2;
+}
+
+/**
+ * Days in a usual year with the average temperature above a base: the growing season. Days stray from the monthly
+ * averages, so a winter day that's usually just above 5 °C is above it only some of the time: each day counts as the
+ * chance it's above, not all or nothing. That keeps a mild coast from coming out at all 365.
+ */
 export function seasonDays(av: Averages, base = 5): number {
   let n = 0;
   for (let d = 0; d < 365; d++) {
     const t = tempsOn(av, d);
-    if ((t.max + t.min) / 2 > base) n++;
+    n += above((base - (t.max + t.min) / 2) / DAY_SPREAD_C);
   }
-  return n;
+  return Math.round(n);
 }
 
 /** Degree days in a usual year, above a base. */

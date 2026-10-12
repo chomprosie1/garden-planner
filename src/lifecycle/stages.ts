@@ -171,16 +171,34 @@ export function suggestedStage(plant: Plant, pl: Planting, month: number): Stage
 
 // ---------- Advice ----------
 
-/** Advice for a stage: the plant's own first, or general advice that fits how it's grown; then a line on feeding, if it has one. */
-export function stageTips(plant: Plant, stage: LifeStage, pl?: Planting): string[] {
+/** Plants are fed from April to September; outside it, a feeding tip is out of season. */
+const FEED_MONTHS = [4, 5, 6, 7, 8, 9];
+
+/** Killed by the first frost: tender and half-hardy plants that don't come back. */
+const frostKilled = (p: Plant) => !perennial(p) && /^\s*(tender|half-hardy)/i.test(p.conditions.hardiness ?? '');
+
+/**
+ * Advice for a stage: the plant's own first, or general advice that fits how it's grown; then a line on feeding, if it
+ * has one. Given the month, it fits the season: no feeding from October to March, no fleece for something planted out
+ * after spring, and for a tender plant outside late in the year, what to do before the frost finishes it.
+ */
+export function stageTips(plant: Plant, stage: LifeStage, pl?: Planting, month?: number, covered = false): string[] {
   if (stage === 'planned' || stage === 'cleared') return [];
-  const feed = feedTip(plant, stage);
+  if (month && isGrowingStage(stage) && !covered && frostKilled(plant) && (month >= 10 || month <= 2)) return [lateInYear(plant, month)];
+  const feed = month && !FEED_MONTHS.includes(month) ? undefined : feedTip(plant, stage);
   const own = plant.stageTips?.[stage];
-  const tips = own?.length ? own : generalTips(plant, stage, pl, !!feed);
+  const tips = own?.length ? own : generalTips(plant, stage, pl, !!feed, month);
   return feed ? [...tips, feed] : tips;
 }
 
-function generalTips(plant: Plant, stage: Stage, pl: Planting | undefined, fed: boolean): string[] {
+/** A tender plant outside in autumn or winter: the frost will finish it, or already has. */
+function lateInYear(plant: Plant, month: number): string {
+  if (month >= 12 || month <= 2) return 'A frost will usually have finished it by now. Clear it for the compost heap, and the ground’s free for something hardy.';
+  if (harvests(plant)) return `The first frost will finish it, so pick what you can before then.${plant.cropping?.notes ? ` ${plant.cropping.notes}` : ''} Then clear it for the compost heap.`;
+  return 'The first frost will finish it. Enjoy it while it lasts, then clear it for the compost heap.';
+}
+
+function generalTips(plant: Plant, stage: Stage, pl: Planting | undefined, fed: boolean, month?: number): string[] {
   const sowing = sowingOf(plant, pl);
   switch (stage) {
     case 'sown':
@@ -194,7 +212,9 @@ function generalTips(plant: Plant, stage: Stage, pl: Planting | undefined, fed: 
     case 'hardening':
       return ['Out by day and in at night for a week or two, then out on mild nights too. Then they’re ready for the garden.'];
     case 'transplanted':
-      return sowing === 'none' ? ['Water in well, and keep watering in dry spells until the roots have found their way.'] : ['Water in well to settle the soil round the roots. Keep a fleece handy for a cold night.'];
+      if (sowing === 'none') return ['Water in well, and keep watering in dry spells until the roots have found their way.'];
+      // Fleece is for spring's cold nights: something planted out in summer or autumn doesn't need it.
+      return month && (month < 3 || month > 6) ? ['Water in well to settle the soil round the roots.'] : ['Water in well to settle the soil round the roots. Keep a fleece handy for a cold night.'];
     case 'vegetative':
       return ['Weeds down, water in dry spells, and a mulch to hold the moisture in. Then let it grow.'];
     case 'flowering':

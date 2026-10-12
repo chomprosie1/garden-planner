@@ -1684,7 +1684,7 @@ Decided:
 | Thu 15 Oct | 33. Today, and where things live | One list of jobs to tick at the top of Today. A smaller photo. Planning ahead in autumn and winter. Seedlings becomes Shed. One Settings. A calmer first landing. Darker captions and Extra large text. Place search kept to the UK. | Built 12 Oct 2026 |
 | Fri 16 Oct | 34. Explain the gardening | A glossary of about 40 words, tappable in jobs and plant pages. A how-to on each job, with Done. Kits sized for a first garden. Not-now notes. A warning when a bed is booked. | Built 12 Oct 2026 |
 | Sat 17 – Sun 18 Oct | Testing weekend | Your testers on 33 and 34. You check the glossary's wording and its gardening. | |
-| Mon 19 Oct | 35. Next year, and the seasons | Overwintering crops in the year they're picked. Using the draft twice replaces the first. Every bed in the draft. "What did you grow this summer?" Autumn sowings filled in. Season-aware care. The climate's station and season checked. | |
+| Mon 19 Oct | 35. Next year, and the seasons | Overwintering crops in the year they're picked. Using the draft twice replaces the first. Every bed in the draft. "What did you grow this summer?" Autumn sowings filled in. Season-aware care. The climate's station and season checked. | Built 12 Oct 2026 |
 | Tue 20 Oct | 23. Help for the rest | Help for the screens as they now are, with a ? on every tab. | |
 | Wed 21 Oct | The review again | The same reviewers and the same three tasks, counted against the baseline. | |
 | Alongside | Data track | The core 150 plants, in batches of 15 you confirm. Autumn sowings and the "(check)" plants first. | |
@@ -1931,6 +1931,86 @@ Tests: new `tests/explain.test.ts`:
 Not changed:
 - **Words in the job rows themselves** aren't underlined: the row opens the how-to, where they are.
 - **The plan's kits** keep their rows at full length. Only blocks are cut.
+
+### Release 35 — Next year, and the seasons (as built, schema 21)
+Built 12 Oct 2026, the same day as 33 and 34, at your request, ahead of its Mon 19 Oct slot. The testing weekend now covers 33 to 35.
+
+- **A crop belongs to the year it's picked** (`cropYear` in `src/planting/rotation.ts`):
+  - It's the year of the first harvest (or flowering) month after the crop has had time to grow: its days to harvest where the plant has them, otherwise a month.
+  - Without days to go on, something started in its own picking months crops in the next run of them. Sprouting broccoli sown in April is picked the spring after.
+  - So garlic planted in October 2026, autumn broad beans, overwintering onions and spring cabbage are 2027 crops. Leeks sown in April are 2026's. (B12)
+- **A bed that's taken:**
+  - **What counts:** a bed with next year's crop already in (garlic this autumn) is marked "Taken until about August by garlic, already in for 2027". Nothing new is planned there.
+  - **Its last summer's crops** still move on to other beds.
+  - **Choosing beds:** the draft tries each turn of the round, then any two beds swap what they take while that does better, so a taken bed doesn't lose a crop that another bed could have had.
+  - **If there's no free bed,** the crop is left out with "its new bed is taken".
+- **Fullness adds what's in to what's planned** (`howFull` in `src/planting/listPlant.ts`). Next April's peas over this October's garlic count together. Runner beans gone by November don't count against them.
+- **Using the draft twice replaces the first** (B11):
+  - **The mark:** draft plantings are marked with the year they're for (`draft` on a planting, schema 21).
+  - **Use this again** takes out the last draft's plantings that aren't sown yet, then adds the new ones. The dialog says how many it replaces.
+  - **Already sown:** a draft planting you've sown stays, and isn't planned twice.
+- **Every bed in the draft:**
+  - **Which beds:** all beds and patches of bare ground (`rotates`), with or without crops. Lawns, pots, planters and anything under glass aren't in it.
+  - **Empty beds** take crops too. "No crops move here, so it's free for whatever you like" when nothing comes.
+  - **What stays, and why:** "comes back each year, so it stays", "under glass", "never sown, so there's nothing to move", or "no date for when it went in: give it one and it moves with the rest".
+  - **The small plan** picks out the bed you're on.
+  - **Rows that are too long** for their new bed run along it instead, as many as fit at the plant's spacing. Blocks that don't fit are still left out ("no room").
+- **"What grew here in 2026?"** (`pastCrop`, `PAST_CROPS`):
+  - **Where:** a bed with nothing recorded for this year asks, from 19 usual crops in the rotation.
+  - **What it adds:** a row down the middle, started in its usual month so it's that year's crop (garlic in the autumn before), and cleared when its harvest ends or today.
+  - **How:** "Add them to 2026" adds them all as one undo step, and the draft moves them on.
+  - **When nothing at all was recorded,** the moves and "Takes the crops from" are hidden, and each bed just asks.
+- **Autumn and early sowings** (data; please check the gardening):
+  - **Peas and lettuce:** a hardy pea (Oct–Nov outside, picked May–Jun), and a winter lettuce (sown under cover Sep–Oct, planted under glass Oct–Nov, picked Nov–Apr).
+  - **Winter salads:** winter purslane and corn salad can also be sown under cover in Sep–Oct for under glass.
+  - **Broad beans:** autumn-sown broad beans can go in root trainers in a cold frame, planted out Feb–Mar.
+  - **Sweet peas:** sown in a cold frame in Oct–Nov ("they want it cold, not warm"), and under cover in Feb–Mar.
+  - **Hardy annuals:** calendula, cornflower, nigella, ammi, larkspur, Californian poppy, field poppy, corncockle and poached egg plant have an autumn window of their own, Sep–Oct ("In the north, sow in September"). Cerinthe has a September one.
+- **Advice that fits the season** (`stageTips` takes the month, and whether it's under cover):
+  - **Feeding:** no feeding tips from October to March.
+  - **Fleece:** no fleece for something planted out after June.
+  - **Tender plants outside** in October and November get "The first frost will finish it, so pick what you can before then", with the plant's own harvest note. From December, "A frost will usually have finished it by now."
+  - **Where:** on the plant's Care tab and in the check jobs.
+- **Climate, checked:**
+  - **Shawbury is a station.** Its figures are the Met Office's 1991–2020 normals, via Wikipedia's table for station 03414. SY5 now uses Shawbury, Birmingham and Manchester, not Aberporth.
+  - **The growing season counts each day by its chance of being above 5 °C.** A day's mean strays about 3 °C from the month's. This gives Cornwall about 335 days, Bristol 317, Shropshire about 295, Leeds about 300 and Inverness about 280, not 365 for the mild coast.
+  - **Frost dates are 50:50.** The Shed and Settings say "Last frost: 50:50 by about 3 May; play safe until about 17 May." The dates the app works from haven't moved.
+  - **The yardstick moved a little.** The "middle of England" now blends Shawbury in, so Leeds's late-August lettuce comes a day later.
+- **Help:** Next year says that using it again replaces the last draft, that a crop counts in the year it's picked, and that every bed is listed.
+- **Version** 0.35.0.
+- **Checked** at 390 px:
+  - a list garden at SY5 0 with the Garden kit;
+  - the draft with nothing recorded;
+  - garlic planted (its bed taken until about August);
+  - potatoes, peas and cabbage told for 2026, with one left out because its bed is taken;
+  - Use this, then the draft again saying it replaces 2;
+  - Settings' frosts and climate;
+  - the Shed's frost line.
+
+Tests: new `tests/seasons.test.ts`:
+- the year a crop is picked;
+- a taken bed, the swap that frees it, and the crop left out when there's no room;
+- fullness over winter;
+- replacing a draft after changing beds, and keeping a sown one;
+- every bed listed, not lawns, pots or glass;
+- why things stay;
+- telling it what grew;
+- the autumn sowings;
+- season-aware advice;
+- Shawbury, the growing season and the 50:50 frost line;
+- schema 21.
+
+`tests/next-year.test.ts`:
+- a second use replaces the first;
+- the bought-as-plant case is drafted in August;
+- a long row shortens to fit.
+
+`tests/warmth.test.ts` ties Leeds's late lettuce to its first frost (about 22 October).
+
+Not changed:
+- **When the app plants out tender plants** still goes by the 50:50 date. Only the wording is new. Moving it to the play-safe date would shift every tender crop two weeks; that's worth a decision first.
+- **The first frost estimate** (about 28 October for SY5) is as it was.
+- **Only Shawbury was added.** Other gaps in the 17 stations (East Midlands, the south coast, Norfolk) are for the data track.
 
 ## Repo layout
 ```

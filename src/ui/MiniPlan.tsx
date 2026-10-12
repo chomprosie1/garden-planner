@@ -17,9 +17,11 @@ interface Props {
   class?: string;
   /** Draw the plants too, as they look from above. */
   plantOf?: (id: string) => Plant;
+  /** A bed to pick out, by id: its outline drawn as if chosen. */
+  highlight?: string | null;
 }
 
-export function MiniPlan({ garden, width, height = width, pad = 0.12, class: cls, plantOf }: Props) {
+export function MiniPlan({ garden, width, height = width, pad = 0.12, class: cls, plantOf, highlight = null }: Props) {
   const ref = useRef<HTMLCanvasElement>(null);
   const { look, mode } = useThemeAttrs();
   useEffect(() => {
@@ -34,9 +36,9 @@ export function MiniPlan({ garden, width, height = width, pad = 0.12, class: cls
     if (!b) return ctx.clearRect(0, 0, width, height);
     const m = Math.max(b.maxX - b.minX, b.maxY - b.minY) * pad;
     const view = fit({ minX: b.minX - m, minY: b.minY - m, maxX: b.maxX + m, maxY: b.maxY + m }, width, height, 3);
-    const scene = { garden, view, width, height, style: planStyle(look, mode), selected: null, selectedVertex: null, hoverId: null, draft: null, trace: null, minimal: true, depth: false, noLabels: true };
+    const scene = { garden, view, width, height, style: planStyle(look, mode), selected: highlight ? { type: 'feature' as const, id: highlight } : null, fixed: true, selectedVertex: null, hoverId: null, draft: null, trace: null, minimal: true, depth: false, noLabels: true };
     if (plantOf) render(ctx, { ...scene, plantOf });
     else renderStatic(ctx, scene);
-  }, [garden, width, height, look, mode, plantOf]);
+  }, [garden, width, height, look, mode, plantOf, highlight]);
   return <canvas ref={ref} class={cls} width={width} height={height} style={{ width: `${width}px`, height: `${height}px` }} aria-hidden="true" />;
 }

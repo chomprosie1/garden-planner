@@ -15,7 +15,7 @@ import { migrateGarden, SCHEMA_VERSION } from '../src/model/migrate';
 import type { Feature, Garden, Plant, Planting } from '../src/model/types';
 import { validateGarden } from '../src/model/validate';
 import { checkGarden } from '../src/planting/rules';
-import { addPlanting, makePlanting, unknownPlant } from '../src/planting/place';
+import { addPlanting, makePlanting, plantCount, plantPositions, unknownPlant } from '../src/planting/place';
 import { applyDraft, draftNextYear, draftYear, follows, rotationGroup, seasonsApart, swapSources } from '../src/planting/rotation';
 import { addPacket, makePacket } from '../src/planting/seeds';
 import { boughtKeys, shoppingList, shoppingText, toggleBought } from '../src/planting/shopping';
@@ -130,20 +130,26 @@ describe('next year, drafted', () => {
     expect(by('tomato').leftOut).toBe('behind');
   });
 
-  it('leaves out what won’t fit its new bed, and pots, perennials and last year’s crops aren’t moved', () => {
+  it('shortens a row to fit its new bed, leaves out a block that won’t fit, and doesn’t move pots, perennials or last year’s crops', () => {
     const big = bedAt(0, 'Big', 1200, 3000);
     const small = bedAt(2000, 'Small', 1200, 800);
     const pot = potAt(5000, 'Pot');
     const pls = [
       rowIn(big, 'potato', grown('2026-04-01')),
+      { ...makePlanting(plantOf('lettuce'), big.id, 'block', [100, 100], [1100, 2900]), ...grown('2026-04-01') },
       { ...makePlanting(plantOf('beetroot'), small.id, 'single', [2600, 400]), ...grown('2026-04-01') },
       { ...makePlanting(plantOf('rhubarb'), small.id, 'single', [2300, 400]), stage: 'transplanted' as const, stageDates: { transplanted: '2026-03-01' } },
       { ...makePlanting(plantOf('tomato'), pot.id, 'single', [5000, 5000]), ...grown('2026-03-01') },
       { ...makePlanting(plantOf('pea'), big.id, 'single', [600, 2000]), ...grown('2025-04-01') },
     ];
     const draft = draftNextYear(withAll(newGarden(), [big, small, pot], pls), plantOf, today);
-    expect(draft.items.map((i) => i.next.plantId).sort()).toEqual(['beetroot', 'potato']);
-    expect(draft.items.find((i) => i.next.plantId === 'potato')!.leftOut).toBe('no-room');
+    expect(draft.items.map((i) => i.next.plantId).sort()).toEqual(['beetroot', 'lettuce', 'potato']);
+    expect(draft.items.find((i) => i.next.plantId === 'lettuce')!.leftOut).toBe('no-room');
+    // The potatoes go into the small bed as a shorter row: fewer of them, every one inside.
+    const potato = draft.items.find((i) => i.next.plantId === 'potato')!;
+    expect(potato.leftOut).toBeUndefined();
+    expect(plantCount(potato.next, plantOf('potato'))).toBeLessThan(plantCount(potato.was, plantOf('potato')));
+    expect(plantPositions(potato.next, plantOf('potato')).every(([x, y]) => x >= 2000 && x <= 3200 && y >= 0 && y <= 800)).toBe(true);
     expect(draft.items.find((i) => i.next.plantId === 'beetroot')!.leftOut).toBeUndefined();
   });
 
@@ -182,12 +188,13 @@ describe('next year, drafted', () => {
     expect(validateGarden(JSON.parse(JSON.stringify(used)))).toEqual([]);
   });
 
-  it('adds nothing when the same draft is used again', () => {
+  it('replaces the first use when the draft is used again', () => {
     const { g } = four();
     const once = applyDraft(g, draftNextYear(g, plantOf, today).items.map((i) => i.next));
     const again = draftNextYear(once, plantOf, today);
-    expect(again.already).toBe(4);
-    expect(again.items.every((i) => i.leftOut === 'planned')).toBe(true);
+    expect([again.already, again.replaces]).toEqual([0, 4]);
+    expect(again.items.every((i) => !i.leftOut)).toBe(true);
+    expect(applyDraft(once, again.items.map((i) => i.next), again.year).plantings).toHaveLength(8);
   });
 
   it('takes a bed’s crops from one other bed only, even when told only part of it', () => {
@@ -215,8 +222,8 @@ describe('next year, drafted', () => {
   it('plants something bought as a plant in its month next year', () => {
     const bed = bedAt(0, 'Veg');
     const g = withAll(newGarden(), [bed], [{ ...makePlanting(plantOf('elephant-garlic'), bed.id, 'single', [600, 600]), stage: 'transplanted', stageDates: { transplanted: '2025-10-05', harvesting: '2026-07-01' } }]);
-    // Grown in 2026 (its first stage is 2025, so draft from 2025's season for 2026).
-    const draft = draftNextYear(g, plantOf, '2025-11-01');
+    // Planted in October 2025 and picked in 2026: a 2026 crop, drafted for 2027 in August.
+    const draft = draftNextYear(g, plantOf, '2026-08-15');
     const next = draft.items[0]!.next;
     expect(next.sowBy).toBe('2026-10-05');
     const used = applyDraft(g, [next]);

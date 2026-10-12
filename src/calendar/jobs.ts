@@ -255,7 +255,7 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
       const stage = (ticked?.key.split(':')[3] as Stage | undefined) ?? (due.length ? 'flowering' : undefined);
       if (stage && due.length) {
         const job: Job = { key: `check:${plant.id}:${featureId}:${stage}:${ym(year, month)}`, kind: 'check', plantId: plant.id, plant: plant.commonName, where, plantingIds: ids(due), featureId, stage };
-        const tip = stageTips(plant, stage, due[0])[0];
+        const tip = stageTips(plant, stage, due[0], month, !!cover)[0];
         job.detail = `Probably ${STAGE_LABEL[stage].toLowerCase()} by now. Tick when you see it.${tip ? ` ${tip}` : ''}`;
         jobs.push(job);
       }

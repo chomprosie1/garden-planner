@@ -282,7 +282,8 @@ describe('the year’s projections, by the warmth', () => {
     const { g, pl } = garden(LEEDS, 'lettuce', { sowing: 'direct', sownOn: '2027-08-20' });
     const steps = timeline(plant('lettuce'), pl, g, '2027-08-21');
     const cut = stepOf(steps, 'harvesting')!;
-    expect(cut > '2027-09-20' && cut <= '2027-10-18').toBe(true);
+    // Before Leeds's first frost, about 22 October.
+    expect(cut > '2027-09-20' && cut < '2027-10-22').toBe(true);
   });
 
   it('stands Brussels sprouts ready early until the end of their months', () => {

@@ -1656,16 +1656,10 @@
       "rowSpacingMm": 150
     },
     "sowing": [
-      {
-        "method": "direct",
-        "months": [
-          7,
-          8,
-          9
-        ],
-        "depthMm": 10
-      }
+      { "method": "direct", "months": [7, 8, 9], "depthMm": 10 },
+      { "method": "indoors", "months": [9, 10], "depthMm": 10, "notes": "For leaves all winter: sow in modules, then plant into a greenhouse border or cold frame." }
     ],
+    "plantOutMonths": [10, 11],
     "cropping": {
       "harvestMonths": [
         10,
@@ -2171,8 +2165,10 @@
     "conditions": { "light": "part-shade", "soil": "Any", "moisture": "moderate", "hardiness": "Hardy" },
     "size": { "heightMm": 200, "spreadMm": 150, "spacingMm": 150 },
     "sowing": [
-      { "method": "direct", "months": [5, 6, 7, 8, 9], "depthMm": 5, "notes": "Sow in late summer for winter picking." }
+      { "method": "direct", "months": [5, 6, 7, 8, 9], "depthMm": 5, "notes": "Sow in late summer for winter picking." },
+      { "method": "indoors", "months": [9, 10], "depthMm": 5, "notes": "For leaves all winter: sow in modules, then plant into a greenhouse border or cold frame." }
     ],
+    "plantOutMonths": [10, 11],
     "cropping": { "harvestMonths": [10, 11, 12, 1, 2, 3, 4], "notes": "Cut leaves and stems; it regrows." },
     "growth": { "days": [40, 60], "from": "sowing" },
     "germinationDays": [7, 14],

@@ -17,6 +17,21 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-19-seasons',
+    date: '2026-10-19',
+    title: 'Next year, and the seasons',
+    items: [
+      'Next year’s draft counts a crop in the year it’s picked. Garlic planted this October is next year’s, and its bed is marked as taken until it’s lifted, so nothing new is planned on top of it.',
+      'Every bed and patch of ground is in the draft, with anything that stays put and why. Tap a bed and it’s picked out on the small plan.',
+      'If a bed has nothing recorded for this year, the draft asks what grew there, so your first year still counts.',
+      'Using the draft a second time replaces the first, rather than planning everything twice.',
+      'Autumn sowings filled in: hardy peas, winter lettuce and salads under glass, broad beans in root trainers, sweet peas in a cold frame, and hardy annuals such as cornflowers and calendula.',
+      'Advice fits the time of year: no fleece or weekly feeding for tomatoes in October, just what to pick before the first frost.',
+      'Shropshire’s climate now comes from Shawbury, not the Welsh coast. The growing season is counted more fairly, and the last frost is given as a 50:50 date, with when to play safe.',
+    ],
+    tryIt: { label: 'See Today', view: 'home' },
+  },
+  {
     id: '2026-10-16-explain',
     date: '2026-10-16',
     title: 'The gardening, explained',

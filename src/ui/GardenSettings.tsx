@@ -12,7 +12,7 @@ import { flushSave } from '../storage/local';
 import { fromDataUrl, loadPhoto, photoIds, putPhoto, toDataUrl } from '../storage/photos';
 import { Icon } from './icons';
 import { isInstalled, isIosSafari } from './Install';
-import { estimateFrost, frostDates, inYear, short } from '../lifecycle/shed';
+import { estimateFrost, frostDates, inYear, lastFrostText, short } from '../lifecycle/shed';
 import { averagesAt, referenceAverages, seasonDays, stationNames, yearDegreeDays, yearSoFar } from '../climate/warmth';
 import { ATTRIBUTION } from '../weather/openMeteo';
 import { lastDay } from '../weather/weather';
@@ -411,7 +411,8 @@ function FrostDates({ store, garden }: { store: Store; garden: Garden }) {
         {f.estimated
           ? 'Estimated from your location. Local weather records or neighbours will know better: frost pockets and coastal gardens can be weeks either side.'
           : 'Your own dates.'}{' '}
-        They decide when the Shed suggests hardening off and planting out tender plants, and when to protect plants for winter.
+        {lastFrostText(f.lastFrost)} A frost is as likely after a 50:50 date as before it, so tender plants are safest out two weeks later. The dates decide when the Shed
+        suggests hardening off and planting out tender plants, and when to protect plants for winter.
         {!f.estimated && (
           <>
             {' '}
@@ -455,7 +456,7 @@ function Warmth({ garden, prefsStore }: { garden: Garden; prefsStore?: PrefsStor
         <dt>January nights</dt>
         <dd>{one(av.tmin[0]!)}</dd>
         <dt>Growing season</dt>
-        <dd>{seasonDays(av)} days above 5 °C</dd>
+        <dd>About {Math.round(seasonDays(av) / 5) * 5} days above 5 °C</dd>
         <dt>Compared</dt>
         <dd>{compared}</dd>
       </dl>

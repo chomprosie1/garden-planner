@@ -14,6 +14,7 @@ import {
   failTray,
   frostDates,
   inYear,
+  lastFrostText,
   makePlace,
   moveTray,
   PLACE_LABEL,
@@ -128,7 +129,7 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
         </button>
       </header>
       <p class="muted small shed-frost">
-        Last frost about {short(inYear(frost.lastFrost, 2027))}, first frost about {short(inYear(frost.firstFrost, 2027))}
+        {lastFrostText(frost.lastFrost)} First frost about {short(inYear(frost.firstFrost, 2027))}
         {frost.estimated ? ', estimated from your location' : ''}.{' '}
         <a
           href="#/settings"

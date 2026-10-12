@@ -10,6 +10,7 @@ import type { Feature, Garden, Plant, Planting, Point } from '../model/types';
 import { defaultFill, fillPlanting, type Fill } from './fill';
 import { isActive, isContainer, isSoftGround, makePlanting, plantCount, plantPositions, rowCount, rowSpacingOf, spreadOf } from './place';
 import { spotInPot } from './pots';
+import { goneBy } from './rotation';
 import { isSupport } from './supports';
 
 /** A garden kept as a list. */
@@ -192,10 +193,10 @@ const roomOf = (pl: Planting, plant: Plant, round: boolean) => plantCount(pl, pl
 
 /**
  * How full a bed is: the room its plantings want against its area, as a share (1 is full). One plant in a pot is never
- * more than full. Everything in it now counts
- * together, whenever it was started. Plantings planned for a date (next year's draft, batches) count with what comes back
- * each year, for their year, as this year's crops will be gone by then; the fuller is taken. Weeds and cleared plantings
- * don't count.
+ * more than full. Everything in it now counts together, whenever it was started. Plantings planned for a date (next
+ * year's draft, batches) count for their year with what comes back each year and with anything still in the ground when
+ * the first of them goes in (garlic over winter), as the rest will be gone by then; the fuller of now and each year is
+ * taken. Weeds and cleared plantings don't count.
  */
 export function howFull(g: Garden, bed: Feature, plantOf: (id: string) => Plant): number {
   const area = polygonArea(bed.footprint);
@@ -204,7 +205,9 @@ export function howFull(g: Garden, bed: Feature, plantOf: (id: string) => Plant)
   let now = 0;
   let stays = 0;
   let plants = 0;
-  const later = new Map<string, number>();
+  /** Planned room for each year, and when the first of it goes in. */
+  const later = new Map<string, { room: number; from: string }>();
+  const growing: { room: number; gone: string | null }[] = [];
   for (const pl of g.plantings) {
     if (pl.featureId !== bed.id || !isActive(pl)) continue;
     const plant = plantOf(pl.plantId);
@@ -213,13 +216,16 @@ export function howFull(g: Garden, bed: Feature, plantOf: (id: string) => Plant)
     const room = roomOf(pl, plant, round);
     if (currentStage(pl) === 'planned' && pl.sowBy) {
       const y = pl.sowBy.slice(0, 4);
-      later.set(y, (later.get(y) ?? 0) + room);
+      const was = later.get(y);
+      later.set(y, { room: (was?.room ?? 0) + room, from: was && was.from < pl.sowBy ? was.from : pl.sowBy });
       continue;
     }
     now += room;
     if (perennial(plant)) stays += room;
+    else growing.push({ room, gone: goneBy(pl, plant) });
   }
-  const share = Math.max(now, ...[...later.values()].map((v) => v + stays)) / area;
+  const still = (from: string) => growing.filter((c) => c.gone !== null && c.gone > from).reduce((a, c) => a + c.room, 0);
+  const share = Math.max(now, ...[...later.values()].map((v) => v.room + stays + still(v.from))) / area;
   // One plant to a pot is what a pot is for: it's never over-full, however big the plant.
   return round && plants === 1 ? Math.min(share, 1) : share;
 }

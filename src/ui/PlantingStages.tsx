@@ -146,7 +146,7 @@ export function WhatsHappened({ store, garden, pl, plant, covered = false, toget
 /** Advice for where it is now, and a line on what's next when that needs explaining. */
 export function StageAdvice({ pl, plant, covered = false }: Omit<Props, 'store' | 'garden'>) {
   const now = currentStage(pl);
-  const tips = stageTips(plant, now, pl);
+  const tips = stageTips(plant, now, pl, Number(todayIso().slice(5, 7)), covered);
   const next = pathFor(plant, pl, covered).find((s) => order(s) > order(now));
   const explain = next ? STAGE_EXPLAIN[next] : undefined;
   if (!tips.length && !explain) return null;

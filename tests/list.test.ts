@@ -381,14 +381,14 @@ describe('everything else, the same for a list', () => {
 
 describe('save format 20', () => {
   it('checks the view and a bed’s sun, and brings schema 19 up to date', () => {
-    expect(SCHEMA_VERSION).toBe(20);
+    expect(SCHEMA_VERSION).toBeGreaterThanOrEqual(20);
     const [g] = withBeds(listGarden(), [['bed', 'Veg']]);
     const lit = { ...g, features: g.features.map((f) => ({ ...f, light: 'part-shade' as const })) };
     expect(validateGarden(JSON.parse(JSON.stringify(lit)))).toEqual([]);
     expect(validateGarden({ ...lit, view: 'grid' }).join(' ')).toMatch(/view must be list/);
     expect(validateGarden({ ...lit, features: lit.features.map((f) => ({ ...f, light: 'dappled' })) }).join(' ')).toMatch(/light must be/);
     const migrated = migrateGarden({ ...newGarden(), schemaVersion: 19 }) as Garden;
-    expect(migrated.schemaVersion).toBe(20);
+    expect(migrated.schemaVersion).toBe(SCHEMA_VERSION);
     expect(validateGarden(migrated)).toEqual([]);
   });
 });

@@ -263,6 +263,8 @@ export interface Planting {
   keep?: boolean;
   /** Not "running behind" until this date (ISO): you've said you're still waiting. */
   snoozeUntil?: string;
+  /** Planned by next year's draft, for this year (the year it's picked): using the draft again replaces it until it's sown. */
+  draft?: number;
 }
 
 export const PLANT_SIZES = ['small', 'medium', 'large'] as const;

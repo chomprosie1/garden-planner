@@ -18,17 +18,8 @@
       "rowSpacingMm": 300
     },
     "sowing": [
-      {
-        "method": "indoors",
-        "months": [
-          10,
-          11,
-          2,
-          3
-        ],
-        "depthMm": 15,
-        "notes": "Sow in deep pots; pinch out the tips at three pairs of leaves."
-      }
+      { "method": "cold-frame", "months": [10, 11], "depthMm": 15, "notes": "Sow in deep pots or root trainers and keep them in a cold frame over winter: they want it cold, not warm. Pinch out the tips at three pairs of leaves." },
+      { "method": "indoors", "months": [2, 3], "depthMm": 15, "notes": "Sow in deep pots; pinch out the tips at three pairs of leaves." }
     ],
     "plantOutMonths": [
       4,
@@ -236,16 +227,8 @@
       "spacingMm": 300, "closeSpacingMm": 250
     },
     "sowing": [
-      {
-        "method": "direct",
-        "months": [
-          3,
-          4,
-          5,
-          9
-        ],
-        "depthMm": 10
-      }
+      { "method": "direct", "months": [3, 4, 5], "depthMm": 10 },
+      { "method": "direct", "months": [9, 10], "depthMm": 10, "notes": "Autumn sowings stand the winter and flower earlier, on bigger plants. In the north, sow in September." }
     ],
     "flowerMonths": [
       6,
@@ -1579,16 +1562,8 @@
       "spacingMm": 250, "closeSpacingMm": 200
     },
     "sowing": [
-      {
-        "method": "direct",
-        "months": [
-          3,
-          4,
-          5,
-          9
-        ],
-        "depthMm": 10
-      }
+      { "method": "direct", "months": [3, 4, 5], "depthMm": 10 },
+      { "method": "direct", "months": [9, 10], "depthMm": 10, "notes": "Autumn sowings stand the winter and flower earlier, on bigger plants. In the north, sow in September." }
     ],
     "flowerMonths": [
       6,
@@ -1633,16 +1608,8 @@
       "spacingMm": 200
     },
     "sowing": [
-      {
-        "method": "direct",
-        "months": [
-          3,
-          4,
-          9,
-          10
-        ],
-        "notes": "Scatter on bare, raked soil and don’t cover."
-      }
+      { "method": "direct", "months": [3, 4], "notes": "Scatter on bare, raked soil and don’t cover." },
+      { "method": "direct", "months": [9, 10], "notes": "Autumn sowings stand the winter and flower earlier, on bigger plants. In the north, sow in September." }
     ],
     "flowerMonths": [
       6,
@@ -1687,16 +1654,8 @@
       "spacingMm": 230, "closeSpacingMm": 200
     },
     "sowing": [
-      {
-        "method": "direct",
-        "months": [
-          3,
-          4,
-          5,
-          9
-        ],
-        "depthMm": 10
-      }
+      { "method": "direct", "months": [3, 4, 5], "depthMm": 10 },
+      { "method": "direct", "months": [9, 10], "depthMm": 10, "notes": "Autumn sowings stand the winter and flower earlier, on bigger plants. In the north, sow in September." }
     ],
     "flowerMonths": [
       6,
@@ -1835,7 +1794,8 @@
     "conditions": { "light": "full-sun", "soil": "Any, well-drained", "moisture": "moderate", "hardiness": "Hardy annual" },
     "size": { "heightMm": 900, "spreadMm": 300, "spacingMm": 300 },
     "sowing": [
-      { "method": "direct", "months": [3, 4, 5, 9], "depthMm": 5 }
+      { "method": "direct", "months": [3, 4, 5], "depthMm": 5 },
+      { "method": "direct", "months": [9, 10], "depthMm": 5, "notes": "Autumn sowings stand the winter and flower earlier, on bigger plants. In the north, sow in September." }
     ],
     "flowerMonths": [6, 7, 8],
     "germinationDays": [7, 21],
@@ -1858,7 +1818,8 @@
     "conditions": { "light": "full-sun", "soil": "Well-drained", "moisture": "moderate", "hardiness": "Hardy annual" },
     "size": { "heightMm": 900, "spreadMm": 300, "spacingMm": 250 },
     "sowing": [
-      { "method": "direct", "months": [3, 4, 9], "depthMm": 5 }
+      { "method": "direct", "months": [3, 4], "depthMm": 5 },
+      { "method": "direct", "months": [9, 10], "depthMm": 5, "notes": "Autumn sowings stand the winter and flower earlier, on bigger plants. In the north, sow in September." }
     ],
     "flowerMonths": [6, 7, 8],
     "germinationDays": [14, 21],
@@ -1884,7 +1845,8 @@
     "conditions": { "light": "full-sun", "soil": "Any", "moisture": "moderate", "hardiness": "Hardy annual" },
     "size": { "heightMm": 150, "spreadMm": 150, "spacingMm": 150 },
     "sowing": [
-      { "method": "direct", "months": [3, 4, 9], "depthMm": 5 }
+      { "method": "direct", "months": [3, 4], "depthMm": 5 },
+      { "method": "direct", "months": [9, 10], "depthMm": 5, "notes": "Autumn sowings stand the winter and flower earlier, on bigger plants. In the north, sow in September." }
     ],
     "flowerMonths": [5, 6, 7],
     "germinationDays": [7, 21],
@@ -1934,7 +1896,8 @@
     "conditions": { "light": "full-sun", "soil": "Poor, well-drained", "moisture": "dry", "hardiness": "Hardy annual" },
     "size": { "heightMm": 300, "spreadMm": 200, "spacingMm": 150 },
     "sowing": [
-      { "method": "direct", "months": [3, 4, 5, 9], "depthMm": 5 }
+      { "method": "direct", "months": [3, 4, 5], "depthMm": 5 },
+      { "method": "direct", "months": [9, 10], "depthMm": 5, "notes": "Autumn sowings stand the winter and flower earlier, on bigger plants. In the north, sow in September." }
     ],
     "flowerMonths": [6, 7, 8, 9],
     "germinationDays": [7, 21],
@@ -1985,7 +1948,8 @@
     "size": { "heightMm": 450, "spreadMm": 300, "spacingMm": 300 },
     "sowing": [
       { "method": "indoors", "months": [3, 4], "depthMm": 10 },
-      { "method": "direct", "months": [4, 5, 9], "depthMm": 10 }
+      { "method": "direct", "months": [4, 5], "depthMm": 10 },
+      { "method": "direct", "months": [9], "depthMm": 10, "notes": "Sown in September, it stands the winter in a sheltered spot and flowers from spring." }
     ],
     "plantOutMonths": [5],
     "flowerMonths": [5, 6, 7, 8],
@@ -3826,7 +3790,10 @@
     "category": "flower",
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Poor, well-drained", "moisture": "moderate", "hardiness": "Hardy annual" },
     "size": { "heightMm": 800, "spreadMm": 300, "spacingMm": 250 },
-    "sowing": [{ "method": "direct", "months": [3, 4, 9], "depthMm": 10 }],
+    "sowing": [
+      { "method": "direct", "months": [3, 4], "depthMm": 10 },
+      { "method": "direct", "months": [9, 10], "depthMm": 10, "notes": "Autumn sowings stand the winter and flower earlier, on bigger plants. In the north, sow in September." }
+    ],
     "flowerMonths": [6, 7, 8],
     "growth": { "days": [70, 90], "from": "sowing" },
     "lookOutFor": ["An old cornfield flower. The seeds are poisonous: not near young children."],

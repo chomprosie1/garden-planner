@@ -1,7 +1,7 @@
 // Brings saved gardens and plants from older versions up to the current shape.
 // Bump SCHEMA_VERSION whenever the saved shape changes, and add a step here.
 
-export const SCHEMA_VERSION = 20;
+export const SCHEMA_VERSION = 21;
 
 type Raw = Record<string, unknown>;
 
@@ -111,6 +111,11 @@ export function migrateGarden(raw: unknown): unknown {
     // v20 added keeping a garden as a list (view) and how sunny a bed is, as you said (light), both optional. Nothing to convert.
     g = { ...g, schemaVersion: 20 };
     version = 20;
+  }
+  if (version === 20) {
+    // v21 marked plantings planned by next year's draft with the year they're for (draft), optional. Nothing to convert.
+    g = { ...g, schemaVersion: 21 };
+    version = 21;
   }
   return g;
 }

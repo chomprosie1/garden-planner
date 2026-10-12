@@ -6301,6 +6301,12 @@ h2 {
 .next-badge {
   margin-left: 0.4rem;
 }
+.next-bed-on {
+  border-color: var(--accent);
+}
+.next-stays {
+  margin: 0.25rem 0 0;
+}
 .shop-item {
   align-items: flex-start;
   padding: 0.25rem 0;

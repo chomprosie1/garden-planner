@@ -33,6 +33,16 @@ export function estimateFrost(latitude: number): { lastFrost: string; firstFrost
   return { lastFrost: monthDay(110 + k * 5), firstFrost: monthDay(314 - k * 5) };
 }
 
+/**
+ * The last frost is a 50:50 date: as likely to come after it as before. Two weeks on, the chance is small, so tender
+ * plants are safe out by then.
+ */
+export const PLAY_SAFE_DAYS = 14;
+
+/** "Last frost: 50:50 by about 3 May; play safe until about 17 May." */
+export const lastFrostText = (lastFrost: string) =>
+  `Last frost: 50:50 by about ${short(inYear(lastFrost, 2027))}; play safe until about ${short(addDays(inYear(lastFrost, 2027), PLAY_SAFE_DAYS))}.`;
+
 /** The garden's frost dates: your own, or estimated from its latitude. */
 export function frostDates(g: Garden): { lastFrost: string; firstFrost: string; estimated: boolean } {
   const est = estimateFrost(g.latitude);

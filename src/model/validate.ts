@@ -149,6 +149,7 @@ export function validateGarden(g: unknown): string[] {
       need(p.size === undefined || oneOf(PLANT_SIZES, p.size), `${at}.size must be small, medium or large.`);
       need(p.keep === undefined || typeof p.keep === 'boolean', `${at}.keep must be true or false.`);
       need(p.snoozeUntil === undefined || (isStr(p.snoozeUntil) && /^\d{4}-\d{2}-\d{2}$/.test(p.snoozeUntil)), `${at}.snoozeUntil must be a date.`);
+      need(p.draft === undefined || (Number.isInteger(p.draft) && (p.draft as number) >= 2000 && (p.draft as number) <= 2200), `${at}.draft must be a year.`);
       for (const key of ['spreadMm', 'heightMm'] as const) {
         const v = p[key];
         need(v === undefined || (isNum(v) && v > 0 && v <= 50000), `${at}.${key} must be above 0 and at most 50 m.`);
