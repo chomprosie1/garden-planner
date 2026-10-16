@@ -210,10 +210,12 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
     case 'germinated': {
       if (ahead('hardening')) {
         // Hardening off starts at its usual time in spring, once the seedlings have had a month to grow. A late
-        // sowing hardens off as soon as it's ready; an autumn sowing waits for next spring.
+        // sowing hardens off as soon as it's ready, as does one for planting out in autumn (winter salads); any other
+        // autumn sowing waits for next spring.
         const grown = addDays(date, 28);
         const usual = hardenFrom(plant, g, yearOf(grown));
-        return step('hardening', usual >= grown ? usual : monthOf(grown) <= 7 ? grown : hardenFrom(plant, g, yearOf(grown) + 1));
+        const goesOutNow = monthOf(grown) <= 7 || !!plant.plantOutMonths?.includes(monthOf(grown));
+        return step('hardening', usual >= grown ? usual : goesOutNow ? grown : hardenFrom(plant, g, yearOf(grown) + 1));
       }
       // Going under glass: straight in once grown on, with no hardening off.
       if (cover && ahead('transplanted')) return step('transplanted', plantInFrom(plant, g, date, cover.climate));

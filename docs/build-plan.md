@@ -2148,6 +2148,59 @@ Not changed:
 - **No "Dormant" stage.** That would be a schema change; the winter tip says it instead.
 - **The plant pages' sowing calendars** still say "Sow outside" for garlic. That's release 42's verbs.
 
+### Release 42 — One job, done once (as built)
+Built 16 Oct 2026, the same day as 41.
+
+- **One sow job per planting, with either way** (`src/calendar/jobs.ts`):
+  - A planting that can be sown two ways this month gets one job, not two: "Sow outside, or under cover in a cold frame". `Job.ways` lists each way with its own advice.
+  - The how-to has a choice of way, and its steps, advice and Done follow it ("Done: sow under cover in a cold frame"). The tick box does it the first way.
+  - `toggleJob` takes the way: it records `pl.sowing`, so the job becomes that way only, still ticked. The key stays the first way's, so a tick never moves.
+  - The first-job note after setting up says the first way in a sentence.
+- **Plant out comes after sowing:**
+  - No planting-out job for something unsown while it can still be sown this month, for a sowing outside, or before the month the timeline expects it out. Corn salad no longer says "Plant out now" above "Sow under cover later".
+  - Unsown once its sowing time has passed, it's bought as plants, so a May tomato still gets "Plant out".
+  - `jobTiming` (`src/calendar/week.ts`) times a sowing job by its own way of sowing, and a job whose step it can't find is "later", not "now", unless it's already done.
+  - A projection fix found on the way: a sowing for planting out in autumn (winter salads) hardens off when it's ready, not next spring.
+- **Sowing in the Shed sows the bed's planting** (Sow seeds in `src/ui/views/Shed.tsx`):
+  - If the plant (or a kind of it) is planned in a bed and not sown, a "For" choice picks that bed first, with "Just a tray, for later" as the other choice.
+  - For a bed, `sownForPlan` marks the planting sown under cover that day and ticks its sowing job. The seeds come out of the tin. No tray: it shows under "Sown for the plan", and its planting out comes from then.
+- **The cold frame and greenhouse as places to sow:**
+  - "Where" lists greenhouses and cold frames on the plan that aren't in the Shed yet. Choosing one makes it a place, as "Raise seedlings in here" does.
+  - A cold-frame sowing (sweet peas in October) starts in the cold frame.
+  - The container follows the plant (`defaultContainer`): root trainers for beans, peas and sweet peas. It's reset when you pick another plant (before, it kept the first plant's).
+  - A tray says "24 seeds sown" until they're up, then seedlings.
+  - "Sown for the plan" says they grow on "under cover", not "indoors".
+- **The right verbs everywhere** (`stageLabel` and `stageAction` from 41):
+  - On the plan's action pill, the stage rail, the "Probably … by now" line, 3D's labels and the plant page's "Growing in".
+  - "What's happened?": garlic is "Planted", not "Sown"; roots are "First lifted" and "Lifted some"; "Sown under cover", not "Sown indoors".
+  - Harvest jobs and the week's look-out for roots say "Ready to lift".
+  - The plant page's calendar says Plant for cloves, sets and tubers, and "Sow in a cold frame".
+  - Garlic, sets and tubers don't offer "Sow in batches": they go in all at once.
+  - A cold-frame sowing of beans or peas says root trainers or deep pots, not "modules or a seedbed", unless its own note says so already.
+- **Fewer pointless jobs:**
+  - The general "Around the garden" jobs say which plants they're about (`about` in `src/content/seasons.ts`). `generalJobs` leaves out ones about plants you don't grow, and ones your own jobs already do (planting garlic, lifting dahlias). A garden with nothing planted gets them all. Each keeps its place in the list, which its tick is saved under.
+  - No monthly "Ready to pick" for something picked all year (bay, rosemary).
+  - "Weed the beds" counts beds, not pots.
+- **Help:** Sowing in the Shed (For, and greenhouses and cold frames under Where) and This week's jobs (two ways, one job).
+- **Version** 0.42.0.
+- **Checked at 390 px** (41 and 42): Today with the autumn kit (one broad bean job), its how-to with both ways and the cold-frame Done, ticking it the cold-frame way, Add a plant with "Already in the ground" over a year ago (Growing), the apple's panel (in flower from about 1 Apr, nothing behind), and Sow seeds for a planned corn salad (For: Bed 1; sown, its job ticked, no tray). No page errors.
+
+Tests: `tests/one-job.test.ts`:
+- one broad bean job with both ways, and ticking it either way records that way, keeps the tick and clears the other;
+- the first-job note;
+- no planting out before sowing, for a sowing outside, or before the timeline's month; bought tomatoes still go out;
+- sowing in the Shed for a planned planting dates it, ticks its job and leaves no tray;
+- root trainers for beans and sweet peas;
+- garlic planted and not in batches; roots lifted;
+- no monthly picking for bay; weeding counts beds; the general jobs' filter and keys.
+
+Changed test: `microclimate` (its tomatoes are sown in February, since unsown ones in April are still a sowing job).
+
+Not changed:
+- **The how-to's steps** are still the general ones for each kind of job, so a cold-frame sowing still says "keep it warm". That's release 43 (steps chosen by the actual sowing).
+- **Rows of one sowing** are still listed one by one under "Sown for the plan". That's release 40's kind of fix.
+- **The tick box** on a two-way job does it the first way; the other way is in its how-to.
+
 ## Repo layout
 ```
 garden-planner/

@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-16-one-job',
+    date: '2026-10-16',
+    title: 'One job, done once',
+    items: [
+      'Something you can sow two ways, such as autumn broad beans outside or in a cold frame, is one job. Open it, choose the way you did it, and it’s done.',
+      'No more “plant out” before something’s sown: planting out comes when the seedlings are ready.',
+      'Sowing in the Shed for something already planned in a bed marks that planting as sown and ticks its job, with no extra tray.',
+      'You can sow in your cold frame or greenhouse from the Shed, and sweet peas and beans start in root trainers.',
+      'Garlic and onion sets are planted, parsnips are lifted, and the plant pages say so.',
+      'Fewer jobs that don’t apply: no dahlia jobs without dahlias, no monthly picking job for a bay or rosemary, and weeding is for beds, not pots.',
+    ],
+    tryIt: { label: 'See Today', view: 'home' },
+  },
+  {
     id: '2026-10-16-already-growing',
     date: '2026-10-16',
     title: 'Plants already growing',

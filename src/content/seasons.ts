@@ -11,6 +11,11 @@ export interface Season {
   /** Lines about one plant, for a garden growing it (or meaning to): the first that fits is used. */
   lines: { about: string; text: string }[];
   jobs: string[];
+  /**
+   * The plants some of the jobs are about, by their place in `jobs`: shown only to a garden growing one (or meaning to).
+   * own: your own plants' jobs already do it for one in a bed or on your list, so it isn't said twice.
+   */
+  about?: Record<number, { ids: string[]; own?: true }>;
 }
 
 export const SEASONS: Season[] = [
@@ -29,6 +34,7 @@ export const SEASONS: Season[] = [
       'Check stored crops and remove any that are rotting',
       'Clean pots and seed trays ready for spring',
     ],
+    about: { 1: { ids: ['apple', 'pear'] } },
   },
   {
     month: 2,
@@ -45,6 +51,7 @@ export const SEASONS: Season[] = [
       'Cover beds with fleece or sheeting to warm the soil',
       'Cut autumn-fruiting raspberry canes down to the ground',
     ],
+    about: { 0: { ids: ['potato'] }, 1: { ids: ['chilli', 'sweet-pepper'], own: true }, 3: { ids: ['raspberry'] } },
   },
   {
     month: 3,
@@ -61,6 +68,7 @@ export const SEASONS: Season[] = [
       'Sow parsnips and broad beans outdoors in milder spells',
       'Plant first early potatoes at the end of the month',
     ],
+    about: { 0: { ids: ['tomato'], own: true }, 1: { ids: ['onion', 'shallot'], own: true }, 2: { ids: ['parsnip', 'broad-bean'], own: true }, 3: { ids: ['potato'], own: true } },
   },
   {
     month: 4,
@@ -77,6 +85,7 @@ export const SEASONS: Season[] = [
       'Sow courgettes and squash indoors',
       'Cover blossom with fleece on frosty nights',
     ],
+    about: { 0: { ids: ['potato'], own: true }, 1: { ids: ['carrot', 'beetroot', 'lettuce'], own: true }, 2: { ids: ['courgette', 'winter-squash', 'summer-squash', 'pumpkin'], own: true } },
   },
   {
     month: 5,
@@ -93,6 +102,7 @@ export const SEASONS: Season[] = [
       'Earth up potatoes as the shoots appear',
       'Sow French and runner beans outdoors late in the month',
     ],
+    about: { 1: { ids: ['tomato', 'courgette'], own: true }, 2: { ids: ['potato'] }, 3: { ids: ['french-bean', 'runner-bean'], own: true } },
   },
   {
     month: 6,
@@ -109,6 +119,7 @@ export const SEASONS: Season[] = [
       'Harvest early potatoes, broad beans and salads',
       'Net cabbages and kale against cabbage white butterflies',
     ],
+    about: { 1: { ids: ['tomato'] }, 2: { ids: ['potato', 'broad-bean', 'lettuce'], own: true }, 3: { ids: ['cabbage', 'kale', 'brussels-sprout'] } },
   },
   {
     month: 7,
@@ -125,6 +136,7 @@ export const SEASONS: Season[] = [
       'Deadhead flowers to keep them coming',
       'Water containers every day in hot spells',
     ],
+    about: { 0: { ids: ['courgette', 'french-bean', 'runner-bean'], own: true }, 1: { ids: ['tomato'], own: true } },
   },
   {
     month: 8,
@@ -142,6 +154,7 @@ export const SEASONS: Season[] = [
       'Summer-prune trained apples and pears',
       'Trim lavender lightly after it flowers',
     ],
+    about: { 1: { ids: ['cabbage', 'lettuce'], own: true }, 2: { ids: ['apple', 'pear'] }, 3: { ids: ['lavender'] } },
   },
   {
     month: 9,
@@ -158,6 +171,7 @@ export const SEASONS: Season[] = [
       'Lift maincrop potatoes and store them in paper sacks',
       'Sow green manure on empty beds',
     ],
+    about: { 0: { ids: ['apple', 'pear'], own: true }, 2: { ids: ['potato'], own: true } },
   },
   {
     month: 10,
@@ -175,6 +189,7 @@ export const SEASONS: Season[] = [
       'Lift and store dahlia tubers after the first frost',
       'Gather fallen leaves to make leaf mould',
     ],
+    about: { 0: { ids: ['garlic'], own: true }, 1: { ids: ['broad-bean'], own: true }, 2: { ids: ['dahlia'], own: true } },
   },
   {
     month: 11,
@@ -191,6 +206,7 @@ export const SEASONS: Season[] = [
       'Protect tender plants with fleece',
       'Clean and oil your tools',
     ],
+    about: { 1: { ids: ['tulip'], own: true } },
   },
   {
     month: 12,
@@ -207,6 +223,7 @@ export const SEASONS: Season[] = [
       'Check stored fruit and vegetables',
       'Plan next year’s crops and where they will go',
     ],
+    about: { 0: { ids: ['apple', 'pear'] }, 1: { ids: ['leek', 'parsnip', 'brussels-sprout'], own: true } },
   },
 ];
 
@@ -227,4 +244,24 @@ export function monthLine(month: number, g: Garden, plantOf: (id: string) => Pla
     if (of) grown.add(of);
   }
   return season.lines.find((l) => grown.has(l.about))?.text ?? season.line;
+}
+
+/**
+ * The month's general jobs for this garden, each with its place in the month's list (which its tick is saved under).
+ * A garden with nothing planted gets them all. Otherwise a job about particular plants shows only if the garden grows
+ * one (or means to), and not when its own plants' jobs already do it: nobody's told to lift dahlias they don't have,
+ * or to plant garlic twice.
+ */
+export function generalJobs(month: number, g: Garden, plantOf: (id: string) => Plant | null = () => null): { text: string; i: number }[] {
+  const season = seasonFor(month);
+  const all = season.jobs.map((text, i) => ({ text, i }));
+  const inBeds = g.plantings.filter((p) => !p.removedOn).map((p) => p.plantId);
+  if (!inBeds.length) return all;
+  const kinds = (ids: string[]) => new Set(ids.flatMap((id) => [id, plantOf(id)?.varietyOf].filter((x): x is string => !!x)));
+  const grown = kinds([...inBeds, ...g.wishlist]);
+  return all.filter(({ i }) => {
+    const about = season.about?.[i];
+    // One your own jobs do: they say it if you grow it, and it doesn't apply if you don't.
+    return !about || (!about.own && about.ids.some((id) => grown.has(id)));
+  });
 }

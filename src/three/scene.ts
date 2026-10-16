@@ -9,7 +9,7 @@
 
 import { artFor, seasonal, stageLook, type Look } from '../art/plants';
 import { lookKey } from '../art/sprites';
-import { STAGE_LABEL, currentStage, type LifeStage } from '../lifecycle/stages';
+import { currentStage, stageLabel, type LifeStage } from '../lifecycle/stages';
 import { isCover, microclimateAt } from '../climate/microclimate';
 import { LAWN_BY_MONTH } from '../lifecycle/seasons';
 import { frostDatesUnder } from '../lifecycle/shed';
@@ -303,7 +303,7 @@ export function buildScene(input: SceneInput): Scene3 {
     if (look.seeds) continue;
     const bed = byId.get(pl.featureId);
     const baseMm = soilHeight(bed);
-    names[pl.id] = `${base.commonName}${bed ? ` in ${placeLabel(bed)}` : ''}: ${STAGE_LABEL[stage].toLowerCase()}`;
+    names[pl.id] = `${base.commonName}${bed ? ` in ${placeLabel(bed)}` : ''}: ${stageLabel(base, stage, pl).toLowerCase()}`;
     const art = artFor(base);
     const spread = spreadOf(plant);
     const height = usualHeight(plant);

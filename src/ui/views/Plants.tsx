@@ -4,7 +4,7 @@ import { blankPlant, copyAsUserPlant, deleteUserPlant, emptyFilter, filterPlants
 import { beginnerOrder, splitCore } from '../../library/order';
 import { MorePlants } from '../MorePlants';
 import { featureLabel } from '../../model/features';
-import { currentStage, STAGE_LABEL } from '../../lifecycle/stages';
+import { currentStage, stageLabel } from '../../lifecycle/stages';
 import { useApp } from '../appContext';
 import { usePlants } from '../usePlants';
 import type { Store } from '../../model/store';
@@ -91,7 +91,7 @@ export function Plants({ store, garden, userPlants, openId = null, clearOpen, ch
       .filter((pl) => pl.plantId === id && !pl.removedOn)
       .map((pl) => {
         const bed = garden.features.find((f) => f.id === pl.featureId);
-        return { id: pl.id, label: `${bed ? featureLabel(bed) : 'a bed'} (${STAGE_LABEL[currentStage(pl)].toLowerCase()})` };
+        return { id: pl.id, label: `${bed ? featureLabel(bed) : 'a bed'} (${stageLabel(plantOf(pl.plantId), currentStage(pl), pl).toLowerCase()})` };
       });
 
   const row = (p: Plant) => (

@@ -7,7 +7,7 @@
 import { addDays } from '../model/dates';
 import { newId } from '../model/ids';
 import type { Garden, Plant, Planting, Point } from '../model/types';
-import { currentStage, perennial } from '../lifecycle/stages';
+import { currentStage, perennial, plantedNotSown } from '../lifecycle/stages';
 import { plantCount } from './place';
 
 export const MIN_BATCHES = 2;
@@ -16,7 +16,8 @@ export const MAX_BATCHES = 6;
 /** Rows and blocks of a plant raised from seed, not sown yet and not already in batches. Perennials stay put. */
 export function canSowInBatches(plant: Plant, pl: Planting): boolean {
   if (pl.layout !== 'row' && pl.layout !== 'block') return false;
-  if (!plant.sowing?.length || perennial(plant) || pl.batch || pl.removedOn) return false;
+  // Cloves, sets and tubers go in all at once: they're planted, not sown little and often.
+  if (!plant.sowing?.length || perennial(plant) || plantedNotSown(plant, pl) || pl.batch || pl.removedOn) return false;
   return currentStage(pl) === 'planned';
 }
 

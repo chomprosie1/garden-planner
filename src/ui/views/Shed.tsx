@@ -3,7 +3,7 @@
 // to move it, or pick it and tap where it should go.
 
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import { sownInTray } from '../../calendar/jobs';
+import { plannedToSow, sownForPlan, sownInTray } from '../../calendar/jobs';
 import { climateOf, climateText, isCover, microclimateOf, placeClimate } from '../../climate/microclimate';
 import { canSowIn } from '../../library/library';
 import {
@@ -11,6 +11,7 @@ import {
   CONTAINER_COUNT,
   CONTAINER_LABEL,
   daysBetween,
+  defaultContainer,
   failTray,
   frostDates,
   inYear,
@@ -196,11 +197,32 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
               month={month}
               initial={sowing || null}
               onCancel={() => setSowing(null)}
-              onSow={(plant, o) => {
+              onSow={(plant, o, forPlan) => {
                 let made: string | null = null;
                 let where = '';
+                if (forPlan) {
+                  // Sown for the bed's planting: the planting is sown, its job ticked and the seeds spent. No tray.
+                  const bed = garden.features.find((f) => f.id === garden.plantings.find((p) => p.id === forPlan[0])?.featureId);
+                  commit((g) => {
+                    const next = sownInTray(sownForPlan(g, plantOf, forPlan, o.date), plant, o.date);
+                    const packet = packetsFor(next, plant, plantOf).find((k) => k.count !== undefined);
+                    return packet ? useSeeds(next, packet.id, o.count) : next;
+                  });
+                  setSowing(null);
+                  app.notify(`${plant.commonName} sown for ${bed ? featureLabel(bed) : 'the plan'}. It’s under Sown for the plan.`, { undo: true });
+                  return;
+                }
                 commit((g) => {
-                  const [sown, id] = sowInTray(g, plant, o);
+                  // A greenhouse or cold frame on the plan, not in the shed yet: it's a place to raise seedlings now.
+                  let start = g;
+                  let placeId = o.placeId;
+                  const glass = placeId?.startsWith('feature:') ? g.features.find((f) => f.id === placeId!.slice(8)) : undefined;
+                  if (glass) {
+                    const made = { ...makePlace(glass.kind === 'greenhouse' ? 'greenhouse-bench' : 'cold-frame', featureLabel(glass)), featureId: glass.id };
+                    start = addPlace(g, made);
+                    placeId = made.id;
+                  }
+                  const [sown, id] = sowInTray(start, plant, { ...o, ...(placeId ? { placeId } : {}) });
                   made = id;
                   const tray = traysOf(sown).find((t) => t.id === id);
                   const place = placesOf(sown).find((p) => p.id === tray?.placeId);
@@ -270,7 +292,7 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
           {indoors.length > 0 && (
             <section class="card" aria-labelledby="indoors-head">
               <h2 id="indoors-head">Sown for the plan</h2>
-              <p class="muted small">These already have a place in a bed. They’re here while they grow on indoors.</p>
+              <p class="muted small">These already have a place in a bed. They’re here while they grow on under cover.</p>
               <ul class="plain-list shed-indoors">
                 {indoors.map((pl) => {
                   const p = plantOf(pl.plantId);
@@ -510,7 +532,8 @@ interface SowProps {
   sunniest: { place: ShedPlace; hours: number } | null;
   month: number;
   initial: string | null;
-  onSow: (p: Plant, o: { container: Container; count: number; placeId?: string; date: string }) => void;
+  /** placeId may be "feature:<id>": a greenhouse or cold frame not in the shed yet, made a place on sowing. forPlan: the plantings it's sown for, instead of a tray. */
+  onSow: (p: Plant, o: { container: Container; count: number; placeId?: string; date: string }, forPlan: string[] | null) => void;
   onCancel: () => void;
 }
 
@@ -571,14 +594,28 @@ function SowForm({ plants, garden, plantOf, places, sunOf, sunniest, month: sunM
   const filterKey = `${kind}|${query}|${weeds}`;
   const [plantId, setPlantId] = useState(initial || list.tin[0]?.id || list.now[0]?.id || plants[0]?.id || '');
   const plant = plants.find((p) => p.id === plantId);
-  const [container, setContainer] = useState<Container>(plant && plant.size.spreadMm && plant.size.spreadMm >= 400 ? 'pot-9cm' : 'module-tray');
+  const [container, setContainer] = useState<Container>(plant ? defaultContainer(plant) : 'module-tray');
   const [count, setCount] = useState(String(CONTAINER_COUNT[container]));
   const [placeId, setPlaceId] = useState('');
+  // Planned in a bed and not sown yet: sow for that planting, rather than a tray of its own.
+  const planned = plant ? plannedToSow(garden, plant, plantOf) : [];
+  const [forBed, setForBed] = useState('');
+  // Greenhouses and cold frames on the plan that aren't in the shed yet: they can be chosen, and become places.
+  const glass = garden.features.filter((f) => (f.kind === 'greenhouse' || f.kind === 'cold-frame') && !places.some((p) => p.featureId === f.id));
   // Sun-lovers (tomatoes, peppers, basil) go in the sunniest place with room, unless you choose otherwise.
   const lover = !!plant && isSunLover(plant) && !!sunniest;
   useEffect(() => {
-    if (lover && sunniest) setPlaceId(sunniest.place.id);
+    // A new plant: its own container, the bed it's planned for, and for a cold-frame sowing, the cold frame.
+    if (!plant) return;
+    const c = defaultContainer(plant);
+    setContainer(c);
+    setCount(String(CONTAINER_COUNT[c]));
+    setForBed(planned[0]?.featureId ?? '');
+    const frameSowing = plant.sowing?.some((x) => x.method === 'cold-frame' && x.months.includes(month));
+    const frame = frameSowing ? (places.find((p) => p.kind === 'cold-frame')?.id ?? (glass.find((f) => f.kind === 'cold-frame') ? `feature:${glass.find((f) => f.kind === 'cold-frame')!.id}` : '')) : '';
+    setPlaceId(frame || (lover && sunniest ? sunniest.place.id : ''));
   }, [plantId]);
+  const plan = forBed ? planned.find((b) => b.featureId === forBed) : undefined;
   const placeHours = placeId ? sunOf(placeId) : null;
   const leggy = placeHours !== null && placeHours < LEGGY_UNDER_HOURS;
   const [date, setDate] = useState(todayIso());
@@ -588,7 +625,7 @@ function SowForm({ plants, garden, plantOf, places, sunOf, sunniest, month: sunM
       class="card shed-sow"
       onSubmit={(e) => {
         e.preventDefault();
-        if (plant) onSow(plant, { container, count: Math.max(1, Number(count) || 1), ...(placeId ? { placeId } : {}), date });
+        if (plant) onSow(plant, { container, count: Math.max(1, Number(count) || 1), ...(placeId ? { placeId } : {}), date }, plan ? plan.ids : null);
       }}
     >
       <h2>Sow seeds</h2>
@@ -630,6 +667,22 @@ function SowForm({ plants, garden, plantOf, places, sunOf, sunniest, month: sunM
           {plant && !canSowIn(plant, month) && ' Not the usual time to sow it.'}
         </p>
       )}
+      {planned.length > 0 && (
+        <label class="field">
+          For
+          <select value={forBed} onChange={(e) => setForBed((e.currentTarget as HTMLSelectElement).value)}>
+            {planned.map((b) => {
+              const bed = garden.features.find((f) => f.id === b.featureId);
+              return (
+                <option key={b.featureId} value={b.featureId}>
+                  {bed ? featureLabel(bed) : 'A bed'}, where it’s planned
+                </option>
+              );
+            })}
+            <option value="">Just a tray, for later</option>
+          </select>
+        </label>
+      )}
       <div class="field-row">
         <label class="field">
           In
@@ -654,17 +707,24 @@ function SowForm({ plants, garden, plantOf, places, sunOf, sunniest, month: sunM
         </label>
       </div>
       <div class="field-row">
-        <label class="field">
-          Where
-          <select value={placeId} onChange={(e) => setPlaceId((e.currentTarget as HTMLSelectElement).value)}>
-            <option value="">{places.length ? 'First free space' : 'Windowsill (set up for you)'}</option>
-            {places.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        {!plan && (
+          <label class="field">
+            Where
+            <select value={placeId} onChange={(e) => setPlaceId((e.currentTarget as HTMLSelectElement).value)}>
+              <option value="">{places.length ? 'First free space' : 'Windowsill (set up for you)'}</option>
+              {places.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+              {glass.map((f) => (
+                <option key={f.id} value={`feature:${f.id}`}>
+                  {featureLabel(f)}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label class="field">
           Sown on
           <input type="date" value={date} onChange={(e) => setDate((e.currentTarget as HTMLInputElement).value || todayIso())} />
@@ -715,7 +775,7 @@ function TrayPanel({ tray, plant, garden, commit, close, today }: { tray: Tray; 
           <p class="eyebrow muted">{CONTAINER_LABEL[tray.container]}</p>
           <h2 class="panel-title">{plant.commonName}</h2>
           <p class="muted small">
-            {tray.count} {tray.count === 1 ? 'seedling' : 'seedlings'} · sown {short(tray.sownOn)}, {days === 0 ? 'today' : `${days} ${days === 1 ? 'day' : 'days'} ago`}
+            {stage === 'sown' ? `${tray.count} ${tray.count === 1 ? 'seed' : 'seeds'} sown` : `${tray.count} ${tray.count === 1 ? 'seedling' : 'seedlings'} · sown`} {short(tray.sownOn)}, {days === 0 ? 'today' : `${days} ${days === 1 ? 'day' : 'days'} ago`}
           </p>
         </div>
         <button type="button" class="icon-btn" aria-label="Close" onClick={close}>

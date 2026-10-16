@@ -166,8 +166,9 @@ describe('growing under cover', () => {
 
   it('jobs: planted out sooner with no hardening off, and no winter protection under glass', () => {
     let g = withCovers();
-    [g] = plantIn(g, greenhouse, 'tomato', [1000, 900]);
-    [g] = plantIn(g, bed, 'tomato', [9000, 600]);
+    // Sown in February: they go out under glass in April, outside in May. (Unsown, April is still a month to sow them.)
+    [g] = plantIn(g, greenhouse, 'tomato', [1000, 900], { sownOn: '2027-02-15', sowing: 'indoors' });
+    [g] = plantIn(g, bed, 'tomato', [9000, 600], { sownOn: '2027-02-15', sowing: 'indoors' });
     [g] = plantIn(g, greenhouse, 'chilli', [400, 400], { sownOn: '2027-02-01', stage: 'transplanted' });
     [g] = plantIn(g, bed, 'chilli', [9500, 600], { sownOn: '2027-02-01', stage: 'transplanted' });
     const april = jobsFor(g, plantOf, 4, 2027).filter((j) => j.kind === 'plant-out' && j.plantId === 'tomato');

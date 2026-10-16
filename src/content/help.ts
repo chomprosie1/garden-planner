@@ -227,7 +227,8 @@ export const HELP: HelpTopic[] = [
     steps: [
       'Open the Shed and choose Sow seeds.',
       'Pick the plant. What to sow under cover this month comes first, then Later and Everything else. Narrow it with Vegetables, Herbs, Fruit and the rest, or search; seed in your tin is at the top. Weeds show only if you tick Show weeds.',
-      'Pick the tray or pot, how many, and where it sits: a windowsill, a propagator or shelves.',
+      'If it’s already planned for a bed, For picks that bed: the planting is marked as sown and its sowing job ticked, and it waits under Sown for the plan. Choose Just a tray for a tray of its own.',
+      'Pick the tray or pot, how many, and where it sits: a windowsill, a propagator, shelves, or a greenhouse or cold frame on your plan. Beans and sweet peas start in root trainers.',
       'Each tray says when the seedlings should show, when to harden them off, and when they’re ready for the garden.',
       'When they’re ready, choose Plant out and then the bed they go in.',
     ],
@@ -243,11 +244,11 @@ export const HELP: HelpTopic[] = [
     tier: 2,
     steps: [
       'Today starts with your jobs. Now is what’s due, or due this week. Later this month can wait. To look out for is what’s likely to happen anyway, such as seedlings coming up.',
-      'Choose a job to see how to do it: what you need, the steps, and about how long it takes. Choose Done when you have.',
+      'Choose a job to see how to do it: what you need, the steps, and about how long it takes. Choose Done when you have. Something that can be sown two ways, such as broad beans outside or in a cold frame, is one job: choose the way you did it.',
       'Or tick its box, or swipe it to the right. Ticking a sowing or planting job dates the plants, so the jobs that follow are timed from then.',
       'A word with a dotted line under it, such as hardening off, opens what it means.',
     ],
-    notes: ['Every job for the month, and the general ones for any UK garden, are under All … jobs at the foot of the list. Ticked something by mistake? Tick it again, or Undo.'],
+    notes: ['Every job for the month, and the general ones for your garden, are under All … jobs at the foot of the list. Ticked something by mistake? Tick it again, or Undo.'],
     related: ['harvest', 'feeding', 'words'],
     words: 'jobs today this week tasks to do tick done how to now later month what does it mean',
   },

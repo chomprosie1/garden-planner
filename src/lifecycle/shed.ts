@@ -167,6 +167,12 @@ export const CONTAINER_LABEL: Record<Container, string> = {
 /** How many seedlings each container usually holds, to start with. */
 export const CONTAINER_COUNT: Record<Container, number> = { 'module-tray': 24, 'seed-tray': 30, 'pot-9cm': 6, 'pot-1l': 4, 'root-trainer': 16 };
 
+/** What to sow it in: root trainers for beans and peas, which have long roots; pots for big plants; otherwise modules. */
+export function defaultContainer(plant: Plant): Container {
+  if (plant.family === 'Fabaceae') return 'root-trainer';
+  return plant.size.spreadMm && plant.size.spreadMm >= 400 ? 'pot-9cm' : 'module-tray';
+}
+
 export const trayStage = (t: Tray): TrayStage => t.stage ?? 'sown';
 
 export interface SowOptions {
@@ -187,7 +193,7 @@ export function sowInTray(g: Garden, plant: Plant, o: SowOptions): [Garden, stri
     next = addPlace(next, extra);
     spot = { placeId: extra.id, shelf: 0, slot: 0 };
   }
-  const container = o.container ?? (plant.size.spreadMm && plant.size.spreadMm >= 400 ? 'pot-9cm' : 'module-tray');
+  const container = o.container ?? defaultContainer(plant);
   const tray: Tray = { id: newId('t'), plantId: plant.id, container, count: Math.max(1, Math.round(o.count ?? CONTAINER_COUNT[container])), sownOn: o.date, ...spot };
   return [{ ...next, trays: [...traysOf(next), tray] }, tray.id];
 }

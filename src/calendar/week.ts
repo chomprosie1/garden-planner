@@ -5,11 +5,11 @@
 // ready to pick). Pure functions.
 
 import { timeline } from '../lifecycle/projection';
-import { currentStage, sowingOf, type LifeStage } from '../lifecycle/stages';
+import { currentStage, isRoot, sowingOf, type LifeStage } from '../lifecycle/stages';
 import { addDays, dayNumber } from '../model/dates';
 import { runningBehind } from '../lifecycle/behind';
 import { featureLabel } from '../model/features';
-import type { Garden, Plant } from '../model/types';
+import { STAGES, type Garden, type Plant, type Stage } from '../model/types';
 import { isSown, startsAs, type StartsAs } from '../planting/windows';
 import type { Weather } from '../weather/weather';
 import type { Job } from './jobs';
@@ -32,6 +32,8 @@ export interface Upcoming {
   from: StartsAs;
   /** Due already (its window's open, or it's late): now, rather than a day. */
   now: boolean;
+  /** A root crop: lifted, not picked. */
+  root?: true;
 }
 
 /** Stages worth a line: the ones you act on or look out for. Growing on isn't news. */
@@ -76,6 +78,7 @@ export function upcoming(g: Garden, plantOf: (id: string) => Plant, today: strin
           sowing: sowingOf(plant, pl),
           from: startsAs(plant, Number((pl.sownOn ?? s.date).slice(5, 7)), pl),
           now: !!s.due,
+          ...(isRoot(plant) ? { root: true as const } : {}),
         });
     }
   }
@@ -112,7 +115,7 @@ export function upcomingVerb(u: Upcoming): string {
     case 'flowering':
       return 'Coming into flower';
     case 'harvesting':
-      return 'Ready to pick';
+      return u.root ? 'Ready to lift' : 'Ready to pick';
     case 'cleared':
       return 'Clear and compost';
     default:
@@ -138,15 +141,19 @@ export function jobTiming(jobs: Job[], g: Garden, plantOf: (id: string) => Plant
   const done = new Set(g.jobsDone.map((j) => j.key));
   const out = new Map<string, 'now' | 'later'>();
   for (const job of jobs) {
-    const stage: LifeStage | null = job.kind === 'sow-indoors' || job.kind === 'sow-direct' ? 'sown' : job.kind === 'plant-out' ? 'transplanted' : null;
+    const sow = job.kind === 'sow-indoors' || job.kind === 'sow-direct';
+    const stage: LifeStage | null = sow ? 'sown' : job.kind === 'plant-out' ? 'transplanted' : null;
     let soonest: string | null = null;
     if (stage && !done.has(job.key))
       for (const id of job.plantingIds) {
-        const pl = g.plantings.find((p) => p.id === id);
-        if (!pl) continue;
+        const found = g.plantings.find((p) => p.id === id);
+        if (!found) continue;
+        // A sowing job goes by its own way of sowing, whatever the planting would usually be.
+        const pl = sow && !found.sowing ? { ...found, sowing: job.kind === 'sow-direct' ? ('direct' as const) : ('indoors' as const) } : found;
         const step = timeline(plantOf(pl.plantId), pl, g, today, weather).find((s) => s.guessed && s.stage === stage && s.date !== null);
-        // Nothing expected for it (it's marked already): it's for now.
-        const date = step?.date ?? today;
+        // Nothing expected for it: for now if it's marked as there already, otherwise it isn't due yet.
+        const there = STAGES.indexOf(currentStage(pl) as Stage) >= STAGES.indexOf(stage as Stage);
+        const date = step?.date ?? (there ? today : addDays(weekEnd, 1));
         if (soonest === null || date < soonest) soonest = date;
       }
     out.set(job.key, soonest !== null && soonest > weekEnd ? 'later' : 'now');

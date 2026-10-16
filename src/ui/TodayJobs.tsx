@@ -5,7 +5,7 @@
 import { useMemo } from 'preact/hooks';
 import { groupJobs, type Job } from '../calendar/jobs';
 import { jobTiming, upcoming, upcomingVerb, weekWindows } from '../calendar/week';
-import { seasonFor } from '../content/seasons';
+import { generalJobs, seasonFor } from '../content/seasons';
 import { featureLabel } from '../model/features';
 import { todayIso } from '../model/ids';
 import type { Store } from '../model/store';
@@ -63,10 +63,10 @@ export function TodayJobs({ store, garden, plantOf, jobs, month, year, startHere
         <div class="card-head">
           <h2 id="now-title">This month</h2>
           <span class="muted small">
-            {jobsDoneCount(garden, month, year)} of {seasonFor(month).jobs.length} done
+            {jobsDoneCount(garden, month, year)} of {generalJobs(month, garden, plantOf ?? undefined).length} done
           </span>
         </div>
-        <JobList store={store} garden={garden} month={month} year={year} limit={4} />
+        <JobList store={store} garden={garden} month={month} year={year} limit={4} {...(plantOf ? { plantOf } : {})} />
         <p class="card-foot">
           {allLink}
           <span class="muted small"> · general UK jobs until you add plants</span>

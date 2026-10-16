@@ -6,7 +6,7 @@ import { useState } from 'preact/hooks';
 import { happenings, isPicking, likelyNext, recordHappening, type HappeningId } from '../lifecycle/happened';
 import { formatWeight, PICK_LABEL } from '../planting/harvest';
 import { probableStage, shortDate, type Step } from '../lifecycle/projection';
-import { currentStage, pathFor, setStage, settledIn, STAGE_EXPLAIN, STAGE_LABEL, stageDate, stageLabel, stageTips, sowingOf, type LifeStage } from '../lifecycle/stages';
+import { currentStage, pathFor, setStage, settledIn, STAGE_EXPLAIN, STAGE_LABEL, stageDate, stageLabel, stageTips, type LifeStage } from '../lifecycle/stages';
 import { todayIso } from '../model/ids';
 import { updateGarden, type Store } from '../model/store';
 import { PICK_SIZES, STAGES, type Garden, type Note, type PickSize, type Plant, type Planting, type Stage } from '../model/types';
@@ -83,7 +83,7 @@ export function WhatsHappened({ store, garden, pl, plant, covered = false, toget
       <div class="happened">
         {probable && (
           <p class="stage-guess">
-            Probably {STAGE_LABEL[probable].toLowerCase()} by now.
+            Probably {stageLabel(plant, probable, pl).toLowerCase()} by now.
           </p>
         )}
         <button type="button" class="btn btn-primary happened-btn" onClick={() => (setOpen(true), setChosen(first))}>
@@ -180,7 +180,7 @@ export function StageRail({ pl, plant, covered = false, steps = [], photos = [] 
         {path.map((s) => {
           const state = now === 'cleared' || order(s) < order(now) ? 'done' : s === now ? 'now' : 'todo';
           const date = state !== 'todo' ? stageDate(pl, s) : undefined;
-          const name = s === 'transplanted' && sowingOf(plant, pl) === 'none' ? 'Planted' : STAGE_LABEL[s];
+          const name = stageLabel(plant, s, pl);
           return (
             <li key={s} class={`stage stage-${state}`} aria-current={state === 'now' ? 'step' : undefined}>
               <span class="stage-dot" aria-hidden="true" />
@@ -199,7 +199,7 @@ export function StageRail({ pl, plant, covered = false, steps = [], photos = [] 
           <ul class="plain-list stage-ahead">
             {ahead.map((s) => (
               <li key={`${s.stage}${s.date}`}>
-                <span>{s.stage === 'cleared' ? 'Finished' : STAGE_LABEL[s.stage]}</span>
+                <span>{s.stage === 'cleared' ? 'Finished' : stageLabel(plant, s.stage, pl)}</span>
                 <span class="muted">about {shortDate(s.date!)}</span>
               </li>
             ))}

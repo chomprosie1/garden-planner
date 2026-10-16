@@ -9,7 +9,7 @@ import { PlantFeeding } from './FeedShelf';
 import { unknownPlant } from '../planting/place';
 import { useApp } from './appContext';
 import { GlossText } from './Glossary';
-import { notNow } from '../planting/windows';
+import { notNow, sowingVerb } from '../planting/windows';
 import { EASY, isEasy } from '../library/order';
 
 /** A new issue on the app's GitHub page, about this plant. */
@@ -24,6 +24,9 @@ export const METHOD_LABEL: Record<Sowing['method'], string> = {
   direct: 'Sow outside',
   'cold-frame': 'Sow to plant out later',
 };
+/** A sowing on the plant's calendar, in its words: garlic cloves are planted; a cold-frame sowing says so. */
+const sowLabel = (sw: Sowing) => (sw.method === 'cold-frame' && !sw.from ? 'Sow in a cold frame' : sowingVerb(sw));
+
 export const WINTER_LABEL: Record<NonNullable<Plant['wintering']>['type'], string> = {
   hardy: 'Hardy: can stay out over winter',
   protect: 'Needs protecting over winter',
@@ -301,7 +304,7 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
         <section class="plant-section">
           <h2>Through the year</h2>
           <div class="month-rows">
-            {p.sowing?.map((sw, i) => <MonthStrip key={i} label={METHOD_LABEL[sw.method]} months={sw.months} kind="sow" current={month} />)}
+            {p.sowing?.map((sw, i) => <MonthStrip key={i} label={sowLabel(sw)} months={sw.months} kind="sow" current={month} />)}
             {p.plantOutMonths?.length ? <MonthStrip label="Plant out" months={p.plantOutMonths} kind="plant" current={month} /> : null}
             {p.cropping && <MonthStrip label="Harvest" months={p.cropping.harvestMonths} kind="harvest" current={month} />}
             {p.flowerMonths?.length ? <MonthStrip label="In flower" months={p.flowerMonths} kind="harvest" current={month} /> : null}
@@ -310,7 +313,7 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
             {p.sowing?.map((sw, i) =>
               sw.notes || sw.depthMm ? (
                 <li key={i}>
-                  <strong>{METHOD_LABEL[sw.method]}</strong>
+                  <strong>{sowLabel(sw)}</strong>
                   {sw.depthMm ? ` ${sw.depthMm} mm deep.` : '.'} {sw.notes && <GlossText text={sw.notes} />}
                 </li>
               ) : null,

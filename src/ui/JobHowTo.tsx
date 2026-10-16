@@ -2,8 +2,8 @@
 // how long), then this planting's own advice underneath, and Done. For
 // someone who has never sown a row or planted a clove.
 
-import { useEffect, useRef } from 'preact/hooks';
-import { jobLabel, type Job } from '../calendar/jobs';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import { jobLabel, type Job, type JobKind } from '../calendar/jobs';
 import { howTo } from '../content/howto';
 import type { Plant } from '../model/types';
 import { startsAs } from '../planting/windows';
@@ -14,8 +14,8 @@ interface Props {
   job: Job;
   plantOf?: (id: string) => Plant;
   done: boolean;
-  /** Ticks the job, or unticks it. */
-  toggle: () => void;
+  /** Ticks the job (done this way, when there's more than one), or unticks it. */
+  toggle: (way?: JobKind) => void;
   /** A word about the feed shelf, for a feed job. */
   shelf?: string | null;
   close: () => void;
@@ -30,7 +30,11 @@ export function JobHowTo({ job, plantOf, done, toggle, shelf, close }: Props) {
   }, []);
   const plant = job.plantId && plantOf ? plantOf(job.plantId) : null;
   const month = new Date().getMonth() + 1;
-  const how = howTo(job, plant ? startsAs(plant, month) : 'seed', plant?.art?.form === 'bulb');
+  // Two ways to do it: choose one, and its steps and Done go with it.
+  const [wayKind, setWay] = useState<JobKind>(job.kind);
+  const way = job.ways?.find((w) => w.kind === wayKind);
+  const shown = way ? { ...job, kind: way.kind, ...(way.detail ? { detail: way.detail } : {}) } : job;
+  const how = howTo(shown, plant ? startsAs(plant, month) : 'seed', plant?.art?.form === 'bulb');
   const first = job.plantingIds[0];
   const shut = () => ref.current?.close();
   return (
@@ -50,6 +54,16 @@ export function JobHowTo({ job, plantOf, done, toggle, shelf, close }: Props) {
           </button>
         </header>
 
+        {job.ways && !done && (
+          <div class="choice-row choice-small howto-ways" role="radiogroup" aria-label="Which way">
+            {job.ways.map((w) => (
+              <label key={w.kind} class="choice-option">
+                <input type="radio" name="howto-way" value={w.kind} checked={wayKind === w.kind} onChange={() => setWay(w.kind)} />
+                <span>{w.label}</span>
+              </label>
+            ))}
+          </div>
+        )}
         <h3>What you need</h3>
         <ul class="howto-need">
           {how.need.map((n) => (
@@ -68,12 +82,12 @@ export function JobHowTo({ job, plantOf, done, toggle, shelf, close }: Props) {
         </ol>
         <p class="muted small howto-time">{how.time}.</p>
 
-        {(job.detail || shelf) && (
+        {(shown.detail || shelf) && (
           <section class="howto-this">
             <h3>For {job.plantId ? `this ${job.plant.toLowerCase()}` : 'these'}</h3>
-            {job.detail && (
+            {shown.detail && (
               <p>
-                <GlossText text={job.detail} />
+                <GlossText text={shown.detail} />
               </p>
             )}
             {shelf && <p class="small">{shelf}</p>}
@@ -85,11 +99,11 @@ export function JobHowTo({ job, plantOf, done, toggle, shelf, close }: Props) {
             type="button"
             class={`btn ${done ? '' : 'btn-primary'}`}
             onClick={() => {
-              toggle();
+              toggle(done ? undefined : wayKind);
               shut();
             }}
           >
-            {done ? 'Not done after all' : 'Done'}
+            {done ? 'Not done after all' : way ? `Done: ${way.label.charAt(0).toLowerCase()}${way.label.slice(1)}` : 'Done'}
           </button>
           {(first || plant) && (
             <button

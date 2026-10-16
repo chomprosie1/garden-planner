@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from 'preact/hooks';
 import { microclimateOf } from '../climate/microclimate';
-import { isNewSeason, nextStage, STAGE_ACTION } from '../lifecycle/stages';
+import { isNewSeason, nextStage, stageAction } from '../lifecycle/stages';
 import { deleteFeatures, duplicateFeature, featureLabel, geometryOf, freshTarget, isGround, isSetGround, placeLabel, MATERIAL_LABEL, materialPatch, rectInfo, resizeRectAny, setSmooth, updateFeature, type Target } from '../model/features';
 import { todayIso } from '../model/ids';
 import { asTree, treeSizeText, treeType } from '../model/trees';
@@ -83,7 +83,7 @@ export function ActionPill({ pillRef, target, garden, store, plantOf, locked, mo
           )}
           {next && plant.category !== 'weed' && (
             <button type="button" class="pill-btn" onClick={() => commit((g) => setStage(g, [pl.id], next, todayIso(), { newSeason: isNewSeason(plant, pl) }))}>
-              {isNewSeason(plant, pl) ? 'New season' : STAGE_ACTION[next]}
+              {isNewSeason(plant, pl) ? 'New season' : stageAction(plant, next, pl)}
             </button>
           )}
           {pl.layout === 'row' && (

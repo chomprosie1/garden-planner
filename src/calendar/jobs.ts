@@ -8,8 +8,8 @@
 import { microclimateOf } from '../climate/microclimate';
 import { feedDetail, feedingDue, isOnce, plantingFeedText } from '../feeding/schedule';
 import { addDays, frostDates, plantOutMonthsUnder } from '../lifecycle/shed';
-import { currentStage, pathFor, setStage, sowingOf, STAGE_LABEL, stageTips, suggestedStage } from '../lifecycle/stages';
-import { probableStage, shortDate } from '../lifecycle/projection';
+import { currentStage, isRoot, pathFor, setStage, sowingOf, stageLabel, stageTips, suggestedStage } from '../lifecycle/stages';
+import { probableStage, shortDate, timeline } from '../lifecycle/projection';
 import { behindOf } from '../lifecycle/behind';
 import type { Weather } from '../weather/weather';
 import { waterJob } from './watering';
@@ -18,6 +18,7 @@ import { runEnds } from '../library/library';
 import { STAGES, type Garden, type PickSize, type Plant, type Planting, type Stage } from '../model/types';
 import { addPick } from '../planting/harvest';
 import { isActive, isContainer, plantingStatus } from '../planting/place';
+import { isPot } from '../planting/pots';
 import { wherePhrase } from '../planting/supports';
 
 export { runEnds };
@@ -59,6 +60,18 @@ export interface Job {
   feeds?: string[];
   /** What the job says, where its kind's label is wrong: "Plant" for garlic cloves, onion sets and bulbs. */
   verb?: string;
+  /**
+   * The ways it can be done, when there's more than one: broad beans sown outside, or under cover in a cold frame. It's
+   * one job, done once whichever way; the first is the job's own kind.
+   */
+  ways?: JobWay[];
+}
+
+/** One way to do a job: its kind, what it says, and its own advice. */
+export interface JobWay {
+  kind: JobKind;
+  label: string;
+  detail?: string;
 }
 
 /** What a job says: "Sow outside", "Plant". */
@@ -86,16 +99,46 @@ function doneBefore(g: Garden, prefix: string, year: number, month: number): boo
 
 const sownThisMonth = (pl: Planting, year: number, month: number) => !!pl.sownOn && pl.sownOn.slice(0, 7) === ym(year, month);
 
-function sowingKinds(p: Plant, month: number): { kind: JobKind; detail?: string; verb?: string }[] {
-  const out: { kind: JobKind; detail?: string; verb?: string }[] = [];
+/** Beans and peas: long roots, so they're raised in root trainers or deep pots, not modules or a seedbed. */
+const longRoots = (p: Plant) => p.family === 'Fabaceae';
+
+interface SowingKind {
+  kind: JobKind;
+  detail?: string;
+  verb?: string;
+  /** Under cover, in a cold frame: said as one of two ways. */
+  coldFrame?: boolean;
+}
+
+function sowingKinds(p: Plant, month: number): SowingKind[] {
+  const out: SowingKind[] = [];
   for (const s of p.sowing ?? []) {
     if (!s.months.includes(month)) continue;
     const kind: JobKind = s.method === 'direct' ? 'sow-direct' : 'sow-indoors';
     if (out.some((o) => o.kind === kind)) continue;
-    const bits = [s.method === 'cold-frame' ? 'Sow in modules or a seedbed to plant out later.' : '', s.depthMm ? `About ${s.depthMm >= 10 ? `${s.depthMm / 10} cm` : `${s.depthMm} mm`} deep.` : '', s.notes ?? ''].filter(Boolean);
-    out.push({ kind, ...(bits.length ? { detail: bits.join(' ') } : {}), ...(s.from ? { verb: 'Plant' } : {}) });
+    // Where it's raised, unless the plant's own note says already.
+    const said = /root trainer|deep pots/i.test(s.notes ?? '');
+    const frame = s.method === 'cold-frame' && !said ? (longRoots(p) ? 'Sow in root trainers or deep pots in a cold frame, to plant out later.' : 'Sow in modules or a seedbed to plant out later.') : '';
+    const bits = [frame, s.depthMm ? `About ${s.depthMm >= 10 ? `${s.depthMm / 10} cm` : `${s.depthMm} mm`} deep.` : '', s.notes ?? ''].filter(Boolean);
+    out.push({ kind, ...(bits.length ? { detail: bits.join(' ') } : {}), ...(s.from ? { verb: 'Plant' } : {}), ...(s.method === 'cold-frame' ? { coldFrame: true } : {}) });
   }
   return out;
+}
+
+/** What one way of sowing says: "Sow outside", "Sow under cover in a cold frame", "Plant". */
+const sayWay = (w: SowingKind) => w.verb ?? (w.kind === 'sow-direct' ? 'Sow outside' : w.coldFrame ? 'Sow under cover in a cold frame' : 'Sow under cover');
+
+/** "Sow outside, or under cover in a cold frame": two ways of sowing as one job. */
+function eitherWay(ways: SowingKind[]): string {
+  const [first, ...rest] = ways.map(sayWay);
+  return [first!, ...rest.map((v) => (v.startsWith('Sow ') && first!.startsWith('Sow ') ? v.slice(4) : v.charAt(0).toLowerCase() + v.slice(1)))].join(', or ');
+}
+
+/** How these plantings were said to be sown, if they all agree. */
+function chosenSowing(list: Planting[]): 'indoors' | 'direct' | null {
+  const ways = new Set(list.map((p) => p.sowing));
+  const [only] = ways;
+  return ways.size === 1 && only ? only : null;
 }
 
 const describeGroup = (layouts: Planting[]): string => {
@@ -217,8 +260,26 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     const plain = toSow.filter((p) => !p.sowBy);
     const before = opts.feeding ? plantingFeedText(plant) : undefined;
     const withFeed = (detail?: string) => [detail, before].filter(Boolean).join(' ') || undefined;
-    if (plain.length)
-      for (const s of sowingKinds(plant, month)) add(s.kind, plant, s.kind === 'sow-indoors' ? `for ${where.slice(3)}` : where, featureId, ids(plain), s.kind === 'sow-direct' ? withFeed(s.detail) : s.detail, featureId, s.verb);
+    if (plain.length) {
+      // One job however many ways it can be sown, done once whichever way. Once you've said how (by ticking it), it's
+      // that way only. The key is the first way's, so a tick stays put.
+      const kinds = sowingKinds(plant, month);
+      const chosen = chosenSowing(plain);
+      const mine = chosen ? kinds.filter((k) => (k.kind === 'sow-direct') === (chosen === 'direct')) : [];
+      const ways = mine.length ? mine : kinds;
+      const s = ways[0];
+      if (s) {
+        const detailOf = (w: SowingKind) => (w.kind === 'sow-direct' ? withFeed(w.detail) : w.detail);
+        add(s.kind, plant, s.kind === 'sow-indoors' ? `for ${where.slice(3)}` : where, featureId, ids(plain), detailOf(s), featureId, ways.length > 1 ? eitherWay(ways) : s.verb);
+        const job = jobs[jobs.length - 1]!;
+        job.key = `${kinds[0]!.kind}:${plant.id}:${featureId}:${ym(year, month)}`;
+        if (ways.length > 1)
+          job.ways = ways.map((w) => {
+            const detail = detailOf(w);
+            return { kind: w.kind, label: sayWay(w), ...(detail ? { detail } : {}) };
+          });
+      }
+    }
     // A batch not sown in its month stays on the list for the month after, as running late.
     const lastMonth = month === 1 ? ym(year - 1, 12) : ym(year, month - 1);
     for (const p of toSow.filter((x) => x.sowBy && ((x.sownOn ?? x.sowBy).slice(0, 7) === ym(year, month) || (!x.sownOn && x.sowBy.slice(0, 7) === lastMonth)))) {
@@ -235,7 +296,21 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
       // A batch waits until after the month it's sown in; something bought as a plant (next year's draft) goes in in its month.
       const tickedNow = g.jobsDone.some((j) => j.key === `plant-out:${plant.id}:${featureId}:${ym(year, month)}`);
       const due = (p: Planting) => !p.sowBy || (sowingOf(plant, p) === 'none' ? p.sowBy.slice(0, 7) <= ym(year, month) : p.sowBy.slice(0, 7) < ym(year, month));
-      const toPlant = (tickedNow ? group : notGrowing).filter((p) => (!p.sownOn || p.sownOn.slice(0, 7) <= ym(year, month)) && due(p));
+      // Seedlings go out once they're sown and grown on: not while it can still be sown this month (that comes first),
+      // not if sown outside, and not before the month the timeline expects them out. Unsown once its sowing time has
+      // passed, it's bought as plants.
+      const monthEnd = addDays(`${ym(month === 12 ? year + 1 : year, (month % 12) + 1)}-01`, -1);
+      const canSow = sowingKinds(plant, month).length > 0;
+      const sownFirst = (p: Planting) => {
+        const how = sowingOf(plant, p);
+        if (how === 'none') return true;
+        if (!p.sownOn) return !canSow;
+        if (how === 'direct' || p.sownOn.slice(0, 7) > ym(year, month)) return false;
+        if (!today || tickedNow) return true;
+        const out = timeline(plant, p, g, today, weather).find((s) => s.guessed && s.stage === 'transplanted');
+        return !out?.date || out.date <= monthEnd;
+      };
+      const toPlant = (tickedNow ? group : notGrowing).filter((p) => sownFirst(p) && due(p));
       if (toPlant.length && !doneBefore(g, `plant-out:${plant.id}:${featureId}:`, year, month))
         add('plant-out', plant, where, featureId, ids(toPlant), withFeed(cover ? 'Under glass, so there’s no need to harden them off first.' : undefined), featureId);
     }
@@ -246,7 +321,8 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     if (!growing.length) continue;
     const harvest = plant.cropping?.harvestMonths ?? [];
     const harvesting = harvest.includes(month);
-    if (harvesting) add('harvest', plant, where, featureId, ids(growing), plant.cropping?.notes, featureId);
+    // Something picked all year round (bay, rosemary) is just there to pick: not a job every month.
+    if (harvesting && harvest.length < 12) add('harvest', plant, where, featureId, ids(growing), plant.cropping?.notes, featureId, isRoot(plant) ? 'Ready to lift' : undefined);
 
     // Probably flowering by now? Ask, unless it's harvest time anyway. The key holds the stage, so a tick is per stage.
     if (!harvesting) {
@@ -256,7 +332,7 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
       if (stage && due.length) {
         const job: Job = { key: `check:${plant.id}:${featureId}:${stage}:${ym(year, month)}`, kind: 'check', plantId: plant.id, plant: plant.commonName, where, plantingIds: ids(due), featureId, stage };
         const tip = stageTips(plant, stage, due[0], month, !!cover)[0];
-        job.detail = `Probably ${STAGE_LABEL[stage].toLowerCase()} by now. Tick when you see it.${tip ? ` ${tip}` : ''}`;
+        job.detail = `Probably ${stageLabel(plant, stage).toLowerCase()} by now. Tick when you see it.${tip ? ` ${tip}` : ''}`;
         jobs.push(job);
       }
     }
@@ -279,7 +355,7 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
   // The season's weeding: one job for every bed with something growing in it.
   const tip = WEEDING_TIP[month];
   if (opts.weeding && tip) {
-    const beds = g.features.filter((f) => isContainer(f) && g.plantings.some((p) => isActive(p) && p.featureId === f.id && plantOf(p.plantId).category !== 'weed'));
+    const beds = g.features.filter((f) => isContainer(f) && !isPot(f) && g.plantings.some((p) => isActive(p) && p.featureId === f.id && plantOf(p.plantId).category !== 'weed'));
     if (beds.length) {
       const names = beds.map(placeLabel);
       const list = names.length > 3 ? `${names.slice(0, 3).join(', ')} and ${names.length - 3} more` : names.join(names.length === 2 ? ' and ' : ', ');
@@ -353,7 +429,8 @@ export function groupJobs(jobs: Job[]): [string, Job[]][] {
 export function firstJob(g: Garden, plantOf: (id: string) => Plant, now: Date, opts: JobOptions = {}): { target: { type: 'planting'; id: string }; note: string } | null {
   const job = jobsFor(g, plantOf, now.getMonth() + 1, now.getFullYear(), opts).find((j) => j.plantingIds.length > 0);
   if (!job) return null;
-  return { target: { type: 'planting', id: job.plantingIds[0]! }, note: `Your first job: ${job.plant}. ${jobLabel(job)} ${job.where}.` };
+  // Two ways to do it: the first, in a sentence; the job itself offers both.
+  return { target: { type: 'planting', id: job.plantingIds[0]! }, note: `Your first job: ${job.plant}. ${job.ways?.[0]?.label ?? jobLabel(job)} ${job.where}.` };
 }
 
 // ---------- Ticking jobs off ----------
@@ -362,7 +439,7 @@ export function firstJob(g: Garden, plantOf: (id: string) => Plant, now: Date, o
  * Ticks or unticks a job. Ticking a sowing job dates its plantings (if they have no date) and records how they were
  * sown; planting out marks them planted out; a progress check or the first harvest moves them on to that stage.
  */
-export function toggleJob(g: Garden, job: Job, date: string, plantOf?: (id: string) => Plant): Garden {
+export function toggleJob(g: Garden, job: Job, date: string, plantOf?: (id: string) => Plant, way: JobKind = job.kind): Garden {
   const done = g.jobsDone.find((j) => j.key === job.key);
   const ids = new Set(job.plantingIds);
   if (done) {
@@ -385,7 +462,8 @@ export function toggleJob(g: Garden, job: Job, date: string, plantOf?: (id: stri
       })
       .map((p) => p.id);
   if (job.kind === 'sow-indoors' || job.kind === 'sow-direct') {
-    const sowing = job.kind === 'sow-direct' ? 'direct' : 'indoors';
+    // Done one way: that's how they were sown, and the other way's gone.
+    const sowing = way === 'sow-direct' ? 'direct' : 'indoors';
     return { ...ticked, plantings: ticked.plantings.map((p) => (!ids.has(p.id) || p.sownOn ? p : { ...p, sownOn: date, sowing })) };
   }
   if (job.kind === 'plant-out') return setStage(ticked, before('transplanted'), 'transplanted', date);
@@ -414,6 +492,30 @@ export function toggleWishlist(g: Garden, id: string): Garden {
 }
 
 const withoutRemoved = ({ removedOn: _gone, ...rest }: Planting): Planting => rest;
+
+/**
+ * Plantings of a plant waiting to be sown, by bed: what a sowing in the shed could be for. Its kinds count, since a packet
+ * of autumn broad beans is broad bean seed.
+ */
+export function plannedToSow(g: Garden, plant: Plant, plantOf: (id: string) => Plant): { featureId: string; ids: string[] }[] {
+  const same = (id: string) => id === plant.id || id === plant.varietyOf || plantOf(id).varietyOf === plant.id;
+  const out = new Map<string, string[]>();
+  for (const p of g.plantings) if (isActive(p) && currentStage(p) === 'planned' && same(p.plantId)) out.set(p.featureId, [...(out.get(p.featureId) ?? []), p.id]);
+  return [...out].map(([featureId, ids]) => ({ featureId, ids }));
+}
+
+/**
+ * Sown in the shed for plantings on the plan: they're sown under cover that day, so they show in the Shed under "Sown
+ * for the plan" and their plant-out comes from then, and this month's sowing job for them is ticked. No tray: the
+ * planting is the record.
+ */
+export function sownForPlan(g: Garden, plantOf: (id: string) => Plant, ids: string[], date: string): Garden {
+  const set = new Set(ids);
+  const sown: Garden = { ...g, plantings: g.plantings.map((p) => (set.has(p.id) && !p.sownOn ? { ...p, sownOn: date, sowing: 'indoors' as const } : p)) };
+  const jobs = jobsFor(g, plantOf, Number(date.slice(5, 7)), Number(date.slice(0, 4))).filter((j) => (j.kind === 'sow-indoors' || j.kind === 'sow-direct') && j.plantingIds.some((id) => set.has(id)));
+  const fresh = jobs.filter((j) => !g.jobsDone.some((d) => d.key === j.key));
+  return fresh.length ? { ...sown, jobsDone: [...sown.jobsDone, ...fresh.map((j) => ({ key: j.key, date }))] } : sown;
+}
 
 /**
  * Sown in a tray in the shed: this month's sowing job for it (and for the plant it's a kind of) on your Want to grow

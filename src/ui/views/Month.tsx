@@ -91,7 +91,7 @@ export function Month({ store, garden, userPlants, prefs, go, back, now = new Da
 
       <section class="card">
         <h2>Around the garden</h2>
-        <JobList store={store} garden={garden} month={month} year={year} />
+        <JobList store={store} garden={garden} month={month} year={year} {...(plants ? { plantOf } : {})} />
       </section>
 
       <section class="card">

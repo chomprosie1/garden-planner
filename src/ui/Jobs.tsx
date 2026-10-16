@@ -1,12 +1,12 @@
 import { useRef, useState } from 'preact/hooks';
-import { seasonFor } from '../content/seasons';
+import { generalJobs } from '../content/seasons';
 import { todayIso } from '../model/ids';
 import { updateGarden, type Store } from '../model/store';
 import { PICK_SIZES, type Garden, type PickSize, type Plant } from '../model/types';
 import { PICK_LABEL } from '../planting/harvest';
 import { useApp } from './appContext';
 import { KitchenHint } from './Kitchen';
-import { groupJobs, jobLabel, logPick, toggleJob, type Job } from '../calendar/jobs';
+import { groupJobs, jobLabel, logPick, toggleJob, type Job, type JobKind } from '../calendar/jobs';
 import { GlossText } from './Glossary';
 import { JobHowTo } from './JobHowTo';
 import { feedById } from '../feeding/feeds';
@@ -94,11 +94,16 @@ interface Props {
   month: number;
   year: number;
   limit?: number;
+  /** For a kind of a plant (autumn broad beans are broad beans), when picking out the jobs that apply. */
+  plantOf?: (id: string) => Plant | null;
 }
 
-/** The month's general UK jobs, with ticks saved in the garden so they travel with the export. */
-export function JobList({ store, garden, month, year, limit }: Props) {
-  const jobs = seasonFor(month).jobs.slice(0, limit);
+/**
+ * The month's general UK jobs that apply to this garden, with ticks saved in the garden so they travel with the export.
+ * A tick is saved under the job's place in the whole month's list, so hiding one doesn't move another's tick.
+ */
+export function JobList({ store, garden, month, year, limit, plantOf }: Props) {
+  const jobs = generalJobs(month, garden, plantOf).slice(0, limit);
   const done = new Set(garden.jobsDone.map((j) => j.key));
 
   const toggle = (key: string) =>
@@ -111,7 +116,7 @@ export function JobList({ store, garden, month, year, limit }: Props) {
 
   return (
     <ul class="jobs">
-      {jobs.map((job, i) => {
+      {jobs.map(({ text: job, i }) => {
         const key = jobKey(year, month, i);
         return (
           <SwipeRow key={key} onTick={() => toggle(key)}>
@@ -149,7 +154,7 @@ function shelfLine(garden: Garden | undefined, job: Job): string | null {
   return null;
 }
 
-function PlantJob({ job, done, onToggle, onPick, plantOf, garden, startHere = false }: { job: Job; done?: boolean; onToggle?: () => void; onPick?: (size: PickSize) => void; plantOf?: (id: string) => Plant; garden?: Garden; startHere?: boolean }) {
+function PlantJob({ job, done, onToggle, onPick, plantOf, garden, startHere = false }: { job: Job; done?: boolean; onToggle?: (way?: JobKind) => void; onPick?: (size: PickSize) => void; plantOf?: (id: string) => Plant; garden?: Garden; startHere?: boolean }) {
   const [picking, setPicking] = useState(false);
   /** Just picked: what to do with it, from the kitchen. */
   const [picked, setPicked] = useState(false);
@@ -258,7 +263,7 @@ export function PlantJobs({ jobs, garden, store, limit, plantOf, startHere }: { 
                   startHere={job.key === startHere}
                   {...(plantOf ? { plantOf } : {})}
                   done={done.has(job.key)}
-                  {...(store ? { onToggle: () => store.apply(updateGarden((g) => toggleJob(g, job, todayIso(), plantOf))) } : {})}
+                  {...(store ? { onToggle: (way?: JobKind) => store.apply(updateGarden((g) => toggleJob(g, job, todayIso(), plantOf, way))) } : {})}
                   {...(store && job.kind === 'harvest' && job.plantingIds.length
                     ? {
                         onPick: (size: PickSize) => {

@@ -6,7 +6,7 @@ import { addNote, makeNote } from '../model/notes';
 import type { Garden, PickSize, Plant, Planting, Stage } from '../model/types';
 import { addPick } from '../planting/harvest';
 import { harvestPlantings } from '../planting/place';
-import { currentStage, isNewSeason, markFailed, nextStage, pathFor, setSowing, setStage } from './stages';
+import { currentStage, isNewSeason, isRoot, markFailed, nextStage, pathFor, plantedNotSown, setSowing, setStage } from './stages';
 
 export type HappeningId = 'sown-indoors' | 'sown-direct' | 'planted' | Stage | 'picked' | 'new-season' | 'finished' | 'failed';
 
@@ -16,7 +16,7 @@ export interface Happening {
 }
 
 const LABEL: Partial<Record<HappeningId, string>> = {
-  'sown-indoors': 'Sown indoors',
+  'sown-indoors': 'Sown under cover',
   'sown-direct': 'Sown outside',
   sown: 'Sown',
   planted: 'Planted',
@@ -52,7 +52,15 @@ export function happenings(plant: Plant, pl: Planting, covered = false): Happeni
     if (now === 'sown' || now === 'germinated' || now === 'hardening') out.push('failed');
     out.push('finished');
   }
-  return out.map((id) => ({ id, label: id === 'transplanted' && path[0] === 'transplanted' ? 'Planted' : LABEL[id]! }));
+  // In the plant's words: garlic is planted, not sown; parsnips are lifted, not picked.
+  const label = (id: HappeningId) => {
+    if (id === 'transplanted' && path[0] === 'transplanted') return 'Planted';
+    if (id === 'sown' && plantedNotSown(plant, pl)) return 'Planted';
+    if (id === 'harvesting' && isRoot(plant)) return 'First lifted';
+    if (id === 'picked' && isRoot(plant)) return 'Lifted some';
+    return LABEL[id]!;
+  };
+  return out.map((id) => ({ id, label: label(id) }));
 }
 
 /** The one it's probably ready for: the next stage on its path. */
