@@ -36,12 +36,13 @@ describe('months', () => {
 });
 
 describe('stages through the year', () => {
-  it('shows what you marked, up to today', () => {
+  it('shows what you marked, up to today, and what it has grown into since', () => {
     const pl = planting('tomato', { sownOn: '2026-03-10', sowing: 'indoors', stage: 'transplanted', stageDates: { transplanted: '2026-05-20' } });
     expect(on('tomato', pl, '2026-03-01')).toEqual({ stage: 'planned', guessed: false });
     expect(on('tomato', pl, '2026-04-01')).toEqual({ stage: 'sown', guessed: false });
     expect(on('tomato', pl, '2026-06-01')).toEqual({ stage: 'transplanted', guessed: false });
-    expect(on('tomato', pl, TODAY)).toEqual({ stage: 'transplanted', guessed: false });
+    // In the ground since May, it has grown on by itself: by now it's cropping, a guess.
+    expect(on('tomato', pl, TODAY)).toEqual({ stage: 'harvesting', guessed: true });
   });
 
   it('guesses after today, from the plant’s months, and clears an annual after its harvest', () => {

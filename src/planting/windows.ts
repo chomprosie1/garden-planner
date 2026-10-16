@@ -4,7 +4,8 @@
 // sets, garlic cloves, seed potatoes, bulbs, or plants. Pure functions.
 
 import { runsOf } from '../lifecycle/growth';
-import { plantOutMonthsUnder } from '../lifecycle/shed';
+import { shortDate, type Step } from '../lifecycle/projection';
+import { addDays, plantOutMonthsUnder } from '../lifecycle/shed';
 import { monthRanges } from '../library/library';
 import type { Climate, Plant, Planting, Sowing, SowingFrom } from '../model/types';
 import { plantingStatus } from './place';
@@ -74,9 +75,10 @@ const line = (verb: string, w: Window) => (w.open ? `${verb} ${when(w)}` : `Next
 /**
  * A planting's next step, from where it is in its life and the month: the sowing or planting window open now, or the
  * next to open, so it agrees with the month's jobs. A planned planting with a date to sow by goes by that month. Under
- * a greenhouse or cold frame, planting out starts sooner. Null when there's nothing to say.
+ * a greenhouse or cold frame, planting out starts sooner. Given its timeline, a sowing's planting out goes by the
+ * timeline's day, so the two can't disagree. Null when there's nothing to say.
  */
-export function nextStep(pl: Planting, plant: Plant, month: number, under: Climate | null = null): string | null {
+export function nextStep(pl: Planting, plant: Plant, month: number, under: Climate | null = null, steps: Step[] = [], today?: string): string | null {
   const status = plantingStatus(pl);
   const harvest = plant.cropping?.harvestMonths.length ? `Harvest ${monthRanges(plant.cropping.harvestMonths)}` : null;
   const outMonths = plantOutMonthsUnder(plant, under);
@@ -91,7 +93,9 @@ export function nextStep(pl: Planting, plant: Plant, month: number, under: Clima
     return out ? line('Plant', out) : harvest;
   }
   if (status === 'sown') {
-    const indoors = plant.sowing?.some((s) => s.method !== 'direct') && !plant.sowing?.some((s) => s.method === 'direct');
+    const indoors = pl.sowing ? pl.sowing === 'indoors' : plant.sowing?.some((s) => s.method !== 'direct') && !plant.sowing?.some((s) => s.method === 'direct');
+    const expected = today ? steps.find((s) => s.guessed && s.stage === 'transplanted' && s.date) : undefined;
+    if (indoors && expected && today) return expected.date! <= addDays(today, 6) ? 'Plant out now' : `Next: plant out from about ${shortDate(expected.date!)}`;
     return (indoors && out && line('Plant out', out)) || harvest;
   }
   if (status === 'growing') return harvest;

@@ -277,9 +277,25 @@ export function plantOutFrom(p: Plant, g: Garden, hardenedFrom: string): string 
 export function plantInFrom(p: Plant, g: Garden, upOn: string, c: Climate): string {
   const ready = addDays(upOn, 28);
   const frost = frostDatesUnder(g, c);
-  if (!frost || !isTender(p)) return ready;
+  const season = c.heated ? ready : inSeasonUnder(p, c, ready);
+  if (!frost || !isTender(p)) return season;
   const last = inYear(frost.lastFrost, Number(ready.slice(0, 4)));
-  return ready > last ? ready : last;
+  return season > last ? season : last;
+}
+
+/**
+ * An autumn sowing under unheated glass stays in its pots over winter and goes in when its planting-out months come
+ * round: sweet peas sown in October go in about April. A few weeks early is fine under glass; more than six months
+ * early, it's a sowing for now, not for next year.
+ */
+function inSeasonUnder(p: Plant, c: Climate, ready: string): string {
+  const months = plantOutMonthsUnder(p, c);
+  let [y, m] = [Number(ready.slice(0, 4)), Number(ready.slice(5, 7))];
+  if (!months.length || months.includes(m)) return ready;
+  for (let i = 0; i < 12 && !months.includes(m); i++) [y, m] = m === 12 ? [y + 1, 1] : [y, m + 1];
+  const opens = `${y}-${String(m).padStart(2, '0')}-01`;
+  const wait = daysBetween(ready, opens);
+  return wait > 42 && wait < 183 ? opens : ready;
 }
 
 const monthStart = (m: number) => `2027-${String(m).padStart(2, '0')}-01`;

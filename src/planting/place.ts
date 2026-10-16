@@ -3,9 +3,9 @@
 // so the saved planting stays small however many plants it holds.
 
 import { distance, pointInPolygon } from '../geometry/polygon';
-import { currentStage, isGrowingStage, setStage } from '../lifecycle/stages';
+import { currentStage, inGroundDefault, inGroundStages, isGrowingStage, setStage, sowingOf } from '../lifecycle/stages';
 import { newId } from '../model/ids';
-import type { Feature, FeatureKind, Garden, Material, Plant, PlantSize, Planting, Point, SpacingStyle } from '../model/types';
+import type { Feature, FeatureKind, Garden, Material, Plant, PlantSize, Planting, Point, SpacingStyle, Stage } from '../model/types';
 import { alongSupport, climbs, holdsOne, holdsPoint, isSupport, supportAt, trainsUp } from './supports';
 
 export type Layout = NonNullable<Planting['layout']>;
@@ -230,15 +230,41 @@ export const activePlantings = (g: Garden) => g.plantings.filter(isActive);
 
 // ---------- Edits. Each returns a new Garden, so each is one undo step. ----------
 
+/** Already in the ground: when it went in, the stage it's at now, and when it got there (left out when that's not known). */
+export interface InGroundAt {
+  date: string;
+  stage: Stage;
+  reached?: string;
+}
+
 /**
- * A new planting. `growing`: already in the ground rather than planned, best given as the day it went in (ISO), so its
- * jobs, care and next year's draft go from then.
+ * Where something already in the ground is in its life. It went in on `date`, sown there (or under cover) or planted;
+ * a later stage is dated only if you know when it got there, so the timeline carries on from it rather than replaying
+ * the months since.
  */
-export function makePlanting(plant: Plant, featureId: string, layout: Layout, start: Point, end?: Point, growing: boolean | string | null = false): Planting {
+function inGroundAs(plant: Plant, pl: Planting, given: InGroundAt): void {
+  // A stage not on its path (ticked before the plant was chosen): its usual one for when it went in.
+  const at = inGroundStages(plant).includes(given.stage) ? given : { ...given, stage: inGroundDefault(plant, given.date, given.reached ?? '') };
+  const sown = at.stage === 'sown' || at.stage === 'germinated' || (sowingOf(plant) === 'direct' && at.stage !== 'transplanted');
+  if (sown) pl.sownOn = at.date;
+  else pl.stageDates = { transplanted: at.date };
+  if (at.stage === 'sown' || at.stage === 'transplanted') {
+    if (at.stage === 'transplanted') pl.stage = 'transplanted';
+    return;
+  }
+  pl.stage = at.stage;
+  if (at.reached) pl.stageDates = { ...pl.stageDates, [at.stage]: at.reached };
+}
+
+/**
+ * A new planting. `growing`: already in the ground rather than planned, best given as when it went in and its stage,
+ * so its jobs, care and next year's draft go from there. `true` is planted out, on a day not known.
+ */
+export function makePlanting(plant: Plant, featureId: string, layout: Layout, start: Point, end?: Point, growing: boolean | InGroundAt | null = false): Planting {
   const pl: Planting = { id: newId('p'), plantId: plant.id, featureId, x: Math.round(start[0]), y: Math.round(start[1]), layout };
   // A weed is already there when you mark it.
-  if (growing || plant.category === 'weed') pl.stage = 'transplanted';
-  if (typeof growing === 'string') pl.stageDates = { transplanted: growing };
+  if (growing === true || (!growing && plant.category === 'weed')) pl.stage = 'transplanted';
+  else if (growing) inGroundAs(plant, pl, growing);
   if (layout !== 'single' && end) pl.endPoint = [Math.round(end[0]), Math.round(end[1])];
   if (layout === 'row') pl.count = rowCount(start, end ?? start, plant.size.spacingMm);
   return pl;

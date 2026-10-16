@@ -112,14 +112,14 @@ describe('next year, drafted', () => {
     expect(solo.beds.map((b) => [b.from, b.next])).toEqual([[p.id, 'potatoes']]);
   });
 
-  it('keeps what did well, and leaves out what didn’t come up or ran behind', () => {
+  it('keeps what did well, and leaves out what didn’t come up, but not what is standing', () => {
     const beds = [bedAt(0, 'A'), bedAt(2000, 'B')];
     const [a, b] = beds as [Feature, Feature];
     const pls = [
       rowIn(a, 'pea', { sownOn: '2026-04-12', stage: 'harvesting', stageDates: { germinated: '2026-04-25', harvesting: '2026-06-20' }, picks: [{ date: '2026-06-20', grams: 500 }] }),
       // Sown outside in August, never marked as up.
       rowIn(b, 'carrot', { sownOn: '2026-08-01' }),
-      // Planted out in May, never marked as growing on.
+      // Planted out in May, never marked as growing on: it grows on by itself, so it isn't behind.
       { ...makePlanting(plantOf('tomato'), b.id, 'single', [1000, 300]), x: 2300, sownOn: '2026-03-01', sowing: 'indoors' as const, stage: 'transplanted' as const, stageDates: { germinated: '2026-03-10', hardening: '2026-05-01', transplanted: '2026-05-20' } },
     ];
     const draft = draftNextYear(withAll(newGarden(), beds, pls), plantOf, today);
@@ -127,7 +127,7 @@ describe('next year, drafted', () => {
     expect(by('pea').didWell).toBe(true);
     expect(by('pea').leftOut).toBeUndefined();
     expect(by('carrot').leftOut).toBe('not-up');
-    expect(by('tomato').leftOut).toBe('behind');
+    expect(by('tomato').leftOut).toBeUndefined();
   });
 
   it('shortens a row to fit its new bed, leaves out a block that won’t fit, and doesn’t move pots, perennials or last year’s crops', () => {

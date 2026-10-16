@@ -12,7 +12,7 @@ import { bounds } from '../../geometry/polygon';
 import { stageIn, timeline, type Step } from '../../lifecycle/projection';
 import { trayFrom } from '../../lifecycle/shed';
 import { bookedText, bookedUntil } from '../../planting/booked';
-import { currentStage, STAGE_LABEL, type LifeStage } from '../../lifecycle/stages';
+import { currentStage, stageLabel, type LifeStage } from '../../lifecycle/stages';
 import { deleteFeatures, featureLabel, KINDS, rectInfo, resizeRectAny, updateFeature, type Target } from '../../model/features';
 import { todayIso } from '../../model/ids';
 import { addListBed, copyListBed, LIST_KIND_LABEL, LIST_KINDS, LIST_SIZE, moveInList, nameListBeds, type ListKind } from '../../model/listLayout';
@@ -20,7 +20,7 @@ import { updateGarden, type Store } from '../../model/store';
 import { LIGHT_LEVELS, type Feature, type Garden, type Light, type Plant, type Planting } from '../../model/types';
 import { FILL_LABEL, fillsFor, type Fill } from '../../planting/fill';
 import { fullText, howFull, isListed, listBeds, moveToListBed, placeInList, plantableBeds, plantOutInList, type ListHow } from '../../planting/listPlant';
-import { isActive, plantCount, spacingStyle } from '../../planting/place';
+import { isActive, plantCount, spacingStyle, type InGroundAt } from '../../planting/place';
 import { checkGarden } from '../../planting/rules';
 import { isSupport } from '../../planting/supports';
 import { nextStep } from '../../planting/windows';
@@ -393,7 +393,7 @@ function PlantingRow({ pl, plant, count, garden, today, weather, which, open }: 
   const now = stageIn(steps, today).stage;
   const marked = currentStage(pl);
   const n = count ?? plantCount(pl, plant);
-  const next = nextStep(pl, plant, Number(today.slice(5, 7)), microclimateOf(garden, pl)?.climate ?? null);
+  const next = nextStep(pl, plant, Number(today.slice(5, 7)), microclimateOf(garden, pl)?.climate ?? null, steps, today);
   return (
     <button type="button" class={`planting-row ${marked === 'planned' ? 'is-planned' : ''}`} onClick={open}>
       <PlantIcon plant={plant} size={46} view="side" {...(now !== 'planned' && now !== 'cleared' ? { stage: now } : {})} />
@@ -404,7 +404,7 @@ function PlantingRow({ pl, plant, count, garden, today, weather, which, open }: 
           {which && <span class="muted small"> · {which}</span>}
         </span>
         <span class="small">
-          <span class={`status-chip status-${marked === 'planned' ? 'planned' : marked === 'sown' ? 'sown' : 'growing'}`}>{STAGE_LABEL[marked]}</span>
+          <span class={`status-chip status-${marked === 'planned' ? 'planned' : marked === 'sown' ? 'sown' : 'growing'}`}>{stageLabel(plant, marked, pl)}</span>
           {next && <span class="muted"> {next}</span>}
         </span>
         <SeasonBar steps={steps} today={today} />
@@ -625,7 +625,7 @@ function AddPlantDialog({ store, garden, plants, plantOf, month, start, close, n
   const [plantId, setPlantId] = useState(start.plantId ?? '');
   const [how, setHow] = useState<Fill | 'count'>('one');
   const [count, setCount] = useState('6');
-  const [growing, setGrowing] = useState<string | null>(null);
+  const [growing, setGrowing] = useState<InGroundAt | null>(null);
   // What didn't fit last time, said above the beds to choose from for the rest.
   const [short, setShort] = useState<string | null>(null);
   const bed = beds.find((b) => b.id === bedId);
@@ -753,7 +753,7 @@ function AddPlantDialog({ store, garden, plants, plantOf, month, start, close, n
                     </label>
                   )}
                 </fieldset>
-                <InGround value={growing} set={setGrowing} label="Already in the ground (not just planned)" />
+                <InGround plant={plant} value={growing} set={setGrowing} label="Already in the ground (not just planned)" />
                 {!start.plantId && (
                   <button type="button" class="link-btn small" onClick={() => setPlantId('')}>
                     Choose another plant

@@ -17,8 +17,22 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-16-already-growing',
+    date: '2026-10-16',
+    title: 'Plants already growing',
+    items: [
+      'Fruit, shrubs and herbs planted a while ago now follow their usual year. An apple planted last year isn’t “coming into flower” in October, and it flowers again next spring.',
+      '“Already in the ground” asks how far on it is as well as when it went in: sown, up, growing, flowering or harvesting. A parsnip sown in April is sown, not planted out.',
+      'Running behind is only for seedlings slow to come up, and for plants not yet hardened off or planted out. Something growing on in its own time isn’t behind.',
+      'Sweet peas sown in the autumn stay in the cold frame over winter, go in about April and flower from June.',
+      'A planting’s “Next” and its timeline give the same date. In a list, correcting a stage changes all its rows.',
+      'Garlic is planted, not sown. Apples get their own picking tip, roots are lifted with a fork, and fruit bushes rest in winter.',
+    ],
+    tryIt: { label: 'Open your garden', view: 'plan' },
+  },
+  {
     id: '2026-10-20-help',
-    date: '2026-10-20',
+    date: '2026-10-12',
     title: 'Help for the rest',
     items: [
       'Help has 13 new topics. For week to week: saying what’s happened to a plant, your seed tin, the garden journal, reminders and frost warnings, and keeping your garden safe with backups.',
@@ -31,7 +45,7 @@ export const WHATS_NEW: NewsEntry[] = [
   },
   {
     id: '2026-10-19-seasons',
-    date: '2026-10-19',
+    date: '2026-10-12',
     title: 'Next year, and the seasons',
     items: [
       'Next year’s draft counts a crop in the year it’s picked. Garlic planted this October is next year’s, and its bed is marked as taken until it’s lifted, so nothing new is planned on top of it.',
@@ -46,7 +60,7 @@ export const WHATS_NEW: NewsEntry[] = [
   },
   {
     id: '2026-10-16-explain',
-    date: '2026-10-16',
+    date: '2026-10-12',
     title: 'The gardening, explained',
     items: [
       'Tap a job to see how to do it: what you need, the steps, and about how long it takes, with this plant’s own advice underneath. Tap Done when you have.',
@@ -60,7 +74,7 @@ export const WHATS_NEW: NewsEntry[] = [
   },
   {
     id: '2026-10-15-today-and-where',
-    date: '2026-10-15',
+    date: '2026-10-12',
     title: 'Today, and where things live',
     items: [
       'Today starts with one list of jobs to tick: Now, then Later this month, then what to look out for this week. The photo is a short band at the top, and the month’s line is about what you’re growing.',
@@ -74,7 +88,7 @@ export const WHATS_NEW: NewsEntry[] = [
   },
   {
     id: '2026-10-13-list-put-right',
-    date: '2026-10-13',
+    date: '2026-10-12',
     title: 'Your list, put right',
     items: [
       'Plants never go on top of each other. Ask for more than a bed has room for and it plants what fits, then asks where the rest should go: “Room for 72 of 200 in Bed 4. Put the other 128 in another bed?” Planting out a big tray works the same, and the rest stay in the tray.',

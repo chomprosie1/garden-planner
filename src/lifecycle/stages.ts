@@ -8,6 +8,7 @@
 
 import { feedTip } from '../feeding/feeds';
 import { runStarts } from '../library/library';
+import { daysBetween } from '../model/dates';
 import { addNote, makeNote } from '../model/notes';
 import { STAGES, type Garden, type Plant, type Planting, type Stage } from '../model/types';
 
@@ -54,6 +55,51 @@ export function sowingOf(plant: Plant, pl?: Planting): 'indoors' | 'direct' | 'n
   const methods = (plant.sowing ?? []).map((s) => s.method);
   if (methods.length === 0) return 'none';
   return methods[0] === 'direct' ? 'direct' : 'indoors';
+}
+
+/** Planted rather than sown: sets, cloves and tubers, and bulbs and plants that are never sown. */
+export function plantedNotSown(plant: Plant, pl?: Planting): boolean {
+  const how = sowingOf(plant, pl);
+  if (how === 'none') return true;
+  const ways = (plant.sowing ?? []).filter((s) => (how === 'direct' ? s.method === 'direct' : s.method !== 'direct'));
+  return ways.length > 0 && ways.every((s) => !!s.from);
+}
+
+/** A root crop, lifted with a fork rather than picked. */
+export const isRoot = (plant: Plant) => plant.art?.crop?.kind === 'root';
+
+/** A stage in this plant's words: garlic is "Planted", not "Sown"; a bought plant is "Planted", not "Planted out". */
+export function stageLabel(plant: Plant, stage: LifeStage, pl?: Planting): string {
+  if (stage === 'sown' && plantedNotSown(plant, pl)) return 'Planted';
+  if (stage === 'transplanted' && sowingOf(plant, pl) !== 'indoors') return 'Planted';
+  return STAGE_LABEL[stage];
+}
+
+/** What "move on" says in this plant's words: "Mark as planted" for garlic, "Start lifting" for parsnips. */
+export function stageAction(plant: Plant, stage: Stage, pl?: Planting): string {
+  if (stage === 'sown' && plantedNotSown(plant, pl)) return 'Mark as planted';
+  if (stage === 'transplanted' && sowingOf(plant, pl) !== 'indoors') return 'Mark as planted';
+  if (stage === 'harvesting' && isRoot(plant)) return 'Start lifting';
+  return STAGE_ACTION[stage];
+}
+
+/**
+ * The stages "already in the ground" offers, from the plant's own path: sown (or planted) and up for a sowing, planted
+ * for something that went in as a plant, then growing, flowering and harvesting. Hardening off happens elsewhere.
+ */
+export const inGroundStages = (plant: Plant): Stage[] => pathFor(plant).filter((s) => s !== 'hardening');
+
+/**
+ * The stage "already in the ground" starts on, from how it starts and when it went in. This month: sown, for a sowing
+ * outside or one under cover in its sowing months (sweet peas in October), otherwise planted. Earlier: growing.
+ */
+export function inGroundDefault(plant: Plant, date: string, today: string): Stage {
+  const choices = inGroundStages(plant);
+  if (date.slice(0, 7) !== today.slice(0, 7)) return 'vegetative';
+  const how = sowingOf(plant);
+  const month = Number(today.slice(5, 7));
+  const sowingNow = (plant.sowing ?? []).some((s) => s.method !== 'direct' && s.months.includes(month)) && !plant.plantOutMonths?.includes(month);
+  return choices.includes('sown') && (how === 'direct' || sowingNow) ? 'sown' : choices.includes('transplanted') ? 'transplanted' : choices[0]!;
 }
 
 /** The stages this planting goes through, in order. Under a greenhouse or cold frame (covered), seedlings go in without hardening off. */
@@ -216,6 +262,9 @@ function generalTips(plant: Plant, stage: Stage, pl: Planting | undefined, fed: 
       // Fleece is for spring's cold nights: something planted out in summer or autumn doesn't need it.
       return month && (month < 3 || month > 6) ? ['Water in well to settle the soil round the roots.'] : ['Water in well to settle the soil round the roots. Keep a fleece handy for a cold night.'];
     case 'vegetative':
+      // A shrub or fruit bush that loses its leaves rests over winter.
+      if (perennial(plant) && plant.lifePath?.winter !== 'evergreen' && month && (month >= 11 || month <= 2))
+        return ['Resting for the winter. Nothing to do but keep the weeds down; the new growth comes in spring.'];
       return ['Weeds down, water in dry spells, and a mulch to hold the moisture in. Then let it grow.'];
     case 'flowering':
       return plant.category === 'flower'
@@ -224,6 +273,16 @@ function generalTips(plant: Plant, stage: Stage, pl: Planting | undefined, fed: 
           ? [fed ? 'The flowers are the start of the crop. Water regularly, so the fruit doesn’t split.' : 'The flowers are the start of the crop. Water regularly, and switch to a high-potash feed for fruiting crops.']
           : ['In flower. Enjoy it.'];
     case 'harvesting':
+      if (isRoot(plant)) return ['Loosen the soil beside the row with a fork and lift what you need. The rest keeps in the ground.'];
+      if (plant.category === 'fruit' && plant.art?.form === 'tree') return ['A ripe one comes away with a gentle lift and twist. Pick them as they ripen, and keep only unbruised ones for storing.'];
+      if (plant.category === 'fruit' && perennial(plant)) return ['Pick the fruit as it ripens, every few days in dry weather, before the birds get it.'];
       return ['Pick little and often: for many crops, the more you pick, the more there is.'];
   }
+}
+
+/** Settled in: planted out more than six weeks ago, so the watering-in advice for a new planting is past. */
+export function settledIn(pl: Planting, today: string): boolean {
+  if (currentStage(pl) !== 'transplanted') return false;
+  const on = pl.stageDates?.transplanted;
+  return !!on && daysBetween(on, today) > 42;
 }

@@ -84,8 +84,14 @@ export function causesFor(plant: Plant, next: LifeStage): string[] {
 }
 
 /**
+ * Stages it can be late for: coming up, hardening off and planting out, which you see happen or do. Growing on,
+ * flowering and cropping come when they come, and the timeline keeps up with them (a leek in since June isn't behind).
+ */
+const WATCHED: LifeStage[] = ['germinated', 'hardening', 'transplanted'];
+
+/**
  * Plantings late to reach their next stage, most late first. Left out: weeds, anything planned or cleared, anything
- * whose latest stage has no date, the step to clearing, and anything you've said you're still waiting for.
+ * whose latest stage has no date, stages after planting out, and anything you've said you're still waiting for.
  */
 export function runningBehind(g: Garden, plantOf: (id: string) => Plant, today: string, weather: Weather | null = null): Behind[] {
   const out: Behind[] = [];
@@ -102,14 +108,14 @@ export function runningBehind(g: Garden, plantOf: (id: string) => Plant, today: 
 /** One planting, if it's running behind. */
 export function behindOf(plant: Plant, pl: Planting, g: Garden, today: string, weather: Weather | null = null): Behind | null {
   const exp = expectedNext(plant, pl, g, weather);
-  if (!exp || exp.stage === 'cleared' || exp.stage === 'planned') return null;
+  if (!exp || !WATCHED.includes(exp.stage)) return null;
   const late = daysBetween(addDays(exp.date, slackDays(exp.stage, daysBetween(exp.from, exp.date))), today);
   if (late <= 0) return null;
   return { plantingId: pl.id, plantId: plant.id, featureId: pl.featureId, stage: currentStage(pl), next: exp.stage, due: exp.date, late, causes: causesFor(plant, exp.stage) };
 }
 
-/** "Expected to be up by 12 Oct." */
-export function behindText(b: Behind, shortDate: (iso: string) => string): string {
+/** "Expected to be up by 12 Oct", with the year when it isn't this year's. */
+export function behindText(b: Behind, shortDate: (iso: string) => string, today?: string): string {
   const what: Partial<Record<LifeStage, string>> = {
     germinated: 'to be up',
     hardening: 'to be ready to harden off',
@@ -118,7 +124,8 @@ export function behindText(b: Behind, shortDate: (iso: string) => string): strin
     flowering: 'to be flowering',
     harvesting: 'to be ready to pick',
   };
-  return `Expected ${what[b.next] ?? `to be ${STAGE_LABEL[b.next].toLowerCase()}`} by ${shortDate(b.due)}.`;
+  const year = today && b.due.slice(0, 4) !== today.slice(0, 4) ? ` ${b.due.slice(0, 4)}` : '';
+  return `Expected ${what[b.next] ?? `to be ${STAGE_LABEL[b.next].toLowerCase()}`} by ${shortDate(b.due)}${year}.`;
 }
 
 /** Still waiting: not running behind again for two weeks. */

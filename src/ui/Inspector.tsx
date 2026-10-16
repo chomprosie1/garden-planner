@@ -60,7 +60,7 @@ import { formatHours, sunNeeded, type Finding } from '../planting/rules';
 import { cmText, isPot, litresText, potNeeds, potOn, potOnChoices, potSize, sizeText, type PotOnTo } from '../planting/pots';
 import { expectedText, nextInMonths, shortDate, timeline } from '../lifecycle/projection';
 import { batchDates, batchesOf, batchLabel, canSowInBatches, maxBatches, MIN_BATCHES, setSowBy, splitIntoBatches } from '../planting/batches';
-import { currentStage, sowingOf, STAGE_LABEL, stageDate } from '../lifecycle/stages';
+import { currentStage, sowingOf, stageDate, stageLabel } from '../lifecycle/stages';
 import { deleteBlob, saveBlob } from '../storage/idb';
 import { Straighten } from './Straighten';
 import { openTraceKey } from '../storage/gardens';
@@ -315,7 +315,7 @@ function GrowingOnGround({ garden, f, plantOf, setSelected, list = false }: { ga
             <button type="button" onClick={() => setSelected({ type: 'planting', id: p.id })}>
               <PlantIcon plant={plantOf(p.plantId)} size={22} />
               <span>{plantOf(p.plantId).commonName}</span>
-              <span class="muted small">{STAGE_LABEL[currentStage(p)]}</span>
+              <span class="muted small">{stageLabel(plantOf(p.plantId), currentStage(p), p)}</span>
             </button>
           </li>
         ))}
@@ -816,7 +816,7 @@ function PlantingOverview(props: Props) {
                           <button type="button" onClick={() => setSelected({ type: 'planting', id: p.id })}>
                             <PlantIcon plant={plantOf(p.plantId)} size={22} />
                             <span>{plantOf(p.plantId).commonName}</span>
-                            <span class="muted small">{STAGE_LABEL[currentStage(p)]}</span>
+                            <span class="muted small">{stageLabel(plantOf(p.plantId), currentStage(p), p)}</span>
                           </button>
                         </li>
                       ))}
@@ -886,7 +886,7 @@ function BedPanel(props: Shared & { bed: Feature }) {
                     <PlantIcon plant={plantOf(p.plantId)} size={22} />
                     <span>{plant.commonName}</span>
                     <span class="muted small">
-                      {n > 1 ? `${LAYOUT_LABEL[p.layout ?? 'single']} of ${n}` : '1 plant'} · {STAGE_LABEL[currentStage(p)]}
+                      {n > 1 ? `${LAYOUT_LABEL[p.layout ?? 'single']} of ${n}` : '1 plant'} · {stageLabel(plantOf(p.plantId), currentStage(p), p)}
                     </span>
                   </button>
                 </li>
@@ -1135,22 +1135,21 @@ function PlantingPanel(props: Props & { pl: Planting }) {
   const stage = currentStage(pl);
   const cover = microclimateOf(garden, pl);
   const today = todayIso();
-  const step = nextStep(pl, plant, Number(today.slice(5, 7)), cover?.climate ?? null);
   // When it's likely to be ready, from the warmth it gets here (UK climate averages), and under glass if it's covered.
   const { weather } = useWeatherNow();
-  const expected = status !== 'planned' ? expectedText(timeline(plant, pl, garden, today, weather), plant, today) : null;
+  const steps = timeline(plant, pl, garden, today, weather);
+  const step = nextStep(pl, plant, Number(today.slice(5, 7)), cover?.climate ?? null, steps, today);
+  const expected = status !== 'planned' ? expectedText(steps, plant, today) : null;
   const canEdit = true;
   // Late to reach its next stage, unless you've said you're still waiting.
   const behind = pl.snoozeUntil && pl.snoozeUntil > today ? null : behindOf(plant, pl, garden, today, weather);
-
-  const steps = timeline(plant, pl, garden, today, weather);
 
   return (
     <div class="inspector-body">
       <Heading eyebrow={`${LAYOUT_LABEL[layout]}${bed ? ` in ${placeLabel(bed)}` : ''}`} title={plant.commonName} plant={plant} />
       <p class="status-line">
         <span class={`status-chip status-${status}`}>
-          {STAGE_LABEL[stage]}
+          {stageLabel(plant, stage, pl)}
           {stageDate(pl, stage) ? ` ${formatDate(stageDate(pl, stage)!)}` : ''}
         </span>
         {step && <span class="muted small">{step}</span>}
@@ -1159,7 +1158,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
       {behind && (
         <div class="behind-line">
           <p>
-            <strong>Running behind.</strong> {behindText(behind, shortDate)} If it has moved on, say so with “What’s happened?” below.
+            <strong>Running behind.</strong> {behindText(behind, shortDate, today)} If it has moved on, say so with “What’s happened?” below.
           </p>
           <Causes b={behind} />
           <BehindActions b={behind} store={store} plant={plant} />
@@ -1249,7 +1248,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
               value={pl.sownOn ?? ''}
               onChange={(e) => {
                 const v = (e.currentTarget as HTMLInputElement).value;
-                commit((g) => updatePlanting(g, pl.id, { sownOn: v || undefined }));
+                commit((g) => [pl.id, ...(props.together ?? [])].reduce((acc, id) => updatePlanting(acc, id, { sownOn: v || undefined }), g));
               }}
             />
           </label>
@@ -1272,7 +1271,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
             body: (
               <>
                 <StageRail pl={pl} plant={plant} covered={!!cover} steps={steps} photos={photosOf(garden, pl.id)} />
-                {canEdit && <StageCorrect store={store} pl={pl} plant={plant} covered={!!cover} />}
+                {canEdit && <StageCorrect store={store} pl={pl} plant={plant} covered={!!cover} together={props.together ?? []} />}
               </>
             ),
           },

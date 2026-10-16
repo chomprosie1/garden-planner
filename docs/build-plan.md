@@ -2061,6 +2061,93 @@ Not changed:
 - **Topics' "Take me to" screens** are as they were. Next year and the shopping list still take you to the month's page, where Planning ahead always shows.
 - **No ? inside dialogs** (next year, shopping, share). Opening help from a dialog would leave it open over the help.
 
+## The seventh round: things already growing, releases 40 to 47 (added 12 Oct 2026)
+From the testers' second run on 12 Oct 2026, after release 36: Priya, Margaret and Jordan used the running app again and wrote [feedback-2026-10-12-priya.md](feedback-2026-10-12-priya.md), [feedback-2026-10-12-margaret.md](feedback-2026-10-12-margaret.md) and [feedback-2026-10-12-jordan.md](feedback-2026-10-12-jordan.md). Planned 12 Oct; written into this plan 16 Oct, when 41 and 42 were built.
+
+| Measure | Priya | Margaret | Jordan |
+| --- | --- | --- | --- |
+| Usability | 6 | 6 | 6 |
+| Keep using | 6 | 5 | 6 |
+| Trust (Jordan: follow without Googling) | 5 | 4 | 7 |
+| Recommend | 6 | 4 | 6 |
+
+What it found:
+- **Better everywhere, but trust hasn't moved.** The contradictions now come from plants already growing (a year-old apple "coming into flower" in October), jobs that don't close each other (broad beans both "sow under cover" and "sow outside"), counts that change silently, and a next-year draft that rotates fruit and borders.
+- **All three asked for the same cuts:** 3D, Play the year, the share picture, recipes on Today, Room to grow.
+
+Decided:
+- **One release a day at most, with testing days**, as in the sixth round. You can pull releases forward.
+- **Order:** the blocker first, then trust (already growing, then jobs, then how-to), then the cuts, then counts, then fruit and next year (the one schema change), then the first garden and the plan on a phone.
+- **Hide, don't delete:** 3D, Play the year and the year slider, timelapse, Wrapped, the share picture, recipes and Room to grow move off Today and off phone main screens, into ··· or Settings. The code stays.
+- **Tender plants plant out on the play-safe date** (50:50 plus about 14 days) in jobs and hardening off. Hardy plants keep the 50:50 date. This closes the question left open in release 35.
+- **Schema 22 on main**, with a migration test (release 46).
+- **Facts are checked before release.** Margaret's advice corrections and the frost-hollow question need a named source (RHS, Met Office), not memory.
+
+| When | Release | What | Status |
+| --- | --- | --- | --- |
+| Tue 13 Oct | 40. Unstuck | The Garden list scrolls in list mode. A planting's count adds up all its rows. One unit per size. "Growing in Bed 4 and Bed 4" once. Search singular and plural, and "what to sow now". A typed bed width survives changing the sun. Text size at the top of Settings. Small fixes. | Not built yet |
+| Wed 14 Oct | 41. Plants already growing | Established plants catch up, not replay. "Already in the ground" asks the stage. Running behind only for coming up, hardening off and planting out. Autumn sowings flower in their season. One source for "Next". Care tips that fit the plant. | Built 16 Oct 2026 |
+| Thu 15 Oct | Testing day | | |
+| Fri 16 Oct | 42. One job, done once | One sow job per planting, with either way. No planting out before sowing. Sowing in the Shed sows the bed's planting. The cold frame and greenhouse as places to sow. The right verbs. Fewer pointless jobs. | Built 16 Oct 2026 |
+| Sat 17 – Sun 18 Oct | Testing weekend | | |
+| Mon 19 Oct | 43. How to, for this crop | Spacing in every how-to. Steps chosen by the actual sowing. Glossary words dotted on Today. About 12 new words. Margaret's corrections, checked against a source. Autumn jobs for glass and fruit. The play-safe frost date for tender plants. | |
+| Tue 20 Oct | 44. Less, but better | Today is the jobs. Recipes, Room to grow, Wrapped, the journal and Install off Today. Open on Today. The plan's extras behind ··· on phones. Settings and Plants trimmed. Checks can be dismissed. | |
+| Wed 21 Oct | Testing day | | |
+| Thu 22 Oct | 45. Counts you can trust | Fill respects rows. Bulbs in pots at real density. Moves ask before cutting. The count can be edited. Plan and list agree on rows. Pots under cover counted as modules. | |
+| Fri 23 Oct | 46. Fruit, and next year round the real beds | A fruit cage. Beds that rotate and beds that don't (schema 22). Next year's draft only rotates the veg beds, counts this autumn's crops as next year's, and suggests a follow-on crop. | |
+| Sat 24 – Sun 25 Oct | Testing weekend | | |
+| Mon 26 Oct | 47. A first garden, and the plan on a phone | Kits always get their beds. "Make your first bed" for a lawn. Moving, stickers, hand-drawn rectangles and the Advanced pill on a phone. | |
+| Tue 27 Oct | The review again | The same three testers and tasks. Targets: keep-using and trust of 7 or more from all three; Jordan's unexplained words under 5 and Googles under 3; no contradiction on a planting already in the ground. | |
+
+Parked (in the wishlist): a share picture worth posting; harvest weights and a year's picking page; feet and inches; a frost in the journal setting the first-frost date; a variety on a planting and in search; streaks or a small reward on Done; "buy now / buy later" and pictures of tools; lasagne bulb pots.
+
+### Release 41 — Plants already growing (as built)
+Built 16 Oct 2026, ahead of release 40, which isn't built yet (41 doesn't depend on it).
+
+- **Established plants catch up, not replay** (`timeline` in `src/lifecycle/projection.ts`):
+  - Once a planting is in the ground, the stages it reaches by itself (growing, flowering, harvesting) can be guessed to have happened. A guessed one that's wholly over before today is left out. The one in force today keeps its real date.
+  - Before, every overdue guess landed on tomorrow, so an apple planted last year was "coming into flower" and "ready to pick" this week, and "In flower from about 13 Oct".
+  - Steps you do or see (sowing, up, hardening off, planting out, clearing) still land on tomorrow when they're overdue, as before, and so does anything after one.
+  - Saved gardens are put right as they're read: no migration.
+- **"Already in the ground" asks the stage** (`src/ui/InGround.tsx`):
+  - A second choice, "It's now", lists the plant's own stages (`inGroundStages` in `src/lifecycle/stages.ts`), in its own words: Sown or Planted, Up, Growing, Flowering, Harvesting.
+  - The default (`inGroundDefault`): this month, Sown for a sowing outside, or one under cover in its sowing months (sweet peas in October); Planted otherwise. Any earlier month: Growing.
+  - It's passed as `InGroundAt` (`{ date, stage, reached? }`) through the Garden list's Add a plant, the plan's planting bar and `placeInList`. `makePlanting` no longer hard-codes "transplanted": a sowing records `sownOn`, a plant `stageDates.transplanted`, and a later stage is dated only when it was reached this month.
+  - So a parsnip sown in April is sown, not planted out, and a raspberry planted over a year ago is growing, with its flowers next May.
+- **Running behind only for coming up, hardening off and planting out** (`src/lifecycle/behind.ts`). Growing on, flowering and cropping come when they come. Leeks in since June aren't behind. `behindText` gives the year when it isn't this year. Next year's draft no longer calls standing crops "ran behind" (that came from the same check).
+- **Autumn sowings flower in their season:**
+  - A plant grown for its flowers waits for its flower months, however warm it's been (`cropBy`).
+  - Under unheated glass, a sowing ready more than six weeks before its planting-out months stays in its pots until they come (`plantInFrom` in `src/lifecycle/shed.ts`). Up to six months; past that it's a sowing for now.
+  - October sweet peas in the cold frame go in about 1 April and flower from June, not 9 November.
+- **One source for "Next":**
+  - `nextStep` takes the timeline: a sowing's "Next: plant out from about 1 Apr" is the timeline's day.
+  - In a list, correcting the stage and the "Sown or planted on" date change every row shown as one, not just the first.
+- **Words and tips that fit the plant** (`src/lifecycle/stages.ts`):
+  - `stageLabel` and `stageAction`: garlic is Planted, not Sown; a bought plant is Planted, not Planted out; roots Start lifting. Used on the planting's chip, the Garden list and Correct a mistake (release 42 takes them everywhere else).
+  - Picking tips: tree fruit "a gentle lift and twist", bush and cane fruit every few days, roots with a fork. No more "little and often" for apples.
+  - A fruit bush or shrub that loses its leaves is "Resting for the winter" from November to February.
+  - Planted out more than six weeks ago (`settledIn`), a planting gets growing-on advice, not "water in well".
+- **Help:** "Already in the ground" and Running behind say what they now do.
+- **Version** 0.41.0.
+
+Tests: `tests/already-growing.test.ts`:
+- an old apple isn't due tomorrow, flowers next spring and isn't behind;
+- raspberries and blackcurrants have no flowering or picking this week;
+- an apple added as growing over a year ago goes from the calendar;
+- the stage choices and their words;
+- the defaults;
+- an April parsnip is sown, growing and never planted out;
+- leeks aren't behind;
+- the year in `behindText`;
+- October sweet peas go in in spring and flower in June, and "Next" agrees with the timeline;
+- the fruit, root and winter tips, and `settledIn`.
+
+Changed tests: `year` (a tomato planted in May is harvesting by October, guessed), `next-year` (a standing tomato isn't "ran behind"), `one-answer` (the new in-ground value).
+
+Not changed:
+- **No "Dormant" stage.** That would be a schema change; the winter tip says it instead.
+- **The plant pages' sowing calendars** still say "Sow outside" for garlic. That's release 42's verbs.
+
 ## Repo layout
 ```
 garden-planner/

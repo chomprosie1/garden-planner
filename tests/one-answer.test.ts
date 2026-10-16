@@ -151,9 +151,10 @@ describe('already in the ground, with a date', () => {
   });
 
   it('records the day it went in, so next year’s draft sees it', () => {
-    const pea = { ...makePlanting(plantOf('pea'), bed.id, 'row', [600, 300], [600, 2700], '2026-05-15') };
-    expect(pea.stage).toBe('transplanted');
-    expect(pea.stageDates).toEqual({ transplanted: '2026-05-15' });
+    const pea = { ...makePlanting(plantOf('pea'), bed.id, 'row', [600, 300], [600, 2700], { date: '2026-05-15', stage: 'vegetative' }) };
+    expect(pea.stage).toBe('vegetative');
+    expect(pea.sownOn).toBe('2026-05-15');
+    expect(pea.stageDates).toBeUndefined();
     const g = gardenWith(pea);
     expect(validateGarden(JSON.parse(JSON.stringify(g)))).toEqual([]);
     expect(draftNextYear(g, plantOf, TODAY).items.map((i) => i.was.plantId)).toEqual(['pea']);

@@ -162,7 +162,7 @@ export const HELP: HelpTopic[] = [
         computer: 'Drag a plant onto a bed, pot or patch of lawn. Or click it, then click where it goes.',
       },
       'It’s planted the usual way for that plant: carrots in a row, a courgette on its own, lettuce filling the bed. The other ways are offered beside it: One, A row, or Fill the bed.',
-      'Tick “Already in the ground” for plants that are growing now rather than planned, and say which month they went in, so their jobs and next year’s plan go from then.',
+      'Tick “Already in the ground” for plants that are growing now rather than planned, say which month they went in, and how far on they are now (sown, up, growing, flowering or harvesting), so their jobs and next year’s plan go from there. Fruit and shrubs planted years ago follow their usual year.',
     ],
     notes: [
       'A plant can’t go on paving, decking or a path. If it won’t go in, drop it inside a bed’s outline, zoomed in a little for small pots.',
@@ -351,7 +351,7 @@ export const HELP: HelpTopic[] = [
       { phone: 'Tap the plant in your garden, or under its bed in your list. Its details open.', computer: 'Click the plant on the plan, or under its bed in your list. Its details open beside it.' },
       'Under What’s happened?, choose what you’ve seen: It’s up, Planted out, Flowering, First pick, Picked some or Finished. The likely next one is marked.',
       'Change the date if it wasn’t today, add a photo if you like, and save. The jobs that follow are timed from that day.',
-      'If something is slower than usual, Today lists it under Running behind, with likely reasons. Choose It’s moved on, Still waiting (it asks again in two weeks) or, for a sowing, Sowing failed.',
+      'If seedlings are slow to come up, or something hasn’t been hardened off or planted out when it usually would be, Today lists it under Running behind, with likely reasons. Choose It’s moved on, Still waiting (it asks again in two weeks) or, for a sowing, Sowing failed.',
     ],
     notes: [
       'Ticking a sowing, planting or picking job on Today does the same, so most of the time there’s no need to open the plant.',

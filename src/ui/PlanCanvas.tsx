@@ -51,7 +51,7 @@ import { defaultFill, fillPlanting } from '../planting/fill';
 import { isPot, spotInPot } from '../planting/pots';
 import { besideSupport, boundaryFence, holdsOne, isSupport, wherePhrase } from '../planting/supports';
 import { treeType } from '../model/trees';
-import { addPlanting, blockGrid, containerAt, mayGoUp, deletePlanting, duplicatePlanting, makePlanting, placeCopy, MAX_PLANTS, movePlanting, plantCount, plantingPoint, plantPositions, rowCount, sizedPlant, spreadOf, updatePlanting, type Layout } from '../planting/place';
+import { addPlanting, blockGrid, containerAt, mayGoUp, deletePlanting, duplicatePlanting, makePlanting, placeCopy, MAX_PLANTS, movePlanting, plantCount, plantingPoint, plantPositions, rowCount, sizedPlant, spreadOf, updatePlanting, type InGroundAt, type Layout } from '../planting/place';
 import type { Finding } from '../planting/rules';
 import type { SunGrid } from '../sun/hours';
 import type { Sun } from '../sun/position';
@@ -75,9 +75,8 @@ export interface Placing {
   plant: Plant;
   /** "auto": dropped into a bed, it fills it the usual way for the plant (one, a row, or the whole bed). */
   layout: Layout | 'auto';
-  /** Already in the ground, rather than planned. */
-  /** The day it went in, when it's already in the ground. */
-  growing?: string | null;
+  /** When it went in and its stage, when it's already in the ground. */
+  growing?: InGroundAt | null;
   /** Planting out this tray from the Potting Shed: the planting takes its sowing date and stages. */
   trayId?: string;
 }

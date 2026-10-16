@@ -46,7 +46,7 @@ import { trayFrom } from '../../lifecycle/shed';
 import { useApp } from '../appContext';
 import { clockText, SunBar, type CalendarDate, type SunView } from '../SunBar';
 import { usePlants } from '../usePlants';
-import { spacingStyle } from '../../planting/place';
+import { spacingStyle, type InGroundAt } from '../../planting/place';
 import { isSupport } from '../../planting/supports';
 import { treeAsPlant } from '../../planting/pots';
 import { useSunHours } from '../useSunHours';
@@ -130,7 +130,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const [sheetOpen, setSheetOpen] = useState(false);
   const [plantId, setPlantId] = useState<string | null>(null);
   const [layout, setLayout] = useState<Placing['layout']>('auto');
-  const [growingNow, setGrowingNow] = useState<string | null>(null);
+  const [growingNow, setGrowingNow] = useState<InGroundAt | null>(null);
   /** A tray from the Potting Shed being planted out. */
   const [trayId, setTrayId] = useState<string | null>(null);
   const tray = trayId ? garden.trays?.find((t) => t.id === trayId) ?? null : null;

@@ -4,7 +4,7 @@ import { canSowIn, emptyFilter, filterPlants } from '../library/library';
 import { beginnerOrder, splitCore } from '../library/order';
 import { MorePlants } from './MorePlants';
 import type { Plant } from '../model/types';
-import { rowSpacingOf, spreadOf, type Layout } from '../planting/place';
+import { rowSpacingOf, spreadOf, type InGroundAt, type Layout } from '../planting/place';
 import { PLANT_DRAG_TYPE } from './PlanCanvas';
 import { PlantIcon } from './PlantIcon';
 import { InGround } from './InGround';
@@ -21,9 +21,9 @@ interface Props {
   setPlantId: (id: string) => void;
   layout: Layout;
   setLayout: (l: Layout) => void;
-  /** Null while planned; the day it went in, once ticked as already in the ground. */
-  growing: string | null;
-  setGrowing: (g: string | null) => void;
+  /** Null while planned; when it went in and its stage, once ticked as already in the ground. */
+  growing: InGroundAt | null;
+  setGrowing: (g: InGroundAt | null) => void;
   month: number;
   /** Phones: no drag and drop, shorter hints. */
   phone?: boolean;
@@ -89,7 +89,7 @@ export function PlantPicker({ plants, plantId, setPlantId, layout, setLayout, gr
         {!phone && <p class="muted small">{LAYOUTS.find((l) => l.value === layout)!.hint}</p>}
       </fieldset>
 
-      <InGround value={growing} set={setGrowing} label="Already in the ground (not just planned)" />
+      <InGround plant={chosen ?? null} value={growing} set={setGrowing} label="Already in the ground (not just planned)" />
 
       {chosen && (
         <dl class="facts">

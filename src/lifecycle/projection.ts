@@ -1,5 +1,7 @@
 // The garden through the year: where each planting is on any day, a year
-// either side of today. Up to today it's what you've marked. After today it's
+// either side of today. Up to today it's what you've marked, and for something
+// in the ground, what it's grown into by itself since (growing, flowering,
+// cropping). After today it's
 // carried on from there with the plant's usual months (sowing, planting out,
 // flowering, harvest), sharpened by growing degree days from UK climate
 // averages: crops come on with the warmth they get, so they're sooner in the
@@ -177,7 +179,9 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
   const cropMonths = path.includes('harvesting') ? harvestMonths : flowerMonths;
   const ready = (share = 1) => (c.start && !perennial(plant) ? readyFrom(plant, pl, g, c.start, climate, share, c.weather) : null);
   // A late sowing still crops before its season's out: the warmth can't push the first harvest past two weeks before
-  // the end of its months.
+  // the end of its months. A plant grown for its flowers waits for its flower months, however warm it's been: sweet
+  // peas sown in October flower the next June, not in the winter.
+  const forFlowers = !path.includes('harvesting');
   const cropBy = (): string | null => {
     const d = ready();
     if (!d || !c.start || !cropMonths.length) return d;
@@ -185,7 +189,8 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
     const open = nextInSeason(c.start, cropMonths, shift);
     if (!open) return d;
     const close = addDays(afterSeason(open, cropMonths, shift), -14);
-    return d > close ? later(close, open) : d;
+    if (d > close) return later(close, open);
+    return forFlowers ? later(d, open) : d;
   };
   // A tender annual that hasn't got there by the first frost is finished.
   const orFrost = (s: Stage, d: string | null): Step | null => {
@@ -297,15 +302,28 @@ export function timeline(plant: Plant, pl: Planting, g: Garden, today: string, w
   }
   const horizon = addDays(today, 800);
   const tomorrow = addDays(today, 1);
+  let overdue = false;
   for (let i = 0; last && i < MAX_STEPS && last.date! <= horizon; i++) {
-    // Each step follows from when the last was due. Nothing guessed shows on or before today: steps that are
-    // overdue all land tomorrow, so it's shown at the latest of them.
-    steps.push(last.date! <= today ? { ...last, date: tomorrow, due: true } : last);
     if (startsGrowth(last, plant, pl)) c.start = last.date;
-    last = after(c, last.stage, last.date!);
+    const next = after(c, last.stage, last.date!);
+    if (last.date! > today) steps.push(last);
+    else if (!overdue && c.start && GROWS_ON.includes(last.stage)) {
+      // In the ground and growing on by itself: it catches up rather than replaying. A step over before today is left
+      // out, and the one in force today keeps its date, so an apple planted years ago isn't coming into flower now.
+      if (!next?.date || next.date > today) steps.push(last);
+    } else {
+      // Something you do or see (sowing, up, planting out, clearing) isn't guessed to have happened: steps that are
+      // overdue all land tomorrow, so it's shown at the latest of them.
+      overdue = true;
+      steps.push({ ...last, date: tomorrow, due: true });
+    }
+    last = next;
   }
   return steps;
 }
+
+/** Stages a planting reaches by itself once it's in the ground: these can be guessed to have happened already. */
+const GROWS_ON: LifeStage[] = ['vegetative', 'flowering', 'harvesting'];
 
 /**
  * The step a planting should reach next after the latest one you've marked, and when, as it was expected: not moved to

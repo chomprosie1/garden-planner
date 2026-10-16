@@ -91,7 +91,7 @@ export function BehindCard({ store, garden, plantOf }: { store: Store; garden: G
                 <PlantIcon plant={p} size={30} />
                 <span>
                   <strong>{p.commonName}</strong>
-                  {bed ? ` in ${placeLabel(bed)}` : ''}. {behindText(b, shortDate)}
+                  {bed ? ` in ${placeLabel(bed)}` : ''}. {behindText(b, shortDate, todayIso())}
                 </span>
               </div>
               <Causes b={b} />

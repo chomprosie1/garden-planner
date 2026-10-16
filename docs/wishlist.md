@@ -112,3 +112,11 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | A feedback form in the app, and private counts of first plant and return visits | Review, 9 Oct 2026 | S | Parked 11 Oct 2026 (release 28): not needed yet |
 | A shopping list of seeds, sets, compost and feed for what's planned | Review, 9 Oct 2026 | S | Built in release 27 |
 | Watering jobs for pots and new plantings in dry spells | Review, 9 Oct 2026 | S | Built in release 27 |
+| A share picture worth posting (an illustrated "my beds this month") | Testers, 12 Oct 2026 | M | Parked in the seventh round: hidden in release 44 until it's redone |
+| Harvest weights, and a year's picking page | Margaret, 12 Oct 2026 | M | Parked in the seventh round: a notebook feature |
+| Feet and inches for typed sizes | Margaret, 12 Oct 2026 | S | Parked in the seventh round |
+| A frost noted in the journal sets the first-frost date, and "last year on this date" | Margaret and Priya, 12 Oct 2026 | S | Parked in the seventh round |
+| A variety on a planting, and varieties in search ('Aquadulce Claudia') | Margaret, 12 Oct 2026 | M | Parked in the seventh round: a schema change plus data, next round with the data track |
+| Streaks, or a small reward on Done | Jordan, 12 Oct 2026 | S | Parked in the seventh round |
+| "Buy now / buy later" and pictures of tools on the shopping list | Jordan, 12 Oct 2026 | S | Parked in the seventh round |
+| Lasagne bulb pots | Priya, 12 Oct 2026 | S | Parked in the seventh round |

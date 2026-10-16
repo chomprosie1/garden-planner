@@ -8,7 +8,7 @@ import { currentStage, perennial } from '../lifecycle/stages';
 import { placeLabel } from '../model/features';
 import type { Feature, Garden, Plant, Planting, Point } from '../model/types';
 import { defaultFill, fillPlanting, type Fill } from './fill';
-import { isActive, isContainer, isSoftGround, makePlanting, plantCount, plantPositions, rowCount, rowSpacingOf, spreadOf } from './place';
+import { isActive, isContainer, isSoftGround, makePlanting, plantCount, plantPositions, rowCount, rowSpacingOf, spreadOf, type InGroundAt } from './place';
 import { spotInPot } from './pots';
 import { goneBy } from './rotation';
 import { isSupport } from './supports';
@@ -93,7 +93,7 @@ export interface ListPlacing {
  * the last. With no room for a row or a fill, nothing is planted; with no room for all of a number, `left` says how
  * many didn't fit. `full` says the bed's over-full, or there was no room.
  */
-export function placeInList(g: Garden, bed: Feature, plant: Plant, how: ListHow, plantOf: (id: string) => Plant, growing: boolean | string | null = false): ListPlacing {
+export function placeInList(g: Garden, bed: Feature, plant: Plant, how: ListHow, plantOf: (id: string) => Plant, growing: boolean | InGroundAt | null = false): ListPlacing {
   const b = bounds(bed.footprint)!;
   const middle: Point = [(b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2];
   const busy = taken(g, bed, plantOf);

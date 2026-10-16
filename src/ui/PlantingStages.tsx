@@ -6,7 +6,7 @@ import { useState } from 'preact/hooks';
 import { happenings, isPicking, likelyNext, recordHappening, type HappeningId } from '../lifecycle/happened';
 import { formatWeight, PICK_LABEL } from '../planting/harvest';
 import { probableStage, shortDate, type Step } from '../lifecycle/projection';
-import { currentStage, pathFor, setStage, STAGE_EXPLAIN, STAGE_LABEL, stageDate, stageTips, sowingOf, type LifeStage } from '../lifecycle/stages';
+import { currentStage, pathFor, setStage, settledIn, STAGE_EXPLAIN, STAGE_LABEL, stageDate, stageLabel, stageTips, sowingOf, type LifeStage } from '../lifecycle/stages';
 import { todayIso } from '../model/ids';
 import { updateGarden, type Store } from '../model/store';
 import { PICK_SIZES, STAGES, type Garden, type Note, type PickSize, type Plant, type Planting, type Stage } from '../model/types';
@@ -146,7 +146,9 @@ export function WhatsHappened({ store, garden, pl, plant, covered = false, toget
 /** Advice for where it is now, and a line on what's next when that needs explaining. */
 export function StageAdvice({ pl, plant, covered = false }: Omit<Props, 'store' | 'garden'>) {
   const now = currentStage(pl);
-  const tips = stageTips(plant, now, pl, Number(todayIso().slice(5, 7)), covered);
+  const today = todayIso();
+  // Planted out weeks ago, it's growing: watering in is past.
+  const tips = stageTips(plant, settledIn(pl, today) ? 'vegetative' : now, pl, Number(today.slice(5, 7)), covered);
   const next = pathFor(plant, pl, covered).find((s) => order(s) > order(now));
   const explain = next ? STAGE_EXPLAIN[next] : undefined;
   if (!tips.length && !explain) return null;
@@ -234,8 +236,8 @@ export function StageRail({ pl, plant, covered = false, steps = [], photos = [] 
   );
 }
 
-/** For a mistake: set the stage back or forward to any on its path. */
-export function StageCorrect({ store, pl, plant, covered = false }: Omit<Props, 'garden'>) {
+/** For a mistake: set the stage back or forward to any on its path. `together`: rows shown as one with this, set too. */
+export function StageCorrect({ store, pl, plant, covered = false, together = [] }: Omit<Props, 'garden'> & { together?: string[] }) {
   const now = currentStage(pl);
   if (now === 'cleared') return null;
   const path = pathFor(plant, pl, covered);
@@ -247,7 +249,7 @@ export function StageCorrect({ store, pl, plant, covered = false }: Omit<Props, 
         value=""
         onChange={(e) => {
           const v = (e.currentTarget as HTMLSelectElement).value as Stage | 'planned' | '';
-          if (v) store.apply(updateGarden((g) => setStage(g, [pl.id], v, today)));
+          if (v) store.apply(updateGarden((g) => setStage(g, [pl.id, ...together], v, today)));
         }}
       >
         <option value="">Set the stage to…</option>
@@ -256,7 +258,7 @@ export function StageCorrect({ store, pl, plant, covered = false }: Omit<Props, 
         </option>
         {path.map((s) => (
           <option key={s} value={s} disabled={s === now}>
-            {STAGE_LABEL[s]}
+            {stageLabel(plant, s, pl)}
           </option>
         ))}
       </select>
