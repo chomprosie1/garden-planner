@@ -15,40 +15,39 @@ export function LookPicker({ prefs, prefsStore, now = new Date() }: { prefs: Pre
   const month = now.getMonth() + 1;
   const season = seasonFor(month);
 
+  // The look you have, and the others folded under More looks.
+  const card = (id: (typeof LOOK_IDS)[number]) => {
+    const look = LOOKS[id];
+    const vars = themeVars(look, mode);
+    return (
+      <label key={id} class="look-card">
+        <input type="radio" name="look" value={id} checked={prefs.look === id} onChange={() => prefsStore.set({ look: id })} />
+        <div class="look-preview" data-preview={id} style={vars} aria-hidden="true">
+          {prefs.photos !== 'off' && <SeasonPhoto month={month} sizes="240px" class="look-preview-photo" credit={false} />}
+          <div class="look-preview-body">
+            <span class="look-preview-title">{season.name}</span>
+            <span class="look-preview-line" />
+            <span class="look-preview-line short" />
+            <span class="look-preview-button">Add plants</span>
+          </div>
+        </div>
+        <span class="look-name">
+          {look.name}
+          {prefs.look === id && <span class="look-chosen"> · chosen</span>}
+        </span>
+        <span class="look-summary">{look.summary}</span>
+      </label>
+    );
+  };
+  const others = LOOK_IDS.filter((id) => id !== prefs.look);
   return (
-    <fieldset class="look-picker">
+    <fieldset class="look-choice">
       <legend class="visually-hidden">Look</legend>
-      {LOOK_IDS.map((id) => {
-        const look = LOOKS[id];
-        const vars = themeVars(look, mode);
-        return (
-          <label key={id} class="look-card">
-            <input
-              type="radio"
-              name="look"
-              value={id}
-              checked={prefs.look === id}
-              onChange={() => prefsStore.set({ look: id })}
-            />
-            <div class="look-preview" data-preview={id} style={vars} aria-hidden="true">
-              {prefs.photos !== 'off' && (
-                <SeasonPhoto month={month} sizes="240px" class="look-preview-photo" credit={false} />
-              )}
-              <div class="look-preview-body">
-                <span class="look-preview-title">{season.name}</span>
-                <span class="look-preview-line" />
-                <span class="look-preview-line short" />
-                <span class="look-preview-button">Add plants</span>
-              </div>
-            </div>
-            <span class="look-name">
-              {look.name}
-              {prefs.look === id && <span class="look-chosen"> · chosen</span>}
-            </span>
-            <span class="look-summary">{look.summary}</span>
-          </label>
-        );
-      })}
+      <div class="look-picker">{card(prefs.look)}</div>
+      <details class="advanced more-looks">
+        <summary>More looks ({others.length})</summary>
+        <div class="look-picker">{others.map(card)}</div>
+      </details>
     </fieldset>
   );
 }

@@ -122,13 +122,16 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
         </div>
       </section>
 
-      <section class="card desktop-only" aria-labelledby="keys">
-        <h2 id="keys">Keyboard</h2>
-        <p class="muted small">Press ? at any time to see the shortcuts.</p>
-        <button type="button" class="btn" onClick={showShortcuts}>
-          Keyboard shortcuts
-        </button>
-      </section>
+      {/* Only with a keyboard and mouse or trackpad: a phone or tablet on its own has no use for shortcuts. */}
+      {matchMedia('(hover: hover) and (pointer: fine)').matches && (
+        <section class="card desktop-only" aria-labelledby="keys">
+          <h2 id="keys">Keyboard</h2>
+          <p class="muted small">Press ? at any time to see the shortcuts.</p>
+          <button type="button" class="btn" onClick={showShortcuts}>
+            Keyboard shortcuts
+          </button>
+        </section>
+      )}
 
       <details class="card advanced credits-card">
         <summary>Credits: photos, fonts and software</summary>
@@ -185,6 +188,10 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
         <label class="check-row">
           <input type="checkbox" checked={prefs.plantEditor} onChange={(e) => prefsStore.set({ plantEditor: (e.currentTarget as HTMLInputElement).checked })} />
           <span>Plant editor: show the tools for checking plant notes against their sources</span>
+        </label>
+        <label class="check-row">
+          <input type="checkbox" checked={prefs.draftPlants} onChange={(e) => prefsStore.set({ draftPlants: (e.currentTarget as HTMLInputElement).checked })} />
+          <span>List the plants still being checked, below the rest. Search finds them either way.</span>
         </label>
         {prefs.plantEditor && (
           <>

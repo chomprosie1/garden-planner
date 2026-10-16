@@ -11,5 +11,8 @@ export function welcomesAt(hash: string): boolean {
   return parts.length === 0 || (parts.length === 1 && viewForHash(parts[0]!) === 'home');
 }
 
-/** At most once a day: the first launch of the day welcomes you, and the rest go straight in. */
-export const welcomeDue = (welcomedOn: string | null, today: string): boolean => welcomedOn !== today;
+/**
+ * Not on a normal day: the app opens on Today. The welcome is for the first launch in a new month (or ever), or when
+ * there's something new in the app you haven't seen.
+ */
+export const welcomeDue = (welcomedOn: string | null, today: string, news = false): boolean => !welcomedOn || welcomedOn.slice(0, 7) !== today.slice(0, 7) || (news && welcomedOn !== today);

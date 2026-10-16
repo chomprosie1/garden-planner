@@ -43,7 +43,7 @@ import { SketchBar } from '../SketchBar';
 import { SpaceDialog } from '../SpacePicker';
 import { applyKit, type Kit } from '../../planting/kits';
 import { trayFrom } from '../../lifecycle/shed';
-import { useApp } from '../appContext';
+import { stillToCheck, useApp } from '../appContext';
 import { clockText, SunBar, type CalendarDate, type SunView } from '../SunBar';
 import { usePlants } from '../usePlants';
 import { spacingStyle, type InGroundAt } from '../../planting/place';
@@ -169,6 +169,9 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const [yearPlaying, setYearPlaying] = useState(false);
   // On a phone the year slider starts folded to one line, for more of the plan; it opens with a tap.
   const [yearOpen, setYearOpen] = useState(false);
+  // On a phone, the plan's extras wait behind the ⋯: the year slider and the Show: picker, until asked for.
+  const [yearAsked, setYearAsked] = useState(false);
+  const [lensAsked, setLensAsked] = useState(false);
   const sunDate = useMemo(() => calendarOf(when), [when]);
   const setSunDate = (d: CalendarDate) => setWhen(isoOf(d));
   const [minutes, setMinutes] = useState(clock.hour * 60 + clock.minute);
@@ -253,7 +256,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   });
   const juneGrid = useSunHours(garden, 6, today.year, (growing || sunOn) && !!plants);
   // Checks wait for the library, so plants never show as "unknown" for a moment.
-  const findings: Finding[] = useMemo(() => (plants ? checkGarden(garden, plantOf, juneGrid ?? null) : []), [garden, plantOf, plants, juneGrid]);
+  const findings: Finding[] = useMemo(() => (plants ? stillToCheck(checkGarden(garden, plantOf, juneGrid ?? null), app.dismissedChecks) : []), [garden, plantOf, plants, juneGrid, app.dismissedChecks]);
   // The garden through the year: each planting's life, read at the chosen day.
   // With this year's weather on, the days it covers count as they were (or are forecast to be).
   const { weather } = useWeatherNow();
@@ -318,7 +321,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
     else if (intent.kind === 'tool') setTool(intent.tool);
     else if (intent.kind === 'fit') setFitSignal((n) => n + 1);
     else if (intent.kind === 'setup') setSettingUp(true);
-    else if (intent.kind === 'share') setSharing(true);
+    // The share picture is hidden until it's redone (release 44): asking for it does nothing.
+    else if (intent.kind === 'share') setSharing(false);
     else if (intent.kind === '3d') setThreeD(true);
     else if (intent.kind === 'clear') setClearing(true);
     else if (intent.kind === 'sticker') {
@@ -511,7 +515,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       <Icon name={locked ? 'lock' : 'unlock'} />
     </button>
   );
-  const lensBar = phone ? <LensPicker lens={lens} setLens={chooseLens} mode={mode} {...(!empty ? { open3d: () => setThreeD(true) } : {})} /> : <LensBar lens={lens} setLens={chooseLens} mode={mode} {...(!empty ? { open3d: () => setThreeD(true) } : {})} />;
+  const lensBar = phone ? (lensAsked || lens !== 'none' ? <LensPicker lens={lens} setLens={chooseLens} mode={mode} {...(!empty ? { open3d: () => setThreeD(true) } : {})} /> : null) : <LensBar lens={lens} setLens={chooseLens} mode={mode} {...(!empty ? { open3d: () => setThreeD(true) } : {})} />;
   /** The plant checks, in the details for the whole garden. */
   const showChecks = () => {
     setSelected(null);
@@ -656,11 +660,12 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
                 ? [{ label: hidePhotos ? 'Show photos around the plan' : 'Hide photos around the plan', icon: (hidePhotos ? 'image-off' : 'image') as IconName, keys: 'H', onSelect: () => prefsStore.set({ focus: !hidePhotos }) }]
                 : []),
               ...(!empty ? [{ label: 'See it in 3D', icon: 'cube' as const, onSelect: () => setThreeD(true) }] : []),
+              ...(phone && !empty && !lensAsked && lens === 'none' ? [{ label: 'Show: sun, shade, flowers, picking or water', icon: 'sun' as IconName, onSelect: () => setLensAsked(true) }] : []),
+              ...(phone && !empty && !yearAsked ? [{ label: 'The year ahead: a slider, and Play the year', icon: 'month' as const, onSelect: () => (setYearAsked(true), setYearOpen(true)) }] : []),
               { label: 'Measure', icon: 'size' as const, onSelect: () => (setSelected(null), setMeasured([]), setMeasuring(true)) },
               ...(growing ? [{ label: 'Clear beds…', icon: 'trash' as const, onSelect: () => setClearing(true) }] : []),
               ...(garden.plantings.length ? [{ label: 'Draft next year…', icon: 'month' as const, onSelect: () => setDrafting(true) }] : []),
               { label: 'Shopping list', icon: 'check', onSelect: () => setShopping(true) },
-              { label: 'Share a picture of the plan', icon: 'share', onSelect: () => setSharing(true) },
               { label: 'Help with the plan', icon: 'help', onSelect: () => app.openHelp() },
             ]}
           />
@@ -850,7 +855,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
             )}
           </div>
           {/* On a phone, one bar at a time under the plan: the year slider steps aside for a drawer, the details or planting. */}
-          {(tool === 'select' || tool === 'plant') && !empty && !(phone && (drawer || sheetOpen || calibration || tool === 'plant')) && (
+          {(tool === 'select' || tool === 'plant') && !empty && !(phone && (!yearAsked || drawer || sheetOpen || calibration || tool === 'plant')) && (
             <YearScrubber
               today={todayIso}
               date={when}
@@ -860,10 +865,6 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               phone={phone}
               compact={phone && (sunOn || !yearOpen)}
               {...(phone && !sunOn ? (yearOpen ? { fold: () => setYearOpen(false) } : { expand: () => setYearOpen(true) }) : {})}
-              share={() => {
-                setYearPlaying(false);
-                setSharing(true);
-              }}
             />
           )}
           {!phone && bottom}

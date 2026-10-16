@@ -49,7 +49,8 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
   const app = useApp();
   const phone = useIsPhone();
   const month = now.getMonth() + 1;
-  const [filter, setFilter] = useState<PlantFilter>(emptyFilter);
+  // Opens on the easy ones: a first gardener's best start. One tap shows them all.
+  const [filter, setFilter] = useState<PlantFilter>({ ...emptyFilter, easyOnly: true });
   const [panel, setPanel] = useState<Panel>(null);
 
   const { plants: loaded, library } = usePlants(userPlants);
@@ -126,7 +127,8 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
       </header>
       <label class="field search">
         <span class="visually-hidden">Search plants</span>
-        <input type="search" placeholder="Search by name, e.g. bean or Allium" value={filter.query} onInput={(e) => setFilter({ ...filter, query: (e.currentTarget as HTMLInputElement).value })} />
+        {/* Searching looks through every plant, not just the easy ones it opens on. */}
+        <input type="search" placeholder="Search by name, e.g. bean or Allium" value={filter.query} onInput={(e) => setFilter({ ...filter, query: (e.currentTarget as HTMLInputElement).value, ...(filter.query ? {} : { easyOnly: false }) })} />
       </label>
       <div class="filters">
         <select aria-label="Kind of plant" value={filter.category} onChange={(e) => setFilter({ ...filter, category: (e.currentTarget as HTMLSelectElement).value as PlantFilter['category'] })}>
@@ -163,7 +165,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
           </label>
         )}
       </div>
-      <button type="button" class="btn btn-primary" onClick={() => setPanel({ kind: 'form', plant: blankPlant() })}>
+      <button type="button" class="link-btn small add-own-plant" onClick={() => setPanel({ kind: 'form', plant: blankPlant() })}>
         Add your own plant
       </button>
 
@@ -175,7 +177,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
         </p>
       )}
       <ul class="plant-list">{core.map((p) => row(p))}</ul>
-      {more.length > 0 && (
+      {more.length > 0 && app.draftPlants && (
         <MorePlants count={more.length}>
           <ul class="plant-list">{more.map((p) => row(p))}</ul>
         </MorePlants>

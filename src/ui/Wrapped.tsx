@@ -99,6 +99,13 @@ export function WrappedDialog({ garden, plantOf, known, close }: { garden: Garde
 }
 
 /** Today: what you've picked this year, and the season wrapped from September on, once there's a season's worth. */
+/** Whether there's a season's worth to wrap up: from September to January, with enough grown. */
+export function seasonReady(garden: Garden, plantOf: (id: string) => Plant, today: string): boolean {
+  const month = Number(today.slice(5, 7));
+  if (!(month >= 9 || month === 1)) return false;
+  return seasonsWorth(seasonStats(garden, seasonYear(today), undefined, (id) => plantOf(id).category === 'weed'));
+}
+
 export function SeasonCard({ garden, plantOf }: { garden: Garden; plantOf: (id: string) => Plant }) {
   const app = useApp();
   const today = todayIso();

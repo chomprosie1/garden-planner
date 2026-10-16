@@ -2,6 +2,7 @@
 // structures, and precise drawing. Drag a sticker onto the plan, or tap it to
 // drop it in the middle of the view.
 
+import { useApp } from './appContext';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { canSowIn } from '../library/library';
 import { beginnerOrder, isEasy, MORE_PLANTS, splitCore } from '../library/order';
@@ -180,7 +181,12 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
   }, [plants, query, filter, month, garden.wishlist, garden.seeds]);
   // Beyond the core 150, plants wait under More plants until they're checked: in the lists by kind, not a search or your own lists.
   const [showMore, setShowMore] = useState(false);
-  const { core, more } = useMemo(() => (!query.trim() && (['now', 'easy', 'climb', 'all'] as PlantFilter[]).includes(filter) ? splitCore(shown) : { core: shown, more: [] }), [shown, query, filter]);
+  const { draftPlants } = useApp();
+  // Plants still being checked are listed only if you've asked for them in Settings; search finds them anyway.
+  const { core, more } = useMemo(() => {
+    const split = !query.trim() && (['now', 'easy', 'climb', 'all'] as PlantFilter[]).includes(filter) ? splitCore(shown) : { core: shown, more: [] };
+    return draftPlants ? split : { core: split.core, more: [] };
+  }, [shown, query, filter, draftPlants]);
   useEffect(() => setShowMore(false), [filter]);
   const climbCount = useMemo(() => (plants ? forSupports(plants).length : 0), [plants]);
   const climbers: [PlantFilter, string, number] = ['climb', 'Climbers', climbCount];

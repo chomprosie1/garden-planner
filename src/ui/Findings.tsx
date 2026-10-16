@@ -1,4 +1,5 @@
 import type { Finding } from '../planting/rules';
+import { useApp } from './appContext';
 
 interface Props {
   findings: Finding[];
@@ -10,6 +11,7 @@ interface Props {
 
 /** Warnings first, then good neighbours. Picking one outlines its plants on the plan. */
 export function FindingsList({ findings, focus, setFocus, onPick }: Props) {
+  const app = useApp();
   if (findings.length === 0) return null;
   return (
     <ul class="findings">
@@ -33,6 +35,18 @@ export function FindingsList({ findings, focus, setFocus, onPick }: Props) {
               {f.message}
             </span>
           </button>
+          {f.level === 'warn' && app.dismissCheck && (
+            <button
+              type="button"
+              class="link-btn small finding-dismiss"
+              onClick={() => {
+                app.dismissCheck!(f.id);
+                app.notify('Fine: that check won’t be raised again.', { undo: false });
+              }}
+            >
+              I know, it’s fine
+            </button>
+          )}
         </li>
       ))}
     </ul>

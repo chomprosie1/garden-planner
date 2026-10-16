@@ -51,14 +51,15 @@ export function MetresField({ label, mm, min, onChange }: { label: string; mm: n
   );
 }
 
-export function SpacePicker({ value, onChange }: { value: SpaceChoice | null; onChange: (c: SpaceChoice) => void }) {
+/** sized: ask for the size too. A garden kept as a list doesn't need it, so it takes the usual size for the space. */
+export function SpacePicker({ value, onChange, sized = true }: { value: SpaceChoice | null; onChange: (c: SpaceChoice) => void; sized?: boolean }) {
   const previews = useMemo(() => Object.fromEntries(SPACES.map((s) => [s.id, makeSpace(newGarden(), s.id, s.size[0], s.size[1])])), []);
   const chosen = useMemo(() => (value ? makeSpace(newGarden(), value.space, value.w, value.d, value.sideReturn ?? null) : null), [value?.space, value?.w, value?.d, value?.sideReturn?.width, value?.sideReturn?.length, value?.sideReturn?.onRight]);
   const info = value ? spaceInfo(value.space) : null;
   const size = useRef<HTMLDivElement>(null);
   // On a phone the size is below the choices: bring it into view once a space is picked.
   useEffect(() => {
-    if (value) size.current?.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    if (value && sized) size.current?.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   }, [value?.space]);
   const plot = value?.space === 'allotment' ? (Object.entries(PLOTS).find(([, [w, d]]) => w === value.w && d === value.d)?.[0] ?? 'other') : null;
 
@@ -76,7 +77,7 @@ export function SpacePicker({ value, onChange }: { value: SpaceChoice | null; on
           </label>
         ))}
       </div>
-      {value && info && chosen && (
+      {sized && value && info && chosen && (
         <div class="space-size" ref={size}>
           <div class="space-size-fields">
             {plot && (

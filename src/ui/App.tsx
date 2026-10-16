@@ -1,3 +1,4 @@
+import { unseenNews } from '../content/whatsNew';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { seasonFor } from '../content/seasons';
 import type { Target } from '../model/features';
@@ -76,7 +77,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   /** Just set up: Today picks out the first job, until you go elsewhere. */
   const [startHere, setStartHere] = useState(false);
   // The welcome, on the day's first launch: not the very first (setting up runs then), nor a link or reminder to a particular screen.
-  const [welcoming, setWelcoming] = useState(() => prefs.onboarded && welcomesAt(location.hash) && welcomeDue(prefs.welcomedOn, todayIso()));
+  const [welcoming, setWelcoming] = useState(() => prefs.onboarded && welcomesAt(location.hash) && welcomeDue(prefs.welcomedOn, todayIso(), unseenNews(prefs.seenNews).length > 0));
   const weather = useWeatherFeed(garden, prefs.weather && prefs.onboarded);
 
   /**
@@ -100,6 +101,11 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
         toastTimer.current = setTimeout(() => setToast(null), opts?.undo ? 8000 : 5000);
       },
       go: navigate,
+      draftPlants: prefs.draftPlants,
+      dismissedChecks: prefs.dismissedChecks,
+      dismissCheck(id) {
+        prefsStore.set({ dismissedChecks: [...new Set([...prefsStore.get().dismissedChecks, id])] });
+      },
       openPlant(id) {
         setPlantCard(id);
         setPlantFrom(view === 'plants' ? null : view);
@@ -135,7 +141,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
         navigate('help', topic);
       },
     }),
-    [store, view],
+    [store, view, prefs.draftPlants, prefs.dismissedChecks],
   );
 
   // Keyboard: Ctrl+K to search, undo/redo everywhere, H for photos on the plan, ? for the list of shortcuts.

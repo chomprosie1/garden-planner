@@ -179,8 +179,9 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
         ) : current === 'space' ? (
           <>
             <h1 class="title">What are you growing in?</h1>
-            <p class="muted">{asList ? 'Pick the nearest, and its rough size. It comes with beds ready for plants; you can rename them, add more or take some away.' : 'Pick the nearest, then its size. It’s laid out for you, ready for plants; you can move and change everything.'}</p>
+            <p class="muted">{asList ? 'Pick the nearest. It comes with beds ready for plants; you can rename them, add more or take some away.' : 'Pick the nearest, then its size. It’s laid out for you, ready for plants; you can move and change everything.'}</p>
             <SpacePicker
+              sized={!asList}
               value={choice}
               onChange={(c) => {
                 if (c.space !== choice?.space) setKit(undefined);

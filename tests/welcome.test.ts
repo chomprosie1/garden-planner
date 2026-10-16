@@ -20,10 +20,16 @@ describe('the welcome on launch', () => {
     expect(welcomesAt('#/home')).toBe(true);
   });
 
-  it('shows at most once a day: the first launch of the day (release 29, no pause any more)', () => {
+  it('shows for a new month or something new, not on a normal day (release 44)', () => {
     expect(welcomeDue(null, '2026-10-11')).toBe(true);
-    expect(welcomeDue('2026-10-10', '2026-10-11')).toBe(true);
+    // A normal day: straight to Today.
+    expect(welcomeDue('2026-10-10', '2026-10-11')).toBe(false);
     expect(welcomeDue('2026-10-11', '2026-10-11')).toBe(false);
+    // A new month.
+    expect(welcomeDue('2026-09-30', '2026-10-01')).toBe(true);
+    // Something new you haven't seen: once that day.
+    expect(welcomeDue('2026-10-10', '2026-10-11', true)).toBe(true);
+    expect(welcomeDue('2026-10-11', '2026-10-11', true)).toBe(false);
     const p = sanitisePrefs({ welcomedOn: '2026-10-11' });
     expect(p.welcomedOn).toBe('2026-10-11');
     expect(sanitisePrefs({ welcomedOn: 'yesterday' }).welcomedOn).toBeNull();

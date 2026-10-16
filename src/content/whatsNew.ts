@@ -17,6 +17,21 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-16-less',
+    date: '2026-10-16',
+    title: 'Less, but better',
+    items: [
+      'Today is your jobs, then what needs you now and planning ahead. Recipes, ideas for empty beds and your season wrapped have moved: the journal and your season are under ⋯ on Today, and Inspire me is on an empty bed.',
+      'The app opens straight on Today, with the welcome only for a new month or something new.',
+      'On a phone, the plan is just the plan: Show and the year ahead are under ⋯ when you want them. 3D opens looking down on your beds.',
+      'Plants opens on the easy ones to start with, and search finds them all.',
+      'Settings is shorter: one look, with more to choose from, and your climate’s figures folded away.',
+      'A first garden’s shopping list has one general feed and some compost, not a shelf of specialist feeds.',
+      'A check you know about can be put away with “I know, it’s fine”.',
+    ],
+    tryIt: { label: 'See Today', view: 'home' },
+  },
+  {
     id: '2026-10-16-how-to',
     date: '2026-10-16',
     title: 'How to, for this crop',

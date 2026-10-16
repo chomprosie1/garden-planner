@@ -16,7 +16,7 @@ import { frostDatesUnder } from '../lifecycle/shed';
 import { featureLabel, pivotOf, placeLabel, rectInfo } from '../model/features';
 import { treeType, type TreeLeaf, type TreeShape } from '../model/trees';
 import type { Feature, Garden, Material, Plant, PlantArt, Planting, Point, Sketch } from '../model/types';
-import { plantPositions, sizedPlant, spreadOf } from '../planting/place';
+import { isContainer, plantPositions, sizedPlant, spreadOf } from '../planting/place';
 import { bearingToGarden, fromUkClock, sunAt } from '../sun/position';
 import { LEAF_MONTHS, TRUNK_SHARE } from '../sun/shadow';
 
@@ -122,6 +122,8 @@ export interface Sun3 {
 
 export interface Scene3 {
   bounds: Bounds3;
+  /** What the camera opens on: the beds, pots and plantings, not the house beside them. Absent: the whole garden. */
+  focus?: Bounds3;
   /** The garden's own ground: inside its boundary, or round everything if there isn't one. */
   ground: Point[];
   flats: Flat[];
@@ -357,8 +359,11 @@ export function buildScene(input: SceneInput): Scene3 {
           [b.max[0] + 1000, b.max[1] + 1000],
           [b.min[0] - 1000, b.max[1] + 1000],
         ];
+  // Where the growing is: beds, pots and planters, and anything planted elsewhere.
+  const growing: Point[] = [...g.features.filter(isContainer).flatMap((f) => f.footprint), ...g.plantings.filter((pl) => !pl.removedOn).flatMap((pl) => [[pl.x, pl.y] as Point, ...(pl.endPoint ? [pl.endPoint] : [])])];
   return {
     bounds: g.boundary.length >= 3 ? b : boundsOf(ground),
+    ...(growing.length ? { focus: boundsOf(growing) } : {}),
     ground,
     flats,
     solids,

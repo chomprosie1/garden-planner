@@ -91,6 +91,10 @@ export interface Prefs {
   weeding: boolean;
   /** Feed jobs for plants that want feeding, and what goes in before planting. */
   feeding: boolean;
+  /** List the plants still being checked (drafts) when browsing; search finds them anyway. Off by default. */
+  draftPlants: boolean;
+  /** Checks you've said are fine ("I know, it's fine"), by the check's id: not raised again on this device. */
+  dismissedChecks: string[];
 }
 
 
@@ -135,6 +139,8 @@ export function defaultPrefs(): Prefs {
     planMode: 'simple',
     weeding: true,
     feeding: true,
+    draftPlants: false,
+    dismissedChecks: [],
   };
 }
 
@@ -199,6 +205,8 @@ export function sanitisePrefs(raw: unknown): Prefs {
     planMode: oneOf(['simple', 'advanced'] as const, r.planMode, d.planMode),
     weeding: r.weeding !== false,
     feeding: r.feeding !== false,
+    draftPlants: r.draftPlants === true,
+    dismissedChecks: Array.isArray(r.dismissedChecks) ? r.dismissedChecks.filter((x): x is string => typeof x === 'string').slice(-500) : [],
   };
 }
 

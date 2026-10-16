@@ -63,6 +63,13 @@ export function toggleBought(g: Garden, key: string, today: string): Garden {
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
+/** The one feed a first garden buys for nearly everything. */
+const GENERAL_FEED = 'blood-fish-bone';
+/** Feeds no general one stands in for. */
+const NEEDED_FEEDS = ['tomato-feed', 'ericaceous-feed'];
+/** Bought by the bag, to dig in: compost, not feed. */
+const BULKY_FEEDS = ['rotted-manure'];
+
 /** "Onion sets, overwintering", "Broad bean seed, autumn-sown": the word after the plant, before its kind. */
 const named = (plant: Plant, word: string) => plant.commonName.replace(/^([^,]+)/, `$1 ${word}`);
 const listOf = (names: string[]) => (names.length > 3 ? `${names.slice(0, 3).join(', ')} and ${names.length - 3} more` : names.join(names.length === 2 ? ' and ' : ', '));
@@ -176,16 +183,27 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
   if (fill.ericaceous.l > 0) items.push({ key: 'compost:ericaceous', kind: 'compost', name: 'Ericaceous compost', amount: litres(fill.ericaceous.l), note: `To fill ${listOf(fill.ericaceous.names)}` });
 
   if (opts.feeding) {
+    // A first garden (no feed shelf yet) gets one general feed and some compost, and only the specialist feeds a plant
+    // can't do without: tomato feed for fruiting crops, and ericaceous feed for blueberries and the like.
+    const first = !g.feedShelf;
+    const asBought = (id: string): string => (!first || NEEDED_FEEDS.includes(id) ? id : BULKY_FEEDS.includes(id) ? 'compost' : GENERAL_FEED);
     const forFeed = new Map<string, string[]>();
     for (const plant of plants)
       for (const s of plant.feeding?.steps ?? []) {
         const feed = feedById(s.feed);
         // Ones you make yourself aren't bought; one on the shelf, or one that does the same job, is had.
         if (!feed || feed.homeMade || !feed.pack || shelfFor(g, feed.id)) continue;
-        const names = forFeed.get(feed.id) ?? [];
-        if (!names.includes(plant.commonName.toLowerCase())) forFeed.set(feed.id, [...names, plant.commonName.toLowerCase()]);
+        const id = asBought(feed.id);
+        if (id !== 'compost' && id !== feed.id && shelfFor(g, id)) continue;
+        const names = forFeed.get(id) ?? [];
+        if (!names.includes(plant.commonName.toLowerCase())) forFeed.set(id, [...names, plant.commonName.toLowerCase()]);
       }
-    for (const [id, names] of forFeed) items.push({ key: `feed:${id}`, kind: 'feed', name: feedById(id)!.name, note: `For ${listOf(names)}` });
+    for (const [id, names] of forFeed)
+      items.push(
+        id === 'compost'
+          ? { key: 'compost:beds', kind: 'compost', name: 'Well-rotted manure or bagged compost', amount: 'a bag or two a bed', note: `To dig in or spread on top, for ${listOf(names)}` }
+          : { key: `feed:${id}`, kind: 'feed', name: feedById(id)!.name, note: `For ${listOf(names)}` },
+      );
   }
 
   const order = (k: ShopKind) => SHOP_KINDS.indexOf(k);

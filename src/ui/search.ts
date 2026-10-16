@@ -135,7 +135,7 @@ function actions(g: Garden, locked: boolean): Candidate[] {
     { key: 'lens-harvest', group: 'Actions', label: 'Show what’s ready to harvest', words: 'pick crops ripe lens', command: { kind: 'lens', lens: 'harvest' } },
     { key: 'lens-water', group: 'Actions', label: 'Show what needs water', words: 'watering thirsty dry lens', command: { kind: 'lens', lens: 'water' } },
     { key: 'lens-none', group: 'Actions', label: 'Show just the plan', words: 'hide sun shade lens plain', command: { kind: 'lens', lens: 'none' } },
-    { key: 'share', group: 'Actions', label: 'Share a picture of the plan', words: 'picture photo image story post timelapse video instagram', command: { kind: 'share' } },
+    // The share picture is hidden until it's redone (release 44): its command stays, with nothing to find it.
     { key: '3d', group: 'Actions', label: 'See the garden in 3D', words: 'three dimensions model view walk round angle perspective', command: { kind: '3d' } },
     locked
       ? { key: 'unlock', group: 'Actions', label: 'Unlock the layout', words: 'padlock lock move beds', command: { kind: 'lock', on: false } }

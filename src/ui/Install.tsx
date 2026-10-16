@@ -30,6 +30,9 @@ export function catchInstallPrompt(): void {
 export const isInstalled = () => matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
 
 /** An iPhone or iPad in Safari, which installs from the Share menu. */
+/** Whether there's a way to install it here: not installed yet, and the browser offered its prompt or it's an iPhone. */
+export const canInstall = () => !isInstalled() && (!!saved || isIosSafari());
+
 export const isIosSafari = () => /iphone|ipad|ipod/i.test(navigator.userAgent) && !/crios|fxios|edgios/i.test(navigator.userAgent);
 
 export function InstallCard({ hidden, prefsStore }: { hidden: boolean; prefsStore: PrefsStore }) {

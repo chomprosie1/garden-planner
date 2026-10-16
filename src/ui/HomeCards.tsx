@@ -18,10 +18,10 @@ import { momentFor } from '../calendar/moments';
 import { todayIso } from '../model/ids';
 import { PlantIcon } from './PlantIcon';
 import { useWeatherNow } from './useWeather';
-import { useApp } from './appContext';
+import { stillToCheck, useApp } from './appContext';
 import { CompassNorth } from './CompassNorth';
 import { PlaceSearch } from './PlaceSearch';
-import { backUp, BackupButtons, KeptNote, UseLocationButton } from './GardenSettings';
+import { backUp, UseLocationButton } from './GardenSettings';
 import { Icon } from './icons';
 import { NoteForm, NoteList, noteAbout } from './NotesSection';
 import { backupDue, daysSinceBackup, setupFolded, setupSteps, type StepId } from './setup';
@@ -196,7 +196,7 @@ export function GardenCard({ garden, prefs, plants, plantOf }: { garden: Garden;
   const [width, setWidth] = useState(0);
   const height = 200;
   const growing = garden.plantings.filter((p) => !p.removedOn).length;
-  const warnings = plants ? checkGarden(garden, plantOf).filter((f) => f.level === 'warn').length : 0;
+  const warnings = plants ? stillToCheck(checkGarden(garden, plantOf), app.dismissedChecks).filter((f) => f.level === 'warn').length : 0;
   const empty = garden.boundary.length === 0 && garden.features.length === 0;
 
   useEffect(() => {
@@ -351,22 +351,16 @@ export function WhatsNewCard({ prefs, prefsStore }: { prefs: Prefs; prefsStore: 
 
 // ---------- Keeping it safe ----------
 
+/** When a copy is due: one quiet line at the foot of Today, with a way to make one. */
 export function BackupCard({ store, garden, prefs, prefsStore, now = new Date() }: { store: Store; garden: Garden; prefs: Prefs; prefsStore: PrefsStore; now?: Date }) {
   if (!backupDue(garden, prefs.lastBackup, now)) return null;
   const days = daysSinceBackup(prefs.lastBackup, now);
   return (
-    <section class="card backup-card" aria-labelledby="backup-title">
-      <HelpTitle id="backup-title" topic="backups">
-        Keep a copy
-      </HelpTitle>
-      <p class="muted">
-        Your garden lives only in this browser. {days === null ? 'There’s no copy of it yet.' : `The last copy is ${days} days old.`} A copy keeps it safe, and moves it to another
-        device.
-      </p>
-      <KeptNote kept={prefs.storageKept} />
-      <div class="button-row">
-        <BackupButtons store={store} prefsStore={prefsStore} />
-      </div>
-    </section>
+    <p class="backup-line small muted" aria-label="Keep a copy">
+      {days === null ? 'Your garden lives only in this browser, with no copy yet.' : `Your garden’s last copy is ${days} days old.`}{' '}
+      <button type="button" class="link-btn" onClick={() => backUp(store, prefsStore)}>
+        Download a copy
+      </button>
+    </p>
   );
 }

@@ -3,6 +3,7 @@
 // grow, the seed tin, your own plants, all plants) and a search. Plants still
 // being checked wait behind a button, as in the drawer.
 
+import { useApp } from './appContext';
 import { useMemo, useState } from 'preact/hooks';
 import { canSowIn } from '../library/library';
 import { beginnerOrder, isEasy, MORE_PLANTS, splitCore } from '../library/order';
@@ -13,6 +14,7 @@ import { PlantIcon } from './PlantIcon';
 type Filter = 'now' | 'easy' | 'list' | 'tin' | 'mine' | 'all';
 
 export function PlantChooser({ plants, garden, month, pick }: { plants: Plant[]; garden: Garden; month: number; pick: (id: string) => void }) {
+  const { draftPlants } = useApp();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('now');
   const [showMore, setShowMore] = useState(false);
@@ -31,7 +33,9 @@ export function PlantChooser({ plants, garden, month, pick }: { plants: Plant[];
   );
   const q = query.trim().toLowerCase();
   const shown = q ? plants.filter((p) => p.category !== 'weed' && `${p.commonName} ${p.latinName ?? ''}`.toLowerCase().includes(q)) : lists[filter];
-  const { core, more } = !q && (filter === 'now' || filter === 'easy' || filter === 'all') ? splitCore(shown) : { core: shown, more: [] };
+  const split = !q && (filter === 'now' || filter === 'easy' || filter === 'all') ? splitCore(shown) : { core: shown, more: [] };
+  // Plants still being checked are listed only if you've asked for them in Settings; search finds them anyway.
+  const { core, more } = draftPlants ? split : { core: split.core, more: [] };
   const chips: [Filter, string][] = [
     ['now', 'Sow or plant now'],
     ['easy', 'Easy to start'],

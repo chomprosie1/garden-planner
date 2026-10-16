@@ -1,4 +1,4 @@
-import { useMemo } from 'preact/hooks';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 import { photoForMonth } from '../../content/photos';
 import { monthLine, seasonFor } from '../../content/seasons';
 import type { Store } from '../../model/store';
@@ -10,10 +10,10 @@ import { LOOKS } from '../../theme/looks';
 import type { Prefs, PrefsStore, View } from '../../theme/prefs';
 import { BackupCard, GardenCard, GardenName, JournalCard, MomentCard, SaveIndicator, SetupCard, WhatsNewCard } from '../HomeCards';
 import { FrostCard, UvCard } from '../WeatherCards';
-import { KitchenCard } from '../Kitchen';
-import { InspireCard } from '../Inspire';
-import { SeasonCard } from '../Wrapped';
-import { InstallCard } from '../Install';
+import { seasonReady } from '../Wrapped';
+import { canInstall, InstallCard } from '../Install';
+import { MoreMenu, type MenuItem } from '../MoreMenu';
+import { useApp } from '../appContext';
 import { SettingsButton } from '../SettingsButton';
 import { HelpButton } from '../HelpLink';
 import { PhotoCredit, SeasonPhoto } from '../SeasonPhoto';
@@ -37,9 +37,24 @@ interface Props {
   now?: Date;
 }
 
+/** Cards shown on Today once, the first time they would be, then kept under its ···: this visit, they stay. */
+const shownThisVisit = new Set<string>();
+
+function useShownOnce(id: string, wouldShow: boolean, prefs: Prefs, prefsStore: PrefsStore): boolean {
+  const seen = prefs.stuckSeen.includes(id);
+  const show = wouldShow && (!seen || shownThisVisit.has(id));
+  useEffect(() => {
+    if (!show || seen) return;
+    shownThisVisit.add(id);
+    prefsStore.set({ stuckSeen: [...new Set([...prefsStore.get().stuckSeen, id])] });
+  }, [show, seen]);
+  return show;
+}
+
 /**
- * Today: the month in a short band, then one list of jobs to tick, then at most two things that need you now (frost,
- * seedlings ready, something running behind), then planning ahead in autumn and winter, and the rest further down.
+ * Today is the jobs: the month in a short band, then one list of jobs to tick, then at most two things that need you
+ * now (frost, seedlings ready, something running behind), then planning ahead in autumn and winter, and the garden at a
+ * glance. The journal and installing show once, then live under the ···, with your season wrapped and What's new.
  */
 export function Home({ store, garden, userPlants, prefs, prefsStore, startHere = false, now = new Date() }: Props) {
   const month = now.getMonth() + 1;
@@ -50,9 +65,22 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, startHere =
   // Subtle or no photos: every look uses the quiet band layout.
   const layout = prefs.photos === 'full' ? LOOKS[prefs.look].home : 'band';
   // Jobs for your own plants when you have any; otherwise the general UK jobs.
+  const app = useApp();
   const { plants, plantOf } = usePlants(userPlants, spacingStyle(garden));
   const { weather } = useWeatherNow();
   const today = todayIso(now);
+  const installable = !prefs.installHidden && canInstall();
+  const journalOnce = useShownOnce('today:journal', true, prefs, prefsStore);
+  const installOnce = useShownOnce('today:install', installable, prefs, prefsStore);
+  // Asked for from the ···.
+  const [installAsked, setInstallAsked] = useState(false);
+  const wrapped = !!plants && seasonReady(garden, plantOf, today);
+  const more: MenuItem[] = [
+    { label: 'Garden journal', icon: 'notes', onSelect: () => app.go('notes') },
+    ...(wrapped ? [{ label: 'Your season, wrapped', onSelect: () => app.openWrapped() }] : []),
+    ...(canInstall() ? [{ label: 'Put it on your home screen', onSelect: () => setInstallAsked(true) }] : []),
+    { label: 'What’s new', onSelect: () => app.go('new') },
+  ];
   const mine = useMemo(
     () => (plants ? jobsFor(garden, plantOf, month, year, { weeding: prefs.weeding, feeding: prefs.feeding, today, weather }) : []),
     [garden, plants, plantOf, month, year, prefs.weeding, prefs.feeding, today, weather],
@@ -63,6 +91,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, startHere =
   const settingsButton = (
     <span class="home-top-actions">
       <HelpButton topic="this-week" class="home-settings" />
+      <MoreMenu items={more} label="More on Today" />
       <SettingsButton class="home-settings" />
     </span>
   );
@@ -158,14 +187,11 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, startHere =
 
         {plants && PLAN_AHEAD_MONTHS.includes(month) && <PlanAheadCard store={store} garden={garden} plantOf={plantOf} feeding={prefs.feeding} />}
         <SetupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} />
-        {plants && <KitchenCard garden={garden} plantOf={plantOf} />}
-        <InspireCard store={store} garden={garden} />
-        {plants && <SeasonCard garden={garden} plantOf={plantOf} />}
-        <JournalCard store={store} garden={garden} plantOf={plantOf} />
+        {journalOnce && <JournalCard store={store} garden={garden} plantOf={plantOf} />}
 
-        {/* Below the fold: news, installing, the garden at a glance, and a backup (asked here only when Getting started isn't asking). */}
+        {/* Below: news, installing (once, or when asked), the garden at a glance, and a line about a copy (asked here only when Getting started isn't asking). */}
         <WhatsNewCard prefs={prefs} prefsStore={prefsStore} />
-        <InstallCard hidden={prefs.installHidden} prefsStore={prefsStore} />
+        {(installOnce || installAsked) && <InstallCard hidden={false} prefsStore={prefsStore} />}
         <GardenCard garden={garden} prefs={prefs} plants={plants} plantOf={plantOf} />
         {!setupShowing(garden, prefs) && <BackupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} now={now} />}
         <SaveIndicator />

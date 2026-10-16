@@ -28,7 +28,15 @@ export interface AppActions {
   clearBeds(): void;
   /** Help, open at a topic (by its id in src/content/help.ts), or at the list of topics. */
   openHelp(topic?: string): void;
+  /** List the plants still being checked when browsing (Settings › Advanced). */
+  draftPlants?: boolean;
+  /** Checks you've said are fine, by id, and saying so. */
+  dismissedChecks?: string[];
+  dismissCheck?(id: string): void;
 }
+
+/** The checks still to raise: warnings you've said are fine are left out. */
+export const stillToCheck = <T extends { id: string; level: string }>(findings: T[], dismissed: string[] = []): T[] => (dismissed.length ? findings.filter((f) => f.level !== 'warn' || !dismissed.includes(f.id)) : findings);
 
 const noop = () => undefined;
 export const AppContext = createContext<AppActions>({ notify: noop, go: noop, openPlant: noop, showOnPlan: noop, plantIt: noop, plantOutTray: noop, sowInShed: noop, openSearch: noop, openWrapped: noop, clearBeds: noop, openHelp: noop });

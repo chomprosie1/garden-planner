@@ -27,7 +27,7 @@ import { nextStep } from '../../planting/windows';
 import { NextYearDialog } from '../NextYear';
 import { ShoppingDialog } from '../Shopping';
 import type { Prefs, PrefsStore } from '../../theme/prefs';
-import { useApp } from '../appContext';
+import { stillToCheck, useApp } from '../appContext';
 import { ClearBedsDialog } from '../ClearBeds';
 import { Icon } from '../icons';
 import { Inspector } from '../Inspector';
@@ -91,7 +91,7 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
   const [drafting, setDrafting] = useState(false);
   const [shopping, setShopping] = useState(false);
   const beds = listBeds(garden);
-  const findings = useMemo(() => (plants ? checkGarden(garden, plantOf) : []), [garden, plantOf, plants]);
+  const findings = useMemo(() => (plants ? stillToCheck(checkGarden(garden, plantOf), app.dismissedChecks) : []), [garden, plantOf, plants, app.dismissedChecks]);
   const jobs = useMemo(() => {
     if (!plants) return [];
     const done = new Set(garden.jobsDone.map((j) => j.key));
@@ -212,6 +212,8 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
             findings={findings}
             focusFinding={null}
             setFocusFinding={() => {}}
+            // A list has no plan to outline it on: a check goes to the planting or bed itself.
+            onPickFinding={(f) => (f.plantingIds[0] ? setSheet({ type: 'planting', id: f.plantingIds[0] }) : f.featureIds[0] ? setSheet({ type: 'feature', id: f.featureIds[0] }) : undefined)}
             sunJune={null}
             startPlanting={() => {
               const bedId = sheet.type === 'feature' ? sheet.id : undefined;
@@ -423,8 +425,12 @@ function SeasonKey({ today }: { today: string }) {
   const m = Number(today.slice(5, 7));
   const from = MONTH_SHORT[(m + 9) % 12]!;
   const to = MONTH_SHORT[(m + 8) % 12]!;
+  // Folded to a ? until asked: the bars explain themselves once you know.
   return (
-    <div class="season-key small">
+    <details class="season-key small">
+      <summary class="season-key-q" aria-label="What the bars under each plant mean">
+        ?<span class="muted"> What the bars mean</span>
+      </summary>
       <p class="muted">
         The bar under each plant is its year, {from} to {to}, with today’s line:
       </p>
@@ -445,7 +451,7 @@ function SeasonKey({ today }: { today: string }) {
           <span class="season-swatch season-leaf season-guess" /> Paler: expected
         </li>
       </ul>
-    </div>
+    </details>
   );
 }
 

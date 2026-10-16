@@ -230,11 +230,14 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
         {garden.view !== 'list' && (
           <>
         <h3>Which way is north</h3>
-        <label class="field">
-          Degrees clockwise from the top of your plan to north
-          <input type="number" step="1" min={-360} max={360} value={garden.northRotationDeg} onChange={setNumber('northRotationDeg', -360, 360)} />
-        </label>
         <CompassNorth store={store} />
+        <details class="advanced">
+          <summary>North in degrees</summary>
+          <label class="field">
+            Degrees clockwise from the top of your plan to north
+            <input type="number" step="1" min={-360} max={360} value={garden.northRotationDeg} onChange={setNumber('northRotationDeg', -360, 360)} />
+          </label>
+        </details>
         <p class="muted small">0 if the top of your plan faces north. On a phone, the compass can work it out for you.</p>
           </>
         )}
@@ -455,22 +458,24 @@ function Warmth({ garden, prefsStore }: { garden: Garden; prefsStore?: PrefsStor
   return (
     <div class="warmth">
       <h3>Your climate</h3>
-      <dl class="facts">
-        <dt>July days</dt>
-        <dd>{one(av.tmax[6]!)}</dd>
-        <dt>January nights</dt>
-        <dd>{one(av.tmin[0]!)}</dd>
-        <dt>Growing season</dt>
-        <dd>About {Math.round(seasonDays(av) / 5) * 5} days above 5 °C</dd>
-        <dt>Compared</dt>
-        <dd>{compared}</dd>
-      </dl>
-      <p class="muted small">
-        Averages for 1991–2020 from the weather stations nearest you: {listed(stationNames(av))}
-        {av.nearestKm > 150 ? `, the nearest ${av.nearestKm} km away, so take them as rough` : ''}. They time how fast crops grow on the plan's year:
-        sooner where it's warmer, later where it's cooler, and sooner still under glass. A sheltered garden, a city or a hillside can differ by a degree or two,
-        and any year can be warmer or colder.
-      </p>
+      <p>{compared}.</p>
+      <details class="advanced">
+        <summary>Your climate, in detail</summary>
+        <dl class="facts">
+          <dt>July days</dt>
+          <dd>{one(av.tmax[6]!)}</dd>
+          <dt>January nights</dt>
+          <dd>{one(av.tmin[0]!)}</dd>
+          <dt>Growing season</dt>
+          <dd>About {Math.round(seasonDays(av) / 5) * 5} days above 5 °C</dd>
+        </dl>
+        <p class="muted small">
+          Averages for 1991–2020 from the weather stations nearest you: {listed(stationNames(av))}
+          {av.nearestKm > 150 ? `, the nearest ${av.nearestKm} km away, so take them as rough` : ''}. They time how fast crops grow on the plan's year:
+          sooner where it's warmer, later where it's cooler, and sooner still under glass. A sheltered garden, a city or a hillside can differ by a degree or two,
+          and any year can be warmer or colder.
+        </p>
+      </details>
       {prefsStore && <WeatherSwitch garden={garden} prefsStore={prefsStore} />}
     </div>
   );

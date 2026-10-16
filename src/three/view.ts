@@ -327,6 +327,10 @@ export class GardenView {
   private centre = new THREE.Vector3();
   private extent = 10;
   private bounds = { minX: 0, maxX: 0, minZ: 0, maxZ: 0 };
+  /** The beds and plants, where the camera opens: centre and size, metres. */
+  private focusCentre = new THREE.Vector3();
+  private focusExtent = 4;
+  private focusMaxZ = 0;
   /** Gliding to a spot you double-tapped: where the camera and the point it turns round go, from where, and when. */
   private glide: { from: [THREE.Vector3, THREE.Vector3]; to: [THREE.Vector3, THREE.Vector3]; start: number } | null = null;
   /** The scene shown, for walking round it and for redrawing it in finer detail. */
@@ -455,6 +459,11 @@ export class GardenView {
     this.bounds = { minX: b.min[0] * M, maxX: b.max[0] * M, minZ: -b.max[1] * M, maxZ: -b.min[1] * M };
     this.centre.set((this.bounds.minX + this.bounds.maxX) / 2, 0, (this.bounds.minZ + this.bounds.maxZ) / 2);
     this.extent = Math.max(4, this.bounds.maxX - this.bounds.minX, this.bounds.maxZ - this.bounds.minZ);
+    const f = s.focus;
+    const fb = f ? { minX: f.min[0] * M, maxX: f.max[0] * M, minZ: -f.max[1] * M, maxZ: -f.min[1] * M } : this.bounds;
+    this.focusCentre.set((fb.minX + fb.maxX) / 2, 0, (fb.minZ + fb.maxZ) / 2);
+    this.focusExtent = Math.max(4, fb.maxX - fb.minX, fb.maxZ - fb.minZ);
+    this.focusMaxZ = fb.maxZ;
     this.scene.fog = new THREE.Fog(P.paper, this.extent * 2.5, this.extent * 6);
     this.controls.maxDistance = this.extent * 3;
     this.controls.minDistance = 1.2;
@@ -1055,19 +1064,22 @@ export class GardenView {
     if (turn || to) this.placeEye();
   }
 
-  /** Looking down over the garden from the bottom of the plan, or standing at its bottom edge. */
+  /**
+   * Looking down on the beds and plants from high above, steep enough that a house or shed beside them doesn't get in
+   * the way; or standing at the near edge of the beds, looking across them.
+   */
   preset(p: Preset): void {
     this.stopWalk();
     this.glide = null;
-    const c = this.centre;
-    // A tall, narrow screen (a phone) needs to stand further back to see the whole garden.
-    const D = this.extent / Math.min(1, this.camera.aspect) ** 0.4;
+    const c = this.focusCentre;
+    // A tall, narrow screen (a phone) needs to stand further back to see all the beds.
+    const D = this.focusExtent / Math.min(1, this.camera.aspect) ** 0.4;
     if (p === 'above') {
-      this.camera.position.set(c.x, D * 1.05, c.z + D * 1.0);
+      this.camera.position.set(c.x, D * 1.5, c.z + D * 0.45);
       this.controls.target.copy(c);
     } else {
-      this.camera.position.set(c.x, 1.6, this.bounds.maxZ + 0.6);
-      this.controls.target.set(c.x, 0.9, c.z);
+      this.camera.position.set(c.x, 1.6, this.focusMaxZ + 1.5);
+      this.controls.target.set(c.x, 0.6, c.z);
     }
     this.controls.update();
     this.dirty = true;

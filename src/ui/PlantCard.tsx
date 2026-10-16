@@ -130,7 +130,6 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
           <h1 id={`plant-${p.id}`} class="plant-name">
             {p.commonName}
           </h1>
-          {p.latinName && <p class="latin">{p.latinName}</p>}
           {parent && (
             <p class="small variety-of">
               A kind of{' '}
@@ -185,7 +184,7 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
           </button>
         )}
         {onCopy && (
-          <button type="button" class="btn" onClick={onCopy}>
+          <button type="button" class="link-btn small" onClick={onCopy}>
             Make my own version
           </button>
         )}
@@ -272,15 +271,6 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
               )}
             </dd>
           </div>
-          {p.family && (
-            <div>
-              <dt>Family</dt>
-              <dd>
-                {p.family}
-                {FAMILY_NAME[p.family] ? `, ${FAMILY_NAME[p.family]}` : ''}
-              </dd>
-            </div>
-          )}
           {p.pollinators && (
             <div>
               <dt>Pollinators</dt>
@@ -298,6 +288,18 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
             </div>
           )}
         </dl>
+        {(p.latinName || p.family) && (
+          <details class="advanced plant-more">
+            <summary>More: its Latin and family names</summary>
+            {p.latinName && <p class="latin">{p.latinName}</p>}
+            {p.family && (
+              <p class="small">
+                Family: {p.family}
+                {FAMILY_NAME[p.family] ? `, ${FAMILY_NAME[p.family]}` : ''}
+              </p>
+            )}
+          </details>
+        )}
       </section>
 
       {(p.sowing?.length || p.plantOutMonths?.length || p.cropping || p.flowerMonths?.length) && (
@@ -415,17 +417,19 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
             </p>
           )}
           {p.companions.avoid.length > 0 && (
-            <p>
-              <span class="muted">Keep apart from </span>
-              {neighbours(p.companions.avoid).map((n, i, all) => (
-                <span key={n.id}>
-                  <button type="button" class="link-btn" onClick={() => open(n.id)}>
-                    {n.commonName.toLowerCase()}
-                  </button>
-                  {i < all.length - 2 ? ', ' : i === all.length - 2 ? ' and ' : ''}
-                </span>
-              ))}
-            </p>
+            <details class="advanced keep-apart">
+              <summary>Keep apart from…</summary>
+              <p>
+                {neighbours(p.companions.avoid).map((n, i, all) => (
+                  <span key={n.id}>
+                    <button type="button" class="link-btn" onClick={() => open(n.id)}>
+                      {n.commonName.toLowerCase()}
+                    </button>
+                    {i < all.length - 2 ? ', ' : i === all.length - 2 ? ' and ' : ''}
+                  </span>
+                ))}
+              </p>
+            </details>
           )}
           <p class="muted small">Companion planting is partly garden lore. Treat it as a guide.</p>
         </section>

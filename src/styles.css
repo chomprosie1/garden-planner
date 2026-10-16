@@ -6666,3 +6666,22 @@ h2 {
 .plant-chooser .dock-search {
   flex: none;
 }
+
+/* Settings: the look you have, with the rest folded under More looks (release 44). */
+.look-choice {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.more-looks {
+  margin-top: 0.5rem;
+}
+/* Today: a copy is due, as one quiet line. */
+.backup-line {
+  margin: 0.75rem 0 0;
+}
+/* The list's colour-bar key, folded to a ? (release 44). */
+.season-key-q {
+  cursor: pointer;
+  font-weight: 700;
+}

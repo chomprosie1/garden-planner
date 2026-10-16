@@ -2091,7 +2091,7 @@ Decided:
 | Fri 16 Oct | 42. One job, done once | One sow job per planting, with either way. No planting out before sowing. Sowing in the Shed sows the bed's planting. The cold frame and greenhouse as places to sow. The right verbs. Fewer pointless jobs. | Built 16 Oct 2026 |
 | Sat 17 – Sun 18 Oct | Testing weekend | | |
 | Mon 19 Oct | 43. How to, for this crop | Spacing in every how-to. Steps chosen by the actual sowing. Glossary words dotted on Today. About 12 new words. Margaret's corrections, checked against a source. Autumn jobs for glass and fruit. The play-safe frost date for tender plants. | Built 16 Oct 2026 |
-| Tue 20 Oct | 44. Less, but better | Today is the jobs. Recipes, Room to grow, Wrapped, the journal and Install off Today. Open on Today. The plan's extras behind ··· on phones. Settings and Plants trimmed. Checks can be dismissed. | |
+| Tue 20 Oct | 44. Less, but better | Today is the jobs. Recipes, Room to grow, Wrapped, the journal and Install off Today. Open on Today. The plan's extras behind ··· on phones. Settings and Plants trimmed. Checks can be dismissed. | Built 16 Oct 2026 |
 | Wed 21 Oct | Testing day | | |
 | Thu 22 Oct | 45. Counts you can trust | Fill respects rows. Bulbs in pots at real density. Moves ask before cutting. The count can be edited. Plan and list agree on rows. Pots under cover counted as modules. | |
 | Fri 23 Oct | 46. Fruit, and next year round the real beds | A fruit cage. Beds that rotate and beds that don't (schema 22). Next year's draft only rotates the veg beds, counts this autumn's crops as next year's, and suggests a follow-on crop. | |
@@ -2251,6 +2251,67 @@ Changed tests:
 - `one-answer`: autumn onion sets named;
 - `explain`: strawberries' two windows;
 - `microclimate`: the warmth wording.
+
+### Release 44 — Less, but better (as built)
+Built 16 Oct 2026, with 43. Hidden, not deleted: the code for everything moved stays.
+
+- **Today is the jobs** (`src/ui/views/Home.tsx`):
+  - **The order:** the jobs, then at most two "needs you now" cards (as before), Planning ahead from September to February, Getting started while it's showing, What's new when there's news, and Your garden.
+  - **Off Today:** In the kitchen (recipes are on the plant pages already), Room to grow (Inspire me is on an empty bed's card, while it's empty), and Picked this year and Wrapped.
+  - **Shown once:** the garden journal and "Put it on your home screen" show the first time they would, then go. It's kept in `stuckSeen`, the shown-once list the plan's tips use, and they stay put for the rest of that visit.
+  - **Today's ⋯ menu:** Garden journal, Your season wrapped (once there's a season's worth, `seasonReady`), Put it on your home screen (where it can be), and What's new.
+  - **A copy due:** one quiet line at the foot, with Download a copy, not a card.
+- **No welcome on a normal day** (`welcomeDue` in `src/ui/launch.ts`): only on the first launch in a new month, or once on a day with news you haven't seen. Otherwise the app opens on Today.
+- **Phones: the plan's extras behind ⋯** (`src/ui/views/Plan.tsx`):
+  - The Show: picker and the year slider (with Play the year) stay hidden until chosen from ⋯: "Show: sun, shade, flowers, picking or water" and "The year ahead: a slider, and Play the year". A lens chosen from search shows the picker as well.
+  - 3D was already in ⋯. Desktop is unchanged.
+- **3D opens on the beds** (`focus` in `src/three/scene.ts`, presets in `src/three/view.ts`):
+  - The camera aims at the beds, pots and plantings, not the middle of the whole garden with the house.
+  - "From above" looks down steeply enough that a house or shed beside the beds doesn't get in the way.
+  - "Standing in it" stands at the beds' near edge.
+- **The share picture is hidden** until it's redone (parked in the wishlist): gone from the plan's ⋯, the year slider and search. Searching "share" finds Your season, wrapped. Help's Sharing topic is about Wrapped now.
+- **Settings:**
+  - **Looks:** your look, with the other four folded under More looks.
+  - **Your climate:** one line (warmer or cooler than the middle of England), with the figures and stations under "Your climate, in detail".
+  - **North:** north in degrees is folded (plans only, as before), under the compass.
+  - **Keyboard shortcuts:** shown only with a mouse or trackpad.
+- **Plants:**
+  - **Opens on Easy to start** (16 plants, not 604). Typing a search looks through them all.
+  - **The plant page:** Latin and family names fold under "More: its Latin and family names". "Keep apart from…" is folded. "Make my own version" and "Add your own plant" are small links.
+  - **Plants still being checked:** hidden when browsing (the Plants list, the dock, Add a plant, the Shed's Sow seeds) unless "List the plants still being checked" is on in Settings › Advanced (`draftPlants`). Search finds them either way.
+- **List mode:**
+  - The colour-bar key folds to a "?".
+  - Setting up as a list doesn't ask for the garden's size; it takes the usual size for the space.
+- **Shopping list:**
+  - **A first garden** (no feed shelf yet) gets one general feed (blood, fish and bone), plus "Well-rotted manure or bagged compost" for the beds.
+  - **Specialist feeds:** only the ones a plant can't do without (tomato feed, ericaceous feed).
+  - **With a feed shelf:** feeds are listed by name, as before.
+- **Checks:**
+  - Each warning has "I know, it's fine". It isn't raised again on this device (`dismissedChecks`), and the plan's, the list's and Today's counts leave it out.
+  - In list mode, picking a check opens the planting or bed it's about.
+- **Help:** the journal, copies, Ideas for an empty bed, the year ahead on a phone, and Sharing.
+- **Version** 0.44.0.
+- **Checked at 390 px:**
+  - Today with its ⋯ menu, and its foot;
+  - Plants on Easy to start, and searching "apple";
+  - the apple's page;
+  - Settings' looks;
+  - the plan's ⋯ on a phone;
+  - 3D opening on the beds.
+  - No page errors.
+
+Tests: `tests/less.test.ts`:
+- the welcome rule;
+- dismissed checks;
+- the new preferences;
+- a first garden's feeds, and a shelf's;
+- 3D's focus on the beds.
+
+Changed tests: `welcome` (no welcome on a normal day) and `start` ("share" finds Wrapped).
+
+Not changed:
+- **The 3D view's own share button**, which saves a picture of the 3D view: it's behind ⋯ with 3D.
+- **Latin names in the plant list's rows**, which help tell kinds apart.
 
 ## Repo layout
 ```
