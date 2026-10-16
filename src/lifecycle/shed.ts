@@ -259,21 +259,28 @@ export const isTender = (p: Plant) => /^\s*(tender|half-hardy)/i.test(p.conditio
 
 export const germination = (p: Plant): [number, number] => p.germinationDays ?? [7, 21];
 
-/** The day to start hardening off: two weeks before the last frost for tender plants, two weeks before planting-out time for the rest. */
+/**
+ * When a tender plant can safely go out: the play-safe date, about two weeks after the 50:50 last frost, since a frost
+ * kills it. Hardy plants go by the 50:50 date.
+ */
+export const safeOut = (g: Garden, year: number): string => addDays(inYear(frostDates(g).lastFrost, year), PLAY_SAFE_DAYS);
+
+/** The day to start hardening off: two weeks before tender plants can safely go out, two weeks before planting-out time for the rest. */
 export function hardenFrom(p: Plant, g: Garden, year: number): string {
   const { lastFrost } = frostDates(g);
-  if (isTender(p) || !p.plantOutMonths?.length) return addDays(inYear(lastFrost, year), -14);
+  if (isTender(p)) return addDays(safeOut(g, year), -14);
+  if (!p.plantOutMonths?.length) return addDays(inYear(lastFrost, year), -14);
   const first = Math.min(...p.plantOutMonths.filter((m) => m >= 2 && m <= 9).concat(p.plantOutMonths));
   return addDays(`${year}-${String(first).padStart(2, '0')}-01`, -14);
 }
 
-/** The earliest day it can go out: after a week of hardening off, and for tender plants, after the last frost. */
+/** The earliest day it can go out: after a week of hardening off, and for tender plants, once frost is unlikely (the play-safe date). */
 export function plantOutFrom(p: Plant, g: Garden, hardenedFrom: string): string {
   const year = Number(hardenedFrom.slice(0, 4));
   const week = addDays(hardenedFrom, 7);
   if (!isTender(p)) return week;
-  const frost = inYear(frostDates(g).lastFrost, year);
-  return week > frost ? week : frost;
+  const safe = safeOut(g, year);
+  return week > safe ? week : safe;
 }
 
 /**

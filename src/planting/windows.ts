@@ -120,8 +120,11 @@ export function notNow(plant: Plant, month: number): string | null {
   if (sow?.sowing) parts.push(`${sowingVerb(sow.sowing).toLowerCase()} from ${MONTH_NAMES[sow.run[0]! - 1]}`);
   if (outFrom) parts.push(`plant out from ${MONTH_NAMES[outFrom.run[0]! - 1]}`);
   if (!parts.length && out.length) {
-    const w = pick([{ sowing: null, months: out }], month)!;
-    parts.push(`plant from ${MONTH_NAMES[w.run[0]! - 1]}`);
+    // Every window, the next first: strawberries go in in spring, or in late summer.
+    const ahead = (run: number[]) => (run[0]! - month + 12) % 12;
+    const [next, ...others] = runsOf(out).sort((a, b) => ahead(a) - ahead(b));
+    const span = (run: number[]) => (run.length > 1 ? `${MONTH_NAMES[run[0]! - 1]} to ${MONTH_NAMES[run[run.length - 1]! - 1]}` : MONTH_NAMES[run[0]! - 1]);
+    parts.push(`plant from ${MONTH_NAMES[next![0]! - 1]}${others.map((r) => `, or in ${span(r)}`).join('')}`);
   }
   return parts.length ? `Not now: ${parts.join(', then ')}.` : null;
 }
@@ -142,4 +145,23 @@ export function buyWord(from: StartsAs, plant: Plant): string {
     default:
       return 'seed';
   }
+}
+
+/** The sowing a job is about: of its way (outside, or under cover), the one open in the month or the next. */
+export function sowingFor(plant: Plant, direct: boolean, month: number): Sowing | null {
+  const ways = (plant.sowing ?? []).filter((s) => (s.method === 'direct') === direct);
+  return pick(ways.map((s) => ({ sowing: s, months: s.months })), month)?.sowing ?? null;
+}
+
+/** "45 cm", or "1.2 m" for anything a metre or more. */
+const cm = (mm: number) => (mm >= 1000 ? `${Math.round(mm / 100) / 10} m` : `${Math.round(mm / 10)} cm`);
+
+/**
+ * How far apart, in words, as this garden grows it: "15 cm apart each way" with close spacing in a bed, or "20 cm
+ * apart, in rows 60 cm apart". Fruit, shrubs and trees have no close spacing and keep their usual one.
+ */
+export function spacingText(plant: Plant, style: 'close' | 'rows'): string {
+  const s = plant.size;
+  if (style === 'close' && s.closeSpacingMm) return `${cm(s.closeSpacingMm)} apart each way`;
+  return `${cm(s.spacingMm)} apart${s.rowSpacingMm ? `, in rows ${cm(s.rowSpacingMm)} apart` : ''}`;
 }

@@ -2090,7 +2090,7 @@ Decided:
 | Thu 15 Oct | Testing day | | |
 | Fri 16 Oct | 42. One job, done once | One sow job per planting, with either way. No planting out before sowing. Sowing in the Shed sows the bed's planting. The cold frame and greenhouse as places to sow. The right verbs. Fewer pointless jobs. | Built 16 Oct 2026 |
 | Sat 17 – Sun 18 Oct | Testing weekend | | |
-| Mon 19 Oct | 43. How to, for this crop | Spacing in every how-to. Steps chosen by the actual sowing. Glossary words dotted on Today. About 12 new words. Margaret's corrections, checked against a source. Autumn jobs for glass and fruit. The play-safe frost date for tender plants. | |
+| Mon 19 Oct | 43. How to, for this crop | Spacing in every how-to. Steps chosen by the actual sowing. Glossary words dotted on Today. About 12 new words. Margaret's corrections, checked against a source. Autumn jobs for glass and fruit. The play-safe frost date for tender plants. | Built 16 Oct 2026 |
 | Tue 20 Oct | 44. Less, but better | Today is the jobs. Recipes, Room to grow, Wrapped, the journal and Install off Today. Open on Today. The plan's extras behind ··· on phones. Settings and Plants trimmed. Checks can be dismissed. | |
 | Wed 21 Oct | Testing day | | |
 | Thu 22 Oct | 45. Counts you can trust | Fill respects rows. Bulbs in pots at real density. Moves ask before cutting. The count can be edited. Plan and list agree on rows. Pots under cover counted as modules. | |
@@ -2200,6 +2200,57 @@ Not changed:
 - **The how-to's steps** are still the general ones for each kind of job, so a cold-frame sowing still says "keep it warm". That's release 43 (steps chosen by the actual sowing).
 - **Rows of one sowing** are still listed one by one under "Sown for the plan". That's release 40's kind of fix.
 - **The tick box** on a two-way job does it the first way; the other way is in its how-to.
+
+### Release 43 — How to, for this crop (as built)
+Built 16 Oct 2026, with 44.
+
+- **Steps chosen by the actual sowing** (`src/content/howto.ts`; `howTo` takes the plant, month and spacing style; `sowingFor` in `src/planting/windows.ts` finds the job's sowing):
+  - **Big seeds** (sown 25 mm deep or more: beans, peas, sweet peas) are sown one to a hole outside, or one to a pot or module under cover, not "thinly".
+  - **A cold-frame sowing** has its own steps: root trainers or deep pots, no heat, the lid open by day and closed only for a hard frost, and mice kept out. No propagator, no "keep it warm".
+  - **Harvest by what's picked:** roots lifted with a fork, pods picked holding the stem, heads cut with a knife, herbs snipped, fruit picked when fully coloured. Anything else keeps the general steps.
+- **Spacing in the how-to:** every sowing and planting how-to gives "Spacing: 20 cm apart, in rows 60 cm apart", or "15 cm apart each way" with close spacing (`spacingText`).
+- **Garden words:**
+  - Dotted on Today's job cards too, not only in the how-to. The card opens its how-to from a `role="button"` span, since the words are buttons of their own.
+  - **12 new words:** seed compost, multi-purpose compost, rose (on a watering can, not a rose bush), dibber, hoe, hand fork, free-draining, fertile, crowns, cloche, chicken manure pellets and ornamental allium.
+- **"About" from a job goes back to where you were:** a plant's card opened from Today says "Back to Today" (or the Garden, the month's jobs, the Shed), not "All plants".
+- **The play-safe frost date for tender plants** (`safeOut` in `src/lifecycle/shed.ts`): they harden off from the 50:50 last frost and go out about two weeks after it, in the timeline, the Shed's trays and Today. A tender plant-out job says "Tender: plant out from about 17 May, when a frost is unlikely." Hardy plants keep the 50:50 date. This closes the question left open in release 35.
+- **Margaret's corrections, checked against the RHS:**
+  - **Autumn onion sets:** a plain onion planted in autumn is "Onion sets, an overwintering kind" on the shopping list. Its autumn sets say spring sets planted in autumn bolt. Sets go 2 cm deep with the tip just showing (RHS onions; it was 1 cm in one place and 2 cm in another).
+  - **Overwintering onions:** seed is sown under cover in late summer, sets in autumn. One feed only, in late winter and on poor soil (RHS: a nitrogen-rich feed then, which also helps stop bolting); nothing in the depths of winter.
+  - **Broad beans for autumn:** a plain broad bean sown in autumn is "Broad bean seed, an autumn kind such as 'Aquadulce Claudia'" (RHS broad beans).
+  - **"Tender"** in the glossary names runner and French beans, and says broad beans are hardy (RHS runner beans: they "won't survive frost").
+  - **Sweet peas and broad beans** in root trainers or deep pots in a cold frame were done in 42; the RHS sweet pea trial confirms autumn sowings overwinter in a cold frame and go out in March to April.
+  - **The cold frame's warmth** reads "about 4 °C warmer than outside by day, and 1 °C at night", not "+4 °C".
+  - **Strawberries' "Not now"** names both windows: "Not now: plant from March, or in July to September."
+  - **Not changed, on the evidence:** garlic's harvest. RHS says autumn-planted garlic is "ready from late spring to early summer", so the timeline's early June stands. Margaret's late June to July is right for a cold spot, which the warmth already allows for.
+- **Autumn jobs for glass and fruit**, in the month's general jobs, shown only to a garden with the plant or the greenhouse or cold frame (`about.kinds` in `src/content/seasons.ts`):
+  - **September and October:** cut summer raspberry canes that have fruited to the ground and tie in the new ones (RHS: straight after harvesting).
+  - **October:** clean the greenhouse glass and gutters, and put up bubble wrap (RHS greenhouses in winter).
+  - **October and November:** keep the cold frame lid open by day, closing it only for a hard frost (RHS sweet pea trial).
+  - **November:** open the greenhouse vents a little on mild mornings and close them by early afternoon (RHS, November).
+  - **January:** prune blackcurrants, cutting out up to a third of the oldest stems (RHS blackcurrants).
+- **The climate check:** no change, for want of evidence.
+  - **Shawbury:** the Met Office records it as one of England's coldest stations (−25.2 °C in 1981), but I found nothing saying it's a frost hollow compared with the others, so it stands alone for Shropshire.
+  - **Bristol:** there's no Bristol-area station in our 17, so Bristol is placed between Cardiff, Birmingham and the rest by distance. Adding one (Long Ashton or Filton) needs the Met Office's averages for it: parked for the data track.
+- **Version** 0.43.0.
+
+Tests: `tests/how-to.test.ts`:
+- big seeds one at a time;
+- cold-frame steps;
+- harvest by crop;
+- spacing;
+- the new words, the rose and "tender";
+- the play-safe date in the timeline and the tender plant-out job;
+- the warmth wording;
+- the shopping list's autumn kinds;
+- overwintering onions;
+- the glass and fruit jobs.
+
+Changed tests:
+- `shed` and `year`: tender plants two weeks later;
+- `one-answer`: autumn onion sets named;
+- `explain`: strawberries' two windows;
+- `microclimate`: the warmth wording.
 
 ## Repo layout
 ```

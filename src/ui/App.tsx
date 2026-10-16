@@ -66,6 +66,8 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [planIntent, setPlanIntent] = useState<PlanIntent | null>(null);
   const [plantCard, setPlantCard] = useState<string | null>(null);
+  /** Where a plant's card was opened from, so its Back goes there. */
+  const [plantFrom, setPlantFrom] = useState<View | null>(null);
   const [checkFrom, setCheckFrom] = useState<string | null>(null);
   const [shortcuts, setShortcuts] = useState(false);
   const [searching, setSearching] = useState(false);
@@ -83,6 +85,8 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
    */
   const navigate = (v: View, sub?: string) => {
     if (v !== 'home') setStartHere(false);
+    // Leaving the plants: the next card opened there goes back to all plants.
+    if (v !== 'plants') setPlantFrom(null);
     if (!SUB_PAGES.includes(v)) setTrail([]);
     else if (view !== v) setTrail((t) => [...t, view]);
     go(v, sub);
@@ -98,6 +102,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
       go: navigate,
       openPlant(id) {
         setPlantCard(id);
+        setPlantFrom(view === 'plants' ? null : view);
         navigate('plants');
       },
       showOnPlan(target: Target) {
@@ -297,6 +302,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
             go={navigate}
             openId={plantCard}
             clearOpen={() => setPlantCard(null)}
+            backTo={plantFrom}
             editor={prefs.plantEditor}
             checkPlant={(id) => {
               setCheckFrom(id);

@@ -1,7 +1,7 @@
 // A line and a handful of general jobs for each month in an English garden.
 // These are UK averages, shown alongside the jobs for your own plants (src/calendar/jobs.ts).
 
-import type { Garden, Plant } from '../model/types';
+import type { FeatureKind, Garden, Plant } from '../model/types';
 
 export interface Season {
   month: number; // 1 to 12
@@ -15,7 +15,7 @@ export interface Season {
    * The plants some of the jobs are about, by their place in `jobs`: shown only to a garden growing one (or meaning to).
    * own: your own plants' jobs already do it for one in a bed or on your list, so it isn't said twice.
    */
-  about?: Record<number, { ids: string[]; own?: true }>;
+  about?: Record<number, { ids?: string[]; kinds?: FeatureKind[]; own?: true }>;
 }
 
 export const SEASONS: Season[] = [
@@ -33,8 +33,9 @@ export const SEASONS: Season[] = [
       'Prune apple and pear trees while they are dormant',
       'Check stored crops and remove any that are rotting',
       'Clean pots and seed trays ready for spring',
+      'Prune blackcurrants: cut out up to a third of the oldest stems at the base',
     ],
-    about: { 1: { ids: ['apple', 'pear'] } },
+    about: { 1: { ids: ['apple', 'pear'] }, 4: { ids: ['blackcurrant'] } },
   },
   {
     month: 2,
@@ -170,8 +171,9 @@ export const SEASONS: Season[] = [
       'Plant spring bulbs such as daffodils and crocuses',
       'Lift maincrop potatoes and store them in paper sacks',
       'Sow green manure on empty beds',
+      'Cut summer raspberry canes that have fruited down to the ground, and tie in the new ones',
     ],
-    about: { 0: { ids: ['apple', 'pear'], own: true }, 2: { ids: ['potato'], own: true } },
+    about: { 0: { ids: ['apple', 'pear'], own: true }, 2: { ids: ['potato'], own: true }, 4: { ids: ['raspberry'] } },
   },
   {
     month: 10,
@@ -188,8 +190,11 @@ export const SEASONS: Season[] = [
       'Sow overwintering broad beans outdoors',
       'Lift and store dahlia tubers after the first frost',
       'Gather fallen leaves to make leaf mould',
+      'Cut summer raspberry canes that have fruited down to the ground, and tie in the new ones',
+      'Clean the greenhouse glass and gutters, and put up bubble wrap for the winter',
+      'Keep the cold frame lid open by day, closing it only when a hard frost is due',
     ],
-    about: { 0: { ids: ['garlic'], own: true }, 1: { ids: ['broad-bean'], own: true }, 2: { ids: ['dahlia'], own: true } },
+    about: { 0: { ids: ['garlic'], own: true }, 1: { ids: ['broad-bean'], own: true }, 2: { ids: ['dahlia'], own: true }, 4: { ids: ['raspberry'] }, 5: { kinds: ['greenhouse'] }, 6: { kinds: ['cold-frame'] } },
   },
   {
     month: 11,
@@ -205,8 +210,10 @@ export const SEASONS: Season[] = [
       'Plant tulip bulbs',
       'Protect tender plants with fleece',
       'Clean and oil your tools',
+      'Open the greenhouse vents a little on mild mornings, and close them by early afternoon',
+      'Keep the cold frame lid open by day, closing it only when a hard frost is due',
     ],
-    about: { 1: { ids: ['tulip'], own: true } },
+    about: { 1: { ids: ['tulip'], own: true }, 4: { kinds: ['greenhouse'] }, 5: { kinds: ['cold-frame'] } },
   },
   {
     month: 12,
@@ -259,9 +266,13 @@ export function generalJobs(month: number, g: Garden, plantOf: (id: string) => P
   if (!inBeds.length) return all;
   const kinds = (ids: string[]) => new Set(ids.flatMap((id) => [id, plantOf(id)?.varietyOf].filter((x): x is string => !!x)));
   const grown = kinds([...inBeds, ...g.wishlist]);
+  const has = new Set(g.features.map((f) => f.kind));
   return all.filter(({ i }) => {
     const about = season.about?.[i];
+    if (!about) return true;
+    // A job for a greenhouse or cold frame: only with one.
+    if (about.kinds) return about.kinds.some((k) => has.has(k));
     // One your own jobs do: they say it if you grow it, and it doesn't apply if you don't.
-    return !about || (!about.own && about.ids.some((id) => grown.has(id)));
+    return !about.own && !!about.ids?.some((id) => grown.has(id));
   });
 }

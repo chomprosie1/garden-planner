@@ -198,8 +198,8 @@
     "conditions": { "light": "full-sun", "minSunHours": 6, "soil": "Firm, free-draining, not freshly manured", "moisture": "moderate", "hardiness": "Hardy" },
     "size": { "heightMm": 500, "spreadMm": 150, "spacingMm": 100, "closeSpacingMm": 100, "rowSpacingMm": 300 },
     "sowing": [
-      { "method": "direct", "from": "sets", "months": [3, 4], "depthMm": 10, "notes": "Plant sets with the tip just showing." },
-      { "method": "direct", "from": "sets", "months": [9, 10], "depthMm": 10, "notes": "Autumn sets of overwintering varieties." },
+      { "method": "direct", "from": "sets", "months": [3, 4], "depthMm": 20, "notes": "Plant sets about 2 cm deep, with the tip just showing." },
+      { "method": "direct", "from": "sets", "months": [9, 10], "depthMm": 20, "notes": "Overwintering (Japanese) sets only: spring sets planted in autumn bolt. About 2 cm deep, with the tip just showing." },
       { "method": "indoors", "months": [1, 2], "depthMm": 10, "notes": "From seed, in modules." }
     ],
     "plantOutMonths": [4],

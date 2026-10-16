@@ -17,6 +17,21 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-16-how-to',
+    date: '2026-10-16',
+    title: 'How to, for this crop',
+    items: [
+      'A job’s How to now fits the crop: broad beans and peas are sown one at a time, sweet peas in a cold frame get no heat and are kept from mice, and parsnips are lifted with a fork.',
+      'Every sowing and planting How to says how far apart.',
+      'Tomatoes, courgettes, beans and other tender plants now go out about two weeks after the usual last frost, when a frost is unlikely.',
+      'Twelve more garden words, such as dibber, hoe and cloche, and the words are dotted on Today’s jobs too.',
+      'The shopping list names the kind for autumn: overwintering onion sets, and an autumn broad bean such as ‘Aquadulce Claudia’.',
+      'Autumn and winter jobs for a greenhouse, a cold frame, raspberries and blackcurrants, if you have them.',
+      'A plant opened from a job goes back to Today.',
+    ],
+    tryIt: { label: 'See Today', view: 'home' },
+  },
+  {
     id: '2026-10-16-one-job',
     date: '2026-10-16',
     title: 'One job, done once',

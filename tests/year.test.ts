@@ -60,7 +60,8 @@ describe('stages through the year', () => {
     expect(on('tomato', pl, '2027-01-15').stage).toBe('planned');
     // Tender: planted out after the last frost.
     expect(steps.find((s) => s.stage === 'transplanted')!.date! >= '2027-05-01').toBe(true);
-    expect(on('tomato', pl, '2027-08-01')).toEqual({ stage: 'harvesting', guessed: true });
+    // Out on the play-safe date in mid-May, it's cropping by late August.
+    expect(on('tomato', pl, '2027-08-25')).toEqual({ stage: 'harvesting', guessed: true });
   });
 
   it('crops a quick leafy crop for a few weeks, not the whole season', () => {

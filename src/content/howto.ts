@@ -1,18 +1,109 @@
 // How to do a job: what you need, three or four steps, and about how long it
 // takes, for someone who has never done it. By the kind of job and what goes
-// in (seed, cloves, sets, seed potatoes, bulbs or plants); the plant's own
-// advice (depth, spacing, feed) comes with the job, underneath. Content and a
-// pure function.
+// in (seed, cloves, sets, seed potatoes, bulbs or plants), and given the
+// plant, by how it's actually sown (big seeds one at a time, a cold frame with
+// no heat) and what's picked (roots lifted, pods picked, heads cut, herbs
+// snipped). The plant's own advice (depth, feed) comes with the job,
+// underneath, and its spacing with the steps. Content and a pure function.
 
 import type { Job } from '../calendar/jobs';
-import type { StartsAs } from '../planting/windows';
+import type { Plant, SpacingStyle } from '../model/types';
+import { sowingFor, spacingText, type StartsAs } from '../planting/windows';
 
 export interface HowTo {
   need: string[];
   steps: string[];
   /** "About 15 minutes a row". */
   time: string;
+  /** "20 cm apart, in rows 60 cm apart": for sowing and planting, given the plant. */
+  spacing?: string;
 }
+
+/** The plant and garden a job is for, when known: the how-to fits them. */
+export interface HowToFor {
+  plant: Plant;
+  month: number;
+  style: SpacingStyle;
+}
+
+/** Seeds this deep or deeper are big ones (beans, peas, sweet peas, squash): sown one at a time, not thinly. */
+const BIG_SEED_MM = 25;
+
+const SOW_ONE_BY_ONE: HowTo = {
+  need: ['The seed', 'A rake', 'A dibber or trowel', 'A watering can with a rose (the sprinkler head)'],
+  steps: [
+    'Pull out any weeds, then rake the soil level and crumbly.',
+    'Make a hole for each seed with a dibber, as deep as it says below and at the spacing below.',
+    'Drop one seed in each hole, fill it with soil and firm it gently.',
+    'Water them in and label the row. Mice and birds like big seeds: a net or a few holly leaves over them helps.',
+  ],
+  time: 'About 15 minutes a row',
+};
+
+const SOW_IN_COLD_FRAME: HowTo = {
+  need: ['The seed', 'Root trainers, deep pots or a module tray', 'Seed or multi-purpose compost', 'A label', 'Your cold frame'],
+  steps: [
+    'Fill the root trainers or pots with compost, and firm it down gently.',
+    'Sow one seed to each cell or pot, as deep as it says below, and cover it.',
+    'Water them, label them, and set them in the cold frame. No heat: they want it cold, not warm.',
+    'Keep the lid open by day, and closed only when a hard frost is due. Keep mice out: they dig up big seeds.',
+  ],
+  time: 'About 15 minutes a tray',
+};
+
+const LIFT_ROOTS: HowTo = {
+  need: ['A garden fork', 'A bucket or trug'],
+  steps: [
+    'Push the fork in beside the row, well away from the roots, and lever the soil to loosen it.',
+    'Ease out what you need by the leaves; leave the rest in the ground, where they keep.',
+    'Shake off the soil. Lift a few on a mild day if the ground might freeze.',
+    'Tap Picked some? to note how much, for your harvest.',
+  ],
+  time: 'About 10 minutes',
+};
+
+const PICK_PODS: HowTo = {
+  need: ['A basket', 'Two hands: one to hold the stem'],
+  steps: [
+    'Pick the pods while they’re young and plump, before the beans or peas inside get tough.',
+    'Hold the stem with one hand and snap or pinch the pod off with the other, so the plant isn’t torn.',
+    'Pick every few days: the more you pick, the more come.',
+    'Tap Picked some? to note how much, for your harvest.',
+  ],
+  time: 'About 10 minutes',
+};
+
+const CUT_HEADS: HowTo = {
+  need: ['A sharp knife', 'A basket'],
+  steps: [
+    'Cut the head when it’s firm and full, before it opens out or splits.',
+    'Cut through the stem just below the head, leaving the stalk and lower leaves.',
+    'Some, such as broccoli and cabbage, send up smaller heads or shoots afterwards: leave the stalk for them.',
+    'Tap Picked some? to note how much, for your harvest.',
+  ],
+  time: 'About 5 minutes',
+};
+
+const SNIP_HERBS: HowTo = {
+  need: ['Scissors or snips'],
+  steps: [
+    'Snip sprigs from the tips, never more than a third of the plant at once.',
+    'Cut just above a pair of leaves, and new shoots grow from there.',
+    'Pick little and often; it keeps the plant bushy.',
+  ],
+  time: 'A minute or two',
+};
+
+const PICK_FRUIT: HowTo = {
+  need: ['A shallow basket or tray, so the fruit isn’t squashed'],
+  steps: [
+    'Pick fruit when it’s fully coloured and comes away with a gentle pull.',
+    'Pick in the dry, every few days while it’s ripening, before the birds do.',
+    'Handle it gently and keep it cool: soft fruit keeps a day or two.',
+    'Tap Picked some? to note how much, for your harvest.',
+  ],
+  time: 'About 10 minutes',
+};
 
 const SOW_OUTSIDE: HowTo = {
   need: ['The seed', 'A rake', 'A cane or the edge of a trowel', 'A watering can with a rose (the sprinkler head)'],
@@ -178,17 +269,47 @@ const BY_KIND: Record<Exclude<Job['kind'], 'sow-direct' | 'sow-indoors' | 'plant
   },
 };
 
-/** What a job takes, and how: by its kind, and for sowing and planting, what goes in (from startsAs) and whether it's a bulb. */
-export function howTo(job: Job, from: StartsAs, bulb = false): HowTo {
+/**
+ * What a job takes, and how: by its kind, and for sowing and planting, what goes in (from startsAs) and whether it's a
+ * bulb. Given the plant: by how this sowing is done and what's picked, with its spacing.
+ */
+export function howTo(job: Job, from: StartsAs, bulb = false, at?: HowToFor): HowTo {
+  const how = chosen(job, from, bulb, at);
+  const spaced = at && (job.kind === 'sow-direct' || job.kind === 'plant-out') && !bulb;
+  return spaced ? { ...how, spacing: spacingText(at.plant, at.style) } : how;
+}
+
+function chosen(job: Job, from: StartsAs, bulb: boolean, at?: HowToFor): HowTo {
+  const plant = at?.plant;
   switch (job.kind) {
-    case 'sow-direct':
-      return from === 'cloves' ? CLOVES : from === 'sets' ? SETS : from === 'tubers' ? SEED_POTATOES : SOW_OUTSIDE;
-    case 'sow-indoors':
+    case 'sow-direct': {
+      if (from === 'cloves') return CLOVES;
+      if (from === 'sets') return SETS;
+      if (from === 'tubers') return SEED_POTATOES;
+      const sowing = plant ? sowingFor(plant, true, at!.month) : null;
+      return (sowing?.depthMm ?? 0) >= BIG_SEED_MM ? SOW_ONE_BY_ONE : SOW_OUTSIDE;
+    }
+    case 'sow-indoors': {
+      const sowing = plant ? sowingFor(plant, false, at!.month) : null;
+      if (sowing?.method === 'cold-frame') return SOW_IN_COLD_FRAME;
+      // Big seeds one to a pot or cell, not sown thinly.
+      if ((sowing?.depthMm ?? 0) >= BIG_SEED_MM) return { ...SOW_UNDER_COVER, steps: SOW_UNDER_COVER.steps.map((x, i) => (i === 1 ? 'Sow one seed to each pot or module, as deep as it says below, and cover it with more compost.' : x)) };
       return SOW_UNDER_COVER;
+    }
     case 'plant-out':
       // Planted, not planted out: bulbs, and plants bought in pots.
       if (job.verb === 'Plant') return bulb ? BULBS : PLANTS;
       return PLANT_OUT;
+    case 'harvest': {
+      if (!plant) return BY_KIND.harvest;
+      const kind = plant.art?.crop?.kind;
+      if (kind === 'root') return LIFT_ROOTS;
+      if (plant.category === 'herb') return SNIP_HERBS;
+      if (kind === 'pod') return PICK_PODS;
+      if (kind === 'head') return CUT_HEADS;
+      if (kind === 'fruit' || plant.category === 'fruit') return PICK_FRUIT;
+      return BY_KIND.harvest;
+    }
     default:
       return BY_KIND[job.kind];
   }

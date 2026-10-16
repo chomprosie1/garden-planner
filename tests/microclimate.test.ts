@@ -91,7 +91,7 @@ describe('what’s under cover', () => {
   });
 
   it('says how much warmer it is and what that changes', () => {
-    expect(climateText(DEFAULT_CLIMATE.greenhouse)).toBe('about +8 °C by day and +2 °C at night');
+    expect(climateText(DEFAULT_CLIMATE.greenhouse)).toBe('about 8 °C warmer than outside by day, and 2 °C at night');
     expect(climateText({ heated: true, dayGainC: 8, nightGainC: 2 })).toMatch(/frost-free/);
     expect(coverEffects(DEFAULT_CLIMATE.greenhouse)).toMatch(/about two weeks sooner/);
     expect(coverEffects(DEFAULT_CLIMATE['cold-frame'])).toMatch(/about a week sooner/);

@@ -1,4 +1,4 @@
-// Garden words, explained: about forty words gardeners use without thinking,
+// Garden words, explained: about fifty words gardeners use without thinking,
 // each in two plain lines, for someone growing for the first time. In jobs,
 // how-tos and plant pages, a word here is underlined and opens its lines; the
 // whole list is in Help, and search finds them. Content and a pure function to
@@ -52,11 +52,23 @@ export const GLOSSARY: GardenWord[] = [
   { id: 'bonemeal', term: 'Bonemeal', text: 'Ground bones: a slow feed rich in phosphorus, which helps roots grow. A small handful goes in the hole when planting bulbs, trees and shrubs.', forms: ['bone ?meal'] },
   { id: 'variety', term: 'Variety', text: 'A named kind of a plant, bred for something: earliness, flavour, size or hardiness. Aquadulce is a variety of broad bean, hardy enough to sow in autumn.', forms: ['variet(y|ies)', 'cultivars?'] },
   { id: 'hardy', term: 'Hardy', text: 'Able to stay outside through a UK winter, frost and all. Half-hardy plants take a little cold; tender ones are killed by frost.', forms: ['fully hardy', 'hardy'] },
-  { id: 'tender', term: 'Tender', text: 'Killed or badly hurt by frost, such as tomatoes, courgettes, beans and dahlias. They go out after the last frost and come in, or are lifted, before the first.', forms: ['half-hardy', 'frost-tender', 'tender (plants?|crops?|ones|kinds?|annuals?|perennials?|seedlings)'] },
+  { id: 'tender', term: 'Tender', text: 'Killed or badly hurt by frost, such as tomatoes, courgettes, runner and French beans, and dahlias (broad beans are hardy). They go out after the last frost and come in, or are lifted, before the first.', forms: ['half-hardy', 'frost-tender', 'tender (plants?|crops?|ones|kinds?|annuals?|perennials?|seedlings)'] },
   { id: 'drill', term: 'Drill', text: 'A shallow, straight groove drawn in the soil to sow seeds in, with a cane, a hoe or the edge of a trowel. Its depth is the sowing depth.', forms: ['drills?'] },
   { id: 'tilth', term: 'Fine tilth', text: 'Soil raked until the top is fine and crumbly, with no big lumps or stones. Small seeds sown outside need it to come up well.', forms: ['fine tilth', 'tilth'] },
   { id: 'deadhead', term: 'Deadheading', text: 'Snipping off flowers as they fade. The plant puts its energy into more flowers instead of seed, so it flowers for longer.', forms: ['dead-?head(ing|ed|s)?'] },
   { id: 'seedbed', term: 'Seedbed', text: 'A patch of fine soil where seeds are sown close together, to be moved to their final places once they’re big enough. Leeks and cabbages are often started this way.', forms: ['seed ?beds?'] },
+  { id: 'seed-compost', term: 'Seed compost', text: 'A fine, low-feed compost for sowing in trays and pots, light enough for small roots. Seeds have their own food, and rich compost can scorch them.', forms: ['seed compost'] },
+  { id: 'multi-purpose', term: 'Multi-purpose compost', text: 'The everyday compost sold in bags at garden centres, for pots, potting on and most sowing. Peat-free kinds are the better choice now.', forms: ['multi-?purpose( compost)?'] },
+  { id: 'rose', term: 'Rose (on a watering can)', text: 'The sprinkler head on a watering can’s spout, which breaks the water into a gentle shower. A fine rose won’t wash seeds or seedlings out of the soil.', forms: ['(with a|fine) rose'] },
+  { id: 'dibber', term: 'Dibber', text: 'A short, pointed stick for making holes to sow big seeds, or to drop in cloves and leeks. A pencil or the handle of a trowel does as well.', forms: ['dibbers?'] },
+  { id: 'hoe', term: 'Hoe', text: 'A long-handled tool with a flat blade, pushed just under the surface to cut off young weeds. Done on a dry day, the weeds wither where they lie.', forms: ['hoe(s|ing|d)?'] },
+  { id: 'hand-fork', term: 'Hand fork', text: 'A small fork with three or four prongs, held in one hand, for loosening soil and digging out weeds with deep roots. It goes where a hoe can’t, close round plants.', forms: ['hand forks?'] },
+  { id: 'free-draining', term: 'Free-draining', text: 'Soil that water soaks through quickly, rather than standing in puddles, such as sandy or gritty soil. Herbs like rosemary and thyme need it, and many bulbs rot without it.', forms: ['free-?draining', 'well-?drained'] },
+  { id: 'fertile', term: 'Fertile', text: 'Soil rich in food and life, usually from years of compost and manure, dark and crumbly. Hungry crops such as squash and potatoes do best in it.', forms: ['fertile'] },
+  { id: 'crowns', term: 'Crowns', text: 'The point where a plant’s stems meet its roots, at soil level, where new growth comes from. Strawberries, rhubarb and asparagus are planted with the crown just at the surface.', forms: ['crowns?'] },
+  { id: 'cloche', term: 'Cloche', text: 'A small, low cover of glass or clear plastic set over plants in the ground, to keep off cold, wind and pests. It’s a cold frame you can move about.', forms: ['cloches?'] },
+  { id: 'chicken-manure', term: 'Chicken manure pellets', text: 'Dried chicken manure pressed into pellets, a strong, quick feed rich in nitrogen. Scatter a handful a square metre in spring, and keep it off leaves.', forms: ['(chicken|poultry) manure( pellets)?'] },
+  { id: 'ornamental-allium', term: 'Ornamental allium', text: 'An onion relative grown for its round heads of purple or white flowers in early summer, not to eat. Bees love them, and the bulbs go in in autumn.', forms: ['ornamental alliums?'] },
 ];
 
 const compiled = GLOSSARY.map((w) => ({ word: w, re: new RegExp(`\\b(?:${w.forms.join('|')})\\b`, 'gi') }));

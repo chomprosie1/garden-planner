@@ -8,6 +8,7 @@ import { useApp } from './appContext';
 import { KitchenHint } from './Kitchen';
 import { groupJobs, jobLabel, logPick, toggleJob, type Job, type JobKind } from '../calendar/jobs';
 import { GlossText } from './Glossary';
+import { spacingStyle } from '../planting/place';
 import { JobHowTo } from './JobHowTo';
 import { feedById } from '../feeding/feeds';
 import { shelfFor } from '../feeding/schedule';
@@ -167,7 +168,11 @@ function PlantJob({ job, done, onToggle, onPick, plantOf, garden, startHere = fa
       <span>
         <strong>{job.plant}</strong> {job.where}
       </span>
-      {job.detail && <span class="job-detail small muted">{job.detail}</span>}
+      {job.detail && (
+        <span class="job-detail small muted">
+          <GlossText text={job.detail} />
+        </span>
+      )}
       {shelf && <span class="job-detail small">{shelf}</span>}
     </>
   );
@@ -213,9 +218,22 @@ function PlantJob({ job, done, onToggle, onPick, plantOf, garden, startHere = fa
         {/* The tick box ticks; the job itself opens how to do it. */}
         <span class="job">
           <input type="checkbox" checked={done} aria-label={`Done: ${jobLabel(job).toLowerCase()}, ${job.plant} ${job.where}`} onChange={() => (buzz(), onToggle())} />
-          <button type="button" class="job-text job-open" aria-haspopup="dialog" onClick={() => setOpened(true)}>
+          {/* Not a <button>: the garden words inside it are buttons of their own. */}
+          <span
+            role="button"
+            tabIndex={0}
+            class="job-text job-open"
+            aria-haspopup="dialog"
+            onClick={() => setOpened(true)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setOpened(true);
+              }
+            }}
+          >
             {inner}
-          </button>
+          </span>
         </span>
         <span class="job-actions">
           <button type="button" class="job-link link-btn small" aria-haspopup="dialog" onClick={() => setOpened(true)}>
@@ -237,7 +255,7 @@ function PlantJob({ job, done, onToggle, onPick, plantOf, garden, startHere = fa
         </span>
       )}
       {picked && plantOf && <KitchenHint plantId={job.plantId} plantOf={plantOf} />}
-      {opened && <JobHowTo job={job} {...(plantOf ? { plantOf } : {})} done={!!done} toggle={onToggle} shelf={shelf} close={() => setOpened(false)} />}
+      {opened && <JobHowTo job={job} {...(plantOf ? { plantOf } : {})} done={!!done} toggle={onToggle} shelf={shelf} style={garden ? spacingStyle(garden) : 'close'} close={() => setOpened(false)} />}
     </>
   );
 }

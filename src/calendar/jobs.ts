@@ -7,7 +7,7 @@
 
 import { microclimateOf } from '../climate/microclimate';
 import { feedDetail, feedingDue, isOnce, plantingFeedText } from '../feeding/schedule';
-import { addDays, frostDates, plantOutMonthsUnder } from '../lifecycle/shed';
+import { addDays, frostDates, isTender, plantOutMonthsUnder, safeOut } from '../lifecycle/shed';
 import { currentStage, isRoot, pathFor, setStage, sowingOf, stageLabel, stageTips, suggestedStage } from '../lifecycle/stages';
 import { probableStage, shortDate, timeline } from '../lifecycle/projection';
 import { behindOf } from '../lifecycle/behind';
@@ -311,8 +311,12 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
         return !out?.date || out.date <= monthEnd;
       };
       const toPlant = (tickedNow ? group : notGrowing).filter((p) => sownFirst(p) && due(p));
-      if (toPlant.length && !doneBefore(g, `plant-out:${plant.id}:${featureId}:`, year, month))
-        add('plant-out', plant, where, featureId, ids(toPlant), withFeed(cover ? 'Under glass, so there’s no need to harden them off first.' : undefined), featureId);
+      if (toPlant.length && !doneBefore(g, `plant-out:${plant.id}:${featureId}:`, year, month)) {
+        // A tender plant outside waits for the play-safe date, not the 50:50 last frost: a frost kills it.
+        const safe = safeOut(g, year);
+        const wait = !cover && isTender(plant) && Number(safe.slice(5, 7)) >= month ? `Tender: plant out from about ${shortDate(safe)}, when a frost is unlikely.` : undefined;
+        add('plant-out', plant, where, featureId, ids(toPlant), withFeed(cover ? 'Under glass, so there’s no need to harden them off first.' : wait), featureId);
+      }
     }
 
     // Sown outside and running behind to come up: nothing to pick or feed until it's up. Today asks about it instead.

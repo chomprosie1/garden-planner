@@ -108,7 +108,8 @@ describe('what goes in, and what to buy', () => {
     const item = (key: string) => list.find((i) => i.key === key)!;
     expect(item('bulb:garlic').name).toBe('Garlic');
     expect(item('bulb:garlic').amount).toMatch(/^about \d+ cloves \(\d+ bulbs or so\)$/);
-    expect(item('bulb:onion').name).toBe('Onion sets');
+    // Planted in autumn: spring sets bolt, so it says which kind.
+    expect(item('bulb:onion').name).toBe('Onion sets, an overwintering kind');
     expect(item('bulb:potato').name).toBe('Seed potatoes');
     expect(item('bulb:tulip').name).toBe('Tulip bulbs');
     expect(item('bulb:tulip').amount).toMatch(/^\d+ bulbs$/);

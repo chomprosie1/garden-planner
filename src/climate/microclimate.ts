@@ -91,11 +91,14 @@ export function shiftText(days: number): string {
   return `about ${words[weeks] ?? weeks} weeks`;
 }
 
-const signed = (n: number) => `+${Math.round(n * 10) / 10} °C`;
+const degrees = (n: number) => `${Math.round(n * 10) / 10} °C`;
 
-/** "about +8 °C by day and +2 °C at night", or for a heated one, "heated and kept frost-free, about +8 °C by day". */
+/**
+ * "about 8 °C warmer than outside by day, and 2 °C at night", or for a heated one, "heated and kept frost-free, about
+ * 8 °C warmer than outside by day". Said as warmer than outside, not as the temperature inside.
+ */
 export function climateText(c: Climate): string {
-  return c.heated ? `heated and kept frost-free, about ${signed(c.dayGainC)} by day` : `about ${signed(c.dayGainC)} by day and ${signed(c.nightGainC)} at night`;
+  return c.heated ? `heated and kept frost-free, about ${degrees(c.dayGainC)} warmer than outside by day` : `about ${degrees(c.dayGainC)} warmer than outside by day, and ${degrees(c.nightGainC)} at night`;
 }
 
 /** What being under cover changes, in a sentence. */

@@ -31,6 +31,8 @@ interface Props {
   /** A card to open, e.g. from a planting's "About this plant". */
   openId?: string | null;
   clearOpen?: () => void;
+  /** The screen the card was opened from (a job's About on Today): Back goes there, not to all plants. */
+  backTo?: View | null;
   /** Opens the plant check at this plant. */
   checkPlant?: (id: string) => void;
   /** Show the tools for checking plant notes: whether each is checked, and a filter for checked ones. */
@@ -40,7 +42,10 @@ interface Props {
 
 type Panel = { kind: 'card'; id: string } | { kind: 'form'; plant: Plant } | null;
 
-export function Plants({ store, garden, userPlants, openId = null, clearOpen, checkPlant, editor = false, now = new Date() }: Props) {
+/** Where Back goes, in words. */
+const BACK_NAME: Partial<Record<View, string>> = { home: 'Today', plan: 'your garden', month: 'the month’s jobs', shed: 'the Shed' };
+
+export function Plants({ store, garden, userPlants, go, openId = null, clearOpen, backTo = null, checkPlant, editor = false, now = new Date() }: Props) {
   const app = useApp();
   const phone = useIsPhone();
   const month = now.getMonth() + 1;
@@ -209,8 +214,8 @@ export function Plants({ store, garden, userPlants, openId = null, clearOpen, ch
       <div class="page plants-page">
         {panel && detail ? (
           <>
-            <button type="button" class="btn btn-quiet back-link" onClick={() => setPanel(null)}>
-              <Icon name="back" size={18} /> All plants
+            <button type="button" class="btn btn-quiet back-link" onClick={() => (setPanel(null), backTo && go(backTo))}>
+              <Icon name="back" size={18} /> {backTo ? `Back to ${BACK_NAME[backTo] ?? 'where you were'}` : 'All plants'}
             </button>
             {detail}
           </>
@@ -223,7 +228,14 @@ export function Plants({ store, garden, userPlants, openId = null, clearOpen, ch
   return (
     <div class="plants-split">
       {list}
-      <div class="plants-detail-pane">{detail}</div>
+      <div class="plants-detail-pane">
+        {backTo && detail && (
+          <button type="button" class="btn btn-quiet back-link" onClick={() => (setPanel(null), go(backTo))}>
+            <Icon name="back" size={18} /> Back to {BACK_NAME[backTo] ?? 'where you were'}
+          </button>
+        )}
+        {detail}
+      </div>
     </div>
   );
 }

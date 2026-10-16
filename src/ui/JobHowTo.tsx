@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { jobLabel, type Job, type JobKind } from '../calendar/jobs';
 import { howTo } from '../content/howto';
-import type { Plant } from '../model/types';
+import type { Plant, SpacingStyle } from '../model/types';
 import { startsAs } from '../planting/windows';
 import { useApp } from './appContext';
 import { GlossText } from './Glossary';
@@ -18,10 +18,12 @@ interface Props {
   toggle: (way?: JobKind) => void;
   /** A word about the feed shelf, for a feed job. */
   shelf?: string | null;
+  /** The garden's spacing, for how far apart. */
+  style?: SpacingStyle;
   close: () => void;
 }
 
-export function JobHowTo({ job, plantOf, done, toggle, shelf, close }: Props) {
+export function JobHowTo({ job, plantOf, done, toggle, shelf, close, style = 'close' }: Props) {
   const app = useApp();
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -34,7 +36,7 @@ export function JobHowTo({ job, plantOf, done, toggle, shelf, close }: Props) {
   const [wayKind, setWay] = useState<JobKind>(job.kind);
   const way = job.ways?.find((w) => w.kind === wayKind);
   const shown = way ? { ...job, kind: way.kind, ...(way.detail ? { detail: way.detail } : {}) } : job;
-  const how = howTo(shown, plant ? startsAs(plant, month) : 'seed', plant?.art?.form === 'bulb');
+  const how = howTo(shown, plant ? startsAs(plant, month) : 'seed', plant?.art?.form === 'bulb', plant ? { plant, month, style } : undefined);
   const first = job.plantingIds[0];
   const shut = () => ref.current?.close();
   return (
@@ -80,6 +82,11 @@ export function JobHowTo({ job, plantOf, done, toggle, shelf, close }: Props) {
             </li>
           ))}
         </ol>
+        {how.spacing && (
+          <p class="howto-spacing">
+            <strong>Spacing:</strong> {how.spacing}.
+          </p>
+        )}
         <p class="muted small howto-time">{how.time}.</p>
 
         {(shown.detail || shelf) && (

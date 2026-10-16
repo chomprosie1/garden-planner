@@ -124,20 +124,21 @@ describe('stages and what’s next', () => {
     expect(trayNext(t, tomato, g, '2027-04-20').text).toMatch(/failed/);
   });
 
-  it('tender plants harden off two weeks before the last frost and go out after it', () => {
+  it('tender plants harden off from the 50:50 last frost and go out on the play-safe date, two weeks later', () => {
     expect(isTender(tomato)).toBe(true);
     expect(isTender(leek)).toBe(false);
     let [g, id] = sow(garden(), tomato);
     const lastFrost = `2027-${frostDates(g).lastFrost}`;
-    expect(hardenFrom(tomato, g, 2027)).toBe(addDays(lastFrost, -14));
+    const safe = addDays(lastFrost, 14);
+    expect(hardenFrom(tomato, g, 2027)).toBe(lastFrost);
     g = setTrayStage(g, id!, 'germinated', '2027-03-10');
-    expect(trayNext(traysOf(g)[0]!, tomato, g, addDays(lastFrost, -20)).due).toBe(false);
-    expect(trayNext(traysOf(g)[0]!, tomato, g, addDays(lastFrost, -10)).text).toMatch(/harden/i);
-    g = setTrayStage(g, id!, 'hardening', addDays(lastFrost, -14));
+    expect(trayNext(traysOf(g)[0]!, tomato, g, addDays(lastFrost, -6)).due).toBe(false);
+    expect(trayNext(traysOf(g)[0]!, tomato, g, addDays(lastFrost, 4)).text).toMatch(/harden/i);
+    g = setTrayStage(g, id!, 'hardening', lastFrost);
     expect(traysOf(g)[0]!.stageDates).toMatchObject({ germinated: '2027-03-10' });
-    expect(trayNext(traysOf(g)[0]!, tomato, g, addDays(lastFrost, -3)).ready).toBe(false);
-    expect(trayNext(traysOf(g)[0]!, tomato, g, lastFrost).ready).toBe(true);
-    expect(readyToPlantOut(g, plantOf, lastFrost).map((r) => r.kind)).toEqual(['tray']);
+    expect(trayNext(traysOf(g)[0]!, tomato, g, addDays(safe, -3)).ready).toBe(false);
+    expect(trayNext(traysOf(g)[0]!, tomato, g, safe).ready).toBe(true);
+    expect(readyToPlantOut(g, plantOf, safe).map((r) => r.kind)).toEqual(['tray']);
   });
 
   it('hardy plants are ready after a week of hardening, frost or not', () => {

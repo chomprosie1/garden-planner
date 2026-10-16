@@ -74,12 +74,21 @@ export interface ShopOptions {
   feeding?: boolean;
 }
 
+/**
+ * For a plain plant going in in late summer or autumn, the kind to ask for: spring onion sets planted in autumn bolt, and
+ * broad beans for the winter need a hardy kind (RHS: 'Aquadulce Claudia' is a good one for autumn sowing).
+ */
+const AUTUMN_KIND: Record<string, string> = { onion: 'an overwintering kind', 'broad-bean': 'an autumn kind such as ‘Aquadulce Claudia’' };
+const autumnKind = (plant: Plant, month: number) => (!plant.variety && month >= 8 && month <= 11 ? AUTUMN_KIND[plant.id] : undefined);
+
 /** What to call it, and how much, for what goes in: "Onion sets, about 48", "Garlic, about 40 cloves (4 or 5 bulbs)". */
-function bulbItem(plant: Plant, from: 'sets' | 'cloves' | 'tubers' | 'bulbs', n: number): { name: string; amount?: string } {
+function bulbItem(plant: Plant, from: 'sets' | 'cloves' | 'tubers' | 'bulbs', n: number, month: number): { name: string; amount?: string } {
   const potato = plant.id === 'potato' || plant.varietyOf === 'potato';
   switch (from) {
-    case 'sets':
-      return { name: named(plant, 'sets'), ...(n ? { amount: `about ${n}` } : {}) };
+    case 'sets': {
+      const kind = autumnKind(plant, month);
+      return { name: `${named(plant, 'sets')}${kind ? `, ${kind}` : ''}`, ...(n ? { amount: `about ${n}` } : {}) };
+    }
     case 'cloves': {
       // A bulb of garlic splits into about ten cloves.
       const bulbs = Math.max(1, Math.round(n / 10));
@@ -135,7 +144,7 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
       continue;
     }
     if (from !== 'seed') {
-      items.push({ key: `bulb:${plant.id}`, kind: 'bulb', ...bulbItem(plant, from, n), plantId: plant.id, note: forWhat });
+      items.push({ key: `bulb:${plant.id}`, kind: 'bulb', ...bulbItem(plant, from, n, Number(sowOn.slice(5, 7))), plantId: plant.id, note: forWhat });
       continue;
     }
     if (sowingNow(plant, Number(sowOn.slice(5, 7)), list[0])?.method !== 'direct') sowUnderCover = true;
@@ -145,7 +154,8 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
     if (good.length && have >= Math.max(1, n)) continue;
     const old = packetsFor(g, plant, plantOf).length > good.length && !good.length;
     const note = old ? `The packet in your tin is past its sow-by date by then: fresh seed comes up better. ${forWhat}` : good.length ? `Your tin has about ${plural(have, 'seed', 'seeds')}. ${forWhat}` : forWhat;
-    items.push({ key: `seed:${plant.id}`, kind: 'seed', name: named(plant, 'seed'), plantId: plant.id, ...(n ? { amount: `for about ${plural(n, 'plant', 'plants')}` } : {}), note });
+    const kind = autumnKind(plant, Number(sowOn.slice(5, 7)));
+    items.push({ key: `seed:${plant.id}`, kind: 'seed', name: `${named(plant, 'seed')}${kind ? `, ${kind}` : ''}`, plantId: plant.id, ...(n ? { amount: `for about ${plural(n, 'plant', 'plants')}` } : {}), note });
   }
 
   if (sowUnderCover) items.push({ key: 'compost:seed', kind: 'compost', name: 'Seed compost', amount: 'a bag', note: 'For sowing in trays and modules: finer, and lower in feed, than multi-purpose' });
