@@ -17,6 +17,21 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-17-first-garden',
+    date: '2026-10-17',
+    title: 'A first garden, and the plan on a phone',
+    items: [
+      'A kit always gets its beds. A narrow garden’s beds run down it, and if there aren’t enough, more are made inside your garden.',
+      'Setting up a garden, the border along the back is up to you, and each kit is pictured at the size you gave.',
+      'A garden that’s all lawn starts with Make your first bed: cardboard and compost over the grass, no digging, with what to buy on the shopping list.',
+      'On a phone, drag a picked bed from its size labels to move it, or tap a label to type a length.',
+      'New ground stays unlocked until you close the app, so you can come back to it.',
+      'A bed tapped onto the plan lands in a clear spot inside your garden, not on top of another.',
+      'A box drawn by hand becomes a neat rectangle. With Advanced tools, a bed’s buttons fit on a phone.',
+    ],
+    tryIt: { label: 'See your garden', view: 'plan' },
+  },
+  {
     id: '2026-10-17-fruit-next-year',
     date: '2026-10-17',
     title: 'Fruit, and next year round the real beds',

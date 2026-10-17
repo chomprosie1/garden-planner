@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { microclimateOf } from '../climate/microclimate';
 import { isNewSeason, nextStage, stageAction } from '../lifecycle/stages';
-import { deleteFeatures, duplicateFeature, featureLabel, geometryOf, freshTarget, isGround, isSetGround, placeLabel, MATERIAL_LABEL, materialPatch, rectInfo, resizeRectAny, setSmooth, updateFeature, type Target } from '../model/features';
+import { deleteFeatures, duplicateFeature, featureLabel, geometryOf, freshTarget, isGround, isSetGround, keepOpen, placeLabel, MATERIAL_LABEL, materialPatch, rectInfo, resizeRectAny, setSmooth, updateFeature, type Target } from '../model/features';
 import { todayIso } from '../model/ids';
 import { asTree, treeSizeText, treeType } from '../model/trees';
 import { updateGarden, type Store } from '../model/store';
@@ -15,6 +15,7 @@ import { setStage } from '../lifecycle/stages';
 import { holdsPoint, isSupport, wherePhrase } from '../planting/supports';
 import { useApp } from './appContext';
 import { useCopied } from './clipboard';
+import { useIsPhone } from './hooks';
 import { Icon } from './icons';
 import { deletedMessage } from './PlanCanvas';
 import { pillHasExtras, type PlanMode } from './planMode';
@@ -162,7 +163,7 @@ export function ActionPill({ pillRef, target, garden, store, plantOf, locked, mo
               } else app.notify(`No room for ${name.toLowerCase()} in ${featureLabel(f)}.`);
             }
           : null;
-      content = <FeatureActions f={f} ground={isGround(f) ? (isSetGround(f, target) ? 'set' : 'open') : null} garden={garden} commit={commit} locked={locked} sizing={sizing} setSizing={setSizing} plantHere={plantHere} paste={paste} select={select} unlock={unlock} extras={pillHasExtras(mode)} />;
+      content = <FeatureActions key={f.id} f={f} ground={isGround(f) ? (isSetGround(f, target) ? 'set' : 'open') : null} garden={garden} commit={commit} locked={locked} sizing={sizing} setSizing={setSizing} plantHere={plantHere} paste={paste} select={select} unlock={unlock} extras={pillHasExtras(mode)} />;
     }
   } else if (target?.type === 'boundary') {
     content = (
@@ -206,6 +207,8 @@ function SizeButton({ size, describe, set }: { size: PlantSize | null; describe:
 }
 
 function FeatureActions({ f, ground, garden, commit, locked, sizing, setSizing, plantHere, paste, select, unlock, extras }: { f: Feature; ground: 'set' | 'open' | null; garden: Garden; commit: (fn: (g: Garden) => Garden) => void; locked: boolean; sizing: boolean; setSizing: (b: boolean) => void; plantHere: () => void; paste: (() => void) | null; select: (t: Target | null) => void; unlock: () => void; extras: boolean }) {
+  const phone = useIsPhone();
+  const [more, setMore] = useState(false);
   const app = useApp();
   const rect = !f.smooth && geometryOf(f) === 'area' ? rectInfo(f.footprint) : null;
   const circle = f.circle;
@@ -293,7 +296,7 @@ function FeatureActions({ f, ground, garden, commit, locked, sizing, setSizing, 
       ) : ground === 'set' ? (
         <>
           {madeOf}
-          <button type="button" class="pill-btn" aria-label={`Unlock ${placeLabel(f)} to move or reshape it`} title="Set in place. Unlock to move or reshape it" onClick={() => select({ type: 'feature', id: f.id, open: true })}>
+          <button type="button" class="pill-btn" aria-label={`Unlock ${placeLabel(f)} to move or reshape it`} title="Set in place. Unlock to move or reshape it" onClick={() => (keepOpen(f.id), select({ type: 'feature', id: f.id, open: true }))}>
             <Icon name="lock" size={16} /> Unlock
           </button>
         </>
@@ -307,13 +310,19 @@ function FeatureActions({ f, ground, garden, commit, locked, sizing, setSizing, 
               {sizeText}
             </button>
           )}
-          {extras && !circle && (
+          {/* On a phone the curve and edging wait behind ···, so the pill fits on one line. */}
+          {extras && phone && !more && (!circle || f.kind === 'bed') && (
+            <button type="button" class="pill-icon" aria-label="More for this" title="More" onClick={() => setMore(true)}>
+              <Icon name="more" size={18} />
+            </button>
+          )}
+          {extras && (!phone || more) && !circle && (
             <button type="button" class="pill-icon" aria-pressed={!!f.smooth} aria-label="Curved edges" title="Curved edges" onClick={() => commit((g) => setSmooth(g, f.id, !f.smooth))}>
               <Icon name="curve" size={18} />
             </button>
           )}
           {madeOf}
-          {extras && f.kind === 'bed' && (
+          {extras && (!phone || more) && f.kind === 'bed' && (
             <label class="pill-select">
               <span class="visually-hidden">Edging</span>
               <select value={f.edging ?? ''} onChange={(e) => commit((g) => updateFeature(g, f.id, { edging: ((e.currentTarget as HTMLSelectElement).value || undefined) as Feature['edging'] }))}>

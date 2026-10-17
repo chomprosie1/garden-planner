@@ -71,7 +71,7 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
         updateGarden((g) => {
           let next = g;
           // The space, laid out fresh from the garden as it was, then the kit in its beds.
-          if (empty && choice) next = makeSpace({ ...next, boundary: before.boundary, features: before.features, plantings: before.plantings }, choice.space, choice.w, choice.d, choice.sideReturn ?? null);
+          if (empty && choice) next = makeSpace({ ...next, boundary: before.boundary, features: before.features, plantings: before.plantings }, choice.space, choice.w, choice.d, choice.sideReturn ?? null, { border: choice.border !== false });
           // The kit chosen for you only if you saw it: Skip before the last step plants none.
           const planted = kitChosen !== undefined ? kitChosen : current === 'grow' ? kit : null;
           if (planted && plants) next = applyKit(next, planted, (id) => byId.get(id) ?? null, todayIso(), bigger);
@@ -196,7 +196,7 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
               <>
                 <h2 class="onboarding-sub">Start from a kit</h2>
                 <p class="muted small">Planted for you, ready to sow when the time comes. You can change anything.</p>
-                <KitPicker kits={kits} value={kit} onChange={setKit} plantOf={plantOf} bigger={bigger} setBigger={setBigger} />
+                <KitPicker kits={kits} value={kit} onChange={setKit} plantOf={plantOf} bigger={bigger} setBigger={setBigger} {...(choice ? { choice } : {})} />
               </>
             )}
             <h2 class="onboarding-sub">{kits.length ? 'And anything else?' : 'Pick some favourites'}</h2>

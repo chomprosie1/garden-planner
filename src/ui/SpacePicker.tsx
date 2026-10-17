@@ -17,7 +17,12 @@ export interface SpaceChoice {
   d: number;
   /** A garden or patio shaped as an L, with a side return down the left. */
   sideReturn?: SideReturn | null;
+  /** A garden without the border along the back. Absent: with one. */
+  border?: boolean;
 }
+
+/** The garden a choice lays out, on its own: for pictures of it, and of a kit in it. */
+export const spaceOf = (c: SpaceChoice) => makeSpace(newGarden(), c.space, c.w, c.d, c.sideReturn ?? null, { border: c.border !== false });
 
 export const defaultChoice = (space: Space): SpaceChoice => ({ space, w: spaceInfo(space).size[0], d: spaceInfo(space).size[1] });
 
@@ -54,7 +59,7 @@ export function MetresField({ label, mm, min, onChange }: { label: string; mm: n
 /** sized: ask for the size too. A garden kept as a list doesn't need it, so it takes the usual size for the space. */
 export function SpacePicker({ value, onChange, sized = true }: { value: SpaceChoice | null; onChange: (c: SpaceChoice) => void; sized?: boolean }) {
   const previews = useMemo(() => Object.fromEntries(SPACES.map((s) => [s.id, makeSpace(newGarden(), s.id, s.size[0], s.size[1])])), []);
-  const chosen = useMemo(() => (value ? makeSpace(newGarden(), value.space, value.w, value.d, value.sideReturn ?? null) : null), [value?.space, value?.w, value?.d, value?.sideReturn?.width, value?.sideReturn?.length, value?.sideReturn?.onRight]);
+  const chosen = useMemo(() => (value ? spaceOf(value) : null), [value?.space, value?.w, value?.d, value?.sideReturn?.width, value?.sideReturn?.length, value?.sideReturn?.onRight, value?.border]);
   const info = value ? spaceInfo(value.space) : null;
   const size = useRef<HTMLDivElement>(null);
   // On a phone the size is below the choices: bring it into view once a space is picked.
@@ -125,6 +130,12 @@ export function SpacePicker({ value, onChange, sized = true }: { value: SpaceCho
                 )}
               </>
             )}
+            {value.space === 'garden' && (
+              <label class="switch-row">
+                <input type="checkbox" checked={value.border !== false} onChange={(e) => onChange({ ...value, border: (e.currentTarget as HTMLInputElement).checked })} />
+                <span>A border along the back, for flowers</span>
+              </label>
+            )}
             <p class="muted small">
               {+((chosen.boundary.length >= 3 ? Math.abs(polygonArea(chosen.boundary)) : value.w * value.d) / 1e6).toFixed(1)} m². Measure with a tape if you can; you can change it on the plan later.
             </p>
@@ -163,7 +174,7 @@ export function SpaceDialog({ make, close, plantOf }: { make: (c: SpaceChoice, k
         {kits.length > 0 && plantOf && (
           <>
             <h3>Plant it up?</h3>
-            <KitPicker kits={kits} value={kit} onChange={setKit} plantOf={plantOf} bigger={bigger} setBigger={setBigger} />
+            <KitPicker kits={kits} value={kit} onChange={setKit} plantOf={plantOf} bigger={bigger} setBigger={setBigger} {...(choice ? { choice } : {})} />
           </>
         )}
         <div class="button-row">

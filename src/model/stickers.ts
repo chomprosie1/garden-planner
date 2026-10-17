@@ -4,7 +4,8 @@
 
 import { makeFeature, rectPoints, withFootprint } from './features';
 import { makeTree, treeSize, treeType } from './trees';
-import { PLANT_SIZES, type Feature, type FeatureKind, type Material, type PlantSize, type Point, type Support } from './types';
+import { bounds, pointInPolygon } from '../geometry/polygon';
+import { PLANT_SIZES, type Feature, type FeatureKind, type Garden, type Material, type PlantSize, type Point, type Support } from './types';
 
 export type StickerGroup = 'beds' | 'ground' | 'build';
 
@@ -94,6 +95,37 @@ export function stickerById(id: string): Sticker | undefined {
     return { id, group: 'build', label: type.name, size: `Ø ${+(across / 1000).toFixed(1)} m`, kind: 'tree', shape: { circle: across / 2 }, tree: { type: type.id, size: sz } };
   }
   return STICKERS.find((s) => s.id === id);
+}
+
+/** Things a new bed, pot or shed shouldn't land on: other beds and pots, buildings, paths, ponds and compost bins. */
+const SOLID: FeatureKind[] = ['bed', 'path', 'building', 'greenhouse', 'cold-frame', 'compost', 'water', 'pot', 'planter', 'other'];
+
+/**
+ * Where a sticker tapped onto the plan goes: the nearest spot to `at` (the middle of the view) on a grid of `step`,
+ * inside the garden's outline where there is one, and clear of the beds, pots, buildings and paths already there. Ground,
+ * trees, fences and next door's things can go anywhere, as they're meant to sit under or among the rest. Null if
+ * nowhere nearby is clear.
+ */
+export function clearSpot(g: Garden, f: Feature, at: Point, step: number): Point | null {
+  if (!SOLID.includes(f.kind) || f.nextDoor) return at;
+  const b = bounds(f.footprint);
+  if (!b) return at;
+  const others = g.features.filter((o) => SOLID.includes(o.kind) && !o.nextDoor).map((o) => bounds(o.footprint)).filter((o): o is NonNullable<typeof o> => !!o);
+  const outline = g.boundary.length >= 3 ? g.boundary : null;
+  const gap = 100;
+  const fits = (dx: number, dy: number) => {
+    const box = { minX: b.minX + dx, minY: b.minY + dy, maxX: b.maxX + dx, maxY: b.maxY + dy };
+    if (outline && ![[box.minX, box.minY], [box.maxX, box.minY], [box.maxX, box.maxY], [box.minX, box.maxY]].every((p) => pointInPolygon(p as Point, outline))) return false;
+    return others.every((o) => box.minX >= o.maxX + gap || o.minX >= box.maxX + gap || box.minY >= o.maxY + gap || o.minY >= box.maxY + gap);
+  };
+  const s = Math.max(100, step);
+  for (let r = 0; r <= 60; r++) {
+    const ring: Point[] = [];
+    for (let i = -r; i <= r; i++) for (let j = -r; j <= r; j++) if (Math.max(Math.abs(i), Math.abs(j)) === r) ring.push([i * s, j * s]);
+    ring.sort((p, q) => Math.hypot(p[0], p[1]) - Math.hypot(q[0], q[1]));
+    for (const [dx, dy] of ring) if (fits(dx, dy)) return [at[0] + dx, at[1] + dy];
+  }
+  return null;
 }
 
 /** The feature a sticker makes, centred on a point. */

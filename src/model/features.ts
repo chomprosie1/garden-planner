@@ -211,13 +211,27 @@ export type Target = { type: 'boundary' } | { type: 'feature'; id: string; open?
 export const isGround = (f: Feature) => f.kind === 'surface';
 
 /**
- * Ground is set unless it's selected and unlocked: it stays put, and taps on the beds and plants on it reach them. Unlocked,
- * it takes the taps inside its outline, as if on top (it's still drawn underneath), to move and reshape.
+ * Ground made or unlocked on this visit: it stays unlocked until the app is closed, so tapping away and back doesn't lock
+ * it again before it's where you want it. Screen state, never saved.
  */
-export const isSetGround = (f: Feature, t: Target | null) => isGround(f) && !(t?.type === 'feature' && t.id === f.id && t.open);
+const openGround = new Set<string>();
 
-/** How to select a feature that's just been made: new ground is unlocked, so it can be sized straight away. */
-export const freshTarget = (f: Feature): Target => (isGround(f) ? { type: 'feature', id: f.id, open: true } : { type: 'feature', id: f.id });
+/** Keeps a piece of ground unlocked for the rest of this visit. */
+export const keepOpen = (id: string): void => void openGround.add(id);
+
+/**
+ * Ground is set unless it's unlocked (selected that way, or made or unlocked this visit): it stays put, and taps on the
+ * beds and plants on it reach them. Unlocked and selected, it takes the taps inside its outline, as if on top (it's
+ * still drawn underneath), to move and reshape.
+ */
+export const isSetGround = (f: Feature, t: Target | null) => isGround(f) && !openGround.has(f.id) && !(t?.type === 'feature' && t.id === f.id && t.open);
+
+/** How to select a feature that's just been made: new ground is unlocked, and stays so this visit, so it can be sized straight away. */
+export function freshTarget(f: Feature): Target {
+  if (!isGround(f)) return { type: 'feature', id: f.id };
+  keepOpen(f.id);
+  return { type: 'feature', id: f.id, open: true };
+}
 
 /** The editable points of a target: the boundary, an area's outline (or a curve's corners), or a line's centre line. */
 export function pointsOf(g: Garden, t: Target): Point[] | null {

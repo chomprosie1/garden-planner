@@ -16,6 +16,7 @@ import {
   featureLabel,
   geometryOf,
   freshTarget,
+  keepOpen,
   isSetGround,
   KINDS,
   kindsWithGeometry,
@@ -495,7 +496,7 @@ function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf
         <>
           <p class="muted small">This ground is set, so the beds and plants on it are easy to tap. Unlock it to move, reshape or delete it.</p>
           <div class="button-row">
-            <button type="button" class="btn" onClick={() => setSelected({ type: 'feature', id: f.id, open: true })}>
+            <button type="button" class="btn" onClick={() => (keepOpen(f.id), setSelected({ type: 'feature', id: f.id, open: true }))}>
               Unlock
             </button>
           </div>

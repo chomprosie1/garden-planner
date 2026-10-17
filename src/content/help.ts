@@ -119,7 +119,8 @@ export const HELP: HelpTopic[] = [
     ],
     notes: [
       'If beds won’t move, the layout may be locked: use the padlock at the top (Advanced) to unlock it. Plants can always be moved.',
-      'Ground (a lawn, patio, gravel and the like) is set once it’s placed, so the beds and plants on it are easy to pick. To move or reshape it, pick it where nothing’s on top and choose Unlock, then Set this ground when you’re done.',
+      'Ground (a lawn, patio, gravel and the like) is set once it’s placed, so the beds and plants on it are easy to pick. To move or reshape it, pick it where nothing’s on top and choose Unlock, then Set this ground when you’re done. New ground, and ground you’ve unlocked, stays unlocked until you close the app.',
+      'On a small bed the lengths cover most of it: drag from one to move the bed, or choose it without moving to type the length.',
       'For an exact size, pick it and choose a length shown along its side, then type the length, such as 2.4 m. Measure, in the ⋯ menu, gives the distance between any two points.',
     ],
     related: ['drawing-the-plan', 'adding-plants'],
@@ -300,7 +301,7 @@ export const HELP: HelpTopic[] = [
     ],
     notes: ['Cardboard rots away and feeds the soil. Plastic weed membrane breaks into tiny fibres in the soil as it ages, so it isn’t offered here.'],
     related: ['cardboard', 'list'],
-    words: 'cardboard weeds list no dig smother clear lawn new bed mulch',
+    words: 'cardboard weeds list no dig smother clear lawn new bed mulch dig up lawn turf grass first bed make a bed',
   },
   {
     id: 'cardboard',
@@ -319,7 +320,7 @@ export const HELP: HelpTopic[] = [
     ],
     notes: ['Cardboard rots away and feeds the soil. Plastic weed membrane isn’t organic, and as it ages it breaks into tiny plastic fibres in the soil, so it isn’t offered here.'],
     related: ['drawing-the-plan', 'adding-plants'],
-    words: 'cardboard weeds weed suppressant membrane fabric mulch no dig smother clear lawn new bed sheet',
+    words: 'cardboard weeds weed suppressant membrane fabric mulch no dig smother clear lawn new bed sheet dig up lawn turf grass first bed make a bed',
   },
   {
     id: 'climbers',

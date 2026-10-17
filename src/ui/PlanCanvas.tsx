@@ -11,6 +11,7 @@ import { parseLength, snapPoint, snapStepFor, type SnapKind } from '../canvas/sn
 import { fit, pan, toScreen, toWorld, zoomAt, type Viewport } from '../canvas/viewport';
 import { bounds, distance, type Bounds } from '../geometry/polygon';
 import { pointAtLength } from '../geometry/snap';
+import { rectangleOf } from '../geometry/hull';
 import { simplify, simplifyClosed } from '../geometry/simplify';
 import { plantOutTray, trayFrom } from '../lifecycle/shed';
 import { todayIso } from '../model/ids';
@@ -45,7 +46,7 @@ import {
   type Target,
 } from '../model/features';
 import { updateGarden, type Store } from '../model/store';
-import { stickerById, stickerFeature, type Sticker } from '../model/stickers';
+import { clearSpot, stickerById, stickerFeature, type Sticker } from '../model/stickers';
 import type { Feature, FeatureKind, Garden, Plant, Planting, Point, SketchColour, SketchKind } from '../model/types';
 import { defaultFill, fillPlanting } from '../planting/fill';
 import { isPot, spotInPot } from '../planting/pots';
@@ -640,7 +641,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
     if (!p.crosshair && !p.phone) return p.setSelected(t);
     p.setSelected(null);
     const ground = t.type === 'feature' && t.open;
-    A.current.notify(`${text} ${ground ? 'Tap it, then Unlock, to change its size.' : 'Tap it to name it or change its size.'}`, { undo: true });
+    A.current.notify(`${text} ${ground ? 'Tap it to move it or change its size.' : 'Tap it to name it or change its size.'}`, { undo: true });
   };
 
   const finishRect = (a: Point, b: Point) => {
@@ -666,7 +667,9 @@ export function PlanCanvas(props: PlanCanvasProps) {
       const corners = simplifyClosed(pts, tol);
       const b = bounds(pts);
       if (corners.length < 3 || !b || Math.min(b.maxX - b.minX, b.maxY - b.minY) < 100) return say('Draw all the way round the shape, back to where you started.');
-      const f = makeFeature(p.tool as FeatureKind, { area: corners }, { smooth: true });
+      // A box drawn by hand becomes a rectangle, with straight sides and square corners; anything else, a smooth shape.
+      const box = rectangleOf(pts);
+      const f = box ? makeFeature(p.tool as FeatureKind, { area: box }) : makeFeature(p.tool as FeatureKind, { area: corners }, { smooth: true });
       commit((g) => addFeature(g, f));
       drawn(freshTarget(f), `${KINDS[f.kind].label} added.`);
     } else if (geometry === 'line') {
@@ -1008,11 +1011,16 @@ export function PlanCanvas(props: PlanCanvasProps) {
         return;
       }
     }
-    // A press on a length shown along what's selected is for typing it, not for picking what's under it.
+    // A press on a length shown along what's selected: let go where it is to type the length. On a small bed the
+    // lengths cover most of it, so a drag from one moves the bed, as a drag anywhere else on it does.
     const tag = p.tool === 'select' && p.selected ? lengthTagAt(s) : null;
     if (tag && p.selected) {
       pressedTag.current = { target: p.selected, ...tag };
-      drag.current = { kind: 'pan', last: s, moved: false };
+      const sel = p.selected;
+      const f = sel.type === 'feature' ? g.features.find((x) => x.id === sel.id) : undefined;
+      // The lengths sit across its edges, half outside it: a drag from any of them moves it.
+      const movable = f && layoutEdits && !isSetGround(f, sel);
+      drag.current = movable ? { kind: 'move', id: f.id, base: g, start: world, startScreen: s, moved: false } : { kind: 'pan', last: s, moved: false };
       return;
     }
     // What's selected keeps its taps, except set ground; then plants, then beds and the rest (canvas/hit.ts).
@@ -1298,7 +1306,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
     // A press on a length shown on what's selected, let go without moving: type the length.
     const tag = pressedTag.current;
     pressedTag.current = null;
-    if (tag && d && d.kind === 'pan' && !d.moved && !cancelled) {
+    if (tag && d && (d.kind === 'pan' || d.kind === 'move') && !d.moved && !cancelled) {
       drag.current = null;
       setTyping({ target: tag.target, index: tag.index, at: tag.at, text: `${+(tag.mm / 1000).toFixed(2)} m` });
       return;
@@ -1666,7 +1674,10 @@ export function PlanCanvas(props: PlanCanvasProps) {
         if (!st || !v) return;
         const step = snapStepFor(v.scale);
         const [x, y] = toWorld(v, [size.current.w / 2, size.current.h / 2]);
-        dropStickerAt(st, [Math.round(x / step) * step, Math.round(y / step) * step], [Math.round(x), Math.round(y)]);
+        const mid: Point = [Math.round(x / step) * step, Math.round(y / step) * step];
+        // Tapped rather than dragged: in the middle of the view if it's clear, otherwise the nearest clear spot inside the garden.
+        const at = clearSpot(garden(), stickerFeature(st, mid), mid, step) ?? mid;
+        dropStickerAt(st, at, at[0] === mid[0] && at[1] === mid[1] ? [Math.round(x), Math.round(y)] : at);
       },
       show(points) {
         const b = bounds(points);

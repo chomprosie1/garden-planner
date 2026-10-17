@@ -8,11 +8,13 @@ import { makeSpace, spaceInfo, type Space } from '../model/spaces';
 import type { Plant } from '../model/types';
 import { applyKit, type Kit } from '../planting/kits';
 import { MiniPlan } from './MiniPlan';
+import { spaceOf, type SpaceChoice } from './SpacePicker';
 
-/** A kit planted in its space at the usual size, for its picture. */
-function preview(kit: Kit, plantOf: (id: string) => Plant, full: boolean): ReturnType<typeof newGarden> {
+/** A kit planted in the space you chose, at your size, for its picture; at the usual size if you haven't said. */
+function preview(kit: Kit, plantOf: (id: string) => Plant, full: boolean, choice?: SpaceChoice): ReturnType<typeof newGarden> {
   const [w, d] = spaceInfo(kit.space).size;
-  return applyKit(makeSpace(newGarden(), kit.space, w, d), kit, plantOf, '2027-03-01', full);
+  const space = choice?.space === kit.space ? spaceOf(choice) : makeSpace(newGarden(), kit.space, w, d);
+  return applyKit(space, kit, plantOf, '2027-03-01', full);
 }
 
 interface Props {
@@ -23,10 +25,12 @@ interface Props {
   /** Fill the beds, rather than the first-garden size. */
   bigger: boolean;
   setBigger: (on: boolean) => void;
+  /** The space as you've set it out, so each kit is pictured at your size. */
+  choice?: SpaceChoice;
 }
 
-export function KitPicker({ kits, value, onChange, plantOf, bigger, setBigger }: Props) {
-  const pictures = useMemo(() => new Map(kits.map((k) => [k.id, preview(k, plantOf, bigger)])), [kits, plantOf, bigger]);
+export function KitPicker({ kits, value, onChange, plantOf, bigger, setBigger, choice }: Props) {
+  const pictures = useMemo(() => new Map(kits.map((k) => [k.id, preview(k, plantOf, bigger, choice)])), [kits, plantOf, bigger, choice?.space, choice?.w, choice?.d, choice?.sideReturn?.width, choice?.sideReturn?.length, choice?.sideReturn?.onRight, choice?.border]);
   const space: Space | undefined = kits[0]?.space;
   return (
     <>

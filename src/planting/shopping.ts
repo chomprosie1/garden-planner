@@ -12,6 +12,7 @@ import { placeLabel } from '../model/features';
 import type { Garden, Plant, Planting } from '../model/types';
 import { isActive, plantCount } from './place';
 import { isPot, potSize } from './pots';
+import { firstBedCompost, needsFirstBed } from './firstBed';
 import { packetsFor, seedState } from './seeds';
 import { sowingNow, startsAs } from './windows';
 
@@ -204,6 +205,13 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
           ? { key: 'compost:beds', kind: 'compost', name: 'Well-rotted manure or bagged compost', amount: 'a bag or two a bed', note: `To dig in or spread on top, for ${listOf(names)}` }
           : { key: `feed:${id}`, kind: 'feed', name: feedById(id)!.name, note: `For ${listOf(names)}` },
       );
+  }
+
+  // A garden that's all lawn: what the first bed takes, made without digging.
+  if (needsFirstBed(g)) {
+    const { litres, bags } = firstBedCompost();
+    items.push({ key: 'compost:first-bed', kind: 'compost', name: 'Compost or well-rotted manure', amount: `${bags[0]} to ${bags[1]} bags of 40 litres (${litres[0]} to ${litres[1]} litres)`, note: 'For your first bed: 10 to 15 cm over cardboard on the grass' });
+    items.push({ key: 'compost:first-bed-card', kind: 'compost', name: 'Plain brown cardboard', amount: 'enough to cover the bed twice over', note: 'Boxes are fine: no tape, staples or shiny print' });
   }
 
   const order = (k: ShopKind) => SHOP_KINDS.indexOf(k);

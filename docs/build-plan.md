@@ -2096,7 +2096,7 @@ Decided:
 | Thu 22 Oct | 45. Counts you can trust | Fill respects rows. Bulbs in pots at real density. Moves ask before cutting. The count can be edited. Plan and list agree on rows. Pots under cover counted as modules. | Built 17 Oct 2026, with 46 |
 | Fri 23 Oct | 46. Fruit, and next year round the real beds | A fruit cage. Beds that rotate and beds that don't (schema 22). Next year's draft only rotates the veg beds, counts this autumn's crops as next year's, and suggests a follow-on crop. | Built 17 Oct 2026 (schema 22) |
 | Sat 24 – Sun 25 Oct | Testing weekend | | |
-| Mon 26 Oct | 47. A first garden, and the plan on a phone | Kits always get their beds. "Make your first bed" for a lawn. Moving, stickers, hand-drawn rectangles and the Advanced pill on a phone. | |
+| Mon 26 Oct | 47. A first garden, and the plan on a phone | Kits always get their beds. "Make your first bed" for a lawn. Moving, stickers, hand-drawn rectangles and the Advanced pill on a phone. | Built 17 Oct 2026 |
 | Tue 27 Oct | The review again | The same three testers and tasks. Targets: keep-using and trust of 7 or more from all three; Jordan's unexplained words under 5 and Googles under 3; no contradiction on a planting already in the ground. | |
 
 Parked (in the wishlist): a share picture worth posting; harvest weights and a year's picking page; feet and inches; a frost in the journal setting the first-frost date; a variety on a planting and in search; streaks or a small reward on Done; "buy now / buy later" and pictures of tools; lasagne bulb pots.
@@ -2461,6 +2461,53 @@ Not changed:
 - **The fruit cage on the plan and in 3D** is drawn as a bed, with no netting.
 - **A taken bed still asks "What grew here in 2026?"**, as before.
 - **The three new optional fields** (`rotates`, `fruitCage`, and `count` on a block) need no conversion for older files beyond the names above.
+
+### Release 47 — A first garden, and the plan on a phone (as built)
+Built 17 Oct 2026, the same day as 45 and 46. No schema change. Version 0.47.0.
+
+- **Kits always get their beds:**
+  - **A narrow garden** (under 4.4 m wide) gets its raised beds turned to run down it, 1.2 m across and 2.4 m long, two of them from 4 m wide (`contents` in `src/model/spaces.ts`). Jordan's 4 × 7 m garden had none before. Wider gardens are laid out as they were.
+  - **More beds than the space has:** `applyKit` adds the ones a kit needs in the first clear spot inside the garden, nearest its middle, at the biggest size that fits: 2.4 × 1.2 m down to 1 × 0.6 m. On a balcony or patio they're pots. So a kit's crops never end up only on Want to grow.
+  - **A garden kit's flowers** go in the bed named Border (`border` on a kit bed). The rest take the other beds in order.
+  - **Bulbs in a kit's pot** are a potful, at the pot spacing from release 45.
+- **The border is optional:** setting up a garden has "A border along the back, for flowers" (on by default, `SpaceChoice.border` and `SpaceOptions`). Without it, a kit's border flowers wait on Want to grow, and its veg still gets its beds. The Border made by the preset is out of the rotation (`rotates: false`).
+- **Kits pictured at your size:** the kit pictures use the space as you've set it out (`spaceOf` in `SpacePicker.tsx`), not the usual size.
+- **Make your first bed** (`src/planting/firstBed.ts`), for a garden that's lawn with no bed, pot, planter, greenhouse, soil or cardboard patch, and nothing planted:
+  - **A job** under "Make your first bed": "A bed on the lawn, with cardboard and compost, no digging". It goes once there's somewhere to grow, or once it's ticked in an earlier month.
+  - **Its how-to**, from the RHS's no-dig method on grass (rhs.org.uk, "No-Dig Gardening", checked 17 Oct 2026): plain cardboard two layers thick, overlapping, tape and staples off, wetted; then 10 to 15 cm of compost or well-rotted manure, planted into straight away.
+  - **The shopping list:** "Compost or well-rotted manure, 8 to 11 bags of 40 litres (290 to 430 litres)" for a 2.4 × 1.2 m bed, and "Plain brown cardboard".
+  - **Search:** "dig up lawn", "turf" and "first bed" find the cardboard Help topics.
+- **The plan on a phone** (`src/ui/PlanCanvas.tsx`):
+  - **Moving by its labels:** dragging from a size label of the selected bed moves it, as a drag anywhere else on it does. On a small bed the labels cover most of it. A press let go without moving still opens the length for typing.
+  - **New ground stays unlocked** for the rest of the visit, and so does ground you've unlocked (`keepOpen` in `src/model/features.ts`, kept in memory, never saved). Tapping away and back no longer locks it again. The message on adding it says "Tap it to move it or change its size."
+  - **A tapped sticker lands somewhere clear:** a bed, pot, shed or path tapped onto the plan goes in the middle of the view if it's clear, otherwise at the nearest clear spot inside the garden (`clearSpot` in `src/model/stickers.ts`). Ground, trees and fences go where they're put. Dragging a sticker on is unchanged.
+  - **A box drawn by hand becomes a rectangle** (`rectangleOf` in `src/geometry/hull.ts`): when its outline fills 85% or more of the smallest rectangle round it, it's that rectangle. It's squared to the plan when within 8°, and keeps its slant otherwise. A circle (79%) or a blob stays a smooth shape.
+  - **The Advanced pill fits 390 px:** on a phone, the curved-edges switch and the edging wait behind a ··· in the pill, and the plan stage is `overflow: clip`, so it can't be scrolled sideways.
+  - **Tip 2** explains the lock where it is: with Simple tools, "Ground stays put" and how to unlock it (Simple has no padlock); with Advanced, the padlock at the top.
+- **Help:** moving a small bed by its lengths, and ground staying unlocked.
+- **Checked at 390 px:**
+  - setting up a 4 × 7 m garden, with the border switch and the kit pictures;
+  - the plan with its turned beds and Jordan's kit planted;
+  - a Small bed tapped on, landing clear;
+  - dragging it by a label, and a still tap opening the length;
+  - the Advanced pill on one line, with no sideways scroll.
+  - No page errors.
+
+Tests: `tests/first-garden.test.ts`:
+- the wide and the narrow garden;
+- Jordan's kit in its beds;
+- the garden without a border;
+- beds added for a kit in a small garden;
+- a kit's pot of bulbs;
+- the first-bed job, the shopping lines, its going, and search;
+- the tapped sticker's spot;
+- rectangles drawn by hand;
+- ground staying unlocked.
+
+Not changed:
+- **Drawing by hand on a real phone** wasn't checked in the browser (the test rig draws straight lines); `rectangleOf` is covered by the tests.
+- **A bed drawn by hand on top of another** still isn't warned about.
+- **Plant labels on the plan** still crowd each other on narrow beds when zoomed out.
 
 ## Repo layout
 ```

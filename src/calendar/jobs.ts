@@ -19,6 +19,7 @@ import { STAGES, type Garden, type PickSize, type Plant, type Planting, type Sta
 import { addPick } from '../planting/harvest';
 import { isActive, isContainer, plantingStatus } from '../planting/place';
 import { isPot } from '../planting/pots';
+import { firstBedHowTo, needsFirstBed } from '../planting/firstBed';
 import { wherePhrase } from '../planting/supports';
 
 export { runEnds };
@@ -378,6 +379,8 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
   }
 
   jobs.push(...cardboardJobs(g, month, year));
+  const first = firstBedJob(g, month, year);
+  if (first) jobs.push(first);
 
   const order = (k: JobKind) => JOB_KINDS.indexOf(k);
   return jobs.sort((a, b) => order(a.kind) - order(b.kind) || a.plant.localeCompare(b.plant) || a.where.localeCompare(b.where));
@@ -415,6 +418,18 @@ export function cardboardJobs(g: Garden, month: number, year: number): Job[] {
     });
   }
   return out;
+}
+
+/**
+ * A garden that's all lawn: make a first bed, without digging, cardboard and compost over the grass. Until there's a
+ * bed, pot or patch of soil to grow in, or it's been ticked in an earlier month.
+ */
+export function firstBedJob(g: Garden, month: number, year: number): Job | null {
+  if (!needsFirstBed(g)) return null;
+  const now = ym(year, month);
+  const prefix = 'check:first-bed:';
+  if (g.jobsDone.some((d) => d.key.startsWith(prefix) && d.key.slice(-7) < now)) return null;
+  return { key: `${prefix}${now}`, kind: 'check', verb: 'Make your first bed', plantId: '', plant: 'A bed on the lawn', where: 'with cardboard and compost, no digging', detail: firstBedHowTo(), plantingIds: [] };
 }
 
 /** Jobs grouped by kind, skipping kinds with nothing to do. */

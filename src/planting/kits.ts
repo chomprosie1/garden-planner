@@ -11,10 +11,14 @@ import { canSowIn } from '../library/library';
 import { nextInMonths } from '../lifecycle/projection';
 import { sowingOf } from '../lifecycle/stages';
 import { addDays } from '../model/dates';
+import { addFeature, makeFeature, rectPoints } from '../model/features';
 import type { Space } from '../model/spaces';
+import { clearSpot } from '../model/stickers';
 import type { Feature, Garden, Plant, Point } from '../model/types';
+import { bounds } from '../geometry/polygon';
 import { splitIntoBatches } from './batches';
 import { addPlanting, isContainer, makePlanting, plantCount, type Layout } from './place';
+import { bulbsInPot, isBulb, potCapacity } from './pots';
 import type { Planting } from '../model/types';
 
 export interface KitItem {
@@ -28,6 +32,8 @@ export interface KitItem {
 export interface KitBed {
   items: KitItem[];
   split?: 'strips' | 'side';
+  /** For the garden's border: it goes there, or (with no border) its plants wait on Want to grow. */
+  border?: true;
 }
 
 export interface Kit {
@@ -85,7 +91,7 @@ export const KITS: Kit[] = [
     title: 'Veg and flowers',
     blurb: 'Flowers for bees along the border, and two beds of easy vegetables.',
     beds: [
-      { items: [block('lavender'), block('cosmos'), block('calendula'), block('cornflower')], split: 'side' },
+      { items: [block('lavender'), block('cosmos'), block('calendula'), block('cornflower')], split: 'side', border: true },
       { items: [row('carrot'), row('beetroot'), row('lettuce', 3), block('french-bean')] },
       { items: [block('potato'), one('courgette')], split: 'side' },
     ],
@@ -96,7 +102,7 @@ export const KITS: Kit[] = [
     title: 'Pollinator garden',
     blurb: 'Flowers bees and butterflies love, from spring to autumn.',
     beds: [
-      { items: [block('lavender'), block('echinacea'), block('cosmos'), block('cornflower'), block('nigella')], split: 'side' },
+      { items: [block('lavender'), block('echinacea'), block('cosmos'), block('cornflower'), block('nigella')], split: 'side', border: true },
       { items: [block('sunflower'), block('calendula')], split: 'side' },
       { items: [block('nasturtium'), block('verbena-bonariensis')], split: 'side' },
     ],
@@ -145,7 +151,7 @@ export const KITS: Kit[] = [
     title: 'Bulbs and autumn veg',
     blurb: 'Spring bulbs along the border, garlic and onion sets in one bed, broad beans in the other.',
     beds: [
-      { items: [block('crocus'), block('daffodil'), block('tulip'), block('ornamental-allium')], split: 'side' },
+      { items: [block('crocus'), block('daffodil'), block('tulip'), block('ornamental-allium')], split: 'side', border: true },
       { items: [row('garlic'), row('garlic'), row('onion-overwintering'), row('onion-overwintering')] },
       { items: [row('broad-bean-autumn-sown'), row('broad-bean-autumn-sown')] },
     ],
@@ -249,18 +255,54 @@ function smallerBlock(pl: Planting, plant: Plant, most: number): Planting {
   return next;
 }
 
+/** Sizes to try for a bed a kit needs and the space hasn't got, mm, the usual first. */
+const BED_SIZES: [number, number][] = [
+  [2400, 1200],
+  [1200, 2400],
+  [1200, 1200],
+  [1000, 600],
+];
+
 /**
- * Plants a kit in the garden's beds and pots, in the order they were made, and puts its plants on your sowing list.
- * Salads in batches start at their next sowing time from `today`. Plants missing from the library are left out.
- * Sized for a first garden unless `full`: then blocks fill their part of the bed ("Make it bigger").
+ * A bed (or, on a balcony or patio, a pot) added for a kit that needs more than the space has: in the first clear spot
+ * inside the garden, nearest its middle, at the biggest size that fits. Null when there's no room for even a small one.
+ */
+function addKitBed(g: Garden, pot: boolean): [Garden, Feature] | null {
+  const b = bounds(g.boundary.length >= 3 ? g.boundary : g.features.flatMap((f) => f.footprint));
+  const mid: Point = b ? [Math.round((b.minX + b.maxX) / 2), Math.round((b.minY + b.maxY) / 2)] : [0, 0];
+  const make = (at: Point, w: number, h: number) =>
+    pot ? makeFeature('pot', { circle: { centre: at, radiusMm: w / 2 } }) : { ...makeFeature('bed', { area: rectPoints({ x: Math.round(at[0] - w / 2), y: Math.round(at[1] - h / 2), w, h }) }), edging: 'timber' as const };
+  for (const [w, h] of pot ? ([[400, 400], [300, 300]] as [number, number][]) : BED_SIZES) {
+    const at = clearSpot(g, make(mid, w, h), mid, 100);
+    if (at) {
+      const f = make(at, w, h);
+      return [addFeature(g, f), f];
+    }
+  }
+  return null;
+}
+
+/**
+ * Plants a kit in the garden's beds and pots, and puts its plants on your sowing list. A garden kit's flowers go in the
+ * border, if there is one; each other kit bed takes the next bed or pot the space made, and where there aren't enough,
+ * one is added inside the garden, so a kit's crops always have a bed. Salads in batches start at their next sowing
+ * time from `today`. Plants missing from the library are left out. Sized for a first garden unless `full`: then
+ * blocks fill their part of the bed ("Make it bigger").
  */
 export function applyKit(g: Garden, kit: Kit, plantOf: (id: string) => Plant | null, today: string, full = false): Garden {
-  const beds = g.features.filter(isContainer);
+  const all = g.features.filter(isContainer);
+  const border = all.find((f) => f.name === 'Border');
+  const beds = all.filter((f) => f !== border);
   let next = g;
-  kit.beds.forEach((bed, i) => {
-    const f = beds[i];
+  for (const bed of kit.beds) {
+    let f = bed.border ? border : beds.shift();
+    if (!f && !bed.border && bed.items.length) {
+      const pot = (kit.space === 'balcony' || kit.space === 'patio') && bed !== kit.beds[0];
+      const added = addKitBed(next, pot);
+      if (added) [next, f] = added;
+    }
     if (f) next = plantKitBed(next, f, bed, plantOf, today, full);
-  });
+  }
   for (const id of kitPlants(kit)) if (plantOf(id) && !next.wishlist.includes(id)) next = toggleWishlist(next, id);
   return next;
 }
@@ -273,7 +315,9 @@ export function plantKitBed(g: Garden, f: Feature, bed: KitBed, plantOf: (id: st
   for (const { item, start, end } of placeIn(f, usable, known)) {
     const plant = known(item.plant);
     const made = makePlanting(plant, f.id, item.layout, start, item.layout === 'single' ? undefined : end);
-    const pl = item.layout === 'block' && !full ? smallerBlock(made, plant, STARTER_BLOCK) : made;
+    // Bulbs in a round pot: a potful, as close as bulbs go in a pot. Other blocks are kept small for a first garden.
+    const potful = item.layout === 'block' && f.kind === 'pot' && isBulb(plant);
+    const pl = potful ? { ...made, ...bulbsInPot(f, plant, full ? undefined : Math.min(STARTER_BLOCK, potCapacity(f, plant))) } : item.layout === 'block' && !full ? smallerBlock(made, plant, STARTER_BLOCK) : made;
     next = addPlanting(next, pl);
     if (item.batches && item.layout !== 'single') {
       const how = sowingOf(plant);

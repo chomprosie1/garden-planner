@@ -451,8 +451,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
     const others = Object.fromEntries(Object.entries(prefs.walkFrom).filter(([id]) => id !== open && known.has(id)));
     return { walkFrom: prefs.walkFrom[open] ?? null, setWalkFrom: (spot: WalkSpot | null) => prefsStore.set({ walkFrom: spot ? { ...others, [open]: { at: spot.at, heading: spot.heading } } : others }) };
   };
-  const makeTheSpace = (space: Parameters<typeof makeSpace>[1], w: number, d: number, kit: Kit | null = null, side: SideReturn | null = null, bigger = false) => {
-    store.apply(updateGarden((g) => (kit ? applyKit(makeSpace(g, space, w, d, side), kit, (id) => plantById.get(id) ?? null, todayIso, bigger) : makeSpace(g, space, w, d, side))));
+  const makeTheSpace = (space: Parameters<typeof makeSpace>[1], w: number, d: number, kit: Kit | null = null, side: SideReturn | null = null, bigger = false, border = true) => {
+    store.apply(updateGarden((g) => (kit ? applyKit(makeSpace(g, space, w, d, side, { border }), kit, (id) => plantById.get(id) ?? null, todayIso, bigger) : makeSpace(g, space, w, d, side, { border }))));
     setFitSignal((n) => n + 1);
     if (kit) {
       setMessage(`${kit.title}: planted up and ready. Drag the timeline below to see it grow, or see what to sow on Today.`);
@@ -798,7 +798,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
                 <LensLegend kind={focus.kind} count={focus.ids.size} guessed={focusGuessed} live={!!weather} rain={focus.kind === 'water' ? (wetness(weather, when)?.rain3 ?? null) : null} />
               </div>
             )}
-            {!empty && tapped && tool === 'select' && !prefs.seenTips && plants && <PlanTips phone={phone} done={() => prefsStore.set({ seenTips: true })} />}
+            {!empty && tapped && tool === 'select' && !prefs.seenTips && plants && <PlanTips phone={phone} simple={simple} done={() => prefsStore.set({ seenTips: true })} />}
             {/* The two places people most often give up: nothing drawn, or beds and no plants, a minute on. */}
             <StuckNote
               class="plan-stuck"
@@ -876,7 +876,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
         )}
       </div>
       {phone && bottom}
-      {settingUp && <SpaceDialog make={(c, kit, bigger) => makeTheSpace(c.space, c.w, c.d, kit, c.sideReturn ?? null, bigger)} close={() => setSettingUp(false)} plantOf={plants ? plantOf : null} />}
+      {settingUp && <SpaceDialog make={(c, kit, bigger) => makeTheSpace(c.space, c.w, c.d, kit, c.sideReturn ?? null, bigger, c.border !== false)} close={() => setSettingUp(false)} plantOf={plants ? plantOf : null} />}
       {threeD && plants && (
         <Garden3D
           garden={garden}

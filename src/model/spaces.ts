@@ -39,8 +39,13 @@ const box = (kind: FeatureKind, x: number, y: number, w: number, h: number, extr
 });
 const pot = (x: number, y: number, r: number): Feature => makeFeature('pot', { circle: { centre: [Math.round(x), Math.round(y)], radiusMm: r } });
 
+/** Choices for laying out a space: a garden's border along the back is there unless `border` is false. */
+export interface SpaceOptions {
+  border?: boolean;
+}
+
 /** What each space starts with, in a w × d rectangle with (0, 0) at the bottom left. */
-function contents(space: Space, w: number, d: number): Feature[] {
+function contents(space: Space, w: number, d: number, opts: SpaceOptions = {}): Feature[] {
   const out: Feature[] = [];
   switch (space) {
     case 'balcony': {
@@ -65,15 +70,30 @@ function contents(space: Space, w: number, d: number): Feature[] {
       break;
     }
     case 'garden': {
-      // A border along the top, raised beds below it, and a lawn below them.
+      // A border along the top (unless you'd rather not), raised beds below it, and a lawn below them.
       const borderTop = d - 500;
-      out.push(box('bed', 500, borderTop - 1000, w - 1000, 1000, { name: 'Border' }));
-      let lawnTop = borderTop - 1000 - 500;
-      const bedY = borderTop - 1000 - 1000 - 1200;
-      const beds = w >= 7800 ? 2 : w >= 4400 ? 1 : 0;
-      if (beds && bedY >= 2500) {
-        for (let i = 0; i < beds; i++) out.push(box('bed', 1000 + i * 3400, bedY, 2400, 1200, { edging: 'timber' }));
-        lawnTop = bedY - 1000;
+      const border = opts.border !== false;
+      if (border) out.push(box('bed', 500, borderTop - 1000, w - 1000, 1000, { name: 'Border', rotates: false }));
+      // Where the beds start down from: below the border and a path's width, or near the top without one.
+      const top = border ? borderTop - 1000 - 1000 : borderTop - 500;
+      let lawnTop = border ? borderTop - 1000 - 500 : borderTop;
+      // Raised beds 2.4 × 1.2 m lying across a wide garden; in a narrow one (under 4.4 m), turned to run down it.
+      const wide = w >= 4400;
+      if (wide) {
+        const bedY = top - 1200;
+        const beds = w >= 7800 ? 2 : 1;
+        if (bedY >= 2500) {
+          for (let i = 0; i < beds; i++) out.push(box('bed', 1000 + i * 3400, bedY, 2400, 1200, { edging: 'timber' }));
+          lawnTop = bedY - 1000;
+        }
+      } else {
+        const bedY = top - 2400;
+        const beds = w >= 4000 ? 2 : w >= 2200 ? 1 : 0;
+        const x0 = (w - (beds * 1200 + (beds - 1) * 600)) / 2;
+        if (beds && bedY >= 1000) {
+          for (let i = 0; i < beds; i++) out.push(box('bed', x0 + i * 1800, bedY, 1200, 2400, { edging: 'timber' }));
+          lawnTop = bedY - 1000;
+        }
       }
       if (lawnTop - 500 >= 1500) out.push(box('surface', 500, 500, w - 1000, lawnTop - 500, { material: 'lawn' }));
       break;
@@ -176,7 +196,7 @@ const raise = (f: Feature, dy: number): Feature => {
  * The garden with this space laid out in it, at w × d mm. A single bed has no boundary. A garden or patio gets the
  * house along the bottom, and with a side return, an L-shaped boundary with a path down the strip.
  */
-export function makeSpace(g: Garden, space: Space, w: number, d: number, sideReturn: SideReturn | null = null): Garden {
+export function makeSpace(g: Garden, space: Space, w: number, d: number, sideReturn: SideReturn | null = null, opts: SpaceOptions = {}): Garden {
   const info = spaceInfo(space);
   const W = Math.round(Math.min(MAX_SPACE_MM, Math.max(info.min[0], w)));
   const D = Math.round(Math.min(MAX_SPACE_MM, Math.max(info.min[1], d)));
@@ -185,7 +205,7 @@ export function makeSpace(g: Garden, space: Space, w: number, d: number, sideRet
   if (HAS_HOUSE.includes(space)) for (const f of house(W, side)) next = addFeature(next, f);
   if (side) next = addFeature(next, box('surface', sides(W, side).strip, 0, side.width, side.length, { material: 'paving', name: 'Side return' }));
   // With a side return, the rest is laid out above it, in the part that's full width.
-  for (const f of contents(space, W, side ? D - side.length : D)) next = addFeature(next, side ? raise(f, side.length) : f);
+  for (const f of contents(space, W, side ? D - side.length : D, opts)) next = addFeature(next, side ? raise(f, side.length) : f);
   // A garden still called "My garden" is named after the space.
   if (g.name === 'My garden' && space !== 'garden' && space !== 'bed') next = { ...next, name: `My ${space === 'patio' ? 'patio' : space}` };
   return next;

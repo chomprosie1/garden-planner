@@ -872,7 +872,9 @@ button:disabled {
   flex: 1;
   min-width: 0;
   position: relative;
+  /* Clip, not just hide: a hidden box can still be scrolled sideways (by focus), showing the photos beside the plan. */
   overflow: hidden;
+  overflow: clip;
   display: flex;
   padding: 1.25rem;
   background: var(--bg);
