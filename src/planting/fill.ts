@@ -4,10 +4,17 @@
 
 import { bounds, pointInPolygon } from '../geometry/polygon';
 import type { Feature, Plant, Planting, Point } from '../model/types';
-import { blockGrid, plantPositions, rowCount, spreadOf } from './place';
+import { blockGrid, plantPositions, rowCount, rowSpacingOf, spreadOf } from './place';
+import { bulbsInPot, isBulb, isRoundPot } from './pots';
 import { alongSupport, isSupport, supportFills } from './supports';
 
 export type Fill = 'one' | 'row' | 'fill';
+
+/** A lawn, gravel or bark: a few plants dropped in, not rows. A patch of bare soil or cardboard is planted like a bed. */
+const lawnLike = (f: Feature) => f.kind === 'surface' && f.material !== 'soil' && f.material !== 'cardboard';
+
+/** Canes such as raspberries: fruit on a narrow bush, planted in a row along wires. */
+export const isCane = (p: Plant) => p.category === 'fruit' && p.art?.form === 'shrub' && spreadOf(p) < 600;
 
 export const FILL_LABEL: Record<Fill, string> = { one: 'One', row: 'A row', fill: 'Fill the bed' };
 
@@ -20,8 +27,10 @@ export function defaultFill(plant: Plant, bed: Feature): Fill {
   const b = bounds(bed.footprint);
   const narrow = b ? Math.min(b.maxX - b.minX, b.maxY - b.minY) : 0;
   const long = b ? Math.max(b.maxX - b.minX, b.maxY - b.minY) : 0;
+  // Raspberry canes: a row along the bed, where there's room for a few.
+  if (isCane(plant) && !lawnLike(bed) && bed.kind !== 'pot' && long >= s * 3) return 'row';
   // Big plants, anywhere with room for only one, and a lawn (a few bulbs, not the whole lawn), get one.
-  if (bed.kind === 'surface' || spread >= 600 || plant.category === 'tree' || plant.category === 'shrub' || long < s * 2) return 'one';
+  if (lawnLike(bed) || spread >= 600 || plant.category === 'tree' || plant.category === 'shrub' || long < s * 2) return 'one';
   // A window box, trough or narrow bed: one row along it.
   if (narrow < s * 2) return 'row';
   if (bed.kind === 'pot') return 'fill';
@@ -79,14 +88,17 @@ export function fillPlanting(plant: Plant, bed: Feature, fill: Fill, at: Point):
   if (fill === 'fill') {
     const b = bounds(bed.footprint);
     if (!b) return one;
+    // Bulbs in a round pot: a potful, closer than in the ground, spread evenly round it.
+    if (isRoundPot(bed) && isBulb(plant)) return bulbsInPot(bed, plant);
+    const rs = rowSpacingOf(plant);
     // The bed's own box, shrunk until every plant is inside it: for curved beds and pots, and beds at an angle.
     for (let shrink = 0; shrink < 40; shrink++) {
       const d = (shrink * s) / 4;
       const min: Point = [Math.round(b.minX + d), Math.round(b.minY + d)];
       const max: Point = [Math.round(b.maxX - d), Math.round(b.maxY - d)];
-      if (max[0] - min[0] < s || max[1] - min[1] < s) break;
+      if (Math.max(max[0] - min[0], max[1] - min[1]) < s || Math.min(max[0] - min[0], max[1] - min[1]) < Math.min(s, rs)) break;
       const trial: Planting = { id: '', plantId: plant.id, featureId: bed.id, layout: 'block', x: min[0], y: min[1], endPoint: max };
-      const { cols, rows } = blockGrid(min, max, s);
+      const { cols, rows } = blockGrid(min, max, s, rs);
       if (cols * rows < 2) break;
       if (inside(bed, plantPositions(trial, plant))) return { layout: 'block', x: min[0], y: min[1], endPoint: max };
     }
@@ -101,7 +113,7 @@ export function fillsFor(plant: Plant, bed: Feature, at?: Point): Fill[] {
   // Along a fence: one, or a row along the stretch where it was dropped. A trellis, arch or obelisk holds one.
   if (isSupport(bed)) return bed.support ? ['one'] : supportFills(bed, plant, at ?? bed.footprint[0]!);
   // A row or a fill across a whole lawn is never what's meant; draw a row or block by hand instead.
-  if (bed.kind === 'surface') return ['one'];
+  if (lawnLike(bed)) return ['one'];
   const b = bounds(bed.footprint);
   const s = plant.size.spacingMm;
   const long = b ? Math.max(b.maxX - b.minX, b.maxY - b.minY) : 0;

@@ -60,6 +60,61 @@ export function potNeeds(p: Plant): number {
   return 150;
 }
 
+// ---------- Spaced for where they are: bulbs in a pot, seedlings in a cold frame ----------
+
+export const isBulb = (p: Plant): boolean => p.art?.form === 'bulb';
+
+/** A round pot: plants in it are set out round it rather than in rows. */
+export const isRoundPot = (f: Feature): boolean => f.kind === 'pot';
+
+/**
+ * How far apart bulbs go in a pot, mm. The RHS: in containers, plant bulbs more closely than in the ground, about a
+ * bulb's width apart, not touching (hyacinths about 7.5 cm). Taken as 60% of their spacing in the ground, and no
+ * closer than 5 cm: about 10 daffodils or 16 tulips in a 35 cm pot. Anything else keeps its spacing.
+ */
+export const potSpacingOf = (p: Plant): number => (isBulb(p) ? Math.min(p.size.spacingMm, Math.max(50, Math.round(p.size.spacingMm * 0.6))) : p.size.spacingMm);
+
+/** Roughly how far apart pots and root trainers stand in a cold frame, mm. */
+export const MODULE_MM = 50;
+
+/**
+ * Raised in a cold frame rather than grown on in it: anything taller than a frame (about 60 cm), such as sweet peas and
+ * broad beans in root trainers. They stand in pots or modules, so they're counted at module spacing, not their final
+ * spacing. Lettuce and winter salads grow on in the frame at their usual spacing.
+ */
+export const raisedIn = (bed: Feature, p: Plant): boolean => bed.kind === 'cold-frame' && (p.size.heightMm ?? 0) > 600 && p.category !== 'tree' && p.category !== 'shrub';
+
+const spacedAt = (p: Plant, mm: number): Plant => ({ ...p, size: { ...p.size, spacingMm: mm, rowSpacingMm: mm, closeSpacingMm: mm, spreadMm: Math.min(p.size.spreadMm ?? mm, mm) } });
+
+/** A plant as it's spaced in this bed or pot: at module spacing raised in a cold frame, bulbs closer in a pot. */
+export function asPlacedIn(p: Plant, bed: Feature | undefined): Plant {
+  if (!bed) return p;
+  if (raisedIn(bed, p)) return spacedAt(p, MODULE_MM);
+  if (isRoundPot(bed) && isBulb(p)) return spacedAt(p, potSpacingOf(p));
+  return p;
+}
+
+/** The round room inside a pot for bulbs at this spacing: the pot, less a little at the rim. */
+function bulbRoom(pot: Feature, s: number): { c: Point; r: number } | null {
+  const b = bounds(pot.footprint);
+  if (!b) return null;
+  return { c: [(b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2], r: Math.max(s / 2, Math.min(b.maxX - b.minX, b.maxY - b.minY) / 2 - s / 5) };
+}
+
+/** About how many of a bulb a round pot takes, at the pot spacing. */
+export function potCapacity(pot: Feature, p: Plant): number {
+  const s = potSpacingOf(p);
+  const room = bulbRoom(pot, s);
+  return room ? Math.max(1, Math.round((Math.PI * room.r ** 2) / s ** 2)) : 1;
+}
+
+/** Bulbs in a round pot: one block of them, `count` of them (the pot's worth by default), spread evenly round it. */
+export function bulbsInPot(pot: Feature, p: Plant, count = potCapacity(pot, p)): Pick<Planting, 'layout' | 'x' | 'y' | 'endPoint' | 'count'> {
+  const room = bulbRoom(pot, potSpacingOf(p))!;
+  const [x, y] = [Math.round(room.c[0] - room.r), Math.round(room.c[1] - room.r)];
+  return { layout: 'block', x, y, endPoint: [Math.round(room.c[0] + room.r), Math.round(room.c[1] + room.r)], count: Math.max(1, Math.round(count)) };
+}
+
 /** "45 cm". */
 export const cmText = (mm: number) => `${Math.round(mm / 10)} cm`;
 
@@ -116,7 +171,7 @@ export function potProblems(g: Garden, plantOf: (id: string) => Plant): PotProbl
     // A plant on its own wants a square of the pot it would want; plants in a row or block, a square of their spacing.
     // Together, more room than the pot has is crowded.
     const plants = here.map((pl) => plantOf(pl.plantId));
-    const demand = plants.reduce((n, p, i) => n + (counts[i]! > 1 ? counts[i]! * p.size.spacingMm ** 2 : potNeeds(p) ** 2), 0);
+    const demand = plants.reduce((n, p, i) => n + (counts[i]! > 1 ? counts[i]! * asPlacedIn(p, f).size.spacingMm ** 2 : potNeeds(p) ** 2), 0);
     if (demand <= size.room * 1.1) continue;
     const names = [...new Set(plants.map((p) => lower(p.commonName)))];
     const together = Math.sqrt(demand);

@@ -17,6 +17,33 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-17-fruit-next-year',
+    date: '2026-10-17',
+    title: 'Fruit, and next year round the real beds',
+    items: [
+      'Add a fruit cage from Add a bed. Raspberries go in a row along the netting, and blackcurrants and other bushes at their proper spacing.',
+      'A patch of ground takes rows and fills, as a bed does.',
+      'Next year’s draft goes round your vegetable beds only. Borders, fruit cages and beds of flowers or perennials stay as they are, and each bed’s settings have a switch for whether its crops move round.',
+      'Garlic, onions and broad beans going in this autumn count as next year’s crop where they are, so their beds aren’t “free”. Leeks still standing over winter keep their bed until they’re out.',
+      'Only crops that never came up are left out of the draft. A bed that’s free again by summer suggests something to follow on, such as kale after broad beans.',
+    ],
+    tryIt: { label: 'See your garden', view: 'plan' },
+  },
+  {
+    id: '2026-10-17-counts',
+    date: '2026-10-17',
+    title: 'Counts you can trust',
+    items: [
+      'With traditional rows, filling a bed keeps its rows their proper distance apart, and the shopping list follows.',
+      'Bulbs in a pot go closer than in the ground, as the RHS advises: about 10 daffodils or 16 tulips in a 35 cm pot.',
+      'Moving plants to a bed without room for them all asks first: move them all closer together, or move what fits and leave the rest where they were.',
+      'Change how many plants there are under Change the details, for rows, blocks and pots of bulbs.',
+      'Rows set out in a list keep the spacing the plan checks for, so switching to a plan doesn’t raise warnings about them. Beds that have come to overlap are moved apart, with their plants.',
+      'Sweet peas and broad beans in a cold frame count as pots or root trainers, so 24 of them fit.',
+    ],
+    tryIt: { label: 'See your garden', view: 'plan' },
+  },
+  {
     id: '2026-10-17-unstuck',
     date: '2026-10-17',
     title: 'Small things, put right',

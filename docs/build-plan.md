@@ -2093,8 +2093,8 @@ Decided:
 | Mon 19 Oct | 43. How to, for this crop | Spacing in every how-to. Steps chosen by the actual sowing. Glossary words dotted on Today. About 12 new words. Margaret's corrections, checked against a source. Autumn jobs for glass and fruit. The play-safe frost date for tender plants. | Built 16 Oct 2026 |
 | Tue 20 Oct | 44. Less, but better | Today is the jobs. Recipes, Room to grow, Wrapped, the journal and Install off Today. Open on Today. The plan's extras behind ··· on phones. Settings and Plants trimmed. Checks can be dismissed. | Built 16 Oct 2026 |
 | Wed 21 Oct | Testing day | | |
-| Thu 22 Oct | 45. Counts you can trust | Fill respects rows. Bulbs in pots at real density. Moves ask before cutting. The count can be edited. Plan and list agree on rows. Pots under cover counted as modules. | |
-| Fri 23 Oct | 46. Fruit, and next year round the real beds | A fruit cage. Beds that rotate and beds that don't (schema 22). Next year's draft only rotates the veg beds, counts this autumn's crops as next year's, and suggests a follow-on crop. | |
+| Thu 22 Oct | 45. Counts you can trust | Fill respects rows. Bulbs in pots at real density. Moves ask before cutting. The count can be edited. Plan and list agree on rows. Pots under cover counted as modules. | Built 17 Oct 2026, with 46 |
+| Fri 23 Oct | 46. Fruit, and next year round the real beds | A fruit cage. Beds that rotate and beds that don't (schema 22). Next year's draft only rotates the veg beds, counts this autumn's crops as next year's, and suggests a follow-on crop. | Built 17 Oct 2026 (schema 22) |
 | Sat 24 – Sun 25 Oct | Testing weekend | | |
 | Mon 26 Oct | 47. A first garden, and the plan on a phone | Kits always get their beds. "Make your first bed" for a lawn. Moving, stickers, hand-drawn rectangles and the Advanced pill on a phone. | |
 | Tue 27 Oct | The review again | The same three testers and tasks. Targets: keep-using and trust of 7 or more from all three; Jordan's unexplained words under 5 and Googles under 3; no contradiction on a planting already in the ground. | |
@@ -2361,6 +2361,106 @@ Tests: `tests/unstuck.test.ts`:
 `store` covers `undoPast`. Changed: `list` (a copy no longer renumbers the beds).
 
 Seen while checking, not changed: an autumn broad bean sown in a cold frame says "Time to start hardening off" the day it's marked as up, though its sowing note says to plant out in early spring.
+
+### Release 45 — Counts you can trust (as built)
+Built 17 Oct 2026, with 46, and shipped with it as version 0.46.0. No schema change of its own: a block's `count`, a field rows already had, now also means a potful.
+
+- **Blocks in traditional rows** (`blockGrid` and `blockSpacing` in `src/planting/place.ts`):
+  - A block's plants are their spacing apart along its longer side, and the row spacing apart across it. Broad beans filling a 2.4 × 1.2 m bed are two rows 60 cm apart, not six.
+  - Close spacing is unchanged (the two spacings are the same).
+  - Counts, drawing, the plan's preview while drawing, Fill, kits and the shopping list all go through it.
+- **Bulbs in a round pot** (`potSpacingOf`, `potCapacity` and `bulbsInPot` in `src/planting/pots.ts`):
+  - Spacing: 60% of their spacing in the ground, and no closer than 5 cm. The RHS says to plant bulbs in containers more closely than in the ground, about a bulb's width apart and not touching (hyacinths about 7.5 cm); checked on rhs.org.uk, 17 Oct 2026.
+  - Fill in a 35 cm pot gives 10 daffodils or 16 tulips, not 4.
+  - A potful is one block with a `count`, set out evenly round the pot, like seeds in a sunflower head. "A number" of bulbs goes in the same way.
+  - How full the pot is, and the pot-crowding check, use the same spacing.
+- **Seedlings raised in a cold frame** (`raisedIn` and `asPlacedIn` in `pots.ts`):
+  - Anything over about 60 cm tall in a cold frame (sweet peas, broad beans in root trainers) stands there in pots or modules, so it's counted about 5 cm apart. 24 sweet peas fit a 1.2 m frame.
+  - Lettuce and winter salads still grow on there at their own spacing.
+  - Fill there makes rows of modules.
+- **Moves ask before cutting** (`moveRoom` and `moveToListBed` in `src/planting/listPlant.ts`; the move dialog in `Beds.tsx`):
+  - If the bed hasn't room for them all, the dialog asks: "Move all 19, closer together" or "Move 6, leave the rest".
+  - The ones left behind stay in the old bed as their own planting.
+  - Bulbs into a round pot go as a potful.
+  - A potful moved out to a bed, or a block too big for its new bed, is laid again as rows.
+  - The moved planting keeps its id, stages, picks and notes.
+- **The count can be changed** (`setPlantingCount`): under Change the details, "Plants" for blocks and pots of bulbs, and "Plants, in all 2 rows" for rows of one sowing in a list.
+  - One row keeps its ends.
+  - A potful takes the number.
+  - A block grows or shrinks about its middle and stays in its bed.
+  - Rows of one sowing are laid again as that many, with the first still the same planting.
+  - If there isn't room for them all, a message says how many fitted.
+  - The list works out a planting's rows afresh (`rowsOfSowing`), so rows laid again stay together.
+- **The list and the plan agree:**
+  - Rows set out from the list are their row spacing apart, and single plants are as far from their neighbours as the plan's spacing check wants (`taken`, `nextAcross` and `freePoint`). Garlic rows were 22.5 cm apart where the check wanted 30.
+  - The spacing check uses the plant as it's spaced where it is (bulbs in a pot, modules in a frame).
+  - **Overlapping beds:** switching a list to a plan moves beds that have come to overlap to the next free place, with their plants (`spreadOut` in `src/model/listLayout.ts`). So does making a bed bigger in the list. Pots on a patio or path, or inside a greenhouse or cold frame, stay where they are.
+- **Help:** Keeping it as a list says how moves, pots of bulbs, the cold frame and changing the count work.
+- **Checked at 390 px:**
+  - the move dialog asking, and "leave the rest";
+  - "Plants, in all 2 rows" set from 150 to 60.
+  - No page errors.
+
+Tests: `tests/counts.test.ts`:
+- Fill in traditional rows;
+- a potful of daffodils and tulips;
+- 16 tulips moved into a pot;
+- a row moved to a planter, cut or kept;
+- changing the count of rows, blocks and pots;
+- rows from the list raising no spacing checks;
+- overlapping beds moved apart, and pots on a patio left alone;
+- 24 sweet peas in a frame.
+
+Changed: `planting` (the grid test uses an even-spaced lettuce; a new test for blocks in rows).
+
+### Release 46 — Fruit, and next year round the real beds (as built, schema 22)
+Built 17 Oct 2026, with 45. Version 0.46.0.
+
+- **Schema 22** (`src/model/migrate.ts`, `validate.ts`):
+  - Two optional fields on a feature: `fruitCage` and `rotates`.
+  - **The migration:** beds and patches of soil named as a border, flowers, herbs, fruit, a cage or an orchard get `rotates: false`, and one named as a cage is also a fruit cage. A value already set stays.
+  - Beds holding only perennials and flowers aren't marked: the migration has no plant data, so `rotates()` works that out when it's asked (below).
+- **A fruit cage:**
+  - **A list kind:** "A fruit cage", 3 × 4 m by default. It's a bed with `fruitCage: true` rather than a new kind of feature, so drawing, 3D and the checks treat it as a bed.
+  - **Its label:** "Fruit cage" on its card.
+  - **Canes in a row:** raspberries (fruit on a bush under 60 cm across, `isCane` in `src/planting/fill.ts`) are planted in a row by default, the first row half a metre in from the netting.
+  - **Bushes on a grid:** they go on a grid of their own spacing first, a third of a spacing in from the netting. A 3 × 4 m cage takes a row of 8 raspberries and 3 blackcurrants at the RHS's 1.5 m, with no spacing checks raised.
+  - **The add-plant dialog** starts on the plant's usual way when it's a row or one (a row of raspberries, one blackcurrant), not Fill.
+- **Patches of ground** (soil or cardboard) take rows and fills, as a bed does; lawns, gravel and bark still take one at a time.
+- **Beds that rotate and beds that don't** (`rotates` in `src/planting/rotation.ts`):
+  - **Left unset:** a bed or soil patch rotates unless it's a fruit cage, or everything in it (now, or cleared since the start of last year) is a perennial or a flower. An empty bed rotates.
+  - **A switch** in a bed's settings, in the list's "Name, size, sun and soil" and under Soil on the plan: "Its crops move round the beds each year", with "It's a fruit cage" beside it (`src/ui/RotationSwitch.tsx`).
+- **Next year's draft:**
+  - **Rotating beds only.** Borders, fruit cages and beds of flowers or perennials aren't listed, and nothing moves into them.
+  - **Planned with no date** (as a kit leaves this autumn's garlic, onions and broad beans): the planting's timeline says when it's likely to go in (`expectedStart`). If that makes it next year's crop, its bed is taken until it's lifted, not "free".
+  - **Standing crops** (this year's leeks or parsnips still in the ground into next year): the bed shows "still standing until about March". Anything sown or planted there (not sown indoors) goes in after.
+  - **Left out:** only crops that never came up. One that came up and grew slowly goes round with the rest.
+  - **A crop to follow on**, for Priya: when a bed's crops for next year are out by the end of August, it says "Free again from about July: follow on with kale, purple sprouting broccoli or cabbage". The ideas come from the group next in the rotation, leeks after peas, beans and potatoes, or salads, limited to what can go in that month or the next (`followOn`).
+- **Help:** Next year says which beds go round, where the switch is, standing crops, follow-on crops and "never came up".
+- **Checked at 390 px:**
+  - Add a bed with A fruit cage;
+  - the cage with raspberries and blackcurrants;
+  - its settings with the two switches;
+  - the draft on an allotment kit: Bed 2 taken until August by garlic and overwintering onions, Bed 3 taken until June by autumn broad beans and then kale or broccoli, and the raspberry bed and the cage left out.
+  - No page errors.
+
+Tests: `tests/fruit-next-year.test.ts`:
+- the migration from 21 to 22, and validation;
+- which beds rotate;
+- the draft leaving the cage and border alone;
+- this autumn's crops as next year's;
+- a standing crop's bed;
+- "never came up";
+- a follow-on crop;
+- the fruit cage kind and planting it;
+- patches taking rows.
+
+Changed: `seasons` (the schema test allows later versions) and `list` (eight list kinds).
+
+Not changed:
+- **The fruit cage on the plan and in 3D** is drawn as a bed, with no netting.
+- **A taken bed still asks "What grew here in 2026?"**, as before.
+- **The three new optional fields** (`rotates`, `fruitCage`, and `count` on a block) need no conversion for older files beyond the names above.
 
 ## Repo layout
 ```

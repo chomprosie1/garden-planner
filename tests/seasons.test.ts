@@ -250,13 +250,13 @@ describe('the climate, checked', () => {
 
 describe('save format 21', () => {
   it('checks a draft’s year, and brings schema 20 up to date', () => {
-    expect(SCHEMA_VERSION).toBe(21);
+    expect(SCHEMA_VERSION).toBeGreaterThanOrEqual(21);
     const bed = bedAt(0, 'A');
     const g = withAll([bed], [{ ...rowIn(bed, 'pea', { sowBy: '2027-04-12' }), draft: 2027 }]);
     expect(validateGarden(JSON.parse(JSON.stringify(g)))).toEqual([]);
     expect(validateGarden({ ...g, plantings: g.plantings.map((p) => ({ ...p, draft: 'next' })) }).join(' ')).toMatch(/draft must be a year/);
     const migrated = migrateGarden({ ...newGarden(), schemaVersion: 20 }) as Garden;
-    expect(migrated.schemaVersion).toBe(21);
+    expect(migrated.schemaVersion).toBe(SCHEMA_VERSION);
     expect(validateGarden(migrated)).toEqual([]);
   });
 });

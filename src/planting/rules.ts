@@ -8,7 +8,7 @@ import { featureLabel, placeLabel } from '../model/features';
 import type { Garden, Light, Plant, Planting, Point } from '../model/types';
 import { averageHours, type SunGrid } from '../sun/hours';
 import { activePlantings, canHold, plantCount, plantingShape, plantPositions, rowSpacingOf, sizedPlant, type PlantingShape } from './place';
-import { isPot, potProblems } from './pots';
+import { asPlacedIn, isPot, potProblems } from './pots';
 import { fullnessFindings, isList } from './listPlant';
 import { seasonsApart } from './rotation';
 import { phOf, soilClash, soilOf } from './soil';
@@ -106,13 +106,17 @@ function checkSpacing(g: Garden, active: Planting[], plantOf: PlantOf): Finding[
   // Single plants sharing a pot are checked as a pot, for crowding (checkPots), not for the gaps between them.
   const pots = new Set(g.features.filter(isPot).map((f) => f.id));
   const out: Finding[] = [];
+  // Each plant as it's spaced where it is: bulbs closer in a pot, seedlings in a cold frame at module spacing.
+  const bedOf = new Map(g.features.map((f) => [f.id, f]));
+  const placed = (pl: Planting) => asPlacedIn(sizedPlant(plantOf(pl.plantId), pl), bedOf.get(pl.featureId));
+  // Shapes as drawn; the room each wants, as spaced there.
   const shapes = active.map((pl) => plantingShape(pl, sizedPlant(plantOf(pl.plantId), pl)));
   for (let i = 0; i < active.length; i++) {
     for (let j = i + 1; j < active.length; j++) {
       const a = active[i]!;
       const b = active[j]!;
-      const pa = sizedPlant(plantOf(a.plantId), a);
-      const pb = sizedPlant(plantOf(b.plantId), b);
+      const pa = placed(a);
+      const pb = placed(b);
       // Bulbs under a tree or shrub are the usual way to grow them, not a squeeze. Next year's plan over this year's crops never meets them.
       if (underplanted(pa, pb) || underplanted(pb, pa) || seasonsApart(a, b, pa, pb)) continue;
       // Single plants sharing a pot are checked as a pot; rows and blocks in a planter still keep their spacing.

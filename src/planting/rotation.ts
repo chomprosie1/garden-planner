@@ -15,7 +15,8 @@
 // year's, and its bed is taken until it's lifted.
 
 import { behindOf } from '../lifecycle/behind';
-import { afterRun, nextInMonths } from '../lifecycle/projection';
+import { afterRun, nextInMonths, timeline } from '../lifecycle/projection';
+import { canSowIn } from '../library/library';
 import { currentStage, flowerMonthsOf, perennial, sowingOf } from '../lifecycle/stages';
 import { microclimateAt, microclimateOf } from '../climate/microclimate';
 import { bounds, distanceToSegment, pointInPolygon } from '../geometry/polygon';
@@ -64,11 +65,31 @@ export const follows = (was: RotationGroup, next: RotationGroup) => SLOT[next] =
 /** The year a draft is for: from August, next year; before then, this one (the season about to start). */
 export const draftYear = (today: string) => Number(today.slice(0, 4)) + (Number(today.slice(5, 7)) >= 8 ? 1 : 0);
 
-/** Beds and patches of bare ground rotate; pots, planters, lawns and anything under glass keep what they have. */
-export const rotates = (f: Feature) => f.kind === 'bed' || (f.kind === 'surface' && f.material === 'soil');
+/**
+ * Whether a bed's crops go round in the rotation. Beds and patches of bare ground do, as you've set it; left unset, all
+ * but a fruit cage and a bed of only plants that come back each year and flowers (a border). Pots, planters, lawns and
+ * anything under glass keep what they have.
+ */
+export function rotates(f: Feature, g?: Garden, plantOf?: (id: string) => Plant, since = ''): boolean {
+  if (!(f.kind === 'bed' || (f.kind === 'surface' && f.material === 'soil'))) return false;
+  if (f.rotates !== undefined) return f.rotates;
+  if (f.fruitCage) return false;
+  if (!g || !plantOf) return true;
+  // What's there, and what grew there since `since` and was cleared.
+  const here = g.plantings.filter((pl) => pl.featureId === f.id && (!pl.removedOn || pl.removedOn >= since)).map((pl) => plantOf(pl.plantId)).filter((p) => p.category !== 'weed');
+  return !here.length || here.some((p) => !perennial(p) && p.category !== 'flower');
+}
 
 /** When a planting started: when it was sown, or else when it first reached a stage. */
 const startOf = (pl: Planting): string | undefined => pl.sownOn ?? Object.values(pl.stageDates ?? {}).sort()[0];
+
+/**
+ * When a planned planting with no date is likely to go in: from its timeline, as the bed's booking reads it. A kit's
+ * garlic, planned in October, goes in this autumn, so it's next year's crop where it stands.
+ */
+export function expectedStart(pl: Planting, plant: Plant, g: Garden, today: string, weather: Weather | null = null): string | undefined {
+  return timeline(plant, pl, g, today, weather).find((s) => (s.stage === 'sown' || s.stage === 'transplanted') && s.date !== null)?.date ?? undefined;
+}
 
 /** The year a planting was started in. */
 function grownIn(pl: Planting): number | null {
@@ -139,6 +160,10 @@ export interface DraftBed {
   taken?: { plantings: Planting[]; until: string | null };
   /** What's in the bed that isn't moved, and why. */
   stays: { planting: Planting; why: Stays }[];
+  /** This year's crops still standing into next year (leeks, parsnips), and when they're likely out: what comes here goes in after. */
+  standing?: { plantings: Planting[]; until: string };
+  /** Free again by summer: from when, and crops to follow on there (after broad beans, kale or leeks), by plant id. */
+  after?: { from: string; ideas: string[] };
 }
 
 export interface Draft {
@@ -214,9 +239,11 @@ export function draftNextYear(g: Garden, plantOf: (id: string) => Plant, today: 
   const replaces = g.plantings.filter((pl) => fromDraft(pl, year)).length;
 
   // Every bed, and what's in each: this year's crops to move, next year's already in, and what stays.
-  const beds = g.features.filter((f) => rotates(f) && bounds(f.footprint) && !microclimateAt(g, middle(f)));
+  const beds = g.features.filter((f) => rotates(f, g, plantOf, `${year - 1}-01-01`) && bounds(f.footprint) && !microclimateAt(g, middle(f)));
   const crops = new Map<string, Planting[]>(beds.map((f) => [f.id, []]));
   const taken = new Map<string, Planting[]>();
+  /** When planned plantings with no date are likely to go in. */
+  const expected = new Map<string, string>();
   const stays = new Map<string, DraftBed['stays']>(beds.map((f) => [f.id, []]));
   for (const pl of g.plantings) {
     if (!crops.has(pl.featureId) || fromDraft(pl, year)) continue;
@@ -235,6 +262,14 @@ export function draftNextYear(g: Garden, plantOf: (id: string) => Plant, today: 
     }
     if (planned) {
       if (active && pl.sowBy && cropYear(pl, plant) === year - 1) stay('not-sown');
+      // Planned with no date (a kit's garlic): when it's likely to go in, so this autumn's crop is next year's where it stands.
+      else if (active && !pl.sowBy && pl.draft !== year) {
+        const start = expectedStart(pl, plant, g, today, weather);
+        if (start && cropYear({ ...pl, sowBy: start }, plant) === year) {
+          expected.set(pl.id, start);
+          taken.set(pl.featureId, [...(taken.get(pl.featureId) ?? []), pl]);
+        }
+      }
       continue;
     }
     const crop = cropYear(pl, plant);
@@ -293,8 +328,11 @@ export function draftNextYear(g: Garden, plantOf: (id: string) => Plant, today: 
     const src = source.get(bed.id)!;
     const busy = taken.get(bed.id);
     // Taken until the last of them is likely out; no telling if any of them can't say.
-    const ends = busy?.map((pl) => goneBy(pl, plantOf(pl.plantId)));
+    const ends = busy?.map((pl) => goneBy(pl, plantOf(pl.plantId), expected.get(pl.id)));
     const until = ends?.every(Boolean) ? (ends as string[]).sort().at(-1)! : null;
+    // This year's crops still in the ground into next year: the bed's busy until they're out.
+    const still = crops.get(bed.id)!.filter((pl) => !pl.removedOn && (goneBy(pl, plantOf(pl.plantId)) ?? '') > `${year}-01-01`);
+    const standing = still.length ? { plantings: still, until: still.map((pl) => goneBy(pl, plantOf(pl.plantId))!).sort().at(-1)! } : null;
     draftBeds.push({
       bed,
       was: groupOf.get(bed.id) ?? null,
@@ -302,13 +340,21 @@ export function draftNextYear(g: Garden, plantOf: (id: string) => Plant, today: 
       from: src,
       ...(busy ? { taken: { plantings: busy, until } } : {}),
       stays: stays.get(bed.id)!,
+      ...(standing ? { standing } : {}),
     });
     const move = mover(byId.get(src)!, bed);
+    const here: DraftItem[] = [];
     for (const pl of crops.get(src)!) {
       const item = nextOf(g, plantOf(pl.plantId), pl, bed, move, today, weather, year);
       const leftOut: LeftOut | undefined = planned.has(`${item.next.plantId}|${item.next.featureId}`) ? 'planned' : busy ? 'taken' : item.leftOut;
-      items.push({ ...item, ...(leftOut ? { leftOut } : {}) });
+      // Sown or planted where something's still standing: not before it's out. Sown indoors, it goes in later anyway.
+      if (standing && item.next.sowBy && sowingOf(plantOf(pl.plantId), pl) !== 'indoors' && standing.until > item.next.sowBy) item.next.sowBy = standing.until;
+      here.push({ ...item, ...(leftOut ? { leftOut } : {}) });
     }
+    items.push(...here);
+    // Free again by summer: something to follow on.
+    const after = followOn(busy ?? here.filter((i) => !i.leftOut).map((i) => i.next), plantOf, year, (pl) => goneBy(pl, plantOf(pl.plantId), expected.get(pl.id) ?? pl.sowBy));
+    if (after) draftBeds[draftBeds.length - 1]!.after = after;
   }
   return { year, beds: draftBeds, items, already, replaces };
 }
@@ -349,8 +395,47 @@ function nextOf(g: Garden, plant: Plant, pl: Planting, bed: Feature, move: (p: P
       fits = fitsIn();
     }
   }
-  const leftOut: LeftOut | undefined = late && late.next === 'germinated' && how === 'direct' ? 'not-up' : late ? 'behind' : !fits ? 'no-room' : undefined;
+  // Left out only if it never came up: a crop that came up and grew slowly still grew.
+  const neverUp = late && late.next === 'germinated';
+  const leftOut: LeftOut | undefined = neverUp ? (how === 'direct' ? 'not-up' : 'behind') : !fits ? 'no-room' : undefined;
   return { was: pl, next, didWell, ...(leftOut ? { leftOut } : {}) };
+}
+
+/**
+ * Crops to follow on in each group: after peas and beans the cabbage family, and so on round the rotation. Leeks follow
+ * early crops too, planted out in June and July. Most grown first.
+ */
+const FOLLOW_ON: Record<RotationGroup, string[]> = {
+  legumes: ['french-bean', 'pea'],
+  brassicas: ['kale', 'sprouting-broccoli', 'cabbage', 'calabrese', 'pak-choi', 'turnip', 'oriental-greens'],
+  potatoes: [],
+  onions: ['leek', 'spring-onion'],
+  roots: ['beetroot', 'carrot'],
+};
+/** Salads and leaves go anywhere: they fill a gap whatever came before. */
+const ANYWHERE = ['lettuce', 'chard', 'spinach', 'winter-purslane', 'corn-salad'];
+
+/**
+ * When a bed's crops for the year are out by the end of August (free from September): from when, and two or three crops that can follow on
+ * then, from the group next in the rotation (with leeks after early crops), or salads. Null if it isn't free by then.
+ */
+function followOn(list: Planting[], plantOf: (id: string) => Plant, year: number, out: (pl: Planting) => string | null): DraftBed['after'] | null {
+  const crops = list.filter((pl) => rotationGroup(plantOf(pl.plantId)) !== null);
+  if (!crops.length) return null;
+  const ends = crops.map(out);
+  if (!ends.every(Boolean)) return null;
+  const from = (ends as string[]).sort().at(-1)!;
+  const month = Number(from.slice(5, 7));
+  if (Number(from.slice(0, 4)) !== year || month > 9) return null;
+  const leaving = mainGroup(crops, plantOf)!;
+  const nextGroup = (Object.keys(SLOT) as RotationGroup[]).find((gr) => follows(leaving, gr) && FOLLOW_ON[gr].length);
+  const pool = [...(nextGroup ? FOLLOW_ON[nextGroup] : []), ...(leaving === 'legumes' || leaving === 'potatoes' ? ['leek'] : []), ...ANYWHERE];
+  // What can go in the month it's free, or the month after.
+  const ideas = [...new Set(pool)].filter((id) => {
+    const p = plantOf(id);
+    return p.commonName !== 'Unknown plant' && (canSowIn(p, month) || canSowIn(p, (month % 12) + 1));
+  });
+  return ideas.length ? { from, ideas: ideas.slice(0, 3) } : null;
 }
 
 /** A bed taking another's crops instead: the two beds swap where their crops come from. */
@@ -403,9 +488,9 @@ export function pastCrop(plant: Plant, bed: Feature, year: number, today: string
  * months that follows its start. Leeks sown in April last until spring; garlic planted in autumn, until late summer.
  * Null: no telling, so it may be there any time.
  */
-export function goneBy(pl: Planting, plant: Plant): string | null {
+export function goneBy(pl: Planting, plant: Plant, expected?: string): string | null {
   if (pl.removedOn) return pl.removedOn;
-  const start = startOf(pl);
+  const start = startOf(pl) ?? expected;
   const months = plant.cropping?.harvestMonths.length ? plant.cropping.harvestMonths : flowerMonthsOf(plant);
   if (!start || !months.length) return null;
   const first = nextInMonths(start, months);

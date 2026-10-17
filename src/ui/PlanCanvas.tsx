@@ -51,7 +51,7 @@ import { defaultFill, fillPlanting } from '../planting/fill';
 import { isPot, spotInPot } from '../planting/pots';
 import { besideSupport, boundaryFence, holdsOne, isSupport, wherePhrase } from '../planting/supports';
 import { treeType } from '../model/trees';
-import { addPlanting, blockGrid, containerAt, mayGoUp, deletePlanting, duplicatePlanting, makePlanting, placeCopy, MAX_PLANTS, movePlanting, plantCount, plantingPoint, plantPositions, rowCount, sizedPlant, spreadOf, updatePlanting, type InGroundAt, type Layout } from '../planting/place';
+import { addPlanting, blockGrid, containerAt, mayGoUp, deletePlanting, duplicatePlanting, makePlanting, placeCopy, MAX_PLANTS, movePlanting, plantCount, plantingPoint, plantPositions, rowCount, rowSpacingOf, sizedPlant, spreadOf, updatePlanting, type InGroundAt, type Layout } from '../planting/place';
 import type { Finding } from '../planting/rules';
 import type { SunGrid } from '../sun/hours';
 import type { Sun } from '../sun/position';
@@ -726,7 +726,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
       }
     }
     const sp = plant.size.spacingMm;
-    const n = layout === 'row' && end ? rowCount(start, end, sp) : layout === 'block' && end ? blockGrid(start, end, sp).cols * blockGrid(start, end, sp).rows : 1;
+    const n = layout === 'row' && end ? rowCount(start, end, sp) : layout === 'block' && end ? blockGrid(start, end, sp, rowSpacingOf(plant)).cols * blockGrid(start, end, sp, rowSpacingOf(plant)).rows : 1;
     if (n > MAX_PLANTS) return say(`That's ${n.toLocaleString()} plants, which is more than one planting can hold. Make it smaller.`);
     const pl = makePlanting(plant, bed.id, layout === 'auto' ? 'single' : layout, start, end, placing.growing ?? null);
     const withFence = (g: Garden) => (fence ? addFeature(g, fence) : g);

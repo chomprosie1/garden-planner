@@ -163,22 +163,51 @@ export function rowCount(start: Point, end: Point, spacingMm: number): number {
   return Math.floor(distance(start, end) / spacingMm + 1e-6) + 1;
 }
 
-/** Columns and rows of a block, each plant given its spacing all round. */
-export function blockGrid(a: Point, b: Point, spacingMm: number): { cols: number; rows: number } {
-  const w = Math.abs(b[0] - a[0]);
-  const h = Math.abs(b[1] - a[1]);
-  return { cols: Math.max(1, Math.floor(w / spacingMm + 1e-6)), rows: Math.max(1, Math.floor(h / spacingMm + 1e-6)) };
+/**
+ * The spacing across and down a block, mm: rows run along its longer side, so plants are their spacing apart along
+ * it and the row spacing apart across it (traditional rows). With close spacing the two are the same.
+ */
+export function blockSpacing(a: Point, b: Point, spacingMm: number, rowSpacingMm = spacingMm): [number, number] {
+  return Math.abs(b[0] - a[0]) >= Math.abs(b[1] - a[1]) ? [spacingMm, rowSpacingMm] : [rowSpacingMm, spacingMm];
 }
 
-/** How many plants a planting holds. */
+/** Columns and rows of a block: each plant its spacing along the rows, and the row spacing between them. */
+export function blockGrid(a: Point, b: Point, spacingMm: number, rowSpacingMm = spacingMm): { cols: number; rows: number } {
+  const w = Math.abs(b[0] - a[0]);
+  const h = Math.abs(b[1] - a[1]);
+  const [sx, sy] = blockSpacing(a, b, spacingMm, rowSpacingMm);
+  return { cols: Math.max(1, Math.floor(w / sx + 1e-6)), rows: Math.max(1, Math.floor(h / sy + 1e-6)) };
+}
+
+/** A plant's block, laid at its spacing along the rows and its row spacing between them. */
+const gridOf = (pl: Planting, plant: Plant) => blockGrid([pl.x, pl.y], pl.endPoint ?? [pl.x, pl.y], plant.size.spacingMm, rowSpacingOf(plant));
+
+/** How many plants a planting holds. A block with a count (bulbs in a pot) holds that many. */
 export function plantCount(pl: Planting, plant: Plant): number {
   const end = pl.endPoint ?? [pl.x, pl.y];
   if (pl.layout === 'row') return pl.count ?? rowCount([pl.x, pl.y], end, plant.size.spacingMm);
   if (pl.layout === 'block') {
-    const { cols, rows } = blockGrid([pl.x, pl.y], end, plant.size.spacingMm);
+    if (pl.count) return pl.count;
+    const { cols, rows } = gridOf(pl, plant);
     return cols * rows;
   }
   return 1;
+}
+
+/** The golden angle, for setting plants out evenly in a circle as seeds sit in a sunflower. */
+const GOLDEN = Math.PI * (3 - Math.sqrt(5));
+
+/** n points spread evenly over the oval inside a box: a pot of bulbs. */
+function evenlyIn(a: Point, b: Point, n: number): Point[] {
+  const [cx, cy] = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  if (n <= 1) return [[Math.round(cx), Math.round(cy)]];
+  const [rx, ry] = [Math.abs(b[0] - a[0]) / 2, Math.abs(b[1] - a[1]) / 2];
+  const out: Point[] = [];
+  for (let i = 0; i < n; i++) {
+    const r = Math.sqrt((i + 0.5) / n);
+    out.push([Math.round(cx + rx * r * Math.cos(i * GOLDEN)), Math.round(cy + ry * r * Math.sin(i * GOLDEN))]);
+  }
+  return out;
 }
 
 /** Where each plant in a planting sits. */
@@ -196,13 +225,15 @@ export function plantPositions(pl: Planting, plant: Plant): Point[] {
     return out;
   }
   if (pl.layout === 'block') {
+    // A block with its own count (bulbs in a round pot): that many, spread evenly over the pot.
+    if (pl.count) return evenlyIn(start, end, pl.count);
     // A grid centred in the rectangle, so plants sit half a spacing in from its edges.
-    const s = plant.size.spacingMm;
-    const { cols, rows } = blockGrid(start, end, s);
-    const x0 = Math.min(start[0], end[0]) + (Math.abs(end[0] - start[0]) - (cols - 1) * s) / 2;
-    const y0 = Math.min(start[1], end[1]) + (Math.abs(end[1] - start[1]) - (rows - 1) * s) / 2;
+    const [sx, sy] = blockSpacing(start, end, plant.size.spacingMm, rowSpacingOf(plant));
+    const { cols, rows } = gridOf(pl, plant);
+    const x0 = Math.min(start[0], end[0]) + (Math.abs(end[0] - start[0]) - (cols - 1) * sx) / 2;
+    const y0 = Math.min(start[1], end[1]) + (Math.abs(end[1] - start[1]) - (rows - 1) * sy) / 2;
     const out: Point[] = [];
-    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) out.push([Math.round(x0 + c * s), Math.round(y0 + r * s)]);
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) out.push([Math.round(x0 + c * sx), Math.round(y0 + r * sy)]);
     return out;
   }
   return [start];

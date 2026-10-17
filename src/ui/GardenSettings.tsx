@@ -1,7 +1,7 @@
 import { useRef, useState } from 'preact/hooks';
 import { updateGarden, type Store } from '../model/store';
 import { featureLabel } from '../model/features';
-import { nameListBeds } from '../model/listLayout';
+import { nameListBeds, spreadOut } from '../model/listLayout';
 import { isListed } from '../planting/listPlant';
 import type { Garden } from '../model/types';
 import { todayIso } from '../model/ids';
@@ -196,7 +196,7 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
                   checked={(garden.view === 'list' ? 'list' : 'plan') === value}
                   onChange={() =>
                     store.apply(
-                      updateGarden(({ view: _v, ...g }) => (value === 'list' ? nameListBeds({ ...g, view: 'list' }, isListed(g), featureLabel) : g)),
+                      updateGarden(({ view: _v, ...g }) => (value === 'list' ? nameListBeds({ ...g, view: 'list' }, isListed(g), featureLabel) : spreadOut(g, isListed(g)))),
                     )
                   }
                 />

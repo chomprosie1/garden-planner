@@ -20,6 +20,7 @@ import { useWeatherNow } from './useWeather';
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const listed = (names: string[]) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : (names[0] ?? ''));
+const orList = (names: string[]) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} or ${names[names.length - 1]}` : (names[0] ?? ''));
 
 export function NextYearDialog({ garden, store, plantOf, close }: { garden: Garden; store: Store; plantOf: (id: string) => Plant; close: () => void }) {
   const app = useApp();
@@ -120,7 +121,7 @@ export function NextYearDialog({ garden, store, plantOf, close }: { garden: Gard
           Next year, drafted
         </h2>
         {draft.beds.length === 0 ? (
-          <p>There are no beds or patches of ground to draft {year} for. Pots, planters and greenhouses keep what they have, so they aren’t moved round.</p>
+          <p>There are no beds or patches of ground to draft {year} for. Pots, planters, greenhouses, fruit cages and borders keep what they have, so they aren’t moved round.</p>
         ) : (
           <>
             <p class="muted">
@@ -157,6 +158,16 @@ export function NextYearDialog({ garden, store, plantOf, close }: { garden: Gard
                       ))}
                     </ul>
                   )}
+                  {b.standing && (
+                    <p class="small muted next-standing">
+                      {lowerNames(b.standing.plantings).replace(/^./, (c) => c.toUpperCase())} {b.standing.plantings.length === 1 ? 'is' : 'are'} still standing until about {MONTH_NAMES[Number(addDays(b.standing.until, -1).slice(5, 7)) - 1]}: what comes here goes in after.
+                    </p>
+                  )}
+                  {b.after && (
+                    <p class="small next-after">
+                      Free again from about {MONTH_NAMES[Number(b.after.from.slice(5, 7)) - 1]}: follow on with {orList(b.after.ideas.map((id) => plantOf(id).commonName.toLowerCase()))}.
+                    </p>
+                  )}
                   {ask && (
                     <label class="small next-from">
                       What grew here in {year - 1}?{' '}
@@ -186,7 +197,7 @@ export function NextYearDialog({ garden, store, plantOf, close }: { garden: Gard
               </p>
             )}
             <p class="muted small">
-              Each goes in as planned, to sow or plant on the same day as this year. Pots, planters, greenhouses and plants that come back each year stay as they are.
+              Each goes in as planned, to sow or plant on the same day as this year. Pots, planters, greenhouses, fruit cages, borders and plants that come back each year stay as they are; a bed’s settings say whether it goes round.
               {draft.already > 0 && ` You’ve ${plural(draft.already, 'planting', 'plantings')} planned for ${year} already; these go alongside.`}
               {draft.replaces > 0 && ` Using it again replaces the ${plural(draft.replaces, 'planting', 'plantings')} from last time that aren’t sown yet.`}
             </p>

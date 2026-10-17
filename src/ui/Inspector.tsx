@@ -50,7 +50,6 @@ import {
   rowSpacingOf,
   setPlantingMm,
   setPlantingSize,
-  setRowCount,
   SIZE_LABEL,
   sizedPlant,
   spreadOf,
@@ -79,7 +78,9 @@ import { StageAdvice, StageCorrect, StageRail, WhatsHappened } from './PlantingS
 import { MoreMenu } from './MoreMenu';
 import { PanelTabs } from './PanelTabs';
 import { BedSoil } from './SoilFields';
+import { RotationSwitch } from './RotationSwitch';
 import { isSupport } from '../planting/supports';
+import { setPlantingCount } from '../planting/listPlant';
 import { useWeatherNow } from './useWeather';
 import { HelpLink } from './HelpLink';
 
@@ -916,6 +917,7 @@ function BedPanel(props: Shared & { bed: Feature }) {
 
       <Section id="soil" title="Soil" open={false}>
         <BedSoil store={store} garden={garden} bed={bed} />
+        <RotationSwitch garden={garden} bed={bed} plantOf={plantOf} set={(patch) => commit((g) => updateFeature(g, bed.id, patch))} />
       </Section>
 
       {past.length > 0 && (
@@ -1228,7 +1230,25 @@ function PlantingPanel(props: Props & { pl: Planting }) {
                 {canEdit && (
                   <details class="advanced">
                     <summary>Change the details</summary>
-          {layout === 'row' && <NumberField label="Plants in this row" unit="plants" value={n} min={1} max={5000} onCommit={(c) => commit((g) => setRowCount(g, pl.id, c))} />}
+          {(layout !== 'single' || rows.length > 1) && (
+            <NumberField
+              label={rows.length > 1 ? `Plants, in all ${rows.length} rows` : layout === 'row' ? 'Plants in this row' : 'Plants'}
+              unit="plants"
+              value={total}
+              min={1}
+              max={5000}
+              onCommit={(c) => {
+                // A row keeps its ends; a block grows or shrinks; rows of one sowing are laid again as that many.
+                let left = 0;
+                commit((g) => {
+                  const done = setPlantingCount(g, rows.map((r) => r.id), c, plantOf);
+                  left = done.left;
+                  return done.garden;
+                });
+                if (left > 0) app.notify(`There was room for ${c - left} of the ${c}, at their usual spacing.`);
+              }}
+            />
+          )}
           {layout === 'single' && (
             <>
               <fieldset class="choice">

@@ -222,6 +222,13 @@ export interface Feature {
   nextDoor?: boolean;
   /** How sunny a bed is, as you said: for a garden kept as a list, where there's no plan to work the sun out from. */
   light?: Light;
+  /** A bed netted over for fruit: canes in rows, bushes on a grid. It keeps its plants from year to year. */
+  fruitCage?: boolean;
+  /**
+   * Whether its crops move round the beds each year (crop rotation). Absent: a bed or patch of soil does, unless it's a
+   * fruit cage or holds only plants that come back each year and flowers.
+   */
+  rotates?: boolean;
 }
 
 /** Under glass: degrees warmer than outside by day and at night, and whether it's heated (kept frost-free). */

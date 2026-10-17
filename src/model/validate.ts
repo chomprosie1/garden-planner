@@ -102,6 +102,8 @@ export function validateGarden(g: unknown): string[] {
       need(f.support === undefined || oneOf(SUPPORTS, f.support), `${at}.support must be a trellis, arch or obelisk.`);
       need(f.nextDoor === undefined || typeof f.nextDoor === 'boolean', `${at}.nextDoor must be true or false.`);
       need(f.light === undefined || oneOf(LIGHT_LEVELS, f.light), `${at}.light must be full sun, part shade or shade.`);
+      need(f.fruitCage === undefined || typeof f.fruitCage === 'boolean', `${at}.fruitCage must be true or false.`);
+      need(f.rotates === undefined || typeof f.rotates === 'boolean', `${at}.rotates must be true or false.`);
     });
 
   need(g.spacing === undefined || g.spacing === 'close' || g.spacing === 'rows', 'spacing must be close or rows.');

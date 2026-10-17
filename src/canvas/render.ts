@@ -10,7 +10,7 @@ import { currentStage, type LifeStage } from '../lifecycle/stages';
 import { treeType } from '../model/trees';
 import { SKETCH_WIDTH, sketchesOf } from '../model/sketches';
 import type { Feature, Garden, Material, Plant, Planting, Point, Sketch, SketchColour, SketchKind } from '../model/types';
-import { blockGrid, byHeight, isActive, MAX_PLANTS, plantCount, plantingShape, plantPositions, rowCount, sizedPlant, spreadOf, type Layout, type PlantingShape } from '../planting/place';
+import { blockGrid, byHeight, rowSpacingOf, isActive, MAX_PLANTS, plantCount, plantingShape, plantPositions, rowCount, sizedPlant, spreadOf, type Layout, type PlantingShape } from '../planting/place';
 import type { Finding } from '../planting/rules';
 import { isLineSupport, trainedAngle } from '../planting/supports';
 import type { SunGrid } from '../sun/hours';
@@ -1672,7 +1672,7 @@ function drawPlantDraft(ctx: CanvasRenderingContext2D, s: Scene, d: PlantDraft) 
   let n = 1;
   if (start && d.layout === 'row') n = rowCount(start, end, sp);
   if (start && d.layout === 'block') {
-    const { cols, rows } = blockGrid(start, end, sp);
+    const { cols, rows } = blockGrid(start, end, sp, rowSpacingOf(d.plant));
     n = cols * rows;
   }
   if (d.layout === 'block' && start) {

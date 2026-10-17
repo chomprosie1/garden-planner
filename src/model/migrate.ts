@@ -1,7 +1,7 @@
 // Brings saved gardens and plants from older versions up to the current shape.
 // Bump SCHEMA_VERSION whenever the saved shape changes, and add a step here.
 
-export const SCHEMA_VERSION = 21;
+export const SCHEMA_VERSION = 22;
 
 type Raw = Record<string, unknown>;
 
@@ -117,7 +117,30 @@ export function migrateGarden(raw: unknown): unknown {
     g = { ...g, schemaVersion: 21 };
     version = 21;
   }
+  if (version === 21) {
+    g = gardenV21toV22(g);
+    version = 22;
+  }
   return g;
+}
+
+/**
+ * v22: fruit cages (fruitCage), and whether a bed's crops go round in the rotation (rotates), both optional. Beds named
+ * as a border, a flower or herb bed, or for fruit start out of the rotation, and one named as a fruit cage is one. Beds
+ * holding only perennials and flowers are left out of it as they are, without being marked.
+ */
+function gardenV21toV22(g: Raw): Raw {
+  const features = Array.isArray(g.features) ? g.features : [];
+  return {
+    ...g,
+    schemaVersion: 22,
+    features: features.map((f) => {
+      if (!isObject(f) || typeof f.name !== 'string' || f.rotates !== undefined) return f;
+      const bed = f.kind === 'bed' || (f.kind === 'surface' && f.material === 'soil');
+      if (!bed || !/\b(border|flowers?|herbs?|fruit|cage|orchard|soft fruit)\b/i.test(f.name)) return f;
+      return { ...f, rotates: false, ...(/\bcage\b/i.test(f.name) ? { fruitCage: true } : {}) };
+    }),
+  };
 }
 
 export function migratePlant(raw: unknown): unknown {

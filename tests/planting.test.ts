@@ -63,13 +63,24 @@ describe('placing plants', () => {
   });
 
   it('fills a block on a grid, half a spacing in from each edge', () => {
-    // Lettuce at 250 mm in a 1000 × 500 block: 4 × 2 plants.
+    // Lettuce at 250 mm each way in a 1000 × 500 block: 4 × 2 plants.
+    const even = { ...plant('lettuce'), size: { ...plant('lettuce').size, spacingMm: 250, rowSpacingMm: 250 } };
     expect(blockGrid([0, 0], [1000, 500], 250)).toEqual({ cols: 4, rows: 2 });
-    const b = makePlanting(plant('lettuce'), 'x', 'block', [1000, 500], [0, 0]);
-    expect(plantCount(b, plant('lettuce'))).toBe(8);
-    const pts = plantPositions(b, plant('lettuce'));
+    const b = makePlanting(even, 'x', 'block', [1000, 500], [0, 0]);
+    expect(plantCount(b, even)).toBe(8);
+    const pts = plantPositions(b, even);
     expect(pts[0]).toEqual([125, 125]);
     expect(pts[7]).toEqual([875, 375]);
+  });
+
+  it('in traditional rows, a block’s rows run along it at the row spacing (release 45)', () => {
+    // Lettuce 250 mm apart in rows 300 mm apart: a 1000 × 600 block is two rows of four, either way round.
+    expect(blockGrid([0, 0], [1000, 600], 250, 300)).toEqual({ cols: 4, rows: 2 });
+    expect(blockGrid([0, 0], [600, 1000], 250, 300)).toEqual({ cols: 2, rows: 4 });
+    const b = makePlanting(plant('lettuce'), 'x', 'block', [0, 0], [1000, 600]);
+    expect(plantCount(b, plant('lettuce'))).toBe(8);
+    const ys = [...new Set(plantPositions(b, plant('lettuce')).map((p) => p[1]))];
+    expect(ys[1]! - ys[0]!).toBe(300);
   });
 
   it('a block too small for two plants still holds one', () => {

@@ -103,7 +103,7 @@ export function makeFeature(kind: FeatureKind, shape: Shape, opts: { smooth?: bo
 
 export const roundPoint = (p: Point): Point => [Math.round(p[0]), Math.round(p[1])];
 
-export const featureLabel = (f: Feature) => f.name?.trim() || (f.kind === 'surface' ? MATERIAL_LABEL[f.material ?? 'lawn'] : KINDS[f.kind].label);
+export const featureLabel = (f: Feature) => f.name?.trim() || (f.kind === 'surface' ? MATERIAL_LABEL[f.material ?? 'lawn'] : f.fruitCage ? 'Fruit cage' : KINDS[f.kind].label);
 
 /** A place in a sentence: "the lawn", or a bed by its label. "Planted a crocus in the lawn." */
 export const placeLabel = (f: Feature) => (f.kind === 'surface' && !f.name?.trim() ? `the ${MATERIAL_LABEL[f.material ?? 'lawn'].toLowerCase()}` : featureLabel(f));

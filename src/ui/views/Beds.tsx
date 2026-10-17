@@ -15,11 +15,12 @@ import { bookedText, bookedUntil } from '../../planting/booked';
 import { currentStage, stageLabel, type LifeStage } from '../../lifecycle/stages';
 import { deleteFeatures, featureLabel, KINDS, rectInfo, resizeRectAny, updateFeature, type Target } from '../../model/features';
 import { todayIso } from '../../model/ids';
-import { addListBed, copyListBed, LIST_KIND_LABEL, LIST_KINDS, LIST_SIZE, moveInList, nameListBeds, type ListKind } from '../../model/listLayout';
+import { addListBed, copyListBed, LIST_KIND_LABEL, LIST_KINDS, LIST_SIZE, moveInList, nameListBeds, spreadOut, type ListKind } from '../../model/listLayout';
 import { updateGarden, type Store } from '../../model/store';
 import { LIGHT_LEVELS, type Feature, type Garden, type Light, type Plant, type Planting } from '../../model/types';
-import { FILL_LABEL, fillsFor, type Fill } from '../../planting/fill';
-import { fullText, howFull, isListed, listBeds, moveToListBed, placeInList, plantableBeds, plantOutInList, type ListHow } from '../../planting/listPlant';
+import { defaultFill, FILL_LABEL, fillsFor, type Fill } from '../../planting/fill';
+import { RotationSwitch } from '../RotationSwitch';
+import { fullText, howFull, isListed, listBeds, moveRoom, moveToListBed, placeInList, plantableBeds, plantOutInList, rowsOfSowing, sowingKey, type ListHow } from '../../planting/listPlant';
 import { isActive, plantCount, spacingStyle, type InGroundAt } from '../../planting/place';
 import { checkGarden } from '../../planting/rules';
 import { isSupport } from '../../planting/supports';
@@ -71,7 +72,7 @@ function sizeText(f: Feature): string {
 }
 
 /** What it is, in a word or two: "Raised bed", "Pot", "Patch of ground". */
-const kindText = (f: Feature) => (f.kind === 'surface' ? 'Patch of ground' : KINDS[f.kind].label);
+const kindText = (f: Feature) => (f.kind === 'surface' ? 'Patch of ground' : f.fruitCage ? 'Fruit cage' : KINDS[f.kind].label);
 
 export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: Props) {
   const app = useApp();
@@ -81,8 +82,6 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
   const month = Number(today.slice(5, 7));
   const year = Number(today.slice(0, 4));
   const [sheet, setSheet] = useState<Target | null>(null);
-  // The rows shown with the one opened, as one line: what's happened applies to them too.
-  const [together, setTogether] = useState<string[]>([]);
   const [adding, setAdding] = useState<{ bedId?: string; plantId?: string; trayId?: string } | null>(null);
   const [addingBed, setAddingBed] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
@@ -138,7 +137,8 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
                 label: 'Show it as a plan',
                 icon: 'plan',
                 onSelect: () => {
-                  store.apply(updateGarden(({ view: _v, ...g }) => g));
+                  // Beds that have come to overlap in the list are moved apart, with their plants, before the plan shows them.
+                  store.apply(updateGarden(({ view: _v, ...g }) => spreadOut(g, isListed(g))));
                   app.notify('Now a plan: your beds are set out neatly, ready to arrange. Settings has the list again.', { undo: true });
                 },
               },
@@ -176,7 +176,7 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
             warnings={[...new Set(findings.filter((f) => f.level === 'warn' && (f.featureIds.includes(bed.id) || garden.plantings.some((p) => p.featureId === bed.id && f.plantingIds.includes(p.id)))).map((f) => f.message))]}
             today={today}
             weather={weather}
-            open={(t, ids = []) => (setSheet(t), setTogether(ids))}
+            open={setSheet}
             addPlant={() => setAdding({ bedId: bed.id })}
             edit={() => setEditing(bed.id)}
           />
@@ -205,7 +205,7 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
             sunLens={false}
             locked={false}
             selected={sheet}
-            setSelected={(t) => (setSheet(t), setTogether([]))}
+            setSelected={setSheet}
             setTool={() => {}}
             calibration={null}
             clearCalibration={() => {}}
@@ -224,13 +224,14 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
             zoomTo={() => {}}
             list
             moveToBed={(id) => setMoving(id)}
-            together={sheet.type === 'planting' ? together : []}
+            // Worked out afresh, so a planting laid again as more rows keeps them all together.
+            together={sheet.type === 'planting' ? rowsOfSowing(garden, sheet.id) : []}
           />
         </Sheet>
       )}
       {addingBed && <AddBedDialog store={store} close={() => setAddingBed(false)} />}
       {adding && plants && <AddPlantDialog store={store} garden={garden} plants={plants} plantOf={plantOf} month={month} start={adding} close={() => setAdding(null)} newBed={() => (setAdding(null), setAddingBed(true))} />}
-      {editing && <EditBedDialog store={store} garden={garden} bedId={editing} close={() => setEditing(null)} />}
+      {editing && <EditBedDialog store={store} garden={garden} bedId={editing} plantOf={plantOf} close={() => setEditing(null)} />}
       {moving && <MoveDialog store={store} garden={garden} plantOf={plantOf} plantingId={moving} close={() => setMoving(null)} />}
       {clearing && plants && <ClearBedsDialog garden={garden} store={store} plantOf={plantOf} close={() => setClearing(false)} />}
       {drafting && plants && <NextYearDialog garden={garden} store={store} plantOf={plantOf} close={() => setDrafting(false)} />}
@@ -253,7 +254,7 @@ interface CardProps {
   today: string;
   weather: ReturnType<typeof useWeatherNow>['weather'];
   /** Opens a bed or planting; for a line of rows alike, the others too. */
-  open: (t: Target, together?: string[]) => void;
+  open: (t: Target) => void;
   addPlant: () => void;
   edit: () => void;
 }
@@ -269,7 +270,7 @@ function BedCard({ bed, first, last, garden, store, plantOf, jobs, warnings, tod
   const groups = useMemo(() => {
     const out = new Map<string, Planting[]>();
     for (const pl of here) {
-      const k = `${pl.plantId}|${currentStage(pl)}|${pl.sownOn ?? ''}|${pl.sowBy ?? ''}|${pl.layout ?? 'single'}`;
+      const k = sowingKey(pl);
       out.set(k, [...(out.get(k) ?? []), pl]);
     }
     return [...out.values()];
@@ -362,7 +363,7 @@ function BedCard({ bed, first, last, garden, store, plantOf, jobs, warnings, tod
             const which = group.length > 1 && pl.layout !== 'single' && pl.layout ? plural(group.length, unit[0]!, unit[1]!) : undefined;
             return (
               <li key={pl.id}>
-                <PlantingRow pl={pl} plant={plant} count={n} garden={garden} today={today} weather={weather} which={which} open={() => open({ type: 'planting', id: pl.id }, group.slice(1).map((x) => x.id))} />
+                <PlantingRow pl={pl} plant={plant} count={n} garden={garden} today={today} weather={weather} which={which} open={() => open({ type: 'planting', id: pl.id })} />
               </li>
             );
           })}
@@ -643,7 +644,11 @@ function AddPlantDialog({ store, garden, plants, plantOf, month, start, close, n
   // The usual way for this plant in this bed, until you choose.
   const [chosenHow, setChosenHow] = useState(false);
   useEffect(() => {
-    if (!chosenHow && bed && plant) setHow(ways.includes('row') && bed.kind !== 'pot' && plant.art?.crop?.kind === 'root' ? 'row' : (ways[ways.length - 1] ?? 'one'));
+    if (!chosenHow && bed && plant) {
+      // The usual way for it: a row of raspberry canes, or one blackcurrant bush, rather than a bed full.
+      const usual = defaultFill(plant, bed);
+      setHow(ways.includes('row') && bed.kind !== 'pot' && plant.art?.crop?.kind === 'root' ? 'row' : usual !== 'fill' && ways.includes(usual) ? usual : (ways[ways.length - 1] ?? 'one'));
+    }
   }, [bedId, plantId]);
   /** Back to the beds, with the plants still to place as a number. */
   const theRest = (text: string, left?: number) => {
@@ -808,11 +813,12 @@ function MetresInput({ mm, commit }: { mm: number; commit: (text: string) => voi
   );
 }
 
-function EditBedDialog({ store, garden, bedId, close }: { store: Store; garden: Garden; bedId: string; close: () => void }) {
+function EditBedDialog({ store, garden, bedId, plantOf, close }: { store: Store; garden: Garden; bedId: string; plantOf: (id: string) => Plant; close: () => void }) {
   const ref = useModal();
   const bed = garden.features.find((f) => f.id === bedId);
   if (!bed) return null;
-  const set = (patch: Partial<Feature>) => store.apply(updateGarden((g) => updateFeature(g, bed.id, patch)));
+  // A bed made bigger onto the next one is moved clear of it, with its plants.
+  const set = (patch: Partial<Feature>) => store.apply(updateGarden((g) => (patch.footprint || patch.circle ? spreadOut(updateFeature(g, bed.id, patch), (f) => f.id === bed.id) : updateFeature(g, bed.id, patch))));
   // A pot by how far across; a bed drawn as a rectangle by its width and length. A shape drawn by hand keeps its size.
   const rect = !bed.circle && !bed.smooth ? rectInfo(bed.footprint) : null;
   return (
@@ -870,6 +876,7 @@ function EditBedDialog({ store, garden, bedId, close }: { store: Store; garden: 
         </label>
         <p class="muted small">Plants that want more sun, or less, are flagged on the bed.</p>
         <BedSoil store={store} garden={garden} bed={bed} />
+        <RotationSwitch garden={garden} bed={bed} plantOf={plantOf} set={set} />
         <div class="button-row">
           <button type="button" class="btn btn-primary" onClick={() => ref.current?.close()}>
             Done
@@ -884,16 +891,38 @@ function EditBedDialog({ store, garden, bedId, close }: { store: Store; garden: 
 function MoveDialog({ store, garden, plantOf, plantingId, close }: { store: Store; garden: Garden; plantOf: (id: string) => Plant; plantingId: string; close: () => void }) {
   const app = useApp();
   const ref = useModal();
+  // A bed without room for all of them: asked first, never cut short quietly.
+  const [asking, setAsking] = useState<{ bed: Feature; have: number; fit: number } | null>(null);
   const pl = garden.plantings.find((p) => p.id === plantingId);
   if (!pl) return null;
   const others = plantableBeds(garden).filter((b) => b.id !== pl.featureId);
+  const name = plantOf(pl.plantId).commonName.toLowerCase();
+  const move = (b: Feature, keepAll: boolean, n: number) => {
+    store.apply(updateGarden((g) => moveToListBed(g, plantingId, b.id, plantOf, keepAll)));
+    app.notify(n < (asking?.have ?? n) ? `${n} moved to ${featureLabel(b)}; the rest stay where they were.` : `Moved to ${featureLabel(b)}.`, { undo: true });
+    ref.current?.close();
+  };
   return (
     <dialog ref={ref} class="dialog" aria-labelledby="move-title" onClose={close}>
       <div class="dialog-body">
         <h2 id="move-title" class="title">
           Move {plantOf(pl.plantId).commonName.toLowerCase()}
         </h2>
-        {others.length === 0 ? (
+        {asking ? (
+          <>
+            <p>
+              {featureLabel(asking.bed)} has room for {asking.fit} of the {asking.have} {name} plants, at their usual spacing.
+            </p>
+            <div class="button-row">
+              <button type="button" class="btn btn-primary" onClick={() => move(asking.bed, true, asking.have)}>
+                Move all {asking.have}, closer together
+              </button>
+              <button type="button" class="btn" onClick={() => move(asking.bed, false, asking.fit)}>
+                Move {asking.fit}, leave the rest
+              </button>
+            </div>
+          </>
+        ) : others.length === 0 ? (
           <p class="muted">There's no other bed to move it to. Add one first.</p>
         ) : (
           <ul class="plain-list bed-pick">
@@ -903,9 +932,9 @@ function MoveDialog({ store, garden, plantOf, plantingId, close }: { store: Stor
                   type="button"
                   class="btn bed-pick-btn"
                   onClick={() => {
-                    store.apply(updateGarden((g) => moveToListBed(g, plantingId, b.id, plantOf)));
-                    app.notify(`Moved to ${featureLabel(b)}.`, { undo: true });
-                    ref.current?.close();
+                    const room = moveRoom(garden, plantingId, b.id, plantOf);
+                    if (room && room.fit < room.have) setAsking({ bed: b, ...room });
+                    else move(b, false, room?.have ?? 1);
                   }}
                 >
                   <BedPicture garden={garden} bed={b} plantOf={plantOf} />

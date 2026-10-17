@@ -5,11 +5,11 @@
 // Pure functions: a garden in, a new garden out.
 
 import { bounds, pointInPolygon, type Bounds } from '../geometry/polygon';
-import { addFeature, makeFeature, rectPoints } from './features';
+import { addFeature, makeFeature, moveFeature, rectPoints } from './features';
 import type { Feature, FeatureKind, Garden, Point } from './types';
 
 /** What can be added from a list, and its usual size, mm (width × depth, or across for a pot). */
-export const LIST_KINDS = ['bed', 'pot', 'planter', 'greenhouse', 'cold-frame', 'ground', 'cardboard'] as const;
+export const LIST_KINDS = ['bed', 'pot', 'planter', 'greenhouse', 'cold-frame', 'fruit-cage', 'ground', 'cardboard'] as const;
 export type ListKind = (typeof LIST_KINDS)[number];
 
 export const LIST_KIND_LABEL: Record<ListKind, string> = {
@@ -18,6 +18,7 @@ export const LIST_KIND_LABEL: Record<ListKind, string> = {
   planter: 'A planter or window box',
   greenhouse: 'A greenhouse',
   'cold-frame': 'A cold frame',
+  'fruit-cage': 'A fruit cage',
   ground: 'A patch of ground',
   cardboard: 'Cardboard over weeds',
 };
@@ -28,6 +29,7 @@ export const LIST_SIZE: Record<ListKind, [number, number]> = {
   planter: [1000, 400],
   greenhouse: [1800, 2400],
   'cold-frame': [1200, 600],
+  'fruit-cage': [3000, 4000],
   ground: [3000, 2000],
   cardboard: [2000, 1200],
 };
@@ -83,6 +85,35 @@ export function placeFor(g: Garden, w: number, d: number): { at: Point; outside:
   return { at: alongRows(taken, w, d, edge.maxX + GAP, edge.minY, ROW_MM), outside: true };
 }
 
+/**
+ * Beds set out by a list moved apart where they've come to overlap (one made bigger in the list, or set out by a kit),
+ * before the plan is shown: each one on top of another goes to the next free place, its plants with it. Only `which`
+ * are moved, and everything else is settled first, so the house and paths stay put; of two that may move, the first
+ * in the list stays.
+ */
+export function spreadOut(g: Garden, which: (f: Feature) => boolean): Garden {
+  let next = g;
+  const kept: { f: Feature; b: Bounds }[] = [];
+  // Pots stand on a patio or path, and in a greenhouse or cold frame: only a bed or pot on top of another, or on a
+  // building or pond, is in the wrong place.
+  const solid = (k: Feature) => k.kind !== 'surface' && k.kind !== 'path';
+  const standsIn = (f: Feature, k: Feature) => (f.kind === 'pot' || f.kind === 'planter') && (k.kind === 'greenhouse' || k.kind === 'cold-frame');
+  const over = (a: Bounds, k: Bounds) => a.minX < k.maxX && k.minX < a.maxX && a.minY < k.maxY && k.minY < a.maxY;
+  for (const f of [...g.features.filter((x) => !which(x)), ...g.features.filter(which)]) {
+    if (!inTheWay(f)) continue;
+    const b = bounds(f.footprint);
+    if (!b) continue;
+    const onTop = solid(f) && kept.some((k) => solid(k.f) && !standsIn(f, k.f) && !standsIn(k.f, f) && over(b, k.b));
+    if (onTop && which(f)) {
+      // Somewhere clear of everything but itself.
+      const { at } = placeFor({ ...next, features: next.features.filter((x) => x.id !== f.id) }, b.maxX - b.minX, b.maxY - b.minY);
+      next = moveFeature(next, f.id, at[0] - b.minX, at[1] - b.minY);
+      kept.push({ f, b: { minX: at[0], minY: at[1], maxX: at[0] + b.maxX - b.minX, maxY: at[1] + b.maxY - b.minY } });
+    } else kept.push({ f, b });
+  }
+  return next;
+}
+
 /** The first free place for something w × d: see `placeFor`. */
 export const freeSpot = (g: Garden, w: number, d: number): Point => placeFor(g, w, d).at;
 
@@ -94,12 +125,14 @@ export const freeSpot = (g: Garden, w: number, d: number): Point => placeFor(g, 
 export function addListBed(g: Garden, kind: ListKind, name: string, size?: [number, number]): [Garden, string, boolean] {
   const [w, d] = size ?? LIST_SIZE[kind];
   const { at: [x, y], outside } = placeFor(g, w, kind === 'pot' ? w : d);
-  const featureKind: FeatureKind = kind === 'ground' || kind === 'cardboard' ? 'surface' : kind;
+  const featureKind: FeatureKind = kind === 'ground' || kind === 'cardboard' ? 'surface' : kind === 'fruit-cage' ? 'bed' : kind;
   const shape = kind === 'pot' ? { circle: { centre: [x + w / 2, y + w / 2] as Point, radiusMm: w / 2 } } : { area: rectPoints({ x, y, w, h: d }) };
   let f = makeFeature(featureKind, shape);
   if (kind === 'ground') f = { ...f, material: 'soil' };
   // Cardboard laid over a weedy patch, to plant into its mulch; it gets a job to check it once it's rotted down.
   if (kind === 'cardboard') f = { ...f, material: 'cardboard' };
+  // A fruit cage is a bed netted over: canes and bushes, kept out of the rotation.
+  if (kind === 'fruit-cage') f = { ...f, fruitCage: true };
   if (name.trim()) f = { ...f, name: name.trim() };
   return [addFeature(g, f), f.id, outside];
 }
@@ -142,7 +175,7 @@ export function nameListBeds(g: Garden, isListed: (f: Feature) => boolean, label
 
 /** The kind to add from the list that a bed is, if it's one the list adds. */
 export function listKindOf(f: Feature): ListKind | null {
-  const kind = f.kind === 'surface' ? (f.material === 'cardboard' ? 'cardboard' : 'ground') : f.kind;
+  const kind = f.kind === 'surface' ? (f.material === 'cardboard' ? 'cardboard' : 'ground') : f.fruitCage ? 'fruit-cage' : f.kind;
   return (LIST_KINDS as readonly string[]).includes(kind) ? (kind as ListKind) : null;
 }
 
