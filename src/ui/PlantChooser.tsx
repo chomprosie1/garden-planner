@@ -5,7 +5,7 @@
 
 import { useApp } from './appContext';
 import { useMemo, useState } from 'preact/hooks';
-import { canSowIn } from '../library/library';
+import { canSowIn, plantMatches } from '../library/library';
 import { beginnerOrder, isEasy, MORE_PLANTS, splitCore } from '../library/order';
 import type { Garden, Plant } from '../model/types';
 import { Icon } from './icons';
@@ -32,7 +32,14 @@ export function PlantChooser({ plants, garden, month, pick }: { plants: Plant[];
     [plants, growable, month, garden.wishlist, garden.seeds, byId],
   );
   const q = query.trim().toLowerCase();
-  const shown = q ? plants.filter((p) => p.category !== 'weed' && `${p.commonName} ${p.latinName ?? ''}`.toLowerCase().includes(q)) : lists[filter];
+  // Typed: plural or not, best match first.
+  const shown = q
+    ? plants
+        .map((p) => ({ p, score: p.category === 'weed' ? null : plantMatches(p, q.split(/\s+/)) }))
+        .filter((x): x is { p: Plant; score: number } => x.score !== null)
+        .sort((a, b) => b.score - a.score)
+        .map((x) => x.p)
+    : lists[filter];
   const split = !q && (filter === 'now' || filter === 'easy' || filter === 'all') ? splitCore(shown) : { core: shown, more: [] };
   // Plants still being checked are listed only if you've asked for them in Settings; search finds them anyway.
   const { core, more } = draftPlants ? split : { core: split.core, more: [] };

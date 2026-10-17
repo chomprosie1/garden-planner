@@ -54,9 +54,14 @@ const isTyping = (t: EventTarget | null) =>
 
 interface Toast {
   text: string;
-  /** The state just after the change; Undo only works while nothing else has changed since. */
+  /** The state just after the change: Undo goes back to before it. */
   after: AppState | null;
+  /** When it was shown: Undo stays for at least this long, even if something follows on from the change. */
+  at: number;
 }
+
+/** How long Undo stays on a toast, at least, ms. */
+const UNDO_FOR = 5000;
 
 export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStore }) {
   const { garden, userPlants } = useAppState(store);
@@ -67,6 +72,8 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [planIntent, setPlanIntent] = useState<PlanIntent | null>(null);
   const [plantCard, setPlantCard] = useState<string | null>(null);
+  /** Asked for the plants to sow or plant now (from search): Plants opens on them. */
+  const [sowNow, setSowNow] = useState(false);
   /** Where a plant's card was opened from, so its Back goes there. */
   const [plantFrom, setPlantFrom] = useState<View | null>(null);
   const [checkFrom, setCheckFrom] = useState<string | null>(null);
@@ -97,7 +104,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
     () => ({
       notify(text, opts) {
         clearTimeout(toastTimer.current);
-        setToast({ text, after: opts?.undo ? store.get() : null });
+        setToast({ text, after: opts?.undo ? store.get() : null, at: Date.now() });
         toastTimer.current = setTimeout(() => setToast(null), opts?.undo ? 8000 : 5000);
       },
       go: navigate,
@@ -274,6 +281,9 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
         return toPlan({ kind: '3d' });
       case 'wrapped':
         return setWrapping(true);
+      case 'sowNow':
+        setSowNow(true);
+        return navigate('plants');
       case 'help':
         return actions.openHelp(c.id);
     }
@@ -309,6 +319,8 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
             openId={plantCard}
             clearOpen={() => setPlantCard(null)}
             backTo={plantFrom}
+            sowNow={sowNow}
+            clearSowNow={() => setSowNow(false)}
             editor={prefs.plantEditor}
             checkPlant={(id) => {
               setCheckFrom(id);
@@ -344,12 +356,13 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   })();
 
   const current = PARENT[view] ?? view;
-  const canUndo = !!toast?.after && store.get() === toast.after;
+  // Undo while nothing else has changed, or for its first few seconds whatever follows on from the change.
+  const canUndo = !!toast?.after && store.canUndo() && (store.get() === toast.after || Date.now() - toast.at < UNDO_FOR);
 
   return (
     <AppContext.Provider value={actions}>
       <WeatherContext.Provider value={weather}>
-      <div class="app" data-view={view}>
+      <div class="app" data-view={view} {...(garden.view === 'list' ? { 'data-list': '' } : {})}>
         <nav class="rail" aria-label="Main">
           {NAV.map((n) => (
             <a
@@ -392,7 +405,8 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
                 type="button"
                 class="toast-undo"
                 onClick={() => {
-                  store.undo();
+                  // The change itself, and in its first few seconds anything that followed on from it.
+                  if (store.get() === toast.after || Date.now() - toast.at < UNDO_FOR) store.undoPast(toast.after!);
                   setToast(null);
                 }}
               >

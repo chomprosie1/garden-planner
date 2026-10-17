@@ -16,6 +16,11 @@ export interface Store {
   redo(): void;
   canUndo(): boolean;
   canRedo(): boolean;
+  /**
+   * Undo a change and anything that has followed on from it: back to the state before `after`, the state just after
+   * the change. Nothing happens if `after` is neither the current state nor in the history (already undone, or forgotten).
+   */
+  undoPast(after: AppState): void;
   /** Replace everything, e.g. after an import. Clears undo history. */
   replace(state: AppState): void;
 }
@@ -54,6 +59,13 @@ export function createStore(initial: AppState, historyLimit = 100): Store {
       if (!next) return;
       past.push(state);
       state = next;
+      emit();
+    },
+    undoPast(after) {
+      const at = state === after ? past.length : past.lastIndexOf(after);
+      if (at < 1) return;
+      future.push(state, ...past.splice(at).reverse());
+      state = past.pop()!;
       emit();
     },
     canUndo: () => past.length > 0,

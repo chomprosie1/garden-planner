@@ -82,7 +82,7 @@ export function Month({ store, garden, userPlants, prefs, go, back, now = new Da
             , or tap the heart on plants you want to grow, and their sowing, planting and harvest jobs appear here.
           </p>
         )}
-        {hasPlants && <p class="muted small">Harvest and winter jobs start once a planting has a sowing date. Ticking its sowing job sets the date, or you can set it on the plan.</p>}
+        {hasPlants && <p class="muted small">Harvest and winter jobs start once a planting has a sowing date. Ticking its sowing job sets the date, or you can set it in the planting’s “What’s happened?”.</p>}
       </section>
 
       {plants && <PlanAheadCard store={store} garden={garden} plantOf={plantOf} feeding={prefs.feeding} />}

@@ -37,6 +37,29 @@ describe('store', () => {
     expect(store.canUndo()).toBe(false);
   });
 
+  it('undoes a change and what followed on, but nothing before it (a toast’s Undo, release 40)', () => {
+    const store = createStore(newAppState());
+    store.apply(rename('A'));
+    store.apply(rename('B'));
+    const after = store.get();
+    store.apply(rename('C'));
+    store.apply(rename('D'));
+    store.undoPast(after);
+    expect(store.get().garden.name).toBe('A');
+    store.redo();
+    store.redo();
+    store.redo();
+    expect(store.get().garden.name).toBe('D');
+    // Already undone some other way (Ctrl+Z): the toast's Undo does nothing more.
+    store.undo();
+    store.undo();
+    store.undo();
+    store.undoPast(after);
+    expect(store.get().garden.name).toBe('A');
+    store.undoPast(store.get());
+    expect(store.get().garden.name).toBe('My garden');
+  });
+
   it('keeps at most the history limit', () => {
     const store = createStore(newAppState(), 3);
     for (const n of ['1', '2', '3', '4', '5']) store.apply(rename(n));

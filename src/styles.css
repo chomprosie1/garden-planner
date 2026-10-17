@@ -283,7 +283,8 @@ button:disabled {
   min-height: 0;
   overflow-y: auto;
 }
-.app[data-view='plan'] .screen {
+/* The plan fills the screen and pans itself; a garden kept as a list scrolls like any page. */
+.app[data-view='plan']:not([data-list]) .screen {
   overflow: hidden;
 }
 .nav-item {
@@ -2142,8 +2143,14 @@ button:disabled {
   text-underline-offset: 0.2em;
   cursor: help;
 }
+/* Opened from a heading in capitals, it doesn't take on the heading's look. */
 .word-dialog {
   width: min(26rem, calc(100% - 2rem));
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: normal;
+  font-size: 1rem;
+  color: var(--text);
 }
 .word-dialog p {
   margin-bottom: 0.9rem;
@@ -6464,6 +6471,13 @@ h2 {
   flex-wrap: wrap;
   gap: 0.35rem;
 }
+/* A long job ("Sow outside, or under cover in a cold frame: …") wraps inside the card rather than running off it. */
+.bed-jobs .chip {
+  max-width: 100%;
+  white-space: normal;
+  border-radius: 1rem;
+  line-height: 1.3;
+}
 .bed-warn {
   margin: 0;
   color: var(--warn-text);
@@ -6684,4 +6698,19 @@ h2 {
 .season-key-q {
   cursor: pointer;
   font-weight: 700;
+}
+/* A switch in Settings: the box beside its words, both growing with the text size (release 40). */
+.switch-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6em;
+  cursor: pointer;
+  line-height: 1.35;
+}
+.switch-row input[type='checkbox'] {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+  margin: 0.1em 0 0;
+  accent-color: var(--accent);
 }

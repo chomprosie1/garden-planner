@@ -248,7 +248,7 @@ export const HELP: HelpTopic[] = [
       'Or tick its box, or swipe it to the right. Ticking a sowing or planting job dates the plants, so the jobs that follow are timed from then.',
       'A word with a dotted line under it, such as hardening off, opens what it means.',
     ],
-    notes: ['Every job for the month, and the general ones for your garden, are under All … jobs at the foot of the list. Ticked something by mistake? Tick it again, or Undo.'],
+    notes: ['Every job for the month, and the general ones for your garden, are under the link to all of the month’s jobs, such as All October jobs, at the foot of the list. Ticked something by mistake? Tick it again, or Undo.'],
     related: ['harvest', 'feeding', 'words'],
     words: 'jobs today this week tasks to do tick done how to now later month what does it mean',
   },
@@ -452,7 +452,7 @@ export const HELP: HelpTopic[] = [
     view: 'month',
     tier: 3,
     steps: [
-      'From September to February, Today has Planning ahead: choose Draft it beside Next year. Any time, it’s under All … jobs at the foot of Today’s list, and Draft next year is in the plan’s ⋯ menu.',
+      'From September to February, Today has Planning ahead: choose Draft it beside Next year. Any time, it’s under the link to all of the month’s jobs at the foot of Today’s list, and Draft next year is in the plan’s ⋯ menu.',
       'Each bed’s crops move on a step, as the RHS’s four-year rotation has it: peas and beans, then the cabbage family, then potatoes and tomatoes, then onions and roots. Salads, squashes, sweetcorn and peppers can go anywhere, so they move with the bed they’re in.',
       'Change which bed takes which crops with Takes the crops from. Untick anything you won’t grow again.',
       'Crops that didn’t come up or ran behind are left out; tick one to put it back. Ones you picked from are marked Did well.',
@@ -474,7 +474,7 @@ export const HELP: HelpTopic[] = [
     view: 'month',
     tier: 3,
     steps: [
-      'From September to February, Today has Planning ahead: choose Open beside Shopping list. Any time, it’s under All … jobs at the foot of Today’s list, and in the plan’s ⋯ menu.',
+      'From September to February, Today has Planning ahead: choose Open beside Shopping list. Any time, it’s under the link to all of the month’s jobs at the foot of Today’s list, and in the plan’s ⋯ menu.',
       'It lists seed, plants, compost and feed for what’s planned on the plan and on your Want to grow list. Seed already in your tin, and feeds on your shelf, are left off.',
       'Tick things as you buy them. A tick lasts the season.',
       'Share the list sends what’s left to buy to a message or a note.',

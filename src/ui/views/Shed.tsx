@@ -12,6 +12,7 @@ import {
   CONTAINER_LABEL,
   daysBetween,
   defaultContainer,
+  indoorGroups,
   failTray,
   frostDates,
   inYear,
@@ -294,7 +295,8 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
               <h2 id="indoors-head">Sown for the plan</h2>
               <p class="muted small">These already have a place in a bed. They’re here while they grow on under cover.</p>
               <ul class="plain-list shed-indoors">
-                {indoors.map((pl) => {
+                {indoorGroups(indoors).map((rows) => {
+                  const pl = rows[0]!;
                   const p = plantOf(pl.plantId);
                   const stage = currentStage(pl) as TrayStage;
                   const next = plantingNext(pl, p, garden, today);
@@ -306,10 +308,11 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
                     <li key={pl.id} class="shed-indoor-row">
                       <PlantIcon plant={p} size={30} stage={stage} />
                       <span class="shed-indoor-text">
-                        <strong>{p.commonName}</strong> for {bed ? featureLabel(bed) : 'a bed'} · {STAGE_NAME[stage]}
+                        <strong>{p.commonName}</strong> for {bed ? featureLabel(bed) : 'a bed'}
+                        {rows.length > 1 ? ` (${rows.length} rows)` : ''} · {STAGE_NAME[stage]}
                         <span class="small muted">{next.text}</span>
                       </span>
-                      <button type="button" class={`btn ${next.ready ? 'btn-primary' : ''}`} onClick={() => commit((g) => setIndoorStage(g, pl.id, forward, today))}>
+                      <button type="button" class={`btn ${next.ready ? 'btn-primary' : ''}`} onClick={() => commit((g) => setIndoorStage(g, rows.map((r) => r.id), forward, today))}>
                         {forward === 'germinated' ? 'Mark as up' : forward === 'hardening' ? 'Start hardening off' : 'Mark as planted out'}
                       </button>
                     </li>

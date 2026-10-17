@@ -492,7 +492,7 @@ function WeatherSwitch({ garden, prefsStore }: { garden: Garden; prefsStore: Pre
   const pct = soFar && soFar.usual > 0 ? Math.round(((soFar.actual - soFar.usual) / soFar.usual) * 100) : null;
   return (
     <div class="weather-switch">
-      <label class="check-row">
+      <label class="switch-row">
         <input type="checkbox" checked={prefs.weather} onChange={(e) => prefsStore.set({ weather: (e.currentTarget as HTMLInputElement).checked })} />
         <span>Use this year’s weather and the forecast</span>
       </label>
@@ -570,7 +570,7 @@ function Reminders({ prefsStore }: { prefsStore: PrefsStore }) {
       <HelpTitle id="reminders" topic="reminders">
         Reminders
       </HelpTitle>
-      <label class="check-row">
+      <label class="switch-row">
         <input type="checkbox" checked={prefs.reminders} onChange={toggle('reminders')} />
         <span>Frost warnings</span>
       </label>
@@ -578,17 +578,17 @@ function Reminders({ prefsStore }: { prefsStore: PrefsStore }) {
         When a frost could hurt your tender plants or seedlings. To check, the app sends your garden’s location, rounded to about a kilometre, to Open-Meteo now
         and then.
       </p>
-      <label class="check-row">
+      <label class="switch-row">
         <input type="checkbox" checked={prefs.weeklyNudge} onChange={toggle('weeklyNudge')} />
         <span>This week’s jobs, on Mondays</span>
       </label>
       <p class="muted small">What there is to sow, harden off or plant out that week. Nothing is sent anywhere for this.</p>
-      <label class="check-row">
+      <label class="switch-row">
         <input type="checkbox" checked={prefs.weeding} onChange={(e) => prefsStore.set({ weeding: (e.currentTarget as HTMLInputElement).checked })} />
         <span>Weeding reminders</span>
       </label>
       <p class="muted small">A “Weed the beds” job each month from March to October, with what to do that month. Weeds you’ve marked on the plan get their own jobs either way.</p>
-      <label class="check-row">
+      <label class="switch-row">
         <input type="checkbox" checked={prefs.feeding} onChange={(e) => prefsStore.set({ feeding: (e.currentTarget as HTMLInputElement).checked })} />
         <span>Feeding reminders</span>
       </label>

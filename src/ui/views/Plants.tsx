@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Heart } from '../Heart';
-import { blankPlant, copyAsUserPlant, deleteUserPlant, emptyFilter, filterPlants, saveUserPlant, type PlantFilter } from '../../library/library';
-import { beginnerOrder, splitCore } from '../../library/order';
+import { blankPlant, canSowIn, copyAsUserPlant, deleteUserPlant, emptyFilter, filterPlants, saveUserPlant, type PlantFilter } from '../../library/library';
+import { beginnerOrder, isEasy, splitCore } from '../../library/order';
 import { MorePlants } from '../MorePlants';
 import { featureLabel } from '../../model/features';
 import { currentStage, stageLabel } from '../../lifecycle/stages';
@@ -12,7 +12,6 @@ import { LIGHT_LEVELS, PLANT_CATEGORIES, type Garden, type Plant } from '../../m
 import { onWishlist, toggleWishlist } from '../../calendar/jobs';
 import { updateGarden } from '../../model/store';
 import type { View } from '../../theme/prefs';
-import { formatLength } from '../../canvas/viewport';
 import { useIsPhone } from '../hooks';
 import { Icon } from '../icons';
 import { SettingsButton } from '../SettingsButton';
@@ -33,6 +32,9 @@ interface Props {
   clearOpen?: () => void;
   /** The screen the card was opened from (a job's About on Today): Back goes there, not to all plants. */
   backTo?: View | null;
+  /** Open on what can be sown or planted this month ("what can I grow now?"). */
+  sowNow?: boolean;
+  clearSowNow?: () => void;
   /** Opens the plant check at this plant. */
   checkPlant?: (id: string) => void;
   /** Show the tools for checking plant notes: whether each is checked, and a filter for checked ones. */
@@ -45,7 +47,7 @@ type Panel = { kind: 'card'; id: string } | { kind: 'form'; plant: Plant } | nul
 /** Where Back goes, in words. */
 const BACK_NAME: Partial<Record<View, string>> = { home: 'Today', plan: 'your garden', month: 'the month’s jobs', shed: 'the Shed' };
 
-export function Plants({ store, garden, userPlants, go, openId = null, clearOpen, backTo = null, checkPlant, editor = false, now = new Date() }: Props) {
+export function Plants({ store, garden, userPlants, go, openId = null, clearOpen, backTo = null, sowNow = false, clearSowNow, checkPlant, editor = false, now = new Date() }: Props) {
   const app = useApp();
   const phone = useIsPhone();
   const month = now.getMonth() + 1;
@@ -56,6 +58,15 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
   const { plants: loaded, library } = usePlants(userPlants);
   const failed = library !== null && library.length === 0;
   const plants = loaded ?? [];
+
+  // Search asked what can be grown now: this month's, the easy ones first if there are any.
+  useEffect(() => {
+    if (!sowNow || !loaded) return;
+    const easy = loaded.some((p) => isEasy(p) && canSowIn(p, month));
+    setFilter({ ...emptyFilter, sowMonth: month, easyOnly: easy });
+    setPanel(null);
+    clearSowNow?.();
+  }, [sowNow, loaded]);
 
   // Another screen asked for a plant's card.
   useEffect(() => {
@@ -92,13 +103,16 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
     app.notify(`"${p.commonName}" deleted.`, { undo: true });
   };
   /** Where a plant is growing on the plan: "Veg bed", "Bed two". */
-  const whereGrowing = (id: string) =>
-    garden.plantings
-      .filter((pl) => pl.plantId === id && !pl.removedOn)
-      .map((pl) => {
-        const bed = garden.features.find((f) => f.id === pl.featureId);
-        return { id: pl.id, label: `${bed ? featureLabel(bed) : 'a bed'} (${stageLabel(plantOf(pl.plantId), currentStage(pl), pl).toLowerCase()})` };
-      });
+  const whereGrowing = (id: string) => {
+    // Rows of it in the same bed at the same stage are said once: "Bed 4 (planned)", not twice.
+    const seen = new Map<string, { id: string; label: string }>();
+    for (const pl of garden.plantings.filter((p) => p.plantId === id && !p.removedOn)) {
+      const bed = garden.features.find((f) => f.id === pl.featureId);
+      const label = `${bed ? featureLabel(bed) : 'a bed'} (${stageLabel(plantOf(pl.plantId), currentStage(pl), pl).toLowerCase()})`;
+      if (!seen.has(label)) seen.set(label, { id: pl.id, label });
+    }
+    return [...seen.values()];
+  };
 
   const row = (p: Plant) => (
     <li key={p.id}>
@@ -106,10 +120,9 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
         <PlantIcon plant={p} size={34} view="side" />
         <span class="plant-row-main">
           <span class="plant-row-name">{p.commonName}</span>
-          {p.latinName && <span class="latin small">{p.latinName}</span>}
         </span>
         <span class="plant-row-meta small muted">
-          {LIGHT_LABEL[p.conditions.light]} · {formatLength(p.size.spacingMm)}
+          {LIGHT_LABEL[p.conditions.light]} · {p.size.spacingMm < 1000 ? `${Math.round(p.size.spacingMm / 10)} cm` : `${Number((p.size.spacingMm / 1000).toFixed(1))} m`} apart
         </span>
         {hasSeed(p) && <span class="badge badge-seed">Seed</span>}
         {p.userAdded ? <span class="badge badge-own">Yours</span> : editor && !p.verified && <span class="dot-warn" title="Not yet checked" aria-label="Not yet checked" />}

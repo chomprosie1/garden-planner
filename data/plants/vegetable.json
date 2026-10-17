@@ -217,7 +217,7 @@
         "Lift when the tops have flopped and yellowed; dry thoroughly before storing."
       ]
     },
-    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "blood-fish-bone", "note": "Raked in a week or two beforehand." }, { "when": "growing", "feed": "blood-fish-bone", "every": 28, "months": [5, 6], "note": "Stop by midsummer, so the bulbs ripen and keep." }], "avoid": ["Fresh manure: the bulbs rot.", "Feeding after midsummer: soft bulbs that don’t keep."] },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "blood-fish-bone", "note": "Rake it in a week or two before planting." }, { "when": "growing", "feed": "blood-fish-bone", "every": 28, "months": [5, 6], "note": "Stop by midsummer, so the bulbs ripen and keep." }], "avoid": ["Fresh manure: the bulbs rot.", "Feeding after midsummer: soft bulbs that don’t keep."] },
     "family": "Amaryllidaceae",
     "pollinators": { "rating": "none" },
     "art": {"form":"clump","leaf":"strap","foliage":"#5f8f6a","crop":{"kind":"head","colour":"#c9a35a"}},
@@ -238,7 +238,7 @@
     "pests": [{ "name": "Onion white rot", "signs": "Yellowing leaves and white mould at the base", "control": "Remove affected plants; avoid growing alliums there again for many years." }],
     "companions": { "good": ["carrot", "beetroot"], "avoid": ["broad-bean", "pea"] },
     "wintering": { "type": "lift-and-store", "notes": "Dry well, separate the bulbs and store somewhere cool and airy." },
-    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "blood-fish-bone", "note": "Raked in a week or two beforehand." }], "avoid": ["Fresh manure: the bulbs rot."] },
+    "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "blood-fish-bone", "note": "Rake it in a week or two before planting." }], "avoid": ["Fresh manure: the bulbs rot."] },
     "family": "Amaryllidaceae",
     "pollinators": { "rating": "none" },
     "art": {"form":"clump","leaf":"strap","foliage":"#62906b","crop":{"kind":"head","colour":"#b07850"}},

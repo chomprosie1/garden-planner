@@ -2,6 +2,7 @@
 // one box. "add tomato", "go to the shed" and "show sun" all work: every word
 // must start a word in the result, and the result's own name counts most.
 
+import { plantMatches, singular } from '../library/library';
 import { GLOSSARY } from '../content/glossary';
 import { HELP, WORDS_TOPIC } from '../content/help';
 import { featureLabel, KINDS, MATERIAL_LABEL, type Target } from '../model/features';
@@ -34,6 +35,8 @@ export type Command =
   | { kind: 'shortcuts' }
   /** "Your season, wrapped". */
   | { kind: 'wrapped' }
+  /** Plants to sow or plant this month. */
+  | { kind: 'sowNow' }
   /** Help, open at a topic. */
   | { kind: 'help'; id: string };
 
@@ -58,7 +61,7 @@ interface Candidate extends Result {
 const STOP = new Set(['the', 'a', 'an', 'to', 'my', 'in', 'on', 'of', 'for', 'some', 'me', 'at']);
 
 /** How a question starts ("how do I", "why does it", "can I"): left off the front of a query, never from the middle. */
-const ASKING = new Set(['how', 'do', 'does', 'i', 'can', 'why', 'is', 'it', 'should', 'will']);
+const ASKING = new Set(['how', 'do', 'does', 'i', 'can', 'why', 'is', 'it', 'should', 'will', 'what']);
 
 /**
  * Words a question carries that say nothing about which help it wants ("what should I grow in my empty bed", "my
@@ -145,6 +148,7 @@ function actions(g: Garden, locked: boolean): Candidate[] {
     { key: 'tool-bed', group: 'Actions', label: 'Draw a bed by its corners', words: 'shape precise exact', command: { kind: 'tool', tool: 'bed' } },
     { key: 'tool-sketch', group: 'Actions', label: 'Sketch on the plan', words: 'draw pen notes idea', command: { kind: 'tool', tool: 'sketch' } },
     { key: 'shortcuts', group: 'Actions', label: 'Keyboard shortcuts', words: 'keys help', command: { kind: 'shortcuts' } },
+    { key: 'sow-now', group: 'Actions', label: 'What to sow or plant now', detail: 'Plants you can start this month', words: 'grow sow plant now this month start easy beginner what can', command: { kind: 'sowNow' } },
     { key: 'wrapped', group: 'Actions', label: 'Your season, wrapped', words: 'year review look back story share summary harvest picked', command: { kind: 'wrapped' } },
   );
   if (g.boundary.length < 3 && g.features.length === 0)
@@ -219,7 +223,7 @@ export interface SearchContext {
   locked: boolean;
 }
 
-/** Results for a query, best first in each group, groups in a fixed order. */
+/** Results for a query, best first in each group; groups in a fixed order, but plants first when one is named just what was typed. */
 export function search(query: string, ctx: SearchContext): Result[] {
   const words = queryWords(query);
   const acts = actions(ctx.garden, ctx.locked);
@@ -233,17 +237,23 @@ export function search(query: string, ctx: SearchContext): Result[] {
   }
   // Plants match on their name alone, so "add" or "sow" before it says what to do.
   const verb = plantVerb(words);
+  // A plant named exactly what was typed, plural or not ("strawberries"): it comes first.
+  const typed = verb.rest.map(singular).join(' ');
+  let named = false;
   for (const p of ctx.plants ?? []) {
-    const score = scoreOf(verb.rest, p.commonName, `${p.latinName ?? ''} ${p.category}`);
+    const score = plantMatches(p, verb.rest, true);
     if (score === null) continue;
+    if (wordsOf(p.commonName).map(singular).join(' ') === typed) named = true;
     scored.push({
       r: { key: `plant-${p.id}`, group: 'Plants', label: p.commonName, detail: (isList(ctx.garden) ? LIST_DETAIL : PLANT_DETAIL)[verb.kind], words: '', command: { kind: verb.kind, id: p.id }, plantId: p.id },
       // A verb that was used counts for it.
       score: score + (verb.rest.length < words.length ? 1 : 0),
     });
   }
+  // A plant named just what was typed comes first ("strawberry": the plant, not the strawberry tree); otherwise the usual order.
+  const order = named ? ['Plants' as const, ...GROUPS.filter((g) => g !== 'Plants')] : GROUPS;
   const out: Result[] = [];
-  for (const group of GROUPS) {
+  for (const group of order) {
     const best = scored
       .filter((s) => s.r.group === group)
       .sort((a, b) => b.score - a.score || a.r.label.length - b.r.label.length || a.r.label.localeCompare(b.r.label))

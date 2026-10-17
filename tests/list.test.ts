@@ -332,14 +332,15 @@ describe('list mode, put right (release 32)', () => {
     let [g, [veg]] = withBeds(listGarden(), [['bed', 'Veg']]);
     g = { ...g, features: g.features.map((f) => (f.id === veg ? { ...f, light: 'part-shade' as const, soil: 'clay' as const } : f)) };
     g = plant(g, veg!, 'carrot', 'row');
-    const [next, copy] = copyListBed(g, veg!)!;
+    const [next, copy] = copyListBed(g, veg!, featureLabel)!;
     const [a, b] = [boxOf(next, veg!), boxOf(next, copy)];
     expect([b.maxX - b.minX, b.maxY - b.minY]).toEqual([a.maxX - a.minX, a.maxY - a.minY]);
     expect(a.minX >= b.maxX || b.minX >= a.maxX || a.minY >= b.maxY || b.minY >= a.maxY).toBe(true);
     expect(next.features.find((f) => f.id === copy)).toMatchObject({ light: 'part-shade', soil: 'clay' });
     expect(next.plantings.some((p) => p.featureId === copy)).toBe(false);
-    const named = nameListBeds(next, isListed(next), featureLabel);
-    expect(listBeds(named).map(featureLabel)).toEqual(['Veg 1', 'Veg 2']);
+    // The copy takes the next name; the one copied keeps its own (release 40), with no renumbering after.
+    expect(listBeds(next).map(featureLabel)).toEqual(['Veg', 'Veg 2']);
+    const named = next;
     // One more added later is the next number, not "Veg" again.
     const [more] = addListBed(named, 'bed', 'Veg');
     expect(listBeds(nameListBeds(more, isListed(more), featureLabel)).map(featureLabel)).toEqual(['Veg 1', 'Veg 2', 'Veg 3']);

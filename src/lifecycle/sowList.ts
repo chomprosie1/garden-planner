@@ -3,6 +3,7 @@
 // (vegetables, herbs and so on) and by name. Weeds only when asked for: a few
 // people grow them on purpose, most don't. Pure.
 
+import { plantMatches } from '../library/library';
 import { beginnerOrder, isCore } from '../library/order';
 import type { Plant } from '../model/types';
 
@@ -62,7 +63,7 @@ export function sowList(plants: Plant[], o: SowListOptions): SowList {
     .filter((p) => o.weeds || p.category !== 'weed')
     .filter((p) => !p.varietyOf || words || o.tin.has(p.id))
     .filter((p) => isKind(p, o.kind))
-    .filter((p) => !words || `${p.commonName} ${p.latinName ?? ''}`.toLowerCase().includes(words))
+    .filter((p) => !words || plantMatches(p, [words]) !== null)
     .sort(byName);
   // With nothing typed, the plants most beginners grow come first in each group; your own seed stays A to Z.
   const shown = words ? found : beginnerOrder(found);

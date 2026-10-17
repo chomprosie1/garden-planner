@@ -84,6 +84,40 @@ export function canSowIn(p: Plant, month: number): boolean {
   return !!p.sowing?.some((s) => s.months.includes(month)) || !!p.plantOutMonths?.includes(month);
 }
 
+/** A word as it'd be looked up: "tomatoes" → "tomato", "strawberries" → "strawberry", "beans" → "bean". */
+export function singular(w: string): string {
+  if (w.length > 4 && w.endsWith('ies')) return `${w.slice(0, -3)}y`;
+  if (w.length > 4 && w.endsWith('oes')) return w.slice(0, -2);
+  if (w.length > 3 && w.endsWith('s') && !/(ss|us|is)$/.test(w)) return w.slice(0, -1);
+  return w;
+}
+
+const wordsIn = (s: string) => fold(s).split(/[^a-z0-9]+/).filter(Boolean);
+
+/**
+ * How well a plant matches what was typed, plural or not: each word that is one of its name's words counts 3, one that
+ * starts one 2, and one in its Latin name (or kind, with `kinds`) 1. A bonus when the words start its name, as when
+ * typing it out. Null if any word doesn't match. Used by search, the Plants list and the plant choosers alike.
+ */
+export function plantMatches(p: Plant, typed: string[], kinds = false): number | null {
+  const words = typed.flatMap(wordsIn);
+  if (!words.length) return 0;
+  const own = wordsIn(p.commonName);
+  const ownOne = own.map(singular);
+  const more = wordsIn(`${p.variety ?? ''} ${p.latinName ?? ''} ${kinds ? p.category : ''}`);
+  let total = 0;
+  // A plural matches its word exactly ("tomatoes", tomato); a word still being typed starts one ("tom"). The plural
+  // isn't cut short for that: "bees" doesn't start "beetroot".
+  for (const w of words) {
+    if (own.includes(w) || ownOne.includes(singular(w))) total += 3;
+    else if (own.some((x) => x.startsWith(w))) total += 2;
+    else if (more.some((x) => x.startsWith(w) || singular(x) === singular(w))) total += 1;
+    else return null;
+  }
+  if (own.join(' ').startsWith(words.join(' ')) || ownOne.join(' ').startsWith(words.map(singular).join(' '))) total += 2;
+  return total;
+}
+
 export function filterPlants(plants: Plant[], f: PlantFilter): Plant[] {
   const words = fold(f.query).split(/\s+/).filter(Boolean);
   return plants.filter((p) => {
@@ -97,8 +131,7 @@ export function filterPlants(plants: Plant[], f: PlantFilter): Plant[] {
     if (f.checkedOnly && !p.verified && !p.userAdded) return false;
     if (f.easyOnly && !isEasy(p)) return false;
     if (words.length === 0) return true;
-    const hay = fold(`${p.commonName} ${p.variety ?? ''} ${p.latinName ?? ''}`);
-    return words.every((w) => hay.includes(w));
+    return plantMatches(p, words) !== null;
   });
 }
 

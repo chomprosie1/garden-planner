@@ -425,7 +425,18 @@ export const plantingNext = (pl: Planting, p: Plant, g: Garden, today: string): 
   );
 
 /** Moves a planting that's still indoors on a stage (up, hardening off) or out into its bed. */
-export const setIndoorStage = (g: Garden, id: string, stage: TrayStage | 'transplanted', date: string): Garden => setStage(g, [id], stage, date);
+/** Moves plantings still indoors on a stage: one, or the rows of one sowing together. */
+export const setIndoorStage = (g: Garden, id: string | string[], stage: TrayStage | 'transplanted', date: string): Garden => setStage(g, Array.isArray(id) ? id : [id], stage, date);
+
+/** Plantings still indoors, with rows of one sowing (same plant, bed, day and stage) as one. */
+export function indoorGroups(list: Planting[]): Planting[][] {
+  const groups = new Map<string, Planting[]>();
+  for (const pl of list) {
+    const k = `${pl.plantId}|${pl.featureId}|${pl.sownOn}|${currentStage(pl)}`;
+    groups.set(k, [...(groups.get(k) ?? []), pl]);
+  }
+  return [...groups.values()];
+}
 
 export interface ReadyItem {
   kind: 'tray' | 'planting';

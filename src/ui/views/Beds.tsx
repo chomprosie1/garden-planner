@@ -6,7 +6,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { jobLabel, jobsFor } from '../../calendar/jobs';
-import { formatLength } from '../../canvas/viewport';
+import { formatAcross, formatSize } from '../../canvas/viewport';
 import { microclimateOf } from '../../climate/microclimate';
 import { bounds } from '../../geometry/polygon';
 import { stageIn, timeline, type Step } from '../../lifecycle/projection';
@@ -62,12 +62,12 @@ const OUTSIDE_NOTE = ' There wasn’t room inside your garden’s outline, so it
 /** What you might add several of at once. */
 const SEVERAL: ListKind[] = ['bed', 'pot', 'planter', 'cold-frame'];
 
-/** A bed's size in words: "1.2 × 2.4 m", or "30 cm across" for a pot; nothing for a fence or arch. */
+/** A bed's size in words, in one unit and the longer side first: "2.4 × 1.2 m", or "35 cm across" for a pot; nothing for a fence or arch. */
 function sizeText(f: Feature): string {
   if (isSupport(f)) return '';
-  if (f.circle) return `${formatLength(f.circle.radiusMm * 2)} across`;
+  if (f.circle) return formatAcross(f.circle.radiusMm * 2);
   const b = bounds(f.footprint);
-  return b ? `${formatLength(b.maxX - b.minX)} × ${formatLength(b.maxY - b.minY)}` : '';
+  return b ? formatSize(b.maxX - b.minX, b.maxY - b.minY) : '';
 }
 
 /** What it is, in a word or two: "Raised bed", "Pot", "Patch of ground". */
@@ -172,7 +172,8 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
             store={store}
             plantOf={plantOf}
             jobs={jobs.filter((j) => j.featureId === bed.id).map((j) => `${jobLabel(j)}: ${j.plant}`)}
-            warnings={findings.filter((f) => f.level === 'warn' && (f.featureIds.includes(bed.id) || garden.plantings.some((p) => p.featureId === bed.id && f.plantingIds.includes(p.id)))).map((f) => f.message)}
+            // Rows of one planting raise the same check: said once.
+            warnings={[...new Set(findings.filter((f) => f.level === 'warn' && (f.featureIds.includes(bed.id) || garden.plantings.some((p) => p.featureId === bed.id && f.plantingIds.includes(p.id)))).map((f) => f.message))]}
             today={today}
             weather={weather}
             open={(t, ids = []) => (setSheet(t), setTogether(ids))}
@@ -307,10 +308,11 @@ function BedCard({ bed, first, last, garden, store, plantOf, jobs, warnings, tod
                       let outside = false;
                       store.apply(
                         updateGarden((g) => {
-                          const made = copyListBed(g, bed.id);
+                          // The copy takes the next free name; the one copied keeps its own.
+                          const made = copyListBed(g, bed.id, featureLabel);
                           if (!made) return g;
                           outside = made[2];
-                          return nameListBeds(made[0], isListed(made[0]), featureLabel);
+                          return made[0];
                         }),
                       );
                       app.notify(`Another ${kindText(bed).toLowerCase()} added, the same size.${outside ? OUTSIDE_NOTE : ''}`, { undo: true });
@@ -785,6 +787,27 @@ function AddPlantDialog({ store, garden, plants, plantOf, month, start, close, n
 }
 
 /** A bed's name, size, sun and soil. */
+const metresText = (mm: number) => String(Math.round(mm / 10) / 100);
+
+/**
+ * A size in metres that keeps what you've typed until it's saved (when you leave the field, or press Done), so changing
+ * the sun or soil first doesn't put the old size back.
+ */
+function MetresInput({ mm, commit }: { mm: number; commit: (text: string) => void }) {
+  const [draft, setDraft] = useState<string | null>(null);
+  return (
+    <input
+      inputMode="decimal"
+      value={draft ?? metresText(mm)}
+      onInput={(e) => setDraft((e.currentTarget as HTMLInputElement).value)}
+      onChange={(e) => {
+        commit((e.currentTarget as HTMLInputElement).value);
+        setDraft(null);
+      }}
+    />
+  );
+}
+
 function EditBedDialog({ store, garden, bedId, close }: { store: Store; garden: Garden; bedId: string; close: () => void }) {
   const ref = useModal();
   const bed = garden.features.find((f) => f.id === bedId);
@@ -792,7 +815,6 @@ function EditBedDialog({ store, garden, bedId, close }: { store: Store; garden: 
   const set = (patch: Partial<Feature>) => store.apply(updateGarden((g) => updateFeature(g, bed.id, patch)));
   // A pot by how far across; a bed drawn as a rectangle by its width and length. A shape drawn by hand keeps its size.
   const rect = !bed.circle && !bed.smooth ? rectInfo(bed.footprint) : null;
-  const m = (mm: number) => String(Math.round(mm / 10) / 100);
   return (
     <dialog ref={ref} class="dialog" aria-labelledby="edit-bed-title" onClose={close}>
       <div class="dialog-body">
@@ -809,7 +831,7 @@ function EditBedDialog({ store, garden, bedId, close }: { store: Store; garden: 
               <label class="field">
                 Across
                 <span class="input-unit">
-                  <input inputMode="decimal" value={m(bed.circle.radiusMm * 2)} onChange={(e) => set({ circle: { ...bed.circle!, radiusMm: Math.round(metres((e.currentTarget as HTMLInputElement).value, bed.circle!.radiusMm * 2) / 2) } })} />
+                  <MetresInput mm={bed.circle.radiusMm * 2} commit={(t) => set({ circle: { ...bed.circle!, radiusMm: Math.round(metres(t, bed.circle!.radiusMm * 2) / 2) } })} />
                   <span>m</span>
                 </span>
               </label>
@@ -819,14 +841,14 @@ function EditBedDialog({ store, garden, bedId, close }: { store: Store; garden: 
                   <label class="field">
                     Width
                     <span class="input-unit">
-                      <input inputMode="decimal" value={m(rect.w)} onChange={(e) => set({ footprint: resizeRectAny(bed.footprint, metres((e.currentTarget as HTMLInputElement).value, rect.w), rect.h)! })} />
+                      <MetresInput mm={rect.w} commit={(t) => set({ footprint: resizeRectAny(bed.footprint, metres(t, rect.w), rect.h)! })} />
                       <span>m</span>
                     </span>
                   </label>
                   <label class="field">
                     Length
                     <span class="input-unit">
-                      <input inputMode="decimal" value={m(rect.h)} onChange={(e) => set({ footprint: resizeRectAny(bed.footprint, rect.w, metres((e.currentTarget as HTMLInputElement).value, rect.h))! })} />
+                      <MetresInput mm={rect.h} commit={(t) => set({ footprint: resizeRectAny(bed.footprint, rect.w, metres(t, rect.h))! })} />
                       <span>m</span>
                     </span>
                   </label>

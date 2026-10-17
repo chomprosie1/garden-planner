@@ -4,7 +4,7 @@
 
 import { useApp } from './appContext';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { canSowIn } from '../library/library';
+import { canSowIn, plantMatches } from '../library/library';
 import { beginnerOrder, isEasy, MORE_PLANTS, splitCore } from '../library/order';
 import { traysOf } from '../lifecycle/shed';
 import { newAppState } from '../model/defaults';
@@ -45,7 +45,7 @@ function TreeList({ phone, plants, onSticker, onPlant }: { phone: boolean; plant
   const [size, setSize] = useState<PlantSize>('medium');
   const trees = findTrees(query);
   const q = query.trim().toLowerCase();
-  const fruit = (plants ?? []).filter((p) => FRUIT_TREE_PLANTS.includes(p.id) && (!q || `${p.commonName} ${p.latinName ?? ''} fruit`.toLowerCase().includes(q)));
+  const fruit = (plants ?? []).filter((p) => FRUIT_TREE_PLANTS.includes(p.id) && (!q || plantMatches(p, [q], true) !== null));
   return (
     <section class="dock-trees" aria-label="Trees">
       <h3 class="dock-subhead">Trees</h3>
@@ -168,7 +168,8 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
   const shown = useMemo(() => {
     if (!plants) return [];
     const q = query.trim().toLowerCase();
-    if (q) return plants.filter((p) => `${p.commonName} ${p.latinName ?? ''}`.toLowerCase().includes(q));
+    // Typed: plural or not, best match first.
+    if (q) return plants.map((p) => ({ p, score: plantMatches(p, q.split(/\s+/)) })).filter((x): x is { p: Plant; score: number } => x.score !== null).sort((a, b) => b.score - a.score).map((x) => x.p);
     if (filter === 'now') return beginnerOrder(plants.filter((p) => !p.varietyOf && canSowIn(p, month)));
     if (filter === 'easy') return beginnerOrder(plants.filter((p) => !p.varietyOf && isEasy(p)));
     if (filter === 'climb') return forSupports(beginnerOrder(plants));

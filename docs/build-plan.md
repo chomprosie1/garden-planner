@@ -2085,7 +2085,7 @@ Decided:
 
 | When | Release | What | Status |
 | --- | --- | --- | --- |
-| Tue 13 Oct | 40. Unstuck | The Garden list scrolls in list mode. A planting's count adds up all its rows. One unit per size. "Growing in Bed 4 and Bed 4" once. Search singular and plural, and "what to sow now". A typed bed width survives changing the sun. Text size at the top of Settings. Small fixes. | Not built yet |
+| Tue 13 Oct | 40. Unstuck | The Garden list scrolls in list mode. A planting's count adds up all its rows. One unit per size. "Growing in Bed 4 and Bed 4" once. Search singular and plural, and "what to sow now". A typed bed width survives changing the sun. Text size at the top of Settings. Small fixes. | Built 17 Oct 2026, after 44 |
 | Wed 14 Oct | 41. Plants already growing | Established plants catch up, not replay. "Already in the ground" asks the stage. Running behind only for coming up, hardening off and planting out. Autumn sowings flower in their season. One source for "Next". Care tips that fit the plant. | Built 16 Oct 2026 |
 | Thu 15 Oct | Testing day | | |
 | Fri 16 Oct | 42. One job, done once | One sow job per planting, with either way. No planting out before sowing. Sowing in the Shed sows the bed's planting. The cold frame and greenhouse as places to sow. The right verbs. Fewer pointless jobs. | Built 16 Oct 2026 |
@@ -2311,7 +2311,56 @@ Changed tests: `welcome` (no welcome on a normal day) and `start` ("share" finds
 
 Not changed:
 - **The 3D view's own share button**, which saves a picture of the 3D view: it's behind ⋯ with 3D.
-- **Latin names in the plant list's rows**, which help tell kinds apart.
+- **Latin names in the plant list's rows**, which help tell kinds apart. (Release 40 took them off after all, as Jordan asked.)
+
+### Release 40 — Unstuck (as built)
+Built 17 Oct 2026, after 44 (none of 41 to 44 needed it). No schema change. Version 0.44.1, not 0.40.0, so the number testers see doesn't go backwards.
+
+- **The Garden list scrolls** (`src/styles.css`): the plan's `overflow: hidden` applies only when the garden isn't a list (`data-list` on `.app`).
+  - A job chip on a bed's card ("Sow outside, or under cover in a cold frame: …") wraps inside the card. Unwrapped, it made the scrolling list pan sideways.
+- **Counts:**
+  - A planting's Plants adds up all its rows ("120 in 2 rows"), as the card does (`Inspector.tsx`).
+  - **The Shed:** "Sown for the plan" shows rows of one sowing (same plant, bed, day and stage) as one, "for Bed 3 (2 rows)", and its button moves them all on together (`indoorGroups` in `src/lifecycle/shed.ts`).
+- **One unit per size** (`formatSize` and `formatAcross` in `src/canvas/viewport.ts`): both sides in one unit, the longer first, "9 × 1.2 m" or "60 × 45 cm"; a pot is "35 cm across". The Plants list's rows say "15 cm apart", without the Latin name.
+- **Said once:**
+  - "Growing in" on a plant's page lists a bed once per stage.
+  - A bed's card shows a check once, however many rows raise it. That was also the duplicate key behind the onion soil warning showing twice.
+- **Search** (`plantMatches` and `singular` in `src/library/library.ts`):
+  - **One way of matching** in search, the Plants list, Add a plant, the dock, the Shed's Sow seeds and the tree finder. A plural finds its plant ("tomatoes", "strawberries"), a word being typed starts one ("tom"), and a plural doesn't start another word ("bees" isn't beetroot).
+  - **The order:** a plant named just what was typed puts Plants first ("strawberry": the plant, before Help). Groups show in the order search gives them.
+  - **Questions:** "what" is left off the front of a question. "What can I grow now" offers What to sow or plant now, which opens Plants on this month's plants, the easy ones if there are any.
+- **Bed edits** (`src/ui/views/Beds.tsx`):
+  - A typed width, length or across stays put until it's saved, so changing the sun or soil first doesn't put the old size back.
+  - **Another like this** gives the copy the next free name ("Bed 9", "Veg 2", from `nextName` in `src/model/listLayout.ts`) and leaves the one copied alone, with no renumbering.
+- **Settings:**
+  - Text size is first, on its own card, and stays where it is on the screen as the text grows.
+  - The tick boxes for reminders, weather, UV and Advanced are a new `.switch-row`: beside their words, and growing with the text size.
+- **Undo on a toast** (`undoPast` in `src/model/store.ts`): Undo stays for at least 5 s, even if something follows on from the change, and undoes the change and what followed. It does nothing if the change has already been undone another way, such as Ctrl+Z.
+- **Small fixes:**
+  - The glossary pop-up, opened from a heading in capitals, isn't in capitals.
+  - Help says "the link to all of the month's jobs, such as All October jobs", not "All … jobs".
+  - Today's note on sowing dates says to set one in the planting's "What's happened?", not "on the plan".
+  - The onion's feed note is a whole sentence: "Rake it in a week or two before planting."
+- **Checked at 390 px:**
+  - the Garden list, scrolling, with a long job chip;
+  - a bed's edit dialog;
+  - Another like this, and Undo;
+  - the Shed's Sow seeds and Sown for the plan;
+  - search for "strawberries" and "what can I grow now", and Plants opened from it;
+  - Settings at Extra large;
+  - the glossary from a heading on Today.
+  - No page errors.
+
+Tests: `tests/unstuck.test.ts`:
+- one unit per size;
+- plurals and questions in search, the Plants list and the Shed;
+- the next free name;
+- rows of one sowing grouped;
+- the onion's note.
+
+`store` covers `undoPast`. Changed: `list` (a copy no longer renumbers the beds).
+
+Seen while checking, not changed: an autumn broad bean sown in a cold frame says "Time to start hardening off" the day it's marked as up, though its sowing note says to plant out in early spring.
 
 ## Repo layout
 ```

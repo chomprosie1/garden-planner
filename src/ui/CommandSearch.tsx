@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { Garden, Plant } from '../model/types';
 import { Icon, type IconName } from './icons';
 import { PlantIcon } from './PlantIcon';
-import { GROUPS, search, type Command, type Result } from './search';
+import { search, type Command, type Result } from './search';
 import { usePlants } from './usePlants';
 
 interface Props {
@@ -33,6 +33,7 @@ const ICON: Record<Command['kind'], IconName> = {
   '3d': 'cube',
   shortcuts: 'keyboard',
   wrapped: 'share',
+  sowNow: 'shed',
 };
 
 export function CommandSearch({ garden, userPlants, locked, run, close }: Props) {
@@ -89,7 +90,8 @@ export function CommandSearch({ garden, userPlants, locked, run, close }: Props)
       </div>
       <div id="command-results" ref={list} class="command-results" role="listbox" aria-label="Results">
         {!query.trim() && <p class="command-group">Try “add tomato”, “go to the shed” or “show sun”</p>}
-        {GROUPS.map((group) => {
+        {/* Groups as search ordered them: the best match's first. */}
+        {[...new Set(results.map((r) => r.group))].map((group) => {
           const rows = results.filter((r) => r.group === group);
           if (!rows.length) return null;
           return (

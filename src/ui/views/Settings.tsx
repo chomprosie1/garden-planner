@@ -34,14 +34,8 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
         <h1 class="title">Settings</h1>
       </header>
 
-      <p class="muted">Your garden first, then how the app looks on this device.</p>
-
-      <GardenSettings store={store} garden={garden} prefsStore={prefsStore} />
-
-      <GardenSwitcher store={store} prefsStore={prefsStore} garden={garden} />
-
-      <section class="card" aria-labelledby="appearance">
-        <h2 id="appearance">Look and text size</h2>
+      {/* First, for anyone who finds the words small: it stays where it is on the screen as the text grows. */}
+      <section class="card text-size-card" id="text-size">
         <Choice
           legend="Text size"
           name="text"
@@ -51,8 +45,26 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
             { value: 'large', label: 'Large' },
             { value: 'xlarge', label: 'Extra large' },
           ]}
-          onChange={(textSize) => prefsStore.set({ textSize })}
+          onChange={(textSize) => {
+            const card = document.getElementById('text-size');
+            const before = card?.getBoundingClientRect().top;
+            prefsStore.set({ textSize });
+            requestAnimationFrame(() => {
+              const after = card?.getBoundingClientRect().top;
+              if (card && before !== undefined && after !== undefined && after !== before) (card.closest('.screen') ?? document.scrollingElement)?.scrollBy(0, after - before);
+            });
+          }}
         />
+      </section>
+
+      <p class="muted">Your garden first, then how the app looks on this device.</p>
+
+      <GardenSettings store={store} garden={garden} prefsStore={prefsStore} />
+
+      <GardenSwitcher store={store} prefsStore={prefsStore} garden={garden} />
+
+      <section class="card" aria-labelledby="appearance">
+        <h2 id="appearance">Look</h2>
         <p class="muted small">These belong to this device, so each person sharing a garden file can have their own.</p>
         <LookPicker prefs={prefs} prefsStore={prefsStore} />
         <Choice
@@ -185,11 +197,11 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
 
       <details class="card advanced">
         <summary>Advanced</summary>
-        <label class="check-row">
+        <label class="switch-row">
           <input type="checkbox" checked={prefs.plantEditor} onChange={(e) => prefsStore.set({ plantEditor: (e.currentTarget as HTMLInputElement).checked })} />
           <span>Plant editor: show the tools for checking plant notes against their sources</span>
         </label>
-        <label class="check-row">
+        <label class="switch-row">
           <input type="checkbox" checked={prefs.draftPlants} onChange={(e) => prefsStore.set({ draftPlants: (e.currentTarget as HTMLInputElement).checked })} />
           <span>List the plants still being checked, below the rest. Search finds them either way.</span>
         </label>
@@ -223,12 +235,12 @@ function MoreSettings({ prefsStore }: { prefsStore: PrefsStore }) {
     <details class="card advanced more-settings">
       <summary>More</summary>
       <h3>Sun and UV</h3>
-      <label class="check-row">
+      <label class="switch-row">
         <input type="checkbox" checked={prefs.uvOnToday} onChange={(e) => prefsStore.set({ uvOnToday: (e.currentTarget as HTMLInputElement).checked })} />
         <span>The UV on Today</span>
       </label>
       <p class="muted small">From April to September, on days it’s moderate or higher: how strong it is, and what to do. With this year’s weather on, from the forecast.</p>
-      <label class="check-row">
+      <label class="switch-row">
         <input type="checkbox" checked={prefs.uvReminders} onChange={toggle('uvReminders')} />
         <span>Sun cream reminders</span>
       </label>

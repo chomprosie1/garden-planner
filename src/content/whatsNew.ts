@@ -17,6 +17,21 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-17-unstuck',
+    date: '2026-10-17',
+    title: 'Small things, put right',
+    items: [
+      'A garden kept as a list scrolls properly on a phone and an iPad.',
+      'A planting in several rows counts all of them: 120 broad beans in 2 rows, not 60. In the Shed, rows sown together show as one, and move on together.',
+      'Sizes read the same way everywhere, in one unit with the longer side first: 9 × 1.2 m, or 60 × 45 cm.',
+      'Search understands plurals, so “tomatoes” finds the tomato, and it answers “what can I grow now?” with this month’s plants.',
+      'Another bed like this takes the next name along, and leaves the one you copied alone. A width you type stays put while you change the sun or soil.',
+      'Text size is at the top of Settings, and stays where it is as the words grow.',
+      'Undo on a message stays for a few seconds, even if something else follows on.',
+    ],
+    tryIt: { label: 'See your garden', view: 'plan' },
+  },
+  {
     id: '2026-10-16-less',
     date: '2026-10-16',
     title: 'Less, but better',

@@ -1127,6 +1127,9 @@ function PlantingPanel(props: Props & { pl: Planting }) {
   const sized = sizedPlant(plant, pl);
   const bed = garden.features.find((f) => f.id === pl.featureId);
   const n = plantCount(pl, plant);
+  // In a list, rows of one sowing are shown as one: count them all.
+  const rows = [pl, ...(props.together ?? []).map((id) => garden.plantings.find((p) => p.id === id)).filter((p): p is Planting => !!p && !p.removedOn)];
+  const total = rows.reduce((a, p) => a + plantCount(p, plant), 0);
   const layout = pl.layout ?? 'single';
   const mine = findings.filter((f) => f.plantingIds.includes(pl.id));
   const length = pl.endPoint ? Math.hypot(pl.endPoint[0] - pl.x, pl.endPoint[1] - pl.y) : 0;
@@ -1187,7 +1190,10 @@ function PlantingPanel(props: Props & { pl: Planting }) {
                 {canEdit && <BatchesSection key={pl.id} store={store} garden={garden} pl={pl} plant={plant} select={(id) => setSelected({ type: 'planting', id })} />}
                 <dl class="facts">
                   <dt>Plants</dt>
-                  <dd>{n}</dd>
+                  <dd>
+                    {total}
+                    {rows.length > 1 ? ` in ${rows.length} rows` : ''}
+                  </dd>
                   {layout === 'row' && (
                     <>
                       <dt>Row length</dt>

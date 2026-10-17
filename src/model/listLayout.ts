@@ -146,17 +146,29 @@ export function listKindOf(f: Feature): ListKind | null {
   return (LIST_KINDS as readonly string[]).includes(kind) ? (kind as ListKind) : null;
 }
 
+/** The next free name after this one: "Bed 3" after "Bed 2", "Veg 2" after "Veg". */
+export function nextName(label: string, used: Set<string>): string {
+  const m = /^(.*\S)\s+(\d+)$/.exec(label);
+  const stem = m ? m[1]! : label;
+  let n = m ? Number(m[2]) + 1 : 2;
+  while (used.has(`${stem} ${n}`)) n++;
+  return `${stem} ${n}`;
+}
+
 /**
- * Another bed like this one, empty: the same kind, size, name, sun and soil, in the next free place. Null for something
- * the list doesn't add. Returns the garden, the copy's id, and whether it went outside the outline.
+ * Another bed like this one, empty: the same kind, size, sun and soil, in the next free place, under the next free name
+ * ("Bed 3" after "Bed 2"), so the one copied keeps its own. Null for something the list doesn't add. Returns the garden,
+ * the copy's id, and whether it went outside the outline.
  */
-export function copyListBed(g: Garden, id: string): [Garden, string, boolean] | null {
+export function copyListBed(g: Garden, id: string, labelOf: (f: Feature) => string = (x) => x.name ?? ''): [Garden, string, boolean] | null {
   const f = g.features.find((x) => x.id === id);
   const kind = f && listKindOf(f);
   const b = f && bounds(f.footprint);
   if (!f || !kind || !b) return null;
   const size: [number, number] = f.circle ? [f.circle.radiusMm * 2, f.circle.radiusMm * 2] : [Math.round(b.maxX - b.minX), Math.round(b.maxY - b.minY)];
-  const [next, copy, outside] = addListBed(g, kind, f.name ?? '', size);
+  const label = labelOf(f);
+  const name = label ? nextName(label, new Set(g.features.map(labelOf))) : '';
+  const [next, copy, outside] = addListBed(g, kind, name, size);
   const keep: Partial<Feature> = { ...(f.light ? { light: f.light } : {}), ...(f.soil ? { soil: f.soil } : {}), ...(f.ph !== undefined ? { ph: f.ph } : {}), ...(f.edging ? { edging: f.edging } : {}) };
   return [{ ...next, features: next.features.map((x) => (x.id === copy ? { ...x, ...keep } : x)) }, copy, outside];
 }

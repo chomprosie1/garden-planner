@@ -70,6 +70,20 @@ export function formatLength(mm: number): string {
   return `${Number.isInteger(Math.round(m * 100) / 100) ? m.toFixed(0) : m.toFixed(2)} m`;
 }
 
+/**
+ * Two lengths in one unit, the longer first, so two beds the same size read the same: "2.4 × 1.2 m", or "60 × 45 cm"
+ * when both are under a metre.
+ */
+export function formatSize(a: number, b: number): string {
+  const [long, short] = a >= b ? [a, b] : [b, a];
+  if (long < 1000) return `${Math.round(long / 10)} × ${Math.round(short / 10)} cm`;
+  const m = (mm: number) => String(Number((mm / 1000).toFixed(2)));
+  return `${m(long)} × ${m(short)} m`;
+}
+
+/** Across a pot or anything round: "35 cm across", or "1.2 m across" for a big one. */
+export const formatAcross = (mm: number): string => (mm < 1000 ? `${Math.round(mm / 10)} cm across` : `${Number((mm / 1000).toFixed(2))} m across`);
+
 export function formatArea(mm2: number): string {
   const m2 = mm2 / 1_000_000;
   return `${m2 < 10 ? m2.toFixed(2) : m2.toFixed(1)} m²`;
