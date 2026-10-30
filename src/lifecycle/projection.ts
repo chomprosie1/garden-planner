@@ -18,7 +18,7 @@ import { isCovered } from '../planting/balcony';
 import { isContainer } from '../planting/place';
 import { earliestOut, plantHere, readyFrom, runsOf, seasonMonth, seasonShift, upFrom } from './growth';
 import { addDays, frostDatesUnder, germination, hardenOn, inYear, isTender, plantInFrom, plantOutFrom } from './shed';
-import { currentStage, flowerMonthsOf, isGrowingStage, pathFor, perennial, sowingOf, type LifeStage } from './stages';
+import { currentStage, flowerMonthsOf, isCropping, isGrowingStage, pathFor, perennial, sowingOf, type LifeStage } from './stages';
 
 export interface Step {
   stage: LifeStage;
@@ -86,6 +86,9 @@ function marked(pl: Planting): Step[] {
 
 /** Stops a projection running on for ever: it has about three years to cover, and a perennial with two crops takes five steps a year. */
 const MAX_STEPS = 20;
+
+/** A tender crop marked as flowering or harvesting after the expected frost has plainly missed it: it's given this long. */
+const STILL_GOING_DAYS = 14;
 
 /** How far back a perennial's year is worked from: any further and it's the same years going round. */
 const PERENNIAL_BACK_DAYS = 400;
@@ -258,7 +261,7 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
       const end = later(afterSeason(date, flowerMonths, shiftFor(flowerMonths)), addDays(date, 28));
       if (perennial(plant)) return step('vegetative', end);
       const frost = frostEnd(c, c.start ?? date);
-      return step('cleared', frost ? later(sooner(end, frost), addDays(date, 1)) : end);
+      return step('cleared', frost ? later(sooner(end, frost), addDays(date, STILL_GOING_DAYS)) : end);
     }
     case 'harvesting': {
       const months = harvestMonths.length ? harvestMonths : [monthOf(date)];
@@ -272,7 +275,7 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
       const six = addDays(date, 42);
       const done = quick && six < end ? six : end;
       const frost = frostEnd(c, c.start ?? date);
-      return step('cleared', frost ? later(sooner(done, frost), addDays(date, 1)) : done);
+      return step('cleared', frost ? later(sooner(done, frost), addDays(date, STILL_GOING_DAYS)) : done);
     }
   }
 }
@@ -313,11 +316,11 @@ export function timeline(asListed: Plant, pl: Planting, g: Garden, today: string
   if (now === 'planned') last = firstStep(plant, pl, today, g);
   else {
     // Carry on from the latest stage, measured from when it was reached. With no date for that, added as already growing
-    // with only the day it went in: from the last date it has, as it isn't new today, or today if it has none. Flowering
-    // or harvesting with no date is what it was doing when you said so, not what it was doing the day it went in.
+    // with only the day it went in: from the last date it has, as it isn't new today, or today if it has none. An annual
+    // flowering or harvesting with no date is doing that now, not on the day it went in. A perennial goes round anyway.
     const latest = steps[steps.length - 1]!;
-    const doingNow = latest.stage === 'flowering' || latest.stage === 'harvesting';
-    const known = latest.date ?? (doingNow ? today : ([...steps].reverse().find((s) => s.date)?.date ?? today));
+    const lastDated = isCropping(latest.stage) && !perennial(plant) ? null : [...steps].reverse().find((s) => s.date)?.date;
+    const known = latest.date ?? lastDated ?? today;
     // Growing, with no date for when it went in: count the warmth from when it reached this stage, or today.
     if (!c.start && isGrowingStage(latest.stage)) c.start = known;
     // A perennial planted years ago is somewhere in this year's round, however long ago that was.

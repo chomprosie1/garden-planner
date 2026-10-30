@@ -5,12 +5,13 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { jobsFor } from '../src/calendar/jobs';
-import { clearingDue, expectedText, timeline } from '../src/lifecycle/projection';
+import { clearingDue, expectedText, isFinished, stageOn, timeline } from '../src/lifecycle/projection';
+import { addDays } from '../src/lifecycle/shed';
 import { inGroundStages } from '../src/lifecycle/stages';
 import { newGarden } from '../src/model/defaults';
 import { addFeature, makeFeature, rectPoints } from '../src/model/features';
 import type { Feature, Garden, Plant, Planting, Stage } from '../src/model/types';
-import { addPlanting, makePlanting, unknownPlant } from '../src/planting/place';
+import { addPlanting, inGroundChoice, makePlanting, unknownPlant } from '../src/planting/place';
 
 const DIR = join(__dirname, '../data/plants');
 const species = readdirSync(DIR)
@@ -66,6 +67,33 @@ describe('a crop you say is cropping isn’t finished (Margaret)', () => {
             const pl = added(id, date, stage, reached);
             expect(clearingDue(timeline(plantOf(id), pl, gardenWith(pl), TODAY)), `${id} ${date} ${stage}`).toBe(false);
           }
+  });
+
+  it('a tender crop you say is cropping after the frost date isn’t finished by tomorrow', () => {
+    const today = '2026-11-20';
+    const pl = added('tomato', '2026-05-20', 'harvesting', today);
+    const g = gardenWith(pl);
+    expect(isFinished(plantOf('tomato'), pl, g, today)).toBe(false);
+    expect(isFinished(plantOf('tomato'), pl, g, addDays(today, 7))).toBe(false);
+    expect(isFinished(plantOf('tomato'), pl, g, addDays(today, 30))).toBe(true);
+  });
+
+  it('an undated perennial goes round the year, as it did', () => {
+    const apple = { ...added('apple', '2022-02-01', 'flowering'), stageDates: { transplanted: '2022-02-01' } };
+    const stage = (today: string) => stageOn(plantOf('apple'), apple, gardenWith(apple), today, today).stage;
+    expect(stage('2027-01-15')).not.toBe('flowering');
+    expect(stage('2026-10-20')).toBe('harvesting');
+  });
+
+  it('the choice keeps today’s date for what it’s doing now, and not for a stage it can’t reach', () => {
+    expect(inGroundChoice(plantOf('parsnip'), '2026-04-15', TODAY, 'harvesting')).toEqual({ date: '2026-04-15', stage: 'harvesting', reached: TODAY });
+    expect(inGroundChoice(plantOf('tomato'), '2026-05-20', TODAY, 'flowering').reached).toBe(TODAY);
+    expect(inGroundChoice(plantOf('parsnip'), '2026-04-15', TODAY, 'vegetative').reached).toBeUndefined();
+    expect(inGroundChoice(plantOf('parsnip'), TODAY, TODAY, 'sown').reached).toBe(TODAY);
+    // Chosen for a flowering plant, then the plant's changed to one that doesn't flower.
+    const swapped = makePlanting(plantOf('lettuce'), bed.id, 'single', [600, 600], undefined, inGroundChoice(plantOf('tomato'), '2026-04-15', TODAY, 'flowering'));
+    expect(swapped.stage).toBe('vegetative');
+    expect(swapped.stageDates?.vegetative).toBeUndefined();
   });
 
   it('marked as growing and left for years, an annual still ends', () => {

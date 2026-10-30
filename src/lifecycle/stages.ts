@@ -139,6 +139,9 @@ export function stageDate(pl: Planting, s: LifeStage): string | undefined {
   return pl.stageDates?.[s];
 }
 
+/** Flowering or harvesting: what a plant's doing now, when you say so, however long ago it went in. */
+export const isCropping = (s: LifeStage) => s === 'flowering' || s === 'harvesting';
+
 /** In the ground and growing: planted out, or sown outside and past sowing. */
 export const isGrowingStage = (s: LifeStage) => s === 'transplanted' || s === 'vegetative' || s === 'flowering' || s === 'harvesting';
 

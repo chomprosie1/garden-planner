@@ -3,7 +3,7 @@
 // so the saved planting stays small however many plants it holds.
 
 import { distance, EDGE_MM, onEdgeOf, pointInPolygon } from '../geometry/polygon';
-import { currentStage, inGroundDefault, inGroundStages, isGrowingStage, setStage, sowingOf } from '../lifecycle/stages';
+import { currentStage, inGroundDefault, inGroundStages, isCropping, isGrowingStage, setStage, sowingOf } from '../lifecycle/stages';
 import { newId } from '../model/ids';
 import type { Feature, FeatureKind, Garden, Material, Plant, PlantSize, Planting, Point, SpacingStyle, Stage } from '../model/types';
 import { MAX_PLANTS } from '../model/validate';
@@ -283,13 +283,24 @@ export interface InGroundAt {
 }
 
 /**
+ * What "Already in the ground" says for a date and, if chosen, a stage. This month, the stage was reached today.
+ * Flowering or harvesting is what it's doing now, whenever it went in. Growing, from earlier: not known.
+ */
+export function inGroundChoice(plant: Plant | null, date: string, today: string, stage?: Stage): InGroundAt {
+  const s = stage ?? (plant ? inGroundDefault(plant, date, today) : 'transplanted');
+  return date === today || isCropping(s) ? { date, stage: s, reached: today } : { date, stage: s };
+}
+
+/**
  * Where something already in the ground is in its life. It went in on `date`, sown there (or under cover) or planted;
  * a later stage is dated only if you know when it got there, so the timeline carries on from it rather than replaying
  * the months since.
  */
 function inGroundAs(plant: Plant, pl: Planting, given: InGroundAt): void {
-  // A stage not on its path (ticked before the plant was chosen): its usual one for when it went in.
-  const at = inGroundStages(plant).includes(given.stage) ? given : { ...given, stage: inGroundDefault(plant, given.date, given.reached ?? '') };
+  // A stage not on its path (ticked before the plant was chosen): its usual one for when it went in. The day given was
+  // for the stage it can't reach, so it only stands if it's also the day it went in.
+  const onPath = inGroundStages(plant).includes(given.stage);
+  const at = onPath ? given : { date: given.date, stage: inGroundDefault(plant, given.date, given.reached ?? ''), ...(given.reached === given.date ? { reached: given.reached } : {}) };
   const sown = at.stage === 'sown' || at.stage === 'germinated' || (sowingOf(plant) === 'direct' && at.stage !== 'transplanted');
   if (sown) pl.sownOn = at.date;
   else pl.stageDates = { transplanted: at.date };
