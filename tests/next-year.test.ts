@@ -6,7 +6,7 @@ import fruit from '../data/plants/fruit.json';
 import herbs from '../data/plants/herb.json';
 import vegetables from '../data/plants/vegetable.json';
 import { jobsFor } from '../src/calendar/jobs';
-import { drySpell, thirsty, waterJob } from '../src/calendar/watering';
+import { drySpell, potWaterJobs, thirsty, waterJob } from '../src/calendar/watering';
 import { probableStage } from '../src/lifecycle/projection';
 import { addDays } from '../src/model/dates';
 import { newGarden } from '../src/model/defaults';
@@ -249,7 +249,7 @@ describe('the shopping list', () => {
     expect(list.find((i) => i.key === 'seed:tomato')!.note).toBe('On your Want to grow list');
     expect(list.find((i) => i.key === 'plant:elephant-garlic')!.amount).toBe('1 plant');
     // A pot 40 cm across and 30 cm deep (the usual depth) holds about 38 litres.
-    expect(list.find((i) => i.key === 'compost:pots')!.amount).toMatch(/^about \d+ litres$/);
+    expect(list.find((i) => i.key === 'compost:pots')!.amount).toMatch(/^about \d+ litres \(\d+ bags? of 40 litres\)$/);
   });
 
   it('leaves out seed in the tin, unless it’s past its sow-by date', () => {
@@ -339,12 +339,16 @@ describe('watering in a dry spell', () => {
     const w = steady('2027-06-10', 14, 22, 0, today);
     const job = waterJob(g, plantOf, w, today)!;
     expect(job.key).toBe('water:2027-06-20');
-    expect(job.title).toBe('Pots and new plantings');
-    expect(job.where).toBe('(Veg and Patio pot)');
+    // Release 54: each pot has a job of its own, so this one is for what's in the ground.
+    expect(job.title).toBe('New plantings');
+    expect(job.where).toBe('(Veg)');
+    expect(job.plantingIds).toEqual([pls[0]!.id]);
     expect(job.detail).toMatch(/No real rain for 11 days, and warm \(up to 22 °C\)/);
-    // Rain forecast tomorrow: only the pots.
-    const due = waterJob(g, plantOf, withDay(w, '2027-06-21', 8), today)!;
-    expect([due.title, due.plantingIds]).toEqual(['Pots', [pls[2]!.id]]);
+    expect(potWaterJobs(g, plantOf, w, today).map((j) => j.plantingIds)).toEqual([[pls[2]!.id]]);
+    // Rain forecast tomorrow: the beds can wait, and pots still dry out.
+    const due = withDay(w, '2027-06-21', 8);
+    expect(waterJob(g, plantOf, due, today)).toBeNull();
+    expect(potWaterJobs(g, plantOf, due, today)).toHaveLength(1);
     expect(waterJob(g, plantOf, withDay(w, '2027-06-19', 12), today)).toBeNull();
   });
 

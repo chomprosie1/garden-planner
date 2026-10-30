@@ -8,7 +8,7 @@
 import { addDays } from '../model/dates';
 import { makeWeather, parseDaily, roundPlace, type Weather } from './weather';
 
-const DAILY = 'temperature_2m_max,temperature_2m_min,precipitation_sum';
+const DAILY = 'temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max';
 const ZONE = 'Europe%2FLondon';
 
 /** How far back the archive goes: a year and a bit, for plantings that went in last summer. */

@@ -35,6 +35,8 @@ export interface Garden {
   heightM?: number;
   /** In a frost hollow: low ground cold air drains into on still nights. */
   frostHollow?: boolean;
+  /** What you've said about a balcony: it sets each pot's light, and whether rain reaches it. */
+  balcony?: Balcony;
   /** Feeds you have in, by id from data/feeds.json. */
   feedShelf?: string[];
   /** The seed tin: packets of seed you have. */
@@ -107,6 +109,19 @@ export interface ShedPlace {
 /** The eight compass points, clockwise from north. */
 export const FACINGS = ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'] as const;
 export type Facing = (typeof FACINGS)[number];
+
+/** How much of the day a balcony's in the sun: 6 hours or more, 3 to 5, or under 3. */
+export const BALCONY_SUN = ['most', 'half', 'little'] as const;
+export type BalconySun = (typeof BALCONY_SUN)[number];
+
+export interface Balcony {
+  facing?: Facing;
+  /** How much sun it gets, if you know: otherwise it's judged from the way it faces. */
+  sun?: BalconySun;
+  /** A roof, or the balcony above: rain doesn't reach the pots. */
+  roof?: boolean;
+  windy?: boolean;
+}
 
 export const CONTAINERS = ['module-tray', 'seed-tray', 'pot-9cm', 'pot-1l', 'root-trainer'] as const;
 export type Container = (typeof CONTAINERS)[number];
@@ -226,6 +241,10 @@ export interface Feature {
   nextDoor?: boolean;
   /** How sunny a bed is, as you said: for a garden kept as a list, where there's no plan to work the sun out from. */
   light?: Light;
+  /** A pot or planter under cover, so rain doesn't reach it. Absent: as the balcony's roof says. */
+  covered?: boolean;
+  /** A strawberry tower or the like: how many plants it holds, each in a pocket of its own. */
+  pockets?: number;
   /** A bed netted over for fruit: canes in rows, bushes on a grid. It keeps its plants from year to year. */
   fruitCage?: boolean;
   /** A bed on the plan that isn't there yet: it has a job to make it, and its crops wait for it. */

@@ -19,6 +19,7 @@ import {
   PLANT_SIZES,
   PLANT_FORMS,
   SHED_PLACE_KINDS,
+  BALCONY_SUN,
   FACINGS,
   SKETCH_COLOURS,
   SKETCH_KINDS,
@@ -104,6 +105,8 @@ export function validateGarden(g: unknown): string[] {
       need(f.light === undefined || oneOf(LIGHT_LEVELS, f.light), `${at}.light must be full sun, part shade or shade.`);
       need(f.fruitCage === undefined || typeof f.fruitCage === 'boolean', `${at}.fruitCage must be true or false.`);
       need(f.toMake === undefined || typeof f.toMake === 'boolean', `${at}.toMake must be true or false.`);
+      need(f.covered === undefined || typeof f.covered === 'boolean', `${at}.covered must be true or false.`);
+      need(f.pockets === undefined || (isNum(f.pockets) && Number.isInteger(f.pockets) && f.pockets >= 1 && f.pockets <= 100), `${at}.pockets must be a whole number from 1 to 100.`);
       need(f.rotates === undefined || typeof f.rotates === 'boolean', `${at}.rotates must be true or false.`);
     });
 
@@ -176,6 +179,16 @@ export function validateGarden(g: unknown): string[] {
   need(monthDay(g.lastFrost) && monthDay(g.firstFrost), 'frost dates must be MM-DD.');
   need(g.heightM === undefined || (isNum(g.heightM) && g.heightM >= -10 && g.heightM <= 1400), 'heightM must be a height in the UK, in metres.');
   need(g.frostHollow === undefined || typeof g.frostHollow === 'boolean', 'frostHollow must be true or false.');
+  if (g.balcony !== undefined) {
+    const b = g.balcony;
+    need(isObject(b), 'balcony must be an object.');
+    if (isObject(b)) {
+      need(b.facing === undefined || oneOf(FACINGS, b.facing), 'balcony.facing must be a compass point, such as south-east.');
+      need(b.sun === undefined || oneOf(BALCONY_SUN, b.sun), 'balcony.sun must be most, half or little.');
+      need(b.roof === undefined || typeof b.roof === 'boolean', 'balcony.roof must be true or false.');
+      need(b.windy === undefined || typeof b.windy === 'boolean', 'balcony.windy must be true or false.');
+    }
+  }
   if (g.seeds !== undefined) {
     if (!Array.isArray(g.seeds)) errors.push('seeds must be a list.');
     else

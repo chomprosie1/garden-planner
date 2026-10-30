@@ -89,6 +89,8 @@ const spacedAt = (p: Plant, mm: number): Plant => ({ ...p, size: { ...p.size, sp
 /** A plant as it's spaced in this bed or pot: at module spacing raised in a cold frame, bulbs closer in a pot. */
 export function asPlacedIn(p: Plant, bed: Feature | undefined): Plant {
   if (!bed) return p;
+  // A strawberry tower: each plant has a pocket, whatever its spacing in the ground.
+  if (bed.pockets) return spacedAt(p, Math.round(Math.sqrt(Math.abs(polygonArea(bed.footprint)) / bed.pockets)));
   if (raisedIn(bed, p)) return spacedAt(p, MODULE_MM);
   if (isRoundPot(bed) && isBulb(p)) return spacedAt(p, potSpacingOf(p));
   return p;
@@ -103,7 +105,7 @@ export const OVER_FULL = 1.15;
  */
 export function plantRoom(pl: Planting, plant: Plant, bed: Feature): number {
   const n = plantCount(pl, plant);
-  if (isPot(bed) && n === 1) return isRoundPot(bed) ? Math.PI * (potNeeds(plant) / 2) ** 2 : potNeeds(plant) ** 2;
+  if (isPot(bed) && n === 1 && !bed.pockets) return isRoundPot(bed) ? Math.PI * (potNeeds(plant) / 2) ** 2 : potNeeds(plant) ** 2;
   return n * asPlacedIn(plant, bed).size.spacingMm ** 2;
 }
 
@@ -147,6 +149,39 @@ export const sizeText = (s: PotSize) => (s.long > s.across + 20 ? `${cmText(s.lo
 /** "about 15 litres". */
 export const litresText = (l: number) => `about ${l < 10 ? Math.round(l * 2) / 2 : Math.round(l)} litres`;
 
+/** A size typed in litres ("20 l", "20 litres"), or null if it's something else. */
+export function litresTyped(text: string): number | null {
+  const m = /^\s*(\d+(?:\.\d+)?)\s*(?:l|ltr|ltrs|litres?|liters?)\s*$/i.exec(text);
+  const n = m ? Number(m[1]) : 0;
+  return n >= 1 && n <= 500 ? n : null;
+}
+
+/** How deep a pot is for how wide, roughly: a usual pot is nearly as deep as it's wide. */
+const POT_DEPTH = 0.9;
+
+/** How wide and deep a round pot of so many litres is, mm. */
+export function potOfLitres(litres: number): { across: number; depth: number } {
+  const across = Math.round(Math.cbrt((litres * 1e6) / ((Math.PI / 4) * POT_DEPTH)));
+  return { across, depth: Math.round(across * POT_DEPTH) };
+}
+
+/** A usual bag of compost, litres. */
+export const BAG_LITRES = 40;
+/**
+ * What compost in a pot weighs once it's fully wet, kg a litre. A rule of thumb for planning, from container-planting
+ * guides: figures vary with the mix, and a shop's bag is far lighter (about 14 kg for 40 litres at B&Q).
+ */
+export const WET_KG_PER_LITRE = 1;
+
+/** "2 bags of 40 litres": bags to buy for so many litres. */
+export const bagsText = (l: number) => {
+  const n = Math.max(1, Math.ceil(l / BAG_LITRES));
+  return `${n} ${n === 1 ? 'bag' : 'bags'} of ${BAG_LITRES} litres`;
+};
+
+/** "about 40 kg once it’s wet". */
+export const wetWeightText = (l: number) => `about ${Math.max(1, Math.round((l * WET_KG_PER_LITRE) / 5) * 5)} kg once it’s wet`;
+
 export interface PotProblem {
   kind: 'small' | 'crowded';
   feature: Feature;
@@ -155,6 +190,8 @@ export interface PotProblem {
   /** For small: what the plant wants across. For crowded: what they want across together. */
   need: number;
   message: string;
+  /** The same in a few words, for a line about the whole pot. */
+  short: string;
 }
 
 const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
@@ -186,6 +223,7 @@ export function potProblems(g: Garden, plantOf: (id: string) => Plant): PotProbl
         size,
         need,
         message: `${plant.commonName} wants a pot about ${cmText(need)} across or more; ${where} is ${sizeText(size)} (${litresText(size.litres)}). In a small pot it stays small and dries out fast. Pot it on when you can.`,
+        short: `${lower(plant.commonName)} wants a pot about ${cmText(need)} across`,
       });
     }
     // Counted by plants, not plantings: a block of lettuce is several plants.
@@ -208,6 +246,7 @@ export function potProblems(g: Garden, plantOf: (id: string) => Plant): PotProbl
       message: f.circle
         ? `Too crowded: the ${listOf(names)} want a pot about ${cmText(together)} across between them; ${where} is ${cmText(size.across)}. Pot one on, or move one out to a bed.`
         : `Too crowded: the ${listOf(names)} want more room than ${where} has. Move one to a pot of its own, or to a bed.`,
+      short: `the ${listOf(names)} are too crowded`,
     });
   }
   return out;

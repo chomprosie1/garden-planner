@@ -6769,6 +6769,14 @@ h2 {
   margin: 0;
   accent-color: var(--accent);
 }
+/* ---------- Balconies and pots (release 54) ---------- */
+.balcony-fields {
+  display: grid;
+  gap: 0.6rem;
+}
+.bed-ideas {
+  margin: 0.2rem 0 0.4rem;
+}
 /* ---------- Easy to see and touch (release 53) ---------- */
 .field-heading {
   font-size: 0.875rem;
@@ -6838,6 +6846,12 @@ h2 {
   font-size: 0.68rem;
   font-weight: 600;
   line-height: 1.1;
+}
+.job-link {
+  min-width: var(--tap);
+}
+.btn.btn-small {
+  min-height: var(--tap);
 }
 .on-photo .more-menu > .icon-btn {
   background: rgba(0, 0, 0, 0.3);

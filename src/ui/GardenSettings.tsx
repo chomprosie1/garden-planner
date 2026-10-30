@@ -2,7 +2,11 @@ import { useRef, useState } from 'preact/hooks';
 import { updateGarden, type Store } from '../model/store';
 import { featureLabel } from '../model/features';
 import { nameListBeds, spreadOut } from '../model/listLayout';
+import { setBalcony } from '../planting/balcony';
 import { isListed } from '../planting/listPlant';
+import { isContainer } from '../planting/place';
+import { isPot } from '../planting/pots';
+import { BalconyFields } from './BalconyFields';
 import type { Garden } from '../model/types';
 import { todayIso } from '../model/ids';
 import type { PrefsStore } from '../theme/prefs';
@@ -117,6 +121,12 @@ export function BackupButtons({ store, prefsStore, primary = true }: { store: St
 
 type Message = { kind: 'ok' | 'error'; lines: string[] } | null;
 
+/** Everything grown here is in pots and planters. */
+const allPots = (g: Garden) => {
+  const places = g.features.filter(isContainer);
+  return places.length > 0 && places.every(isPot);
+};
+
 /** The garden's part of Settings: its name and place, north, spacing, frosts and climate, reminders, and backups. */
 export function GardenSettings({ store, garden, prefsStore }: Props) {
   const fileInput = useRef<HTMLInputElement>(null);
@@ -209,6 +219,13 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
             everything; beds added in a list are set out neatly on the plan, ready to arrange.
           </p>
         </fieldset>
+        {/* Asked of a balcony in setup; here too for anywhere that's all pots, set up before it was asked. */}
+        {(garden.balcony || allPots(garden)) && (
+          <>
+            <h3>Your balcony or pots</h3>
+            <BalconyFields value={garden.balcony ?? {}} onChange={(b) => store.apply(updateGarden((g) => setBalcony(g, b)))} />
+          </>
+        )}
         <h3>Where it is</h3>
         <p>{placeText(garden)}</p>
         <PlaceSearch store={store} />

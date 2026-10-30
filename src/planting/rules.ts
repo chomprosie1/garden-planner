@@ -8,6 +8,7 @@ import { featureLabel, placeLabel } from '../model/features';
 import type { Garden, Light, Plant, Planting, Point } from '../model/types';
 import { averageHours, type SunGrid } from '../sun/hours';
 import { activePlantings, canHold, EDGE_MM, insideBed, isContainer, plantCount, plantingShape, plantPositions, rowSpacingOf, sizedPlant, type PlantingShape } from './place';
+import { LIGHT_RANK, LIGHT_WORDS, lightHere } from './balcony';
 import { asPlacedIn, isPot, isRoundPot, potProblems } from './pots';
 import { CAGE_SQUEEZE, fullnessFindings, isList } from './listPlant';
 import { seasonsApart } from './rotation';
@@ -24,6 +25,8 @@ export interface Finding {
   plantingIds: string[];
   featureIds: string[];
   message: string;
+  /** The same in a few words, for one line about a whole pot. */
+  short?: string;
 }
 
 /** Plants this much closer than they need are only a small squeeze, not worth a warning. */
@@ -42,7 +45,7 @@ type PlantOf = (id: string) => Plant;
 export function checkGarden(g: Garden, plantOf: PlantOf, sun: SunGrid | null = null): Finding[] {
   // Weeds aren't checked for spacing, neighbours or light: they're not a planting choice.
   const active = activePlantings(g).filter((pl) => plantOf(pl.plantId).category !== 'weed');
-  const said = new Set(g.features.filter((f) => f.light).map((f) => f.id));
+  const said = new Set(g.features.filter((f) => lightHere(g, f)).map((f) => f.id));
   const findings = [
     ...checkPlacement(g, active, plantOf),
     ...checkBeds(g),
@@ -55,7 +58,20 @@ export function checkGarden(g: Garden, plantOf: PlantOf, sun: SunGrid | null = n
     ...(sun ? checkLight(active.filter((pl) => !said.has(pl.featureId)), plantOf, sun) : []),
     ...checkSoil(g, active, plantOf),
   ];
-  return onceEach(findings).sort((a, b) => (a.level === b.level ? 0 : a.level === 'warn' ? -1 : 1));
+  return oneForEachPot(onceEach(findings), g).sort((a, b) => (a.level === b.level ? 0 : a.level === 'warn' ? -1 : 1));
+}
+
+/** Two or more things wrong with what's in a pot are one thing to check: a wall of warnings about a trough helps nobody. */
+function oneForEachPot(findings: Finding[], g: Garden): Finding[] {
+  const potOf = (f: Finding) => (f.level === 'warn' && f.short && f.featureIds.length === 1 ? g.features.find((x) => x.id === f.featureIds[0] && isPot(x)) : undefined);
+  const out: Finding[] = [];
+  for (const f of findings) {
+    const pot = potOf(f);
+    const all = pot ? findings.filter((x) => potOf(x) === pot) : [];
+    if (all.length < 2) out.push(f);
+    else if (all[0] === f) out.push({ id: `pot-all:${pot!.id}`, kind: 'pot', level: 'warn', plantingIds: [...new Set(all.flatMap((x) => x.plantingIds))], featureIds: [pot!.id], message: `${featureLabel(pot!)}: ${[...new Set(all.map((x) => x.short))].join('; ')}.` });
+  }
+  return out;
 }
 
 /** Findings in one bed that say the same thing are one, for all the plantings they're about. The same words about another bed are another problem. */
@@ -285,8 +301,6 @@ export function checkLight(active: Planting[], plantOf: PlantOf, sun: SunGrid | 
 
 /** Rough hours of direct sun a day for each kind of spot, as you said it: a design call, for when there's no plan to work it out. */
 export const STATED_HOURS: Record<Light, number> = { 'full-sun': 7, 'part-shade': 4, shade: 2 };
-const LIGHT_WORDS: Record<Light, string> = { 'full-sun': 'full sun', 'part-shade': 'part shade', shade: 'shade' };
-const LIGHT_RANK: Record<Light, number> = { shade: 0, 'part-shade': 1, 'full-sun': 2 };
 
 /** Light from each bed's sun, as you said: a sun lover in shade, or a shade lover in full sun. Nothing where it isn't said. */
 export function checkStatedLight(g: Garden, active: Planting[], plantOf: PlantOf): Finding[] {
@@ -294,13 +308,15 @@ export function checkStatedLight(g: Garden, active: Planting[], plantOf: PlantOf
   const byId = new Map(g.features.map((f) => [f.id, f]));
   for (const pl of active) {
     const bed = byId.get(pl.featureId);
-    if (!bed?.light) continue;
+    const light = bed && lightHere(g, bed);
+    if (!bed || !light) continue;
     const plant = plantOf(pl.plantId);
-    const where = `${describe(pl, plant)} is in ${placeLabel(bed)}, which you said is in ${LIGHT_WORDS[bed.light]}`;
+    const where = `${describe(pl, plant)} is in ${placeLabel(bed)}, which you said is in ${LIGHT_WORDS[light]}`;
     const base = { id: `light:${pl.id}`, kind: 'light' as const, level: 'warn' as const, plantingIds: [pl.id], featureIds: [bed.id] };
     // By light level, as you said it and as the plant's card says it: a sun lover in part shade or shade, a part-shade plant in shade.
-    if (LIGHT_RANK[bed.light] < LIGHT_RANK[plant.conditions.light]) out.push({ ...base, message: `${where}; it wants ${LIGHT_WORDS[plant.conditions.light]}.` });
-    else if (plant.conditions.light === 'shade' && bed.light === 'full-sun') out.push({ ...base, message: `${where}; it prefers shade and may scorch.` });
+    const name = lower(plant.commonName);
+    if (LIGHT_RANK[light] < LIGHT_RANK[plant.conditions.light]) out.push({ ...base, message: `${where}; it wants ${LIGHT_WORDS[plant.conditions.light]}.`, short: `${name} wants ${LIGHT_WORDS[plant.conditions.light]}, and this is ${LIGHT_WORDS[light]}` });
+    else if (plant.conditions.light === 'shade' && light === 'full-sun') out.push({ ...base, message: `${where}; it prefers shade and may scorch.`, short: `${name} prefers shade, and this is full sun` });
   }
   return out;
 }
@@ -426,5 +442,6 @@ function checkPots(g: Garden, plantOf: PlantOf): Finding[] {
     plantingIds: p.plantings.map((pl) => pl.id),
     featureIds: [p.feature.id],
     message: p.message,
+    short: p.short,
   }));
 }

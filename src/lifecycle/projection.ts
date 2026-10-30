@@ -14,6 +14,7 @@ import { rainOver, weatherOn, type Weather } from '../weather/weather';
 import { daysBetween } from '../model/dates';
 import { featureLabel } from '../model/features';
 import { STAGES, type Feature, type Garden, type Plant, type Planting, type Stage } from '../model/types';
+import { isCovered } from '../planting/balcony';
 import { isContainer } from '../planting/place';
 import { earliestOut, plantHere, readyFrom, runsOf, seasonMonth, seasonShift, upFrom } from './growth';
 import { addDays, frostDatesUnder, germination, hardenOn, inYear, isTender, plantInFrom, plantOutFrom } from './shed';
@@ -425,7 +426,9 @@ export function pickedBy(lens: YearLens, g: Garden, plantOf: (id: string) => Pla
     else if (lens === 'harvest') picked = stage === 'harvesting';
     else {
       const kind = kindOf.get(pl.featureId);
-      const covered = anyCover && !!microclimateOf(g, pl);
+      const bed = g.features.find((f) => f.id === pl.featureId);
+      // Under glass, or a pot rain doesn't reach.
+      const covered = (anyCover && !!microclimateOf(g, pl)) || (!!bed && isCovered(g, bed));
       const potted = kind === 'pot' || kind === 'planter' || covered;
       const summer = month >= 4 && month <= 9;
       const young = stage === 'sown' || stage === 'germinated' || stage === 'transplanted';

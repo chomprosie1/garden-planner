@@ -22,7 +22,9 @@ import { LIGHT_LEVELS, type Feature, type Garden, type Light, type Plant, type P
 import { defaultFill, FILL_LABEL, fillsFor, type Fill } from '../../planting/fill';
 import { RotationSwitch } from '../RotationSwitch';
 import { fullText, howFull, isListed, listBeds, moveRoom, moveToListBed, placeInList, plantableBeds, plantingsCount, plantOutInList, rowsOfSowing, sowingKey, type ListHow } from '../../planting/listPlant';
+import { balconyLight, plantsFor } from '../../planting/balcony';
 import { isActive, isContainer, plantCount, spacingStyle, type InGroundAt } from '../../planting/place';
+import { isPot, litresTyped, potOfLitres, potSize, wetWeightText, litresText } from '../../planting/pots';
 import { isSupport } from '../../planting/supports';
 import { plantHere } from '../../lifecycle/growth';
 import { nextStep } from '../../planting/windows';
@@ -68,7 +70,10 @@ function sizeText(f: Feature): string {
   if (isSupport(f)) return '';
   if (f.circle) return formatAcross(f.circle.radiusMm * 2);
   const b = bounds(f.footprint);
-  return b ? formatSize(b.maxX - b.minX, b.maxY - b.minY) : '';
+  if (!b) return '';
+  // Nobody measures a trough in metres.
+  if (isPot(f)) return `${Math.round((b.maxX - b.minX) / 10)} × ${Math.round((b.maxY - b.minY) / 10)} cm`;
+  return formatSize(b.maxX - b.minX, b.maxY - b.minY);
 }
 
 /** What it is, in a word or two: "Raised bed", "Pot", "Patch of ground". */
@@ -201,7 +206,9 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
             today={today}
             weather={weather}
             open={setSheet}
-            addPlant={() => setAdding({ bedId: bed.id })}
+            // Warnings on a pot come with something to do about them.
+            ideas={isPot(bed) && findings.some((f) => f.level === 'warn' && f.featureIds.includes(bed.id)) ? plantsFor(plants, garden, bed, month) : []}
+            addPlant={(plantId) => setAdding({ bedId: bed.id, ...(plantId ? { plantId } : {}) })}
             edit={() => setEditing(bed.id)}
           />
         ))}
@@ -279,11 +286,13 @@ interface CardProps {
   weather: ReturnType<typeof useWeatherNow>['weather'];
   /** Opens a bed or planting; for a line of rows alike, the others too. */
   open: (t: Target) => void;
-  addPlant: () => void;
+  /** Plants that would suit it, for a pot with something to check. */
+  ideas: Plant[];
+  addPlant: (plantId?: string) => void;
   edit: () => void;
 }
 
-function BedCard({ bed, first, last, garden, store, plantOf, jobs, warnings, today, weather, open, addPlant, edit }: CardProps) {
+function BedCard({ bed, first, last, garden, store, plantOf, jobs, warnings, today, weather, open, ideas, addPlant, edit }: CardProps) {
   const app = useApp();
   const here = garden.plantings.filter((p) => p.featureId === bed.id && isActive(p));
   const share = howFull(garden, bed, plantOf);
@@ -324,7 +333,7 @@ function BedCard({ bed, first, last, garden, store, plantOf, jobs, warnings, tod
           {!support && (
             <p class="small bed-tags">
               <span class={`bed-full ${share > 1.15 ? 'bed-over' : ''}`}>{fullText(share)}</span>
-              {bed.light && <span class="bed-sun">☀ {LIGHT_TEXT[bed.light].toLowerCase()}</span>}
+              {bed.light && <span class="bed-sun">{bed.light === 'full-sun' ? '☀ ' : ''}{LIGHT_TEXT[bed.light].toLowerCase()}</span>}
             </p>
           )}
         </div>
@@ -380,6 +389,19 @@ function BedCard({ bed, first, last, garden, store, plantOf, jobs, warnings, tod
           <Icon name="warn" size={15} /> {w}
         </p>
       ))}
+      {ideas.length > 0 && (
+        <p class="small bed-ideas">
+          These would suit it:{' '}
+          {ideas.map((p, i) => (
+            <span key={p.id}>
+              {i > 0 && ', '}
+              <button type="button" class="link-btn" onClick={() => addPlant(p.id)}>
+                {p.commonName}
+              </button>
+            </span>
+          ))}
+        </p>
+      )}
 
       {here.length > 0 ? (
         <ul class="bed-plants">
@@ -406,7 +428,7 @@ function BedCard({ bed, first, last, garden, store, plantOf, jobs, warnings, tod
         <p class="muted small">Climbers along fences, walls and arches are planted on the plan.</p>
       ) : (
         <div class="button-row bed-actions">
-          <button type="button" class="btn" onClick={addPlant}>
+          <button type="button" class="btn" onClick={() => addPlant()}>
             <Icon name="plus" size={16} /> Add a plant
           </button>
           {here.length === 0 && <InspireButton store={store} garden={garden} f={bed} />}
@@ -550,6 +572,14 @@ const metres = (s: string, fallback: number) => sensibleSize(s, 'm') ?? fallback
 /** A pot's size typed in centimetres (or with its own unit), in mm; the fallback if it isn't a sensible one. */
 const potCm = (s: string, fallback: number) => sensibleSize(s, 'cm') ?? fallback;
 
+/** Sizes people buy, ready to pick: a grow bag's and a tower's are usual sizes, and vary by make. */
+const PRESETS: { label: string; kind: ListKind; w: string; d: string; extra: Partial<Feature> }[] = [
+  { label: '30 cm pot', kind: 'pot', w: '30', d: '', extra: {} },
+  { label: '60 cm trough', kind: 'planter', w: '60', d: '20', extra: { name: 'Trough', heightMm: 200 } },
+  { label: 'Grow bag', kind: 'planter', w: '90', d: '35', extra: { name: 'Grow bag', heightMm: 150 } },
+  { label: 'Strawberry tower', kind: 'pot', w: '35', d: '', extra: { name: 'Strawberry tower', heightMm: 400, pockets: 8 } },
+];
+
 /** Add a bed or area (or several alike): what it is, a name, and (if you like) its size and how sunny it is. */
 function AddBedDialog({ store, close, added }: { store: Store; close: () => void; added?: (id: string) => void }) {
   const app = useApp();
@@ -558,16 +588,27 @@ function AddBedDialog({ store, close, added }: { store: Store; close: () => void
   const [name, setName] = useState('');
   const [w, setW] = useState('');
   const [d, setD] = useState('');
-  const [light, setLight] = useState<Light | ''>('');
+  // A balcony's pots start with its light.
+  const [light, setLight] = useState<Light | ''>(balconyLight(store.get().garden.balcony) ?? '');
   const [many, setMany] = useState('1');
   const [sizeNote, setSizeNote] = useState('');
+  /** What a preset brings besides its size: a depth, or a tower's pockets. */
+  const [extra, setExtra] = useState<Partial<Feature>>({});
   const usual = LIST_SIZE[kind];
+  // Pots and planters are measured in centimetres; a pot can be given in litres too.
+  const inCm = kind === 'pot' || kind === 'planter';
+  const sized = (s: string, fallback: number) => (inCm ? potCm(s, fallback) : metres(s, fallback));
+  const potLitres = kind === 'pot' ? litresTyped(w) : null;
   const add = () => {
     // A pot 25 m across is a slip, and a size that can't be read isn't one: say so, rather than make something else.
-    if (kind === 'pot' && w.trim() && potCm(w, 0) === 0) return setSizeNote('That doesn’t look like a pot’s size. Try a number of centimetres, such as 30.');
-    if (kind !== 'pot' && [w, d].some((s) => s.trim() && metres(s, 0) === 0)) return setSizeNote('That size can’t be read. Try metres, such as 2.4, or feet, such as 6 ft.');
-    const size: [number, number] = kind === 'pot' ? [potCm(w, usual[0]), potCm(w, usual[0])] : [metres(w, usual[0]), metres(d, usual[1])];
-    const label = name.trim() || LIST_KIND_LABEL[kind].replace(/^An? /, '').replace(/^./, (c) => c.toUpperCase());
+    if (kind === 'pot' && w.trim() && !potLitres && potCm(w, 0) === 0) return setSizeNote('That doesn’t look like a pot’s size. Try centimetres across, such as 30, or litres, such as 20 l.');
+    if (kind === 'planter' && [w, d].some((s) => s.trim() && potCm(s, 0) === 0)) return setSizeNote('That doesn’t look like a planter’s size. Try centimetres, such as 60.');
+    if (!inCm && [w, d].some((s) => s.trim() && metres(s, 0) === 0)) return setSizeNote('That size can’t be read. Try metres, such as 2.4, or feet, such as 6 ft.');
+    const across = potLitres ? potOfLitres(potLitres).across : sized(w, usual[0]);
+    const size: [number, number] = kind === 'pot' ? [across, across] : [sized(w, usual[0]), sized(d, usual[1])];
+    const made: Partial<Feature> = { ...extra, ...(potLitres ? { heightMm: potOfLitres(potLitres).depth } : {}) };
+    delete made.name;
+    const label = name.trim() || extra.name || LIST_KIND_LABEL[kind].replace(/^An? /, '').replace(/^./, (c) => c.toUpperCase());
     const n = SEVERAL.includes(kind) ? Math.max(1, Math.min(24, Math.round(Number(many) || 1))) : 1;
     let first = label;
     let firstId: string | undefined;
@@ -577,7 +618,7 @@ function AddBedDialog({ store, close, added }: { store: Store; close: () => void
         const ids: string[] = [];
         for (let i = 0; i < n; i++) {
           const [after, id] = addListBed(next, kind, label, size);
-          next = light ? updateFeature(after, id, { light }) : after;
+          next = updateFeature(after, id, { ...made, ...(light ? { light } : {}) });
           ids.push(id);
         }
         // Two or more alike are numbered as they're added: "Pot 1", "Pot 2".
@@ -609,12 +650,33 @@ function AddBedDialog({ store, close, added }: { store: Store; close: () => void
           <div class="kind-grid">
             {LIST_KINDS.map((k) => (
               <label key={k} class={`kind-option kind-${k}`}>
-                <input type="radio" name="list-kind" checked={kind === k} onChange={() => setKind(k)} />
+                <input type="radio" name="list-kind" checked={kind === k} onChange={() => (setKind(k), setExtra({}), setSizeNote(''))} />
                 <span>{LIST_KIND_LABEL[k]}</span>
               </label>
             ))}
           </div>
         </fieldset>
+        {inCm && (
+          <div class="happened-chips" role="group" aria-label="Usual sizes">
+            {PRESETS.map((p) => (
+              <button
+                key={p.label}
+                type="button"
+                class="chip"
+                aria-pressed={kind === p.kind && w === p.w && d === p.d && (extra.pockets ?? 0) === (p.extra.pockets ?? 0)}
+                onClick={() => {
+                  setKind(p.kind);
+                  setW(p.w);
+                  setD(p.d);
+                  setExtra(p.extra);
+                  setSizeNote('');
+                }}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        )}
         <label class="field">
           Name
           <input value={name} placeholder={`Such as ${kind === 'bed' ? 'Veg bed' : kind === 'pot' ? 'Patio pot' : kind === 'ground' ? 'The plot' : LIST_KIND_LABEL[kind].replace(/^An? /, '')}`} onInput={(e) => setName((e.currentTarget as HTMLInputElement).value)} />
@@ -623,22 +685,22 @@ function AddBedDialog({ store, close, added }: { store: Store; close: () => void
           <label class="field">
             {kind === 'pot' ? 'Across' : 'Width'}
             <span class="input-unit">
-              <input value={w} placeholder={String(kind === 'pot' ? usual[0] / 10 : usual[0] / 1000)} onInput={(e) => (setW((e.currentTarget as HTMLInputElement).value), setSizeNote(''))} />
-              <span>{kind === 'pot' ? 'cm' : 'm'}</span>
+              <input value={w} placeholder={String(inCm ? usual[0] / 10 : usual[0] / 1000)} onInput={(e) => (setW((e.currentTarget as HTMLInputElement).value), setExtra({}), setSizeNote(''))} />
+              <span>{potLitres ? '' : inCm ? 'cm' : 'm'}</span>
             </span>
           </label>
           {kind !== 'pot' && (
             <label class="field">
               Length
               <span class="input-unit">
-                <input value={d} placeholder={String(usual[1] / 1000)} onInput={(e) => setD((e.currentTarget as HTMLInputElement).value)} />
-                <span>m</span>
+                <input value={d} placeholder={String(inCm ? usual[1] / 10 : usual[1] / 1000)} onInput={(e) => (setD((e.currentTarget as HTMLInputElement).value), setExtra({}))} />
+                <span>{inCm ? 'cm' : 'm'}</span>
               </span>
             </label>
           )}
         </div>
         {sizeNote && <p class="bed-warn small">{sizeNote}</p>}
-        <p class="muted small">A rough size is fine, in feet if you like (6 ft); leave it for the usual. It tells you how many plants fit.</p>
+        <p class="muted small">{kind === 'pot' ? 'A rough size is fine, across in centimetres or in litres (20 l); leave it for the usual.' : 'A rough size is fine, in feet if you like (6 ft); leave it for the usual.'} It tells you how many plants fit.</p>
         {SEVERAL.includes(kind) && (
           <label class="field count-field">
             How many?
@@ -768,7 +830,7 @@ function AddPlantDialog({ store, garden, plants, plantOf, month, start, close, n
           <>
             <p class="muted small">In {featureLabel(bed)}.</p>
             {bookedNote}
-            <PlantChooser plants={plants} garden={garden} month={month} pick={setPlantId} />
+            <PlantChooser plants={plants} garden={garden} month={month} pick={setPlantId} bed={bed} />
           </>
         ) : (
           <>
@@ -890,15 +952,15 @@ function EditBedDialog({ store, garden, bedId, plantOf, close }: { store: Store;
                   <label class="field">
                     Width
                     <span class="input-unit">
-                      <MetresInput mm={rect.w} commit={(t) => set({ footprint: resizeRectAny(bed.footprint, metres(t, rect.w), rect.h)! })} />
-                      <span>m</span>
+                      <MetresInput mm={rect.w} cm={isPot(bed)} commit={(t) => set({ footprint: resizeRectAny(bed.footprint, isPot(bed) ? potCm(t, rect.w) : metres(t, rect.w), rect.h)! })} />
+                      <span>{isPot(bed) ? 'cm' : 'm'}</span>
                     </span>
                   </label>
                   <label class="field">
                     Length
                     <span class="input-unit">
-                      <MetresInput mm={rect.h} commit={(t) => set({ footprint: resizeRectAny(bed.footprint, rect.w, metres(t, rect.h))! })} />
-                      <span>m</span>
+                      <MetresInput mm={rect.h} cm={isPot(bed)} commit={(t) => set({ footprint: resizeRectAny(bed.footprint, rect.w, isPot(bed) ? potCm(t, rect.h) : metres(t, rect.h))! })} />
+                      <span>{isPot(bed) ? 'cm' : 'm'}</span>
                     </span>
                   </label>
                 </>
@@ -918,6 +980,17 @@ function EditBedDialog({ store, garden, bedId, plantOf, close }: { store: Store;
           </select>
         </label>
         <p class="muted small">Plants that want more sun, or less, are flagged on the bed.</p>
+        {potSize(bed) && (
+          <>
+            <p class="muted small">
+              It holds {litresText(potSize(bed)!.litres)} of compost, {wetWeightText(potSize(bed)!.litres)}.
+            </p>
+            <label class="switch-row">
+              <input type="checkbox" checked={bed.covered ?? !!garden.balcony?.roof} onChange={(e) => set({ covered: (e.currentTarget as HTMLInputElement).checked })} />
+              <span>Under cover: rain doesn’t reach it</span>
+            </label>
+          </>
+        )}
         <BedSoil store={store} garden={garden} bed={bed} />
         <RotationSwitch garden={garden} bed={bed} plantOf={plantOf} set={set} />
         <div class="button-row">

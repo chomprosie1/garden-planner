@@ -16,6 +16,8 @@ export interface Weather {
   rain: (number | null)[];
   /** Each day's highest UV index, from the forecast only (the archive has none). Missing in weather kept before it was fetched. */
   uv?: (number | null)[];
+  /** Each day's strongest wind, km/h. Missing in weather kept before it was fetched. */
+  wind?: (number | null)[];
   /** The day it was fetched: from here on it's the forecast. */
   today: string;
   /** When it was fetched, ISO date and time. */
@@ -34,7 +36,7 @@ export interface DayWeather {
 /** Rounded to about a kilometre: close enough for the weather, and no closer than it needs to be. */
 export const roundPlace = (n: number) => Math.round(n * 100) / 100;
 
-type Daily = Map<string, Partial<DayWeather & { uv: number }>>;
+type Daily = Map<string, Partial<DayWeather & { uv: number; wind: number }>>;
 
 const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 
@@ -51,16 +53,19 @@ export function parseDaily(json: unknown): Daily {
   const min = pick('temperature_2m_min');
   const rain = pick('precipitation_sum');
   const uv = pick('uv_index_max');
+  const wind = pick('wind_speed_10m_max');
   const out: Daily = new Map();
   time.forEach((t, i) => {
     if (typeof t !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(t)) return;
-    const day: Partial<DayWeather & { uv: number }> = {};
+    const day: Partial<DayWeather & { uv: number; wind: number }> = {};
     const [a, b, r] = [num(max[i]), num(min[i]), num(rain[i])];
     if (a !== null) day.max = a;
     if (b !== null) day.min = b;
     if (r !== null) day.rain = r;
     const u = num(uv[i]);
     if (u !== null) day.uv = u;
+    const gust = num(wind[i]);
+    if (gust !== null) day.wind = gust;
     out.set(t, day);
   });
   return out;
@@ -80,15 +85,24 @@ export function makeWeather(replies: Daily[], today: string, fetchedAt: string, 
   const n = dayNumber(days[days.length - 1]!) - first + 1;
   const w: Weather = { from: days[0]!, tmax: [], tmin: [], rain: [], today, fetchedAt, lat, lon };
   const uv: (number | null)[] = [];
+  const wind: (number | null)[] = [];
   for (let i = 0; i < n; i++) {
     const v = all.get(fromDayNumber(first + i));
     w.tmax.push(v?.max ?? null);
     w.tmin.push(v?.min ?? null);
     w.rain.push(v?.rain ?? null);
     uv.push(v?.uv ?? null);
+    wind.push(v?.wind ?? null);
   }
   if (uv.some((u) => u !== null)) w.uv = uv;
+  if (wind.some((x) => x !== null)) w.wind = wind;
   return w;
+}
+
+/** The strongest wind on a day, km/h, if it's known. */
+export function windOn(w: Weather | null, iso: string): number | null {
+  if (!w?.wind) return null;
+  return w.wind[dayNumber(iso) - dayNumber(w.from)] ?? null;
 }
 
 /** The weather on a day, if it has all of it. */

@@ -2948,6 +2948,30 @@ Not changed:
 - **The credit on the photo** can sit over the month's name at Extra large.
 - **The sun and shade colours on the plan** are still colour first, with a word when you point at a spot.
 
+### Release 54 — Balconies and pots, properly (as built)
+Built 30 Oct 2026, on a branch, as it changes the save format. Schema 26. Version 0.54.0.
+
+- **Setup asks a balcony** which way it faces, how much sun it gets, whether there's a roof above and whether it's windy (`Garden.balcony`, `planting/balcony.ts`). Pots take their light from that, except any you've set yourself. A facing also points the plan's top that way. The same questions are in Settings for anywhere that's all pots.
+- **Watering per pot** (`potWaterJobs`): a job for each pot due, on Today, in a list as well as a plan. How long a pot lasts goes by warmth, its size, its light and wind, and a tick starts its clock again. Over five due, they're one job. Covered pots ignore rain and need no weather switched on. Pots rain reaches need the weather, as before, and now count from the last 5 mm day. The weather now fetches each day's wind (`wind_speed_10m_max`). The plan's Show: water counts covered pots too. **The day counts are design calls,** and each job says to feel the compost first, as the RHS says to check.
+- **Warnings become answers:** two or more problems in one pot are one finding (`oneForEachPot`), so the count falls with them, on every screen alike. A pot with something to check shows three plants that suit it (`plantsFor`), each one tap from adding. One problem keeps its full wording.
+- **"Add a plant" filters** by a pot's light and size (`suitsPot`), with Show everything. Search still finds every plant.
+- **Sizes:** presets for a 30 cm pot, a 60 cm trough, a grow bag and a strawberry tower. A pot can be typed in litres. Planters are in cm. A tower has `pockets`, so 8 strawberries fit a 35 cm tower. A new balcony's trough is at most 1.2 m, not 2 m.
+- **Compost** in litres and 40-litre bags, with the wet weight, on the shopping list and each pot's details.
+- **A Shady balcony kit.** With a shady balcony, only kits that suit it are offered. In a pot: no feed by the square metre (a liquid feed instead), nothing to dig in before planting, and a chilli or pepper comes indoors, with its own how-to.
+- **Also fixed:** no sun symbol beside part shade.
+- **Checked in a browser at 390 px:** setup for a north-east covered balcony through to Today and Garden, the tower preset with 8 strawberries, the plant filter, the warning with its suggestions, and the Water job in list mode. No page errors.
+- **Sources:** RHS container maintenance (check daily in warm or windy weather, even after rain; feed from about six weeks, April to August, on moist compost) and the RHS chilli guide (warm and bright, pruned, sparingly watered, nights of about 12 °C). **Rules of thumb, not sourced to the RHS:** the sun bands below six hours and light from facing (its own page wasn't found), and 1 kg a litre wet, from weak sources. Help tells people to check what their balcony can carry. Preset sizes vary by make.
+- **Review:** read through by hand before pushing, not with `/code-review`, to avoid the cost of its subagents.
+
+Tests: `tests/balcony.test.ts`, including the migration. Changed: `next-year` (pots left the shared water job, and compost says bags: changes of rule from this release), and the schema number in `first-garden-real` and `fruit-next-year`.
+
+Not changed:
+- **The plan's panel** has the one-line warning, but not the suggested plants.
+- **The plant page** still gives feeding by the square metre, as it doesn't know where the plant is.
+- **Greenhouse, cold-frame and leaf-mould jobs on a balcony** are release 55.
+- **Editing a pot's size** takes centimetres, not litres.
+- **A strawberry tower** can be suggested plants that aren't strawberries.
+
 ## Repo layout
 ```
 garden-planner/

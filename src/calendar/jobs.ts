@@ -6,14 +6,14 @@
 // When a planting has probably reached flowering, a "check progress" job asks you to confirm it.
 
 import { microclimateOf } from '../climate/microclimate';
-import { feedDetail, feedingDue, feedsInUse, isOnce, plantingFeedText } from '../feeding/schedule';
+import { feedDetail, feedingDue, feedsInUse, isOnce, plantingFeedText, potFeedDetail, potFeedSteps } from '../feeding/schedule';
 import { plantHere } from '../lifecycle/growth';
 import { addDays, frostDates, isTender, plantOutMonthsUnder, safeOut } from '../lifecycle/shed';
 import { currentStage, isRoot, pathFor, setStage, sowingOf, stageLabel, stageTips, suggestedStage } from '../lifecycle/stages';
 import { probableStage, shortDate, stageIn, timeline } from '../lifecycle/projection';
 import { behindOf } from '../lifecycle/behind';
 import type { Weather } from '../weather/weather';
-import { waterJob } from './watering';
+import { potWaterJobs, waterJob } from './watering';
 import { featureLabel, placeLabel, updateFeature } from '../model/features';
 import { runEnds } from '../library/library';
 import { STAGES, type Garden, type PickSize, type Plant, type Planting, type Stage } from '../model/types';
@@ -198,6 +198,10 @@ export interface JobOptions {
   watering?: boolean;
 }
 
+/** What a job says for a tender crop in a pot, and its advice. RHS: overwinter somewhere warm and bright, pruned to a manageable size and watered sparingly; chillies usually cope with nights of about 12 °C. */
+export const BRING_IN_VERB = 'Bring indoors';
+const BRING_IN = 'Before nights drop to about 12 °C, cut it back to a manageable size and move it to a warm, bright windowsill. Fleece won’t keep it warm enough. Water it sparingly over winter.';
+
 /** Your jobs for a month, in the order of JOB_KINDS, then by plant name. */
 export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number, year: number, opts: JobOptions = {}): Job[] {
   // Each plant as it's grown here: its months moved for the garden's season.
@@ -231,7 +235,8 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
 
   if (thisMonth && opts.watering !== false) {
     const water = waterJob(g, plantOf, weather, today!);
-    if (water) jobs.push({ key: water.key, kind: 'water', plantId: '', plant: water.title, where: water.where, detail: water.detail, plantingIds: water.plantingIds });
+    for (const j of [...potWaterJobs(g, plantOf, weather, today!), ...(water ? [water] : [])])
+      jobs.push({ key: j.key, kind: 'water', plantId: '', plant: j.title, where: j.where, detail: j.detail, plantingIds: j.plantingIds, ...(j.featureId ? { featureId: j.featureId } : {}) });
   }
 
   // What's on the plan, grouped by plant and bed so three rows of carrots are one job.
@@ -266,7 +271,9 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
     const toSow = notGrowing.filter((p) => !p.sownOn || (sownThisMonth(p, year, month) && sowTicked(p)));
     // Batches are sown in the month you chose for each, one job each; the rest in the plant's sowing months.
     const plain = toSow.filter((p) => !p.sowBy);
-    const before = opts.feeding ? plantingFeedText(plant, g) : undefined;
+    // In a pot, new compost has feed in it for about six weeks (RHS): nothing to dig in by the square metre.
+    const inPot = !!bed && isPot(bed);
+    const before = opts.feeding && !inPot ? plantingFeedText(plant, g) : undefined;
     const withFeed = (detail?: string) => [detail, before].filter(Boolean).join(' ') || undefined;
     if (plain.length) {
       // One job however many ways it can be sown, done once whichever way. Once you've said how (by ticking it), it's
@@ -362,12 +369,14 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
       for (const due of inGround.length ? feedingDue(plant, month) : []) {
         const scope = `${featureId}:${due.when}`;
         if (isOnce(due.when) && doneBefore(g, `feed:${plant.id}:${scope}:`, year, month)) continue;
-        add('feed', plant, where, scope, ids(inGround), feedDetail(due.steps, g), featureId);
-        jobs[jobs.length - 1]!.feeds = feedsInUse(g, due.steps);
+        add('feed', plant, where, scope, ids(inGround), inPot ? potFeedDetail(due.steps, g) : feedDetail(due.steps, g), featureId);
+        jobs[jobs.length - 1]!.feeds = feedsInUse(g, inPot ? potFeedSteps(due.steps) : due.steps);
       }
     }
     const winter = plant.wintering;
-    if (winter?.type === 'protect' && month === protectMonth && !cover) add('protect', plant, where, featureId, ids(growing), winter.notes ?? 'Bring pots under cover or fleece the plants before the first frosts.', featureId);
+    // A chilli or pepper in a pot comes in: fleece won't keep it warm enough.
+    if (winter?.type === 'protect' && month === protectMonth && !cover && inPot && plant.family === 'Solanaceae') add('protect', plant, where, featureId, ids(growing), BRING_IN, featureId, BRING_IN_VERB);
+    else if (winter?.type === 'protect' && month === protectMonth && !cover) add('protect', plant, where, featureId, ids(growing), winter.notes ?? 'Bring pots under cover or fleece the plants before the first frosts.', featureId);
     if (winter?.type === 'lift-and-store' && grown.length && runEnds(harvest).includes(month)) add('lift', plant, where, featureId, ids(grown), winter.notes, featureId);
     if (winter?.type === 'annual' && grown.length && runEnds(harvest).some((m) => m % 12 === month - 1 && month >= 9)) add('tidy', plant, where, featureId, ids(grown), 'Pull up finished plants and compost them, then mark the planting as harvested.', featureId);
   }

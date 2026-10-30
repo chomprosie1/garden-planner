@@ -1,7 +1,7 @@
 // Brings saved gardens and plants from older versions up to the current shape.
 // Bump SCHEMA_VERSION whenever the saved shape changes, and add a step here.
 
-export const SCHEMA_VERSION = 25;
+export const SCHEMA_VERSION = 26;
 
 type Raw = Record<string, unknown>;
 
@@ -134,6 +134,11 @@ export function migrateGarden(raw: unknown): unknown {
   if (version === 24) {
     g = gardenV24toV25(g);
     version = 25;
+  }
+  // v26: a balcony's answers, and a pot's cover and pockets. All optional: nothing to change but the version.
+  if (version === 25) {
+    g = { ...g, schemaVersion: 26 };
+    version = 26;
   }
   return g;
 }

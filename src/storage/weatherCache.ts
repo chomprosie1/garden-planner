@@ -38,6 +38,7 @@ export function loadWeather(storage: Storage | null = safe()): Weather | null {
     if (!ok) return null;
     // UV came later: kept weather without it, or with it gone wrong, is still good without it.
     if (w.uv !== undefined && !(isNums(w.uv) && w.uv.length === w.tmax.length)) delete w.uv;
+    if (w.wind !== undefined && !(isNums(w.wind) && w.wind.length === w.tmax.length)) delete w.wind;
     return w;
   } catch {
     return null;

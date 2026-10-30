@@ -53,7 +53,7 @@ function contents(space: Space, w: number, d: number, opts: SpaceOptions = {}): 
       out.push(box('surface', 0, 0, w, d, { material: 'decking' }));
       // A trough along the railing, at the top of the plan.
       const deep = d >= 900 ? 300 : 200;
-      const long = Math.max(600, Math.min(2000, w - 400));
+      const long = Math.max(600, Math.min(1200, w - 400));
       out.push(box('planter', (w - long) / 2, d - 100 - deep, long, deep));
       // Pots below it, in the right-hand corner, if there's room.
       if (d - 100 - deep - 100 >= 500) {

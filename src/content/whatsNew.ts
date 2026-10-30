@@ -17,6 +17,21 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-30-balconies',
+    date: '2026-10-30',
+    title: 'Balconies and pots, properly',
+    items: [
+      'Tell the app which way your balcony faces, how much sun it gets, and whether it’s covered or windy. Your pots take their light from that. It’s in setup, and under Your garden in Settings if everything you grow is in pots.',
+      'Each pot now has its own Water job on Today when it’s likely to be dry, in a list as well as on a plan. Pots under cover don’t count the rain, and wind brings the job forward. Pots rain can reach need this year’s weather turned on.',
+      'A pot with several warnings now gets one line, with plants that would suit it.',
+      'Adding a plant to a pot shows what suits its light and size, so no more wisteria in a window box.',
+      'Add a bed has usual sizes ready: a 30 cm pot, a 60 cm trough, a grow bag and a strawberry tower. Pots can be sized in litres, and planters are in centimetres.',
+      'The shopping list gives compost in bags as well as litres, with about what it weighs wet.',
+      'There’s a Shady balcony kit. Feeding in a pot is now by liquid feed, not by the square metre, and a chilli in a pot comes indoors for the winter instead of being fleeced.',
+    ],
+    tryIt: { label: 'Tell it about your balcony', view: 'settings' },
+  },
+  {
     id: '2026-10-30-easy-to-see',
     date: '2026-10-30',
     title: 'Easier to see and touch',

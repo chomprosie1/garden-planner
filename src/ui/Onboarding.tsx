@@ -5,12 +5,14 @@ import { seasonFor } from '../content/seasons';
 import { todayIso } from '../model/ids';
 import { makeSpace } from '../model/spaces';
 import { updateGarden, type Store } from '../model/store';
-import type { Garden } from '../model/types';
+import type { Balcony, Garden } from '../model/types';
+import { balconyLight, setBalcony } from '../planting/balcony';
 import { markBedsToMake } from '../planting/firstBed';
 import { applyKit, kitsFor, type Kit } from '../planting/kits';
 import { spacingStyle } from '../planting/place';
 import type { Prefs, PrefsStore, View } from '../theme/prefs';
 import { GardenNameField, placeText, UseLocationButton } from './GardenSettings';
+import { BalconyFields } from './BalconyFields';
 import { KitPicker } from './KitPicker';
 import { EasyToRead } from './LookPicker';
 import { PlaceSearch } from './PlaceSearch';
@@ -53,6 +55,8 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
   const [choice, setChoice] = useState<SpaceChoice | null>(null);
   /** Beds on the plan that aren't in the ground yet: they get a job to make them. */
   const [notYet, setNotYet] = useState(false);
+  /** What you've said about a balcony. */
+  const [balcony, setBalconyAnswers] = useState<Balcony>({});
   /** The kit you chose, or none; undefined until you choose, when it's the first offered (the one that can go in soonest). */
   const [kitChosen, setKit] = useState<Kit | null | undefined>(undefined);
   const [picked, setPicked] = useState<Set<string>>(new Set());
@@ -69,7 +73,7 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
   const empty = before.boundary.length === 0 && before.features.length === 0;
   const steps: Step[] = empty ? ['where', 'track', 'space', 'grow'] : ['where', 'grow'];
   const current = steps[step - 1];
-  const kits = choice && plants ? kitsFor(choice.space, month, (id) => byId.get(id) ?? null) : [];
+  const kits = choice && plants ? kitsFor(choice.space, month, (id) => byId.get(id) ?? null, choice.space === 'balcony' ? balconyLight(balcony) : null) : [];
   const kit = kitChosen === undefined ? (kits[0] ?? null) : kitChosen;
 
   const finish = (skipped = false) => {
@@ -83,6 +87,8 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
           const planted = kitChosen !== undefined ? kitChosen : current === 'grow' ? kit : null;
           if (planted && plants) next = applyKit(next, planted, (id) => byId.get(id) ?? null, todayIso(), bigger);
           if (empty && notYet && choice && BEDS_TO_MAKE.includes(choice.space)) next = markBedsToMake(next);
+          // After the kit, so its pots take the light too.
+          if (empty && choice?.space === 'balcony') next = setBalcony(next, balcony);
           for (const id of picked) if (!next.wishlist.includes(id)) next = toggleWishlist(next, id);
           // A list, if that was chosen (or left as it was offered) once the question was asked.
           if (empty && asList && steps.indexOf('track') <= step - 1) next = nameListBeds({ ...next, view: 'list' }, isListed(next), featureLabel);
@@ -201,6 +207,19 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
                 setChoice(c);
               }}
             />
+            {choice?.space === 'balcony' && (
+              <>
+                <h2 class="onboarding-sub">About your balcony</h2>
+                <BalconyFields
+                  value={balcony}
+                  onChange={(b) => {
+                    // The kit offered depends on the light.
+                    setKit(undefined);
+                    setBalconyAnswers(b);
+                  }}
+                />
+              </>
+            )}
           </>
         ) : (
           <>

@@ -280,6 +280,13 @@ export function howTo(job: Job, from: StartsAs, bulb = false, at?: HowToFor): Ho
   return spaced ? { ...how, spacing: spacingText(at.plant, at.style) } : how;
 }
 
+/** A tender crop in a pot, brought in for the winter. RHS: pruned to a manageable size, somewhere warm and bright, watered sparingly. */
+const BRING_IN: HowTo = {
+  need: ['Secateurs or scissors', 'A warm, bright windowsill', 'A saucer for the pot'],
+  steps: ['Pick any fruit that’s left.', 'Cut the plant back to a size that fits the windowsill.', 'Check under the leaves for greenfly before it comes in.', 'Stand it on a saucer on the windowsill.', 'Water it sparingly until spring.'],
+  time: 'About 15 minutes',
+};
+
 /** Making a bed on the grass, without digging. The RHS's no-dig bed: see planting/firstBed.ts. */
 const MAKE_A_BED: HowTo = {
   need: ['Plain brown cardboard, with any tape and staples taken off', 'Compost or well-rotted manure', 'A watering can or hose'],
@@ -324,6 +331,8 @@ function chosen(job: Job, from: StartsAs, bulb: boolean, at?: HowToFor): HowTo {
       if (kind === 'fruit' || plant.category === 'fruit') return PICK_FRUIT;
       return BY_KIND.harvest;
     }
+    case 'protect':
+      return job.verb ? BRING_IN : BY_KIND.protect;
     default:
       return BY_KIND[job.kind];
   }

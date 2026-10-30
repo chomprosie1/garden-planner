@@ -115,6 +115,18 @@ export function feedDetail(steps: FeedStep[], g: Garden): string {
   return steps.map((s) => (s.when === 'growing' || s.when === 'flowering' ? `${everyText(s.every)}: ${lowerFirst(say(s))}` : say(s))).join(' ');
 }
 
+/** The steps that make sense in a pot: liquid feeds. The rest are by the square metre, or dug in. */
+export const potFeedSteps = (steps: FeedStep[]) => steps.filter((s) => feedById(s.feed)?.unit === 'ml');
+
+/** RHS: in containers, a general-purpose liquid feed from April to the end of August, on moist compost. */
+const POT_FEED = 'In a pot: a general-purpose liquid feed, as its label says, on moist compost.';
+
+/** A feed job for a plant in a pot: its liquid feeds as they are, and for anything by the square metre, a liquid feed instead. */
+export function potFeedDetail(steps: FeedStep[], g: Garden): string {
+  const liquid = potFeedSteps(steps);
+  return [liquid.length ? feedDetail(liquid, g) : '', liquid.length < steps.length ? POT_FEED : ''].filter(Boolean).join(' ');
+}
+
 /** What goes in before planting, for the sowing and planting-out jobs: "Before planting: well-rotted manure, a bucketful a square metre." */
 export function plantingFeedText(p: Plant, g: Garden): string | undefined {
   const steps = (p.feeding?.steps ?? []).filter((s) => s.when === 'planting' && feedById(s.feed));

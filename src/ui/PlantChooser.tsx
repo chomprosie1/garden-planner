@@ -8,20 +8,27 @@ import { useMemo, useState } from 'preact/hooks';
 import { canSowIn, plantMatches } from '../library/library';
 import { plantHere } from '../lifecycle/growth';
 import { beginnerOrder, isEasy, MORE_PLANTS, splitCore } from '../library/order';
-import type { Garden, Plant } from '../model/types';
+import { featureLabel } from '../model/features';
+import type { Feature, Garden, Plant } from '../model/types';
+import { suitsPot } from '../planting/balcony';
 import { stillWanted, unknownPlant } from '../planting/place';
+import { isPot } from '../planting/pots';
 import { Icon } from './icons';
 import { PlantIcon } from './PlantIcon';
 
 type Filter = 'now' | 'easy' | 'list' | 'tin' | 'mine' | 'all';
 
-export function PlantChooser({ plants, garden, month, pick }: { plants: Plant[]; garden: Garden; month: number; pick: (id: string) => void }) {
+/** bed: for a pot or planter, the lists start with only what suits its light and size. Search finds everything. */
+export function PlantChooser({ plants, garden, month, pick, bed }: { plants: Plant[]; garden: Garden; month: number; pick: (id: string) => void; bed?: Feature }) {
   const { draftPlants } = useApp();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('now');
   const [showMore, setShowMore] = useState(false);
+  const [everything, setEverything] = useState(false);
   const byId = useMemo(() => new Map(plants.map((p) => [p.id, p])), [plants]);
-  const growable = useMemo(() => plants.filter((p) => p.category !== 'weed' && !p.varietyOf), [plants]);
+  const pot = bed && isPot(bed) ? bed : null;
+  const narrowed = !!pot && !everything;
+  const growable = useMemo(() => plants.filter((p) => p.category !== 'weed' && !p.varietyOf && (!narrowed || suitsPot(p, garden, pot!))), [plants, narrowed, pot, garden.balcony]);
   const lists: Record<Filter, Plant[]> = useMemo(
     () => ({
       now: beginnerOrder(growable.filter((p) => canSowIn(plantHere(p, garden), month))),
@@ -61,6 +68,14 @@ export function PlantChooser({ plants, garden, month, pick }: { plants: Plant[];
         <span class="visually-hidden">Find a plant</span>
         <input value={query} placeholder="Find a plant" onInput={(e) => setQuery((e.currentTarget as HTMLInputElement).value)} />
       </label>
+      {pot && !q && (
+        <p class="muted small">
+          {narrowed ? `Plants that suit ${featureLabel(pot)}. ` : ''}
+          <button type="button" class="link-btn" onClick={() => setEverything(!everything)}>
+            {narrowed ? 'Show everything' : 'Only what suits it'}
+          </button>
+        </p>
+      )}
       {!q && (
         <div class="dock-filters" role="radiogroup" aria-label="Show">
           {chips

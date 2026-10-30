@@ -11,7 +11,7 @@ import { currentStage } from '../lifecycle/stages';
 import { placeLabel } from '../model/features';
 import type { Garden, Plant, Planting } from '../model/types';
 import { isActive, plantCount, stillWanted } from './place';
-import { isPot, potSize } from './pots';
+import { bagsText, isPot, potSize, wetWeightText } from './pots';
 import { firstBedCompost, makingBeds, needsFirstBed } from './firstBed';
 import { packetsFor, seedState } from './seeds';
 import { sowingNow, startsAs } from './windows';
@@ -173,8 +173,9 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
     which.l += size.litres;
     which.names.push(placeLabel(f));
   }
-  if (fill.ordinary.l > 0) items.push({ key: 'compost:pots', kind: 'compost', name: 'Multi-purpose compost', amount: litres(fill.ordinary.l), note: `To fill ${listOf(fill.ordinary.names)}` });
-  if (fill.ericaceous.l > 0) items.push({ key: 'compost:ericaceous', kind: 'compost', name: 'Ericaceous compost', amount: litres(fill.ericaceous.l), note: `To fill ${listOf(fill.ericaceous.names)}` });
+  const toFill = (l: number, names: string[]) => ({ amount: `${litres(l)} (${bagsText(l)})`, note: `To fill ${listOf(names)}: ${wetWeightText(l)}` });
+  if (fill.ordinary.l > 0) items.push({ key: 'compost:pots', kind: 'compost', name: 'Multi-purpose compost', ...toFill(fill.ordinary.l, fill.ordinary.names) });
+  if (fill.ericaceous.l > 0) items.push({ key: 'compost:ericaceous', kind: 'compost', name: 'Ericaceous compost', ...toFill(fill.ericaceous.l, fill.ericaceous.names) });
 
   if (opts.feeding) {
     const forFeed = new Map<string, string[]>();
