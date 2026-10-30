@@ -1274,8 +1274,14 @@ function PlantingPanel(props: Props & { pl: Planting }) {
               type="date"
               value={pl.sownOn ?? ''}
               onChange={(e) => {
+                // Part-way through typing a date it reads as empty: that isn't saying it was never sown.
                 const v = (e.currentTarget as HTMLInputElement).value;
-                commit((g) => [pl.id, ...(props.together ?? [])].reduce((acc, id) => updatePlanting(acc, id, { sownOn: v || undefined }), g));
+                if (v) commit((g) => [pl.id, ...(props.together ?? [])].reduce((acc, id) => updatePlanting(acc, id, { sownOn: v }), g));
+              }}
+              onBlur={(e) => {
+                // Left empty, it goes back to the date it's still kept under.
+                const input = e.currentTarget as HTMLInputElement;
+                if (!input.value) input.value = pl.sownOn ?? '';
               }}
             />
           </label>

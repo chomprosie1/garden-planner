@@ -17,6 +17,21 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-30-today-follows',
+    date: '2026-10-30',
+    title: 'Today follows what you’ve done',
+    items: [
+      'Tell the app something’s sown or planted, in any way, and Today stops asking you to do it. That covers Already in the ground and Mark as sown, as well as ticking the job.',
+      'Reading a how-to no longer ticks the job. The button says I’ve done this, and there’s a plain Close beside it.',
+      'Unticking a sowing job by mistake puts the job back, and the planting goes back to not sown.',
+      'Winter salads sown under cover now go out this winter. They used to wait for next September, shown without the year, which looked like a date in the past.',
+      'Ready to pick means ready: it follows the date on the planting, so seed sown today isn’t ready next month. Leeks you’ve started picking stay on the list.',
+      'Parsnips, kale and other crops that stand through the winter stay ready until spring, rather than finishing in the autumn.',
+      'Herbs picked all year, such as bay, no longer go round and round on their timeline, and a date over ten months away says its year.',
+    ],
+    tryIt: { label: 'Open Today', view: 'home' },
+  },
+  {
     id: '2026-10-17-first-garden',
     date: '2026-10-17',
     title: 'A first garden, and the plan on a phone',

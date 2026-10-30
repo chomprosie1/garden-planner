@@ -274,6 +274,22 @@ export function hardenFrom(p: Plant, g: Garden, year: number): string {
   return addDays(`${year}-${String(first).padStart(2, '0')}-01`, -14);
 }
 
+/**
+ * The day seedlings up on a day start hardening off: at the usual time in spring, once they've had a month to grow. A
+ * late sowing hardens off as soon as it's ready, as does one for planting out in autumn; any other autumn sowing waits
+ * for next spring. Over six months' wait is a sowing for now, not for next year: winter salads sown in October go out
+ * this winter, not next September.
+ */
+export function hardenOn(p: Plant, g: Garden, upOn: string): string {
+  const grown = addDays(upOn, 28);
+  const year = Number(grown.slice(0, 4));
+  const month = Number(grown.slice(5, 7));
+  const usual = hardenFrom(p, g, year);
+  if (usual >= grown) return usual;
+  const nextYear = hardenFrom(p, g, year + 1);
+  return month <= 7 || p.plantOutMonths?.includes(month) || nextYear > addDays(grown, 183) ? grown : nextYear;
+}
+
 /** The earliest day it can go out: after a week of hardening off, and for tender plants, once frost is unlikely (the play-safe date). */
 export function plantOutFrom(p: Plant, g: Garden, hardenedFrom: string): string {
   const year = Number(hardenedFrom.slice(0, 4));
@@ -361,7 +377,6 @@ export function nextFor(p: Plant, g: Garden, stage: TrayStage, sownOn: string, s
     if (age <= max) return { text: `Seedlings due any day now, up to ${short(addDays(sownOn, max))}.`, ready: false, due: true };
     return { text: `Not up after ${Math.round(age / 7)} weeks? If nothing shows soon, the sowing may have failed.`, ready: false, due: true };
   }
-  const year = Number(today.slice(0, 4));
   const coldFrame = !!under.place && !under.place.heated && under.place.dayGainC <= COLD_FRAME_DAY;
   if (stage === 'germinated') {
     if (under.into) {
@@ -371,7 +386,7 @@ export function nextFor(p: Plant, g: Garden, stage: TrayStage, sownOn: string, s
       if (today >= from) return { text: `Ready to go into the ${where}. No need to harden off.`, ready: true, due: true };
       return { text: `Pot on when roots show at the bottom. It can go into the ${where} from ${short(from)}, with no hardening off.`, ready: false, due: false };
     }
-    const from = hardenFrom(p, g, year);
+    const from = hardenOn(p, g, stageDates.germinated ?? addDays(sownOn, min));
     if (today >= from) return { text: coldFrame ? 'Time to start hardening off: open the cold frame by day and close it at night.' : 'Time to start hardening off: outside by day, in at night.', ready: false, due: true };
     return { text: `Pot on when roots show at the bottom. Start hardening off from ${short(from)}.${coldNights(p, g, under.place ?? null, today)}`, ready: false, due: false };
   }

@@ -5,7 +5,7 @@
 import { useState } from 'preact/hooks';
 import { happenings, isPicking, likelyNext, recordHappening, type HappeningId } from '../lifecycle/happened';
 import { formatWeight, PICK_LABEL } from '../planting/harvest';
-import { probableStage, shortDate, type Step } from '../lifecycle/projection';
+import { probableStage, shortDate, yearDate, type Step } from '../lifecycle/projection';
 import { currentStage, pathFor, setStage, settledIn, STAGE_EXPLAIN, STAGE_LABEL, stageDate, stageLabel, stageTips, type LifeStage } from '../lifecycle/stages';
 import { todayIso } from '../model/ids';
 import { updateGarden, type Store } from '../model/store';
@@ -200,7 +200,7 @@ export function StageRail({ pl, plant, covered = false, steps = [], photos = [] 
             {ahead.map((s) => (
               <li key={`${s.stage}${s.date}`}>
                 <span>{s.stage === 'cleared' ? 'Finished' : stageLabel(plant, s.stage, pl)}</span>
-                <span class="muted">about {shortDate(s.date!)}</span>
+                <span class="muted">about {yearDate(s.date!, today)}</span>
               </li>
             ))}
           </ul>

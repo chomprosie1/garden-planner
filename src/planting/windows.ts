@@ -4,7 +4,7 @@
 // sets, garlic cloves, seed potatoes, bulbs, or plants. Pure functions.
 
 import { runsOf } from '../lifecycle/growth';
-import { shortDate, type Step } from '../lifecycle/projection';
+import { yearDate, type Step } from '../lifecycle/projection';
 import { addDays, plantOutMonthsUnder } from '../lifecycle/shed';
 import { monthRanges } from '../library/library';
 import type { Climate, Plant, Planting, Sowing, SowingFrom } from '../model/types';
@@ -95,7 +95,7 @@ export function nextStep(pl: Planting, plant: Plant, month: number, under: Clima
   if (status === 'sown') {
     const indoors = pl.sowing ? pl.sowing === 'indoors' : plant.sowing?.some((s) => s.method !== 'direct') && !plant.sowing?.some((s) => s.method === 'direct');
     const expected = today ? steps.find((s) => s.guessed && s.stage === 'transplanted' && s.date) : undefined;
-    if (indoors && expected && today) return expected.date! <= addDays(today, 6) ? 'Plant out now' : `Next: plant out from about ${shortDate(expected.date!)}`;
+    if (indoors && expected && today) return expected.date! <= addDays(today, 6) ? 'Plant out now' : `Next: plant out from about ${yearDate(expected.date!, today)}`;
     return (indoors && out && line('Plant out', out)) || harvest;
   }
   if (status === 'growing') return harvest;

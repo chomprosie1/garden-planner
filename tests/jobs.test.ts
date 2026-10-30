@@ -33,7 +33,9 @@ describe('jobs for your plants', () => {
   it('carrots sown in April: harvest from June, lift and store in November', () => {
     const { g: g0, bed } = garden();
     const [g] = plant(g0, bed, 'carrot', '2027-04-12');
-    expect(summary(jobsFor(g, plantOf, 4, 2027))).toEqual(['sow-direct carrot in Veg bed']); // the ticked sowing stays this month
+    expect(summary(jobsFor(g, plantOf, 4, 2027))).toEqual([]); // sown, and not by ticking: nothing left to do
+    const ticked = { ...g, jobsDone: [{ key: 'sow-direct:carrot:' + g.plantings[0]!.featureId + ':2027-04', date: '2027-04-12' }] };
+    expect(summary(jobsFor(ticked, plantOf, 4, 2027))).toEqual(['sow-direct carrot in Veg bed']); // the ticked sowing stays this month
     expect(summary(jobsFor(g, plantOf, 5, 2027))).toEqual([]);
     expect(summary(jobsFor(g, plantOf, 7, 2027))).toEqual(['harvest carrot in Veg bed']);
     expect(summary(jobsFor(g, plantOf, 11, 2027))).toEqual(['harvest carrot in Veg bed', 'lift carrot in Veg bed']);
@@ -138,7 +140,7 @@ describe('helpers', () => {
 
   it('groups by kind in the order you would do them', () => {
     const { g: g0, bed } = garden();
-    let [g] = plant(g0, bed, 'carrot', '2027-04-01');
+    let [g] = plant(g0, bed, 'carrot');
     g = toggleWishlist(g, 'leek');
     expect(groupJobs(jobsFor(g, plantOf, 4, 2027)).map(([k]) => k)).toEqual(['Sow under cover', 'Sow outside']);
   });
@@ -157,13 +159,16 @@ describe('helpers', () => {
     expect(groupJobs(jobs).map(([k]) => k)).toEqual(['Sow outside', 'Plant']);
   });
 
-  it('unticking leaves the sowing date alone', () => {
+  // Changed in release 48: a sown planting has no job, so unticking takes the sowing back with it. Otherwise the job
+  // would go and the planting stay sown, with nothing left to tick.
+  it('unticking takes back the sowing it dated', () => {
     const { g: g0, bed } = garden();
     let [g] = plant(g0, bed, 'carrot');
     const job = jobsFor(g, plantOf, 4, 2027)[0]!;
     g = toggleJob(g, job, '2027-04-03');
     g = toggleJob(g, job, '2027-04-03');
     expect(g.jobsDone).toEqual([]);
-    expect(g.plantings[0]!.sownOn).toBe('2027-04-03');
+    expect(g.plantings[0]!.sownOn).toBeUndefined();
+    expect(summary(jobsFor(g, plantOf, 4, 2027))).toEqual(['sow-direct carrot in Veg bed']);
   });
 });

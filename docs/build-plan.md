@@ -2097,7 +2097,7 @@ Decided:
 | Fri 23 Oct | 46. Fruit, and next year round the real beds | A fruit cage. Beds that rotate and beds that don't (schema 22). Next year's draft only rotates the veg beds, counts this autumn's crops as next year's, and suggests a follow-on crop. | Built 17 Oct 2026 (schema 22) |
 | Sat 24 – Sun 25 Oct | Testing weekend | | |
 | Mon 26 Oct | 47. A first garden, and the plan on a phone | Kits always get their beds. "Make your first bed" for a lawn. Moving, stickers, hand-drawn rectangles and the Advanced pill on a phone. | Built 17 Oct 2026 |
-| Tue 27 Oct | The review again | The same three testers and tasks. Targets: keep-using and trust of 7 or more from all three; Jordan's unexplained words under 5 and Googles under 3; no contradiction on a planting already in the ground. | |
+| Tue 27 Oct | The review again | The same three testers and tasks. Targets: keep-using and trust of 7 or more from all three; Jordan's unexplained words under 5 and Googles under 3; no contradiction on a planting already in the ground. | Done 29 Oct 2026, with three new testers: [review-2026-10-29.md](review-2026-10-29.md). Scores rose or held; no target met. See the eighth round. |
 
 Parked (in the wishlist): a share picture worth posting; harvest weights and a year's picking page; feet and inches; a frost in the journal setting the first-frost date; a variety on a planting and in search; streaks or a small reward on Done; "buy now / buy later" and pictures of tools; lasagne bulb pots.
 
@@ -2508,6 +2508,283 @@ Not changed:
 - **Drawing by hand on a real phone** wasn't checked in the browser (the test rig draws straight lines); `rectangleOf` is covered by the tests.
 - **A bed drawn by hand on top of another** still isn't warned about.
 - **Plant labels on the plan** still crowd each other on narrow beds when zoomed out.
+
+## The eighth round: ready for paying users, releases 48 to 60 (added 30 Oct 2026)
+From the review of 29 Oct 2026: [review-2026-10-29.md](review-2026-10-29.md). Six testers took part, the first three and three new ones ([testers.md](testers.md)). The aim is a soft market test with a few paying users.
+
+What it found:
+- **The originals improved, but not enough.** Every score rose or held, but no target was met. Keep-using and trust are 5 to 7. Today still asks Margaret and Callum to sow and plant things they've recorded as in, and Priya's autumn sowings show dates before the day they were sown.
+- **Ruth scores like the originals.** So the scoring holds up: it isn't inflated by familiarity. She found what nobody else could:
+  - tick boxes of 22 px;
+  - a drag that pulled strawberries out of their bed;
+  - "Done" in a how-to ticking the job;
+  - a screen-reader label promising a list that isn't there.
+- **Sam (balcony) and Callum (Highlands) score 3 to 5, for fit, not harshness.**
+  - Sam: watering ignores cover, shade drops out on the plan, and the jobs assume a garden.
+  - Callum: hardy crops ignore the local season, so his dates are 4 to 10 weeks early, and typed frost dates barely help.
+- **All six:** a garden kept only in the browser is a reason not to pay. Two screens mustn't disagree. Nobody would pay monthly. Each "maybe" depends on the dates being right and the garden being safe.
+
+Decided:
+- **Four phases.** First, right every time (48 to 52). Then for everyone who'd pay, and safe (53 to 57), ending in the six testers again, as a gate. Then ready to charge (58 to 60). The soft market test follows from mid-January 2027, when people plan and buy.
+- **The garden's safety comes before the re-test,** not after it. Four of the six named it as a reason to cancel, and it's small: the reminder and sending a copy off the phone are already built.
+- **Paying users, not testers, settle the price.** The personas' answers are a hint: £10 to £15 a year or £15 to £20 once, never monthly.
+- **The soft test runs without accounts or sync.** The garden stays on the device, with backups that are easy and visible. Sync is the business decision in "Later", once the test has shown people stay.
+- **One release a day at most, with testing days, as before.** You can pull releases forward.
+- **As in the ways of working:** facts are checked against a named source before release, save-format changes go on a branch with a migration test, and each release's diff gets `/code-review` before it's pushed.
+- **Everything in the feedback files is reproduced before it's fixed.** Only the three causes in the review are confirmed in the code.
+
+### Phase 1 — Right every time (2 to 13 Nov)
+The trust blockers. Almost nothing here is new: it's what the app already claims to do, done consistently.
+
+| When | Release | From |
+| --- | --- | --- |
+| Mon 2 Nov | **48. Today follows what you've done** | Margaret, Callum, Priya, Ruth |
+| Tue 3 Nov | Testing day | |
+| Wed 4 Nov | **49. One figure everywhere** | All six |
+| Thu 5 Nov | Testing day | |
+| Fri 6 Nov | **50. Your season, not the south's.** Schema 23 if the frost hollow needs a field, on a branch. | Callum, Margaret, Priya |
+| Mon 9 Nov | Testing day | |
+| Tue 10 Nov | **51. A plan you can trust** | Ruth, Callum, Priya, Jordan, Margaret, Sam |
+| Wed 11 Nov | Testing day | |
+| Thu 12 Nov | **52. A first garden, for real** | Jordan, Priya, Sam |
+| Fri 13 Nov | Testing day | |
+
+- **48. Today follows what you've done.**
+  - A job counts as done when the planting says so, not only when its box was ticked. "Already in the ground", "Mark as sown", the Shed and "What's happened?" all clear it, and the bed's chip too. The cause is confirmed: done is only `jobsDone` (`Beds.tsx:96`, `Plan.tsx:295`; `jobs.ts:259`).
+  - A sowing under cover is projected from the day it was sown, so no date comes before it. Winter lettuce sown 29 Oct isn't "plant out from about 24 Sep". A test: no projected date comes before the sowing.
+  - "Ready to pick" only once it's ready and in the ground. No November picking for seed sown today, and none for an apple that says "Growing".
+  - Standing crops stand. Parsnips, leeks and kale aren't "finished" in autumn, and one source gives the end of a harvest. Leeks being picked show under "Ready to lift".
+  - Bay and strawberries don't loop: a stage comes once, and a date that isn't this year shows its year.
+  - An autumn broad bean in a cold frame doesn't start hardening off the day it's up.
+  - "Done" in a how-to becomes "I've done this", with a plain Close beside it.
+  - Clearing the day in a date doesn't turn a sown planting back to Planned.
+  - Tests: jobs, stages, year, warmth, one-job, already-growing.
+- **49. One figure everywhere.**
+  - "Things to check" is worked out once, so Today and the plan agree, with each container's shade counted on the plan. Tapping the count on Today goes to the list of them.
+  - Feed advice per plant comes from one place: Today, the shopping list and the how-to.
+  - Room comes from one figure: the bed badge, the add check, the move dialog (counting what's already in the pot), the over-full warning, the fruit cage and the strawberry tower. Two warnings for one problem become one. A fruit cage holds a raspberry row and five bushes.
+  - Spacing is one number, in cm, in the Plants list, on the plant page, on the planting and in the how-to, and the list says whether it's bed or row spacing.
+  - No spacing checks between plants in separate pots, or for pots and root trainers in a frame.
+  - A picked row says "row 1 of 2 · 20". The plantings count matches what's listed, everywhere, including 8 strawberries in one tower as one planting.
+  - The Shed's "seedlings due" and the timeline's "up" agree, and it says "6 plants", not "6 rows". "Want to grow (5)" shows five, and drops what's already planted.
+  - The shade filter's count matches what it shows, and "Easy to start" doesn't turn Shade into "0 plants".
+  - A row's length or a second row can be set in list mode.
+  - Tests: planting, counts, fruit-next-year, usability.
+- **50. Your season, not the south's.**
+  - Sowing and planting months for every crop, hardy or tender, move with the garden's season and its frost dates. `seasonShift` exists but only the projection uses it (confirmed: `jobs.ts:114`).
+  - Harvests move too: Callum's garlic is two months early, his rhubarb six weeks.
+  - Frost dates you type drive all of it, as the help promises. Check the day and month fields keep each other's value.
+  - The climate is corrected for height, with a frost-hollow switch, and the first frost and season length come from that. Aviemore should come out with an early September first frost and about 180 days.
+  - A station close by is used on its own rather than blended (Shawbury). Look at adding a Bristol-area one.
+  - "Sow or plant now" and the general jobs follow the season: no 171 plants for Strathspey in late October, and no autumn broad beans where they don't survive.
+  - Callum's and Margaret's dates checked against the Met Office and RHS, with sources named, plus Callum's spreadsheet row by row as a test.
+  - Tests: microclimate, warmth, jobs, stages, and a migration test if there's a schema change.
+- **51. A plan you can trust.**
+  - Dragging a bed moves the bed: it never pulls its plantings out, and dragging a planting out of its bed asks first. Bed and pot move buttons for anyone who can't drag.
+  - The plan doesn't jump on entering planting mode.
+  - Nothing covers a control at 1366 × 768. The season photo never covers the planting bar, which saved Callum's "already in the ground" as Planned twice; the month title never covers Today's ··· menu; and a toast that's gone stops blocking taps. Checked across Garden and Today with `elementFromPoint`.
+  - The plan gets more of a laptop screen: photos off around it by default, and less below it.
+  - Switching from a list to a plan makes a garden that fits. The boundary grows to hold every bed and pot, pots stand on the paving, and a tree in a pot is drawn at pot size. List mode never mentions "your garden's outline". (Priya, twice.)
+  - A warning when a planting lands on the lawn, or a bed is drawn over another bed.
+  - Labels don't overlap: one per bed, numbered, in all three sizes of screen.
+  - "Set this ground" shows what it did, or goes, and Tip 2 matches it.
+  - Desktop words go on a phone: "double-click", "arrow keys", "click each corner".
+  - Feet and inches, and a sanity check on sizes: "6 ft" isn't 6 m, and no 25 m pots. Pots in cm.
+  - Tests: plan, arrange, counts, drawing.
+- **52. A first garden, for real.**
+  - "Make your first bed" for a bare garden: a boundary with nowhere to grow counts as grass (confirmed in `firstBed.ts`).
+  - Setup asks "Are these beds there yet?" Beds still to make get a job, a how-to and a shopping line: cardboard in boxes, compost in bags. Until then, jobs say "once Bed 1 is made".
+  - Beds are numbered when they're made, so nothing says "Bed and Bed".
+  - No kit leaves its plants homeless: with no border, bulbs go in pots by the door, and the kit's words follow.
+  - No kit warns about itself. Autumn planting keeps garlic and broad beans in separate beds, and Kitchen herbs gets pots that fit its rosemary.
+  - "Add a new bed first" from a plant page keeps the plant.
+  - Tests: first-garden, ux-first-minute, start, good-start.
+
+### Phase 2 — For everyone who'd pay, and safe (16 to 27 Nov)
+Make it work for the people Ruth, Sam and Callum stand for, cut what isn't theirs, and make the garden safe. Then test it.
+
+| When | Release | From |
+| --- | --- | --- |
+| Mon 16 Nov | **53. Easy to see and touch** | Ruth, Margaret |
+| Tue 17 Nov | Testing day | |
+| Wed 18 Nov | **54. Balconies and pots, properly** | Sam, Priya |
+| Thu 19 Nov | Testing day | |
+| Fri 20 Nov | **55. Only what you have** | Jordan, Priya, Sam, Ruth, Callum, Margaret |
+| Mon 23 Nov | **56. Plants that stay.** Schema 23 or 24, on a branch. | Ruth, Margaret, Callum, Priya |
+| Tue 24 Nov | Testing day | |
+| Wed 25 Nov | **57. Your garden is safe** | Priya, Margaret, Jordan, Ruth, Callum |
+| Fri 27 Nov | **The review again** | |
+
+- **53. Easy to see and touch.**
+  - Every target at least 44 px, and tick boxes 48 px. A tap anywhere on a job's row ticks it, with the how-to behind its own button.
+  - Dropdowns, radio buttons, the bottom menu and plan labels grow with the text size, and Extra large goes up to 150%.
+  - Text size and a new high-contrast look are offered on the welcome screen and in setup.
+  - Nothing is said by colour alone, and pale stage text and thin bars go.
+  - Every control has a name for the screen reader, including the frost dates. The plan's feature list exists: list mode's list beside the plan. The menu is read after the page, and help doesn't say "swipe".
+  - Undo stays longer and doesn't cover the page. Today opens at the top. The planting's ··· menu stays on screen.
+  - Tests: contrast, usability, words. You check TalkBack on a real Android phone.
+- **54. Balconies and pots, properly.**
+  - Setup asks the balcony's facing, whether it has a roof above, wind and hours of sun, and sets each container's light from them.
+  - Watering per container on Today, in list mode too. Covered pots get no rain, and wind brings it forward.
+  - Warnings become answers: one line per container, with three plants that suit it.
+  - "Add a plant" filters by the container's light and size: no wisteria in a 60 cm trough.
+  - Pot sizes in cm or litres, with presets: a 60 cm trough, a grow bag, a strawberry tower.
+  - Compost in litres and bags, with the wet weight.
+  - A shady-balcony kit, and advice in pot terms: per-pot feeds, and bring the chilli in rather than fleece it.
+  - Tests: pots, weather, good-start, ux-first-minute.
+- **55. Only what you have.**
+  - No greenhouse, cold-frame, soil, weeding, leaf-mould or rotation jobs without those things, in a garden with no plants as well. A bed worked sitting down gets hand tools, not a hoe.
+  - No monthly "ready to pick" for thyme, parsley and chives.
+  - Done jobs fold under "Done (3)".
+  - Today loses Getting started and the Install card once they've been seen.
+  - The welcome screen should show only monthly or for news, so first find out why three testers met it on returning. Its five buttons become two.
+  - The shopping list can be shopped from: an amount on every line, "Buy now" and "Buy by February", and fewer feeds. This is one of Jordan's three Googles.
+  - The other Googles and the six words still unexplained, including "50:50" and half-hardy.
+  - Both plant trays open the same way.
+  - Settings folds its climate, pH and north into one Advanced row, and the plant editor goes.
+  - The reminder's day can be chosen.
+  - The Shed gets a name for people without one: Seedlings.
+  - Tests: jobs, ux-daily, words.
+- **56. Plants that stay.**
+  - A resting stage for fruit and perennials in winter.
+  - Autumn jobs for established strawberries, herbs and fruit, and winter pruning.
+  - "Planted 2 or 3+ years ago" as a choice.
+  - Tulips under "plant now" from mid-October.
+  - The apple gets a tree-fruit how-to, not soft fruit's.
+  - The overwintering onion page tells one story, and garlic's white rot matches the onion page. Both checked against the RHS. "Sow in batches" comes off autumn broad beans.
+  - The rotation sees each crop, not each bed: kale is a brassica even beside leeks, and what you say grew there counts.
+  - Tests: stages, art, jobs, next-year, plus the migration test.
+- **57. Your garden is safe.**
+  - One clear line in Settings and on Today: where the garden is kept and when it was last backed up. The reminder and the phone's Send a copy are already built.
+  - A backup is restored for real on a phone, into a fresh browser, and that's what the help describes. "Download a backup" stops being a Getting started step.
+  - Persistent storage checked on iPhone and Android.
+  - A CSV of plantings and dates, and a printable plan and year.
+  - Tests: file, good-start, and a round-trip test that the CSV and backup lose nothing.
+- **The review again.** The same six, the same tasks. Targets:
+  - the original three and Ruth: keep-using and trust of 7 or more;
+  - Ruth: 7 or more for her hands and for TalkBack;
+  - Sam: 6 or more for fit;
+  - Callum: 6 or more for dates;
+  - no data loss, no plants put in the wrong place, and no contradiction on any planting;
+  - Jordan: under 5 unexplained words and under 3 Googles.
+
+### Phase 3 — Ready to charge (30 Nov to 18 Dec)
+Starts once the review's targets are met; if they aren't, the misses are fixed first. Releases 59 and 60 need your decisions, listed after the table.
+
+| When | Release | From |
+| --- | --- | --- |
+| Week of 30 Nov | **58. The notebook.** A schema change, on a branch. | Margaret (parked in the seventh round) |
+| Week of 7 Dec | **59. Listening** (was release 28) | Needed for the test |
+| Week of 14 Dec | **60. Paying** | Needed for the test |
+| Alongside | **The data track** | Margaret, the ways of working |
+
+- **58. The notebook.**
+  - A variety on a planting, shown on the card, found in search, and carried to the shopping list and next year's draft.
+  - A Harvests page in kg, lb and oz, or a count.
+- **59. Listening.**
+  - A feedback form and Report a mistake in the app.
+  - Opt-in private counts: opens, first planting, and coming back after 7 and 30 days.
+- **60. Paying.**
+  - An unlock without an account: a key from the payment provider, checked on the device.
+  - What's free and what's paid.
+  - A "Your plan" page.
+  - Terms, privacy and refunds.
+  - Hosting moved off GitHub Pages, which isn't for commercial use, and weather on commercial terms (Open-Meteo's free tier is non-commercial).
+- **The data track.** Before the test, the plants in every kit and the 50 most-grown are checked against named sources and marked verified.
+
+Your decisions, before Phase 3:
+1. **Price.** I recommend a **2027 season pass at £15**, paid once, with no auto-renewal and a full refund within 30 days.
+   - It's a one-off, which all six prefer.
+   - It still asks again next year, which tells us whether people would renew.
+   - Each payment is a clean signal.
+   - The product review's £19.99 a year is the later list price to test against.
+2. **Payment provider.** A merchant of record, such as Paddle or Lemon Squeezy, handles UK VAT and refunds for you. Stripe is cheaper but leaves VAT to you.
+3. **Hosting** (Cloudflare Pages or Netlify, for example) and the **weather supplier**: Open-Meteo's commercial plan or the Met Office's DataHub.
+4. **The feedback form and the counting service** (from release 28).
+5. **Legal.** A privacy policy and terms. Check whether you need to pay the ICO's data protection fee, using its self-assessment: customer emails are personal data.
+6. **Who recruits the paying users,** and where.
+
+### Phase 4 — The soft market test (mid-Jan to mid-Mar 2027)
+In the planning season, when the product review found people buy.
+
+**Who:** 10 to 20 paying users, recruited by you (an allotment society, a gardening club, a local group, friends of friends). Mix them on purpose:
+- about a third beginners;
+- a third with small spaces or pots;
+- a third experienced;
+- at least two north of Manchester;
+- one or two with access needs.
+
+**How:**
+- The season pass.
+- A named support email, answered within two days.
+- A known-issues page.
+- What's new every fortnight.
+- A short check-in at weeks 2 and 6.
+- Testing days continue; fixes ship as before.
+
+**Measures:**
+- a first planting within ten minutes;
+- still active at weeks 2 and 6;
+- jobs ticked a week;
+- wrong-advice and wrong-date reports per user;
+- data-loss reports;
+- refunds;
+- a 1-to-10 recommend score;
+- "Would you pay again for 2028?"
+
+**Gate (31 Mar 2027, with Gate 3):** go on to a wider launch if all of these hold:
+- 60% or more are still active at week 6;
+- the median recommend is 7 or more;
+- refunds are 10% or fewer;
+- there's no data loss;
+- wrong-date reports are falling.
+
+If not, narrow the offer, for example to beginners with small gardens in England and Wales, before spending on sync and accounts.
+
+Not in this round (in the wishlist):
+- sync and accounts, and iPhone push (Later, a business decision);
+- plant ID from a photo, which needs a server;
+- the share picture;
+- streaks or a reward on Done;
+- lasagne bulb pots;
+- a frost in the journal setting the first-frost date, and "last year on this date";
+- importing past years' dates;
+- houseplants, and read aloud.
+
+### Release 48 — Today follows what you've done (as built)
+Built 30 Oct 2026, ahead of its 2 Nov slot. No schema change. Version 0.48.0.
+
+- **A job goes when the planting says so** (`jobsFor` in `src/calendar/jobs.ts`):
+  - Garlic's "Planted" is stored as a sowing, so Margaret's and Callum's reports were one bug: `toSow` kept anything sown this month, so that a ticked job could stay listed, whether or not it was ticked.
+  - Now only a sowing done by ticking stays (`sowTicked`, batches too). Sown any other way, the job and the bed's chip go.
+  - One row of two recorded: the job is for the other row.
+- **Unticking a sowing takes the sowing back** (`toggleJob`), if its date is the tick's and it hasn't moved on since. Otherwise the job would go and the planting stay sown, with nothing left to tick. A date you've since changed is left alone.
+- **Winter salads go out this winter** (`hardenOn` in `src/lifecycle/shed.ts`):
+  - Priya's dates weren't in the past. Winter lettuce and corn salad have plant-out months of October and November, so a sowing that missed them waited for next September, and "24 Sep" showed no year.
+  - Over six months' wait is now a sowing for now, the rule already used under glass. Lettuce sown 29 Oct: up 6 Nov, out about 11 Dec, ready about 22 Jan.
+  - `hardenOn` replaces two copies of the rule, in the timeline and in `nextFor`, so the Shed and the timeline agree. An autumn broad bean no longer starts hardening off the day it's up.
+  - The plant-out job follows: a sowing whose timeline brings it out this month gets its job, even outside the plant's usual months, so corn salad is asked for in December.
+- **Ready to pick means ready.** With today known, a harvest job needs the timeline to reach harvesting by the month's end, the same source as the card. A planting being picked stays listed until its timeline moves on, even before its months (leeks). Lift and clear-up jobs use the same test, and a crop in its harvest months but not ready still gets asked about flowering.
+- **Standing crops stand** (`after` in `src/lifecycle/projection.ts`): the six-week rule for quick leafy crops leaves out anything ready from August to March whose months run through December and January. Parsnips, kale, swede and the like run to the end of their months. A summer cabbage, radish and beetroot still finish after six weeks.
+- **Bay and other year-round perennials stop looping.** A harvest is never a step to come for them, and they still flower each year (rosemary).
+- **`yearDate`**: a date ten months or more from today says its year, on the card, Next and Likely next. The repeated "Flowering about 23 Apr" reads as two different years.
+- **The how-to:** "I've done this", with a plain Close beside it. Help says so.
+- **The date field:** an empty value part-way through typing no longer wipes the sowing date, and a field left empty goes back to the date when you leave it. Correct a mistake is how to go back to Planned.
+- **Code review before pushing** (`/code-review`, medium) found ten things in this release's first version: the missing December plant-out job, radish and summer cabbage standing for months, rosemary losing its flowers, unticking a planting that had moved on, lift, clear-up and flowering jobs not following "ready", and the date field. All fixed, with tests, except the one below.
+- **Checked at 390 px:** setup with one bed; garlic added as already in, with no job on Today and "Planted" on the card; the how-to with both buttons on one line, no sideways scroll, and Close leaving it unticked; winter lettuce ticked as sown, reading "plant out from about 12 Dec". No page errors.
+
+Tests: `tests/today-follows.test.ts`: each way of recording a sowing, a tick staying and coming undone, one row of two, winter salads, dates in order, the broad bean, ready to pick, leeks being picked, five standing crops, a summer lettuce still at six weeks, the Shed agreeing with the timeline, the year on far dates, and the bay.
+
+Changed tests, in `tests/jobs.test.ts`:
+- **"Unticking leaves the sowing date alone"** is now "unticking takes back the sowing it dated". This is a change of rule, from Stage 5: see above. Your call if you'd rather have it back.
+- Two fixtures had a sowing date but no tick, and only passed because of the bug. One now ticks; one is unsown.
+
+Not changed:
+- **Unticking can take back a row recorded by hand** on the same day in the same bed as the row the tick was for, as a tick isn't kept per planting. Knowing that needs a change to the save format, and re-entering the date puts it right, so it stays for now.
+- **An established apple** added in late October loses "Ready to pick" this autumn, as its card says Growing. It comes back with the next harvest.
+- **Leeks** still say "Ready to pick", not "Ready to lift", and the card can say "Harvest Dec–Apr" above "ready from about 5 Nov". That's the plant data: the data track, with Margaret's Nov–Apr.
+- **Something sown where it grows, under cover** (Callum's purslane in the tunnel) still says "Plant out now".
+- **The broad bean's out date** stays about a week before its month, the usual rule for hardy plants. Margaret's "harvest 2 May is early for Shropshire" is release 50.
 
 ## Repo layout
 ```

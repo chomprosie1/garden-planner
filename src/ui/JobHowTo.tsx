@@ -110,7 +110,7 @@ export function JobHowTo({ job, plantOf, done, toggle, shelf, close, style = 'cl
               shut();
             }}
           >
-            {done ? 'Not done after all' : way ? `Done: ${way.label.charAt(0).toLowerCase()}${way.label.slice(1)}` : 'Done'}
+            {done ? 'Not done after all' : way ? `I’ve done this: ${way.label.charAt(0).toLowerCase()}${way.label.slice(1)}` : 'I’ve done this'}
           </button>
           {(first || plant) && (
             <button
@@ -126,6 +126,9 @@ export function JobHowTo({ job, plantOf, done, toggle, shelf, close, style = 'cl
               {first || job.featureId ? 'Show in the garden' : `About ${job.plant.toLowerCase()}`}
             </button>
           )}
+          <button type="button" class="btn" onClick={shut}>
+            Close
+          </button>
         </div>
       </div>
     </dialog>

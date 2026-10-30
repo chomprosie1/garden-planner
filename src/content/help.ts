@@ -247,7 +247,7 @@ export const HELP: HelpTopic[] = [
     tier: 2,
     steps: [
       'Today starts with your jobs. Now is what’s due, or due this week. Later this month can wait. To look out for is what’s likely to happen anyway, such as seedlings coming up.',
-      'Choose a job to see how to do it: what you need, the steps, and about how long it takes. Choose Done when you have. Something that can be sown two ways, such as broad beans outside or in a cold frame, is one job: choose the way you did it.',
+      'Choose a job to see how to do it: what you need, the steps, and about how long it takes. Choose “I’ve done this” when you have, or Close if you were only reading. Something you’ve recorded another way, such as a sowing marked on its bed, drops off the list by itself. Something that can be sown two ways, such as broad beans outside or in a cold frame, is one job: choose the way you did it.',
       'Or tick its box, or swipe it to the right. Ticking a sowing or planting job dates the plants, so the jobs that follow are timed from then.',
       'A word with a dotted line under it, such as hardening off, opens what it means.',
     ],

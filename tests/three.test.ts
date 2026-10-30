@@ -126,6 +126,8 @@ describe('leaves through the year', () => {
 
 describe('drawings', () => {
   const winters: Partial<Look>[] = [{}, { bare: true }, { dormant: true }];
+  // These two draw every plant many times: 3 to 4 seconds alone, and over the default 5 on a busy run.
+  const DRAW_ALL_MS = 30_000;
   it('draws every plant from above, bare and cut back, in every style', () => {
     for (const p of library)
       for (const w of winters)
@@ -133,7 +135,7 @@ describe('drawings', () => {
           const { ctx } = recorder();
           expect(() => drawPlant(ctx, { art: p.art!, look: { ...stageLook('vegetative', p), ...w }, r: 30, paint: { style, mode: 'light', ink: '#333333', paper: '#ffffff', soil: '#7a5a40' }, seed: 1 }), `${p.id} ${style}`).not.toThrow();
         }
-  });
+  }, DRAW_ALL_MS);
 
   it('draws every plant from the side, at every stage on its path and in winter', () => {
     for (const p of library) {
@@ -144,7 +146,7 @@ describe('drawings', () => {
           expect(() => drawPlantSide(ctx, { art: p.art!, look: { ...stageLook(s, p), ...w }, w: 120, h: 160, seed: 7 }), `${p.id} ${s}`).not.toThrow();
         }
     }
-  });
+  }, DRAW_ALL_MS);
 
   it('draws the same plant the same way every time, and differently as it grows', () => {
     const tomato = plant('tomato');

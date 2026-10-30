@@ -16,7 +16,7 @@ import { featureLabel } from '../model/features';
 import { STAGES, type Feature, type Garden, type Plant, type Planting, type Stage } from '../model/types';
 import { isContainer } from '../planting/place';
 import { readyFrom, runsOf, seasonMonth, seasonShift, upFrom } from './growth';
-import { addDays, frostDatesUnder, germination, hardenFrom, inYear, isTender, plantInFrom, plantOutFrom } from './shed';
+import { addDays, frostDatesUnder, germination, hardenOn, inYear, isTender, plantInFrom, plantOutFrom } from './shed';
 import { currentStage, flowerMonthsOf, isGrowingStage, pathFor, perennial, sowingOf, type LifeStage } from './stages';
 
 export interface Step {
@@ -164,11 +164,13 @@ function frostEnd(c: Context, from: string): string | null {
 function after(c: Context, stage: LifeStage, date: string): Step | null {
   const { plant, pl, g, cover } = c;
   const path = pathFor(plant, pl, !!cover);
-  const ahead = (s: Stage) => path.includes(s) && order(s) > order(stage);
+  const harvestMonths = plant.cropping?.harvestMonths ?? [];
+  // Picked all year round (bay, rosemary): it's just there to pick, so a harvest is never a step to come. It still flowers.
+  const allYear = perennial(plant) && harvestMonths.length >= 12;
+  const ahead = (s: Stage) => path.includes(s) && order(s) > order(stage) && !(s === 'harvesting' && allYear);
   const step = (s: LifeStage, d: string | null): Step | null => (d ? { stage: s, date: d, guessed: true } : null);
   const climate = cover?.climate ?? null;
   const flowerMonths = flowerMonthsOf(plant);
-  const harvestMonths = plant.cropping?.harvestMonths ?? [];
   // How much sooner or later its season comes here than in the middle of England.
   const shiftFor = (months: number[]) => {
     const m = seasonMonth(months);
@@ -208,15 +210,7 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
       return step('germinated', sowingOf(plant, pl) === 'direct' ? upFrom(plant, g, date, climate, usual, c.weather) : addDays(date, usual));
     }
     case 'germinated': {
-      if (ahead('hardening')) {
-        // Hardening off starts at its usual time in spring, once the seedlings have had a month to grow. A late
-        // sowing hardens off as soon as it's ready, as does one for planting out in autumn (winter salads); any other
-        // autumn sowing waits for next spring.
-        const grown = addDays(date, 28);
-        const usual = hardenFrom(plant, g, yearOf(grown));
-        const goesOutNow = monthOf(grown) <= 7 || !!plant.plantOutMonths?.includes(monthOf(grown));
-        return step('hardening', usual >= grown ? usual : goesOutNow ? grown : hardenFrom(plant, g, yearOf(grown) + 1));
-      }
+      if (ahead('hardening')) return step('hardening', hardenOn(plant, g, date));
       // Going under glass: straight in once grown on, with no hardening off.
       if (cover && ahead('transplanted')) return step('transplanted', plantInFrom(plant, g, date, cover.climate));
       return step('vegetative', addDays(date, 21));
@@ -257,7 +251,10 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
       const end = later(afterSeason(date, months, shiftFor(months)), addDays(date, 28));
       if (perennial(plant)) return step('vegetative', end);
       // Its harvest months cover sowings through the season; one sowing of a quick leafy crop is cut for about six weeks.
-      const quick = plant.art?.form === 'rosette' && plant.art.crop?.kind !== 'fruit' && plant.art.crop?.kind !== 'pod';
+      // Ready from late summer on, what's picked through the winter stands until its months end (parsnips, kale). The
+      // same plant ready in early summer doesn't: that's a summer cabbage.
+      const stands = months.includes(12) && months.includes(1) && (monthOf(date) >= 8 || monthOf(date) <= 3);
+      const quick = plant.art?.form === 'rosette' && plant.art.crop?.kind !== 'fruit' && plant.art.crop?.kind !== 'pod' && !stands;
       const six = addDays(date, 42);
       const done = quick && six < end ? six : end;
       const frost = frostEnd(c, c.start ?? date);
@@ -382,9 +379,9 @@ export function probableStage(plant: Plant, pl: Planting, g: Garden, today: stri
 export function expectedText(steps: Step[], plant: Plant, today: string): string | null {
   for (const s of steps) {
     if (!s.guessed || s.date === null || s.date <= today) continue;
-    if (s.stage === 'flowering') return `In flower from about ${shortDate(s.date)}`;
-    if (s.stage === 'harvesting') return `Ready to harvest from about ${shortDate(s.date)}`;
-    if (s.stage === 'cleared') return perennial(plant) ? null : `Finished by about ${shortDate(s.date)}`;
+    if (s.stage === 'flowering') return `In flower from about ${yearDate(s.date, today)}`;
+    if (s.stage === 'harvesting') return `Ready to harvest from about ${yearDate(s.date, today)}`;
+    if (s.stage === 'cleared') return perennial(plant) ? null : `Finished by about ${yearDate(s.date, today)}`;
   }
   return null;
 }
@@ -577,3 +574,5 @@ export function gapText(gap: Gap, plantOf: (id: string) => Plant, today: string)
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 /** "12 Aug". */
 export const shortDate = (iso: string) => `${Number(iso.slice(8, 10))} ${MONTHS[monthOf(iso) - 1]}`;
+/** "12 Aug", with its year when that's ten months or more from today: "23 Apr 2028". */
+export const yearDate = (iso: string, today: string) => (Math.abs(daysBetween(today, iso)) >= 300 ? `${shortDate(iso)} ${iso.slice(0, 4)}` : shortDate(iso));
