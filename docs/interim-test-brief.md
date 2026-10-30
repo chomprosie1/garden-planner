@@ -4,7 +4,7 @@
 To: Priya, Margaret, Jordan, Sam, Ruth and Callum, and Nadia, who's joining the panel.
 
 ## Where we are
-We're part way through the fixes that came out of your testing on 29 Oct. Ten releases have gone out since then, up to version 0.56.0. One release in this stretch is still to come: release 57, which keeps your garden safe. After it comes the full review, where your scores decide whether we move on to charging.
+We're part way through the road to charging. Eleven releases have gone out since your testing on 29 Oct, up to version 0.57.0, and the fixes planned from that testing are now all in, including keeping your garden safe. Next comes the full review, where your scores decide whether we move on to charging.
 
 This interim round comes before that. It's a check on the work so far, not the final verdict. We'd rather hear now about anything that's wrong, or that we've made worse.
 
@@ -18,10 +18,11 @@ This interim round comes before that. It's a check on the work so far, not the f
 - **Balconies and pots.** Setup asks about your balcony, and each pot has its own watering job. Warnings come with plants that suit the pot, and Add a plant filters by the pot.
 - **Only what you have.** No jobs for things you don't own. Done jobs fold away. The shopping list says what to buy now and what can wait. Fewer welcome screens, and a chosen reminder day.
 - **Plants that stay.** Resting in winter, pruning and tidying jobs for what's settled in, plantings from years ago, and a next-year draft that looks at each crop.
+- **Your garden is safe.** One line on Today and in Settings says where your garden is kept and how old its last copy is. A new phone can restore from the first screen with I have a backup. There's a spreadsheet of your plantings, and you can print the plan and the year.
 
 ## What's not in this build
 Please don't report these as missing. Do report anything that's worse than before.
-- **Keeping your garden safe:** a clear line on where it's kept, tested restores, a CSV and printing. That's release 57.
+- **Accounts and sync:** your garden stays on the device, on purpose.
 - **The notebook:** varieties on a planting, and a Harvests page. That's release 58.
 - **Feedback in the app, and paying:** releases 59 and 60.
 
@@ -33,19 +34,21 @@ Please don't report these as missing. Do report anything that's worse than befor
 - Write your feedback in `docs/feedback-<date>-<name>.md`, as before.
 
 ## What we'd most like each of you to look at
-- **Priya:** whether Today keeps in step with the Shed and the bed, and whether it nags less. Check the apple and bay in pots.
-- **Margaret:** the advice. Go through your corrections, especially the overwintering onion page, white rot, the Resting stage, winter pruning and the rotation draft.
-- **Jordan:** getting from a lawn to beds, the shopping list as something you could take to a shop, and what you'd still have to look up.
-- **Sam:** the balcony questions, watering when it's covered and windy, what's offered for each pot, and the Seedlings tab. Would it replace anything you pay for?
-- **Ruth:** targets, ticking a job, Extra large text, High contrast and the plan's list. A real TalkBack check on a real phone is still to be done by the team, so please say what you can and can't judge.
-- **Callum:** your dates against your spreadsheet, row by row, and the rotation with mixed beds. Please try again to reproduce "telling it what grew changed nothing": we couldn't.
+- **Priya:** whether Today keeps in step with the Shed and the bed, and whether it nags less. Check the apple and bay in pots. Does the safety line settle your worry about losing the garden?
+- **Margaret:** the advice. Go through your corrections, especially the overwintering onion page, white rot, the Resting stage, winter pruning and the rotation draft. Try printing the year to keep beside your notebook.
+- **Jordan:** getting from a lawn to beds, the shopping list as something you could take to a shop, and what you'd still have to look up. Does the line about your last copy make sense to you, and would you act on it?
+- **Sam:** the balcony questions, watering when it's covered and windy, what's offered for each pot, and the Seedlings tab. Would it replace anything you pay for? Send a copy off your phone, as you would for real.
+- **Ruth:** targets, ticking a job, Extra large text, High contrast and the plan's list. Try backing up and restoring with your hands and at your text size. A real TalkBack check on a real phone is still to be done by the team, so please say what you can and can't judge.
+- **Callum:** your dates against your spreadsheet, row by row, and the rotation with mixed beds. Please try again to reproduce "telling it what grew changed nothing": we couldn't. Open the plantings spreadsheet beside your own, and say what's missing.
 - **Nadia:** everything. See your brief below.
+
+All of you named losing your garden, or wanting it out of the app, as a reason not to pay. So please each make a backup and restore it into a fresh browser, and say whether you'd now trust it. Restores on a real iPhone and a real Android phone are still to be done by the team, so say if you're only judging from a browser.
 
 ## Nadia: your brief
 You're new, and you're here to break it. Please don't hold back or give it the benefit of the doubt.
 - **Assume every claim is false until you've shown it's true,** including What's new, the help and this brief.
 - **Report every flaw you find, however small.** Don't skip one because it seems minor, or because someone else may have found it.
-- **Try what nobody meant to happen.** See your profile in [testers.md](testers.md) for where to start.
+- **Try what nobody meant to happen.** See your profile in [testers.md](testers.md) for where to start. The new backup, restore, spreadsheet and printing are the newest code here, so start with them: old, damaged and hand-edited files, restoring over a garden, two gardens, and anything that says a copy exists when it doesn't.
 - **Don't suggest fixes, and don't soften it.** Give the steps, what happened, what should have happened, and how bad it is.
 
 ## Keep in mind

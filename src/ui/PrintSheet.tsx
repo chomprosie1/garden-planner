@@ -36,7 +36,7 @@ export function PrintSheet({ garden, userPlants, close }: { garden: Garden; user
       {!plants && <p class="muted">Loading your plants…</p>}
       {plants && beds.length === 0 && <p>Nothing’s planted yet, so there’s no year to print.</p>}
       {beds.map((b) => (
-        <section key={b.bed} class="print-bed">
+        <section key={b.id} class="print-bed">
           <h2>{b.bed}</h2>
           <ul class="plain-list">
             {b.rows.map((r) => (

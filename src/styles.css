@@ -6790,20 +6790,25 @@ h2 {
 .safety-line .link-btn {
   margin-left: 0.25rem;
 }
+/* Only when the print page is open: any other screen prints as it always has. */
 @media print {
-  html,
-  body,
-  #app,
-  .app {
+  html:has(.print-sheet),
+  html:has(.print-sheet) body,
+  html:has(.print-sheet) #app,
+  .app:has(.print-sheet) {
     display: block;
     height: auto;
     background: #fff;
   }
-  .app > :not(.print-sheet),
+  .app:has(.print-sheet) > :not(.print-sheet),
   .print-actions {
     display: none !important;
   }
+  /* Dark on white, whatever the look on screen. */
   .print-sheet {
+    --text: #000;
+    --muted: #333;
+    --border: #999;
     position: static;
     overflow: visible;
     padding: 0;

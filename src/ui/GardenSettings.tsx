@@ -1,4 +1,4 @@
-import { useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { updateGarden, type Store } from '../model/store';
 import { featureLabel } from '../model/features';
 import { nameListBeds, spreadOut } from '../model/listLayout';
@@ -14,11 +14,11 @@ import { askToKeep, asksOutLoud } from '../storage/persist';
 import { plantingsCsv } from '../share/export';
 import { spacingStyle } from '../planting/place';
 import { useApp } from './appContext';
-import { gardenCount } from './gardenActions';
+import { gardenCount, lastCopy, noteCopy } from './gardenActions';
 import { safetyText } from './setup';
 import { usePlants } from './usePlants';
 import { addGarden } from '../storage/gardens';
-import { flushSave } from '../storage/local';
+import { flushSave, saveStatus, type SaveStatus } from '../storage/local';
 import { fromDataUrl, loadPhoto, photoIds, putPhoto, toDataUrl } from '../storage/photos';
 import { Icon } from './icons';
 import { isInstalled, isIosSafari } from './Install';
@@ -54,7 +54,7 @@ async function gatherPhotos(store: Store): Promise<Record<string, string>> {
 /** Downloads a backup file and remembers when, for the reminder on Home. With photos, it carries every photo on a note too. */
 export async function backUp(store: Store, prefsStore?: PrefsStore, withPhotos = false) {
   downloadFile(store.get(), withPhotos ? await gatherPhotos(store) : undefined);
-  prefsStore?.set({ lastBackup: todayIso() });
+  if (prefsStore) noteCopy(prefsStore, todayIso());
 }
 
 let shareable: boolean | null = null;
@@ -79,18 +79,18 @@ export async function shareBackup(store: Store, prefsStore?: PrefsStore) {
   const file = backupFile(store.get());
   try {
     await navigator.share({ files: [file], title: store.get().garden.name });
-    prefsStore?.set({ lastBackup: todayIso() });
+    if (prefsStore) noteCopy(prefsStore, todayIso());
   } catch (e) {
     // Cancelled: nothing was saved, so the reminder stays. Anything else: download it after all.
     if ((e as Error).name === 'AbortError') return;
     downloadFile(store.get());
-    prefsStore?.set({ lastBackup: todayIso() });
+    if (prefsStore) noteCopy(prefsStore, todayIso());
   }
 }
 
 /**
  * Puts a checked backup into the app, as a new garden or in place of this one, with its photos back on this device.
- * The file is a copy that exists, so its day counts as the last copy, unless there's a later one. How many photos came back.
+ * The file is a copy of this garden as it now is, so its day is the last copy. How many photos came back.
  */
 export async function restoreBackup(store: Store, prefsStore: PrefsStore | undefined, result: Extract<ParseResult, { ok: true }>, asNew: boolean): Promise<number> {
   // Your own plants are shared by every garden: the file's are added to yours, and yours win where both have one.
@@ -110,8 +110,7 @@ export async function restoreBackup(store: Store, prefsStore: PrefsStore | undef
       // a damaged photo is left out
     }
   }
-  const last = prefsStore?.get().lastBackup;
-  if (prefsStore && result.madeOn && (!last || result.madeOn > last)) prefsStore.set({ lastBackup: result.madeOn });
+  if (prefsStore && result.madeOn) noteCopy(prefsStore, result.madeOn);
   return restored;
 }
 
@@ -139,7 +138,16 @@ function LiveKeptNote({ prefsStore }: { prefsStore: PrefsStore }) {
 
 /** Where the garden is kept and how old its last copy is: the same line as on Today. */
 function LiveSafety({ prefsStore }: { prefsStore: PrefsStore }) {
-  return <p>{safetyText(usePrefs(prefsStore).lastBackup)}</p>;
+  const prefs = usePrefs(prefsStore);
+  const [status, setStatus] = useState<SaveStatus>(saveStatus.get());
+  useEffect(() => saveStatus.subscribe(setStatus), []);
+  if (status === 'failed')
+    return (
+      <p class="save-failed" role="alert">
+        Not saved: this browser isn’t keeping your changes. Keep a copy now.
+      </p>
+    );
+  return <p>{safetyText(lastCopy(prefs))}</p>;
 }
 
 /** Firefox asks you out loud, so it's only asked when you choose to. */

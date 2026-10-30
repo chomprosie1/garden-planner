@@ -10,7 +10,7 @@ import type { Garden, Plant, Planting } from '../model/types';
 import { isActive, plantCount } from '../planting/place';
 import type { Weather } from '../weather/weather';
 
-export const CSV_COLUMNS = ['Bed or pot', 'Plant', 'How many', 'Laid out as', 'Stage', 'To sow by', 'Sown', 'Planted out', 'Growing', 'Flowering', 'Harvesting', 'Cleared', 'Times picked', 'Notes'];
+export const CSV_COLUMNS = ['Bed or pot', 'Plant', 'How many', 'Laid out as', 'Stage', 'To sow by', 'Sown or planted', 'Up', 'Hardening off', 'Planted out', 'Growing', 'Flowering', 'Harvesting', 'Cleared', 'Times picked', 'Notes'];
 
 const LAYOUT: Record<string, string> = { single: 'One plant', row: 'A row', block: 'A block' };
 const QUOTE = '\x22';
@@ -33,7 +33,7 @@ export function plantingsCsv(g: Garden, plantOf: (id: string) => Plant): string 
     const plant = plantOf(pl.plantId);
     const bed = bedOf.get(pl.featureId);
     const on = pl.stageDates ?? {};
-    return [bed ? featureLabel(bed) : 'No bed', plant.commonName, plantCount(pl, plant), LAYOUT[pl.layout ?? 'single'] ?? '', stageLabel(plant, currentStage(pl), pl), pl.sowBy ?? '', pl.sownOn ?? '', on.transplanted ?? '', on.vegetative ?? '', on.flowering ?? '', on.harvesting ?? '', pl.removedOn ?? '', pl.picks?.length ?? 0, notesOf(pl)];
+    return [bed ? featureLabel(bed) : 'No bed', plant.commonName, plantCount(pl, plant), LAYOUT[pl.layout ?? 'single'] ?? '', stageLabel(plant, currentStage(pl), pl), pl.sowBy ?? '', pl.sownOn ?? '', on.germinated ?? '', on.hardening ?? '', on.transplanted ?? '', on.vegetative ?? '', on.flowering ?? '', on.harvesting ?? '', pl.removedOn ?? '', pl.picks?.length ?? 0, notesOf(pl)];
   });
   return `﻿${[CSV_COLUMNS, ...rows].map((r) => r.map(csvCell).join(',')).join('\r\n')}\r\n`;
 }
@@ -48,8 +48,8 @@ export interface YearRow {
 }
 
 /** The year ahead by bed or pot, for printing: what's in each now, and when each thing happens. */
-export function yearSheet(g: Garden, plantOf: (id: string) => Plant, today: string, weather: Weather | null = null): { bed: string; rows: YearRow[] }[] {
-  const out: { bed: string; rows: YearRow[] }[] = [];
+export function yearSheet(g: Garden, plantOf: (id: string) => Plant, today: string, weather: Weather | null = null): { id: string; bed: string; rows: YearRow[] }[] {
+  const out: { id: string; bed: string; rows: YearRow[] }[] = [];
   for (const f of g.features) {
     const here = g.plantings.filter((pl) => pl.featureId === f.id && isActive(pl));
     if (!here.length) continue;
@@ -60,7 +60,7 @@ export function yearSheet(g: Garden, plantOf: (id: string) => Plant, today: stri
         .map((s) => `${s.stage === 'cleared' ? 'Finished' : stageLabel(plant, s.stage, pl)} ${s.guessed ? 'about ' : ''}${yearDate(s.date!, today)}`);
       return { id: pl.id, plant: plant.commonName, count: plantCount(pl, plant), stage: stageLabel(plant, currentStage(pl), pl), dates };
     });
-    out.push({ bed: featureLabel(f), rows });
+    out.push({ id: f.id, bed: featureLabel(f), rows });
   }
   return out;
 }

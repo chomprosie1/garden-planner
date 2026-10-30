@@ -6,7 +6,7 @@
 import { KEEP_ALL, newGardenFrom, startAgainFrom, type Keep } from '../model/fresh';
 import { newGarden } from '../model/defaults';
 import type { Store } from '../model/store';
-import { defaultPrefs, type PrefsStore } from '../theme/prefs';
+import { defaultPrefs, type Prefs, type PrefsStore } from '../theme/prefs';
 import { addGarden, hideGarden, listGardens, openGarden, wipeAll } from '../storage/gardens';
 import { deleteAllBlobs } from '../storage/idb';
 import { flushSave, stopSaving } from '../storage/local';
@@ -17,6 +17,21 @@ export const gardenCount = () => {
   const l = listGardens();
   return l.gardens.length + l.hidden.length;
 };
+
+/**
+ * The day of the last copy of the garden that's open. From before copies were kept by garden there's one date, which
+ * can only be trusted with one garden.
+ */
+export function lastCopy(p: Pick<Prefs, 'copies' | 'lastBackup'>): string | null {
+  const l = listGardens();
+  return (l.open ? p.copies[l.open] : undefined) ?? (l.gardens.length + l.hidden.length <= 1 ? p.lastBackup : null);
+}
+
+/** Notes a copy of the garden that's open. */
+export function noteCopy(prefsStore: PrefsStore, date: string): void {
+  const { open } = listGardens();
+  prefsStore.set({ lastBackup: date, ...(open ? { copies: { ...prefsStore.get().copies, [open]: date } } : {}) });
+}
 
 /** Opens another garden. False if it can't be read. */
 export function switchGarden(store: Store, id: string): boolean {

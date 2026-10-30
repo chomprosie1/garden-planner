@@ -21,6 +21,7 @@ import { useApp } from './appContext';
 import { useChecks } from './useChecks';
 import { CompassNorth } from './CompassNorth';
 import { PlaceSearch } from './PlaceSearch';
+import { lastCopy } from './gardenActions';
 import { backUp, canShareBackup, shareBackup, UseLocationButton } from './GardenSettings';
 import { Icon } from './icons';
 import { NoteForm, NoteList, noteAbout } from './NotesSection';
@@ -29,12 +30,12 @@ import { HelpTitle } from './HelpLink';
 
 // ---------- Saved ----------
 
-/** "Saved on this device", or a warning when the browser won't keep it. */
-/** Where the garden is kept and how old its last copy is, in one line, with the way to make one when it's due. */
+/** Where the garden is kept and how old its last copy is, in one line, with the way to make one when it's due; a warning when the browser won't keep it. */
 export function SafetyLine({ store, garden, prefs, prefsStore, now = new Date() }: { store: Store; garden: Garden; prefs: Prefs; prefsStore: PrefsStore; now?: Date }) {
   const [status, setStatus] = useState<SaveStatus>(saveStatus.get());
   useEffect(() => saveStatus.subscribe(setStatus), []);
   const copy = () => (canShareBackup() ? shareBackup(store, prefsStore) : backUp(store, prefsStore));
+  const last = lastCopy(prefs);
   if (status === 'failed')
     return (
       <p class="save-status save-failed" role="alert">
@@ -46,8 +47,8 @@ export function SafetyLine({ store, garden, prefs, prefsStore, now = new Date() 
     );
   return (
     <p class="save-status safety-line" aria-live="polite">
-      <Icon name="check" size={14} /> {status === 'saving' ? 'Saving…' : safetyText(prefs.lastBackup, now)}
-      {backupDue(garden, prefs.lastBackup, now) && (
+      <Icon name="check" size={14} /> {status === 'saving' ? 'Saving…' : safetyText(last, now)}
+      {backupDue(garden, last, now) && (
         <button type="button" class="link-btn" onClick={copy}>
           Keep a copy
         </button>

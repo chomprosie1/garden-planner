@@ -3,7 +3,10 @@
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import * as storedGardens from '../src/storage/gardens';
+import { sanitisePrefs } from '../src/theme/prefs';
+import { lastCopy } from '../src/ui/gardenActions';
 import { newGarden } from '../src/model/defaults';
 import { makeFeature, rectPoints } from '../src/model/features';
 import { SCHEMA_VERSION } from '../src/model/migrate';
@@ -109,7 +112,9 @@ describe('a spreadsheet of plantings', () => {
     for (const [i, pl] of g.plantings.entries()) {
       const r = rows[i + 1]!;
       expect(at(r, 'Plant')).toBe(plantOf(pl.plantId).commonName);
-      expect(at(r, 'Sown')).toBe(pl.sownOn ?? '');
+      expect(at(r, 'Sown or planted')).toBe(pl.sownOn ?? '');
+      expect(at(r, 'Up')).toBe(pl.stageDates?.germinated ?? '');
+      expect(at(r, 'Growing')).toBe(pl.stageDates?.vegetative ?? '');
       expect(at(r, 'Harvesting')).toBe(pl.stageDates?.harvesting ?? '');
       expect(at(r, 'Cleared')).toBe(pl.removedOn ?? '');
       expect(at(r, 'To sow by')).toBe(pl.sowBy ?? '');
@@ -136,6 +141,18 @@ describe('a spreadsheet of plantings', () => {
 
 describe('where the garden is', () => {
   const now = new Date(2026, 9, 30);
+
+  it('keeps each garden’s copy date apart, and doesn’t lend one garden’s to another', () => {
+    const gardens = { gardens: [{ id: 'a' }, { id: 'b' }], hidden: [], open: 'a' };
+    vi.spyOn(storedGardens, 'listGardens').mockReturnValue(gardens as never);
+    expect(lastCopy({ copies: { b: '2026-10-29' }, lastBackup: '2026-10-29' })).toBeNull();
+    expect(lastCopy({ copies: { a: '2026-10-01' }, lastBackup: '2026-10-29' })).toBe('2026-10-01');
+    // One garden, from before copies were kept by garden: its one date stands.
+    vi.spyOn(storedGardens, 'listGardens').mockReturnValue({ ...gardens, gardens: [{ id: 'a' }] } as never);
+    expect(lastCopy({ copies: {}, lastBackup: '2026-10-29' })).toBe('2026-10-29');
+    vi.restoreAllMocks();
+    expect(sanitisePrefs({ copies: { a: '2026-10-01', b: 'soon', c: 3 } }).copies).toEqual({ a: '2026-10-01' });
+  });
 
   it('says the same plain thing on Today and in Settings', () => {
     expect(safetyText(null, now)).toBe('Saved only in this browser on this device. No copy yet.');

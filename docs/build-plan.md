@@ -3027,8 +3027,36 @@ Not changed:
 - **Plum and cherry pruning, and raspberry canes,** have no job of their own. Raspberries still have the general ones.
 - **Parsnips "finished by December"** from Margaret's list was release 48's; her other corrections are for the interim round to re-check.
 
+### Release 57 — Your garden is safe (as built)
+Built 30 Oct 2026, on a branch. No schema change: what's new is on the device, in preferences. Version 0.57.0.
+
+- **One line** on Today and in Settings (`safetyText`): "Saved only in this browser on this device. Last copy 12 days ago." Today's adds Keep a copy when one's due, which uses the phone's share sheet where it can. If the browser won't save, both say so.
+- **A copy is of one garden** (`copies`, `lastCopy`, `noteCopy`): one app-wide date said a garden had been copied when only another had. With two gardens and only the old date, it says no copy, which is the safe way round.
+- **Restoring on a new device:** the help sent you to Settings, which a fresh install can't reach without skipping setup. **I have a backup** is now on the first screen, for an empty garden only. Your garden opens with no setting up, and Getting started stays away.
+- **"Download a backup"** isn't a Getting started step. The line on Today does that job.
+- **A spreadsheet of plantings** (`plantingsCsv`): every planting, cleared ones too, every recorded date, picks and notes. Quoted for commas, safe from formulas, and marked so Excel reads the £.
+- **Print the plan and year** (`PrintSheet`, `yearSheet`): a page over the app, the only thing that prints while it's open. A plan's drawing and the next twelve months, bed by bed.
+- **Firefox** asks out loud, so it's never asked unprompted: Settings has a link to ask.
+- **Checked in a browser at 390 px:** a garden set up, a backup taken, the browser's storage wiped, then I have a backup on the first screen. Today opened with "Last copy today", the restored garden matched the file exactly (5 beds, 10 plantings, 7 on the list), and it survived a reload. The print page opened and made a one-page PDF. No page errors.
+- **Code review** (`/code-review`, medium) found ten things, all fixed: the first-screen restore could replace a real garden reached by Show the welcome again, every other screen printed blank, the shared copy date, setting up could overwrite a restore in progress, repeated keys on the print page, Settings saying saved when saving had failed, the spreadsheet missing two dates, a restore error following you into setup, Getting started after a restore, and pale print from dark looks.
+
+Tests: `tests/garden-safe.test.ts`: the backup and the spreadsheet round trips, formulas, damaged files, and copy dates by garden. Changed: `usability`, `today`, `only-what-you-have` (the backup step's gone).
+
+**Yours to check, as they need real phones:**
+- a restore on a real iPhone and a real Android phone, in a fresh browser;
+- whether each keeps the garden: what Settings says on Safari, on the home screen, and on Chrome.
+
+Not checked:
+- **The printed page by eye:** the PDF was made and is one page, but couldn't be opened here, and that garden was a list, so a plan's drawing on paper is unseen. Printing from an iPhone home-screen app is untested.
+- **A backup with photos** through the first screen, in a browser. Tests cover photos in a file.
+- **The review's fixes** weren't reviewed again, or re-run in the browser. They have tests where the logic can be tested.
+
+Not changed:
+- **The spreadsheet doesn't restore:** the screen says so.
+- **Your own plants** are shared by all gardens and go in every backup.
+
 ### Interim testing (planned 30 Oct 2026)
-The six testers, and a seventh who's there to break it, will test the build part way through Phase 2, before release 57 and the review proper. Brief: [interim-test-brief.md](interim-test-brief.md). Not started: it waits for the word to go.
+The six testers, and a seventh who's there to break it, will test the build now Phase 2's fixes are in, before the review proper. Brief: [interim-test-brief.md](interim-test-brief.md). Not started: it waits for the word to go.
 
 ## Repo layout
 ```

@@ -53,6 +53,7 @@ const BEDS_TO_MAKE = ['garden', 'allotment', 'bed'];
 export function Onboarding({ store, garden, prefs, prefsStore, go, again = false, showFirst }: Props) {
   const [step, setStep] = useState(again ? 1 : 0);
   const backupInput = useRef<HTMLInputElement>(null);
+  const [restoring, setRestoring] = useState(false);
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; lines: string[] } | null>(null);
   const [choice, setChoice] = useState<SpaceChoice | null>(null);
   /** Beds on the plan that aren't in the ground yet: they get a job to make them. */
@@ -126,8 +127,12 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
     if (!file) return;
     const result = parseFileText(await file.text());
     if (!result.ok) return setMessage({ kind: 'error', lines: ['That file couldn’t be restored:', ...result.errors.slice(0, 4)] });
+    // Nothing else on this screen while it's coming back: the steps of setting up would overwrite it.
+    setMessage(null);
+    setRestoring(true);
     await restoreBackup(store, prefsStore, result, false);
-    prefsStore.set({ onboarded: true, seenNews: latestNews().id, welcomedOn: todayIso() });
+    // It's been set up already, on the old device.
+    prefsStore.set({ onboarded: true, seenNews: latestNews().id, welcomedOn: todayIso(), setupHidden: true, northChecked: true });
     go('home');
   };
 
@@ -140,17 +145,25 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
           <h1 class="title welcome-title">Plan your garden, month by month.</h1>
           <p>Lay it out to scale, choose what to grow where, and see what to do each week.</p>
           <div class="button-row">
-            <button type="button" class="btn btn-primary btn-large" onClick={() => setStep(1)}>
+            <button type="button" class="btn btn-primary btn-large" disabled={restoring} onClick={() => (setMessage(null), setStep(1))}>
               Get started
             </button>
-            <button type="button" class={`btn ${prefs.photos === 'off' ? '' : 'btn-on-photo'}`} onClick={() => finish(true)}>
+            <button type="button" class={`btn ${prefs.photos === 'off' ? '' : 'btn-on-photo'}`} disabled={restoring} onClick={() => finish(true)}>
               Skip
             </button>
-            <button type="button" class={`btn ${prefs.photos === 'off' ? '' : 'btn-on-photo'}`} onClick={() => backupInput.current?.click()}>
-              I have a backup
-            </button>
+            {/* Only with nothing to lose: Settings asks before replacing a garden. */}
+            {empty && (
+              <button type="button" class={`btn ${prefs.photos === 'off' ? '' : 'btn-on-photo'}`} disabled={restoring} onClick={() => backupInput.current?.click()}>
+                I have a backup
+              </button>
+            )}
             <input ref={backupInput} type="file" accept="application/json,.json" hidden aria-label="Choose a backup file" onChange={fromBackup} />
           </div>
+          {restoring && (
+            <p role="status" aria-live="polite">
+              Bringing your garden back…
+            </p>
+          )}
           {message && (
             <div class={`message ${message.kind}`} role="status">
               {message.lines.map((l) => (
