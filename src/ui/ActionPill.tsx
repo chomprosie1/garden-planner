@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { microclimateOf } from '../climate/microclimate';
 import { isNewSeason, nextStage, stageAction } from '../lifecycle/stages';
-import { deleteFeatures, duplicateFeature, featureLabel, geometryOf, freshTarget, isGround, isSetGround, keepOpen, placeLabel, MATERIAL_LABEL, materialPatch, rectInfo, resizeRectAny, setSmooth, updateFeature, type Target } from '../model/features';
+import { closeGround, deleteFeatures, duplicateFeature, featureLabel, geometryOf, freshTarget, isGround, isSetGround, keepOpen, moveFeature, placeLabel, MATERIAL_LABEL, materialPatch, rectInfo, resizeRectAny, setSmooth, updateFeature, type Target } from '../model/features';
 import { todayIso } from '../model/ids';
 import { asTree, treeSizeText, treeType } from '../model/trees';
 import { updateGarden, type Store } from '../model/store';
@@ -210,9 +210,18 @@ function SizeButton({ size, describe, set }: { size: PlantSize | null; describe:
   );
 }
 
+/** The steps a bed or pot moves by, without dragging: 10 cm. */
+const NUDGES: [string, string, number, number][] = [
+  ['left', '←', -100, 0],
+  ['up', '↑', 0, 100],
+  ['down', '↓', 0, -100],
+  ['right', '→', 100, 0],
+];
+
 function FeatureActions({ f, ground, garden, commit, locked, sizing, setSizing, plantHere, paste, select, unlock, extras }: { f: Feature; ground: 'set' | 'open' | null; garden: Garden; commit: (fn: (g: Garden) => Garden) => void; locked: boolean; sizing: boolean; setSizing: (b: boolean) => void; plantHere: () => void; paste: (() => void) | null; select: (t: Target | null) => void; unlock: () => void; extras: boolean }) {
   const phone = useIsPhone();
   const [more, setMore] = useState(false);
+  const [nudging, setNudging] = useState(false);
   const app = useApp();
   const rect = !f.smooth && geometryOf(f) === 'area' ? rectInfo(f.footprint) : null;
   const circle = f.circle;
@@ -278,7 +287,11 @@ function FeatureActions({ f, ground, garden, commit, locked, sizing, setSizing, 
     <>
       <span class="pill-name">{featureLabel(f)}</span>
       {setting ? (
-        <button type="button" class="pill-btn pill-primary" title="Keep it in place, so the beds and plants on it are easy to tap" onClick={() => select({ type: 'feature', id: f.id })}>
+        <button type="button" class="pill-btn pill-primary" title="Keep it in place, so the beds and plants on it are easy to tap" onClick={() => {
+          closeGround(f.id);
+          select({ type: 'feature', id: f.id });
+          app.notify(`${placeLabel(f)} is set. It stays put, and Unlock moves it again.`);
+        }}>
           <Icon name="check" size={16} /> Set this ground
         </button>
       ) : (
@@ -325,6 +338,18 @@ function FeatureActions({ f, ground, garden, commit, locked, sizing, setSizing, 
               <Icon name="curve" size={18} />
             </button>
           )}
+          {/* For anyone who can't drag: a step at a time. */}
+          {!isGround(f) && (
+            <button type="button" class="pill-btn" aria-expanded={nudging} onClick={() => setNudging(!nudging)}>
+              Move
+            </button>
+          )}
+          {nudging &&
+            NUDGES.map(([label, mark, dx, dy]) => (
+              <button key={label} type="button" class="pill-icon" aria-label={`Move ${label}`} title={`Move ${label}`} onClick={() => commit((g) => moveFeature(g, f.id, dx, dy))}>
+                <span aria-hidden="true">{mark}</span>
+              </button>
+            ))}
           {madeOf}
           {extras && (!phone || more) && f.kind === 'bed' && (
             <label class="pill-select">

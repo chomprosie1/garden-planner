@@ -4,7 +4,6 @@ import { seasonFor } from '../content/seasons';
 import type { Target } from '../model/features';
 import type { Store } from '../model/store';
 import type { AppState } from '../model/types';
-import { LOOKS } from '../theme/looks';
 import type { PrefsStore, View } from '../theme/prefs';
 import { AppContext, type AppActions } from './appContext';
 import { CommandSearch } from './CommandSearch';
@@ -172,7 +171,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
         setShortcuts(true);
       } else if (key === 'h' && !e.altKey && view === 'plan') {
         const p = prefsStore.get();
-        prefsStore.set({ focus: !(p.focus ?? LOOKS[p.look].focusByDefault) });
+        prefsStore.set({ focus: !(p.focus ?? true) });
       }
     };
     addEventListener('keydown', onKey);

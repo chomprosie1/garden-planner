@@ -107,6 +107,16 @@ export function plantRoom(pl: Planting, plant: Plant, bed: Feature): number {
   return n * asPlacedIn(plant, bed).size.spacingMm ** 2;
 }
 
+/** How far past its pot a plant goes on the plan: a tree in a pot is the size of the pot's plant, not of a tree in the ground. */
+const POT_OVERHANG = 1.4;
+
+/** A plant as it's drawn and tapped on the plan: at its own size, kept to about its pot. */
+export function asDrawn(plant: Plant, bed: Feature | undefined): Plant {
+  const across = bed?.kind === 'pot' ? potSize(bed)?.across : undefined;
+  if (!across || spreadOf(plant) <= across * POT_OVERHANG) return plant;
+  return { ...plant, size: { ...plant.size, spreadMm: across * POT_OVERHANG } };
+}
+
 /** The round room inside a pot for bulbs at this spacing: the pot, less a little at the rim. */
 function bulbRoom(pot: Feature, s: number): { c: Point; r: number } | null {
   const b = bounds(pot.footprint);

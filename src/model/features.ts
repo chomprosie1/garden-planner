@@ -218,6 +218,8 @@ const openGround = new Set<string>();
 
 /** Keeps a piece of ground unlocked for the rest of this visit. */
 export const keepOpen = (id: string): void => void openGround.add(id);
+/** Sets a piece of ground: it stays put from now on, until it's unlocked. */
+export const closeGround = (id: string): void => void openGround.delete(id);
 
 /**
  * Ground is set unless it's unlocked (selected that way, or made or unlocked this visit): it stays put, and taps on the

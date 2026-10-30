@@ -57,8 +57,6 @@ export interface Look {
   /** How Home presents the month's photo. */
   home: 'hero' | 'framed' | 'packet' | 'sheet' | 'band';
   photo: { filter: string; marginOpacity: number; marginBlur: number };
-  /** Whether Focus (photos hidden in Plan) starts on. */
-  focusByDefault: boolean;
   plan: {
     bedRadiusMm: number;
     pattern: 'stipple' | 'hatch' | 'stripes' | 'flat' | 'line';
@@ -90,7 +88,6 @@ export const LOOKS: Record<LookId, Look> = {
     },
     home: 'hero',
     photo: { filter: 'sepia(.18) saturate(1.05)', marginOpacity: 0.55, marginBlur: 7 },
-    focusByDefault: false,
     plan: { bedRadiusMm: 220, pattern: 'stipple', labels: 'hand' },
     light: {
       ui: {
@@ -140,7 +137,6 @@ export const LOOKS: Record<LookId, Look> = {
     },
     home: 'framed',
     photo: { filter: 'sepia(.38) saturate(.85) contrast(.96)', marginOpacity: 0.28, marginBlur: 3 },
-    focusByDefault: false,
     plan: { bedRadiusMm: 0, pattern: 'hatch', labels: 'serif' },
     light: {
       ui: {
@@ -190,7 +186,6 @@ export const LOOKS: Record<LookId, Look> = {
     },
     home: 'packet',
     photo: { filter: 'saturate(.9) sepia(.12)', marginOpacity: 0.45, marginBlur: 6 },
-    focusByDefault: false,
     plan: { bedRadiusMm: 40, pattern: 'stripes', labels: 'sign' },
     light: {
       ui: {
@@ -240,7 +235,6 @@ export const LOOKS: Record<LookId, Look> = {
     },
     home: 'sheet',
     photo: { filter: 'none', marginOpacity: 0.9, marginBlur: 22 },
-    focusByDefault: false,
     plan: { bedRadiusMm: 160, pattern: 'flat', labels: 'pill' },
     light: {
       ui: {
@@ -286,7 +280,6 @@ export const LOOKS: Record<LookId, Look> = {
     },
     home: 'band',
     photo: { filter: 'saturate(.85)', marginOpacity: 0, marginBlur: 0 },
-    focusByDefault: true,
     plan: { bedRadiusMm: 0, pattern: 'line', labels: 'caps' },
     light: {
       ui: {

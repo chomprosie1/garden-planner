@@ -17,6 +17,23 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-30-plan-trust',
+    date: '2026-10-30',
+    title: 'A plan you can trust',
+    items: [
+      'Dragging a bed moves the bed, with its plants. To move a row, pick it first; dragging it out of its bed asks before it goes.',
+      'Beds and pots have a Move button, for moving them a step at a time without dragging.',
+      'The plan stays still when you start planting, so a bed is where it was when you click it.',
+      'The plan gets more of the screen. Photos around it are off to start with, and the ··· menu brings them back.',
+      'Showing a list as a plan now makes a garden that fits: pots stand on the paving, the boundary grows to hold your beds, and a tree in a pot is drawn the size of the pot.',
+      'Vegetables planted on the lawn, and beds drawn over each other, now get a warning.',
+      'Names on the plan no longer pile up on each other. Tap anything to see what it is.',
+      'Set this ground now sets it, and says so.',
+      'Sizes can be typed in feet and inches, such as 6 ft or 5 ft 6. Pots are in centimetres, and a size that can\u2019t be right is questioned.',
+    ],
+    tryIt: { label: 'See your garden', view: 'plan' },
+  },
+  {
     id: '2026-10-30-your-season',
     date: '2026-10-30',
     title: 'Your season, not the south’s',

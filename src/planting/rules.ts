@@ -3,18 +3,18 @@
 // numbers behind it, so no warning is a mystery.
 
 import { formatLength, formatSpacing } from '../canvas/viewport';
-import { distance, distanceToSegment, pointInPolygon } from '../geometry/polygon';
+import { centroid, distance, distanceToSegment, pointInPolygon } from '../geometry/polygon';
 import { featureLabel, placeLabel } from '../model/features';
 import type { Garden, Light, Plant, Planting, Point } from '../model/types';
 import { averageHours, type SunGrid } from '../sun/hours';
-import { activePlantings, canHold, plantCount, plantingShape, plantPositions, rowSpacingOf, sizedPlant, type PlantingShape } from './place';
+import { activePlantings, canHold, EDGE_MM, insideBed, plantCount, plantingShape, plantPositions, rowSpacingOf, sizedPlant, type PlantingShape } from './place';
 import { asPlacedIn, isPot, isRoundPot, potProblems } from './pots';
 import { CAGE_SQUEEZE, fullnessFindings, isList } from './listPlant';
 import { seasonsApart } from './rotation';
 import { phOf, soilClash, soilOf } from './soil';
 import { holdsOne, holdsPoint, isSupport } from './supports';
 
-export type FindingKind = 'spacing' | 'row' | 'outside' | 'no-bed' | 'avoid' | 'good' | 'light' | 'pot' | 'soil' | 'support';
+export type FindingKind = 'spacing' | 'row' | 'outside' | 'no-bed' | 'avoid' | 'good' | 'light' | 'pot' | 'soil' | 'support' | 'overlap';
 
 export interface Finding {
   /** Stable for the same problem, so the list doesn't jump about. */
@@ -45,6 +45,7 @@ export function checkGarden(g: Garden, plantOf: PlantOf, sun: SunGrid | null = n
   const said = new Set(g.features.filter((f) => f.light).map((f) => f.id));
   const findings = [
     ...checkPlacement(g, active, plantOf),
+    ...checkBeds(g),
     ...checkPots(g, plantOf),
     ...checkSupports(g, active, plantOf),
     ...(isList(g) ? checkFullness(g, plantOf) : checkSpacing(g, active, plantOf)),
@@ -84,6 +85,11 @@ function checkPlacement(g: Garden, active: Planting[], plantOf: PlantOf): Findin
       out.push({ id: `no-bed:${pl.id}`, kind: 'no-bed', level: 'warn', plantingIds: [pl.id], featureIds: [bed.id], message: `${describe(pl, plant)} is on ${featureLabel(bed).toLowerCase()}, which plants can't grow in. Move it or delete it.` });
       continue;
     }
+    // Bulbs, herbs and trees can be at home in a lawn. Vegetables dropped on the grass are more likely a slip, and won't grow there.
+    if (plant.category === 'vegetable' && bed.kind === 'surface' && (bed.material ?? 'lawn') === 'lawn') {
+      out.push({ id: `lawn:${pl.id}`, kind: 'outside', level: 'warn', plantingIds: [pl.id], featureIds: [bed.id], message: `${describe(pl, plant)} is on the lawn. Make a bed there first, or move it into one.` });
+      continue;
+    }
     const pts = plantPositions(pl, plant);
     // Along a fence, a plant is in place while it's by the fence.
     const along = isSupport(bed);
@@ -110,12 +116,29 @@ function checkPlacement(g: Garden, active: Planting[], plantOf: PlantOf): Findin
   return out;
 }
 
-/** Inside, or on the edge: a plant right at the edge of a bed is still in it. */
-function insideBed(p: Point, poly: Point[]): boolean {
-  if (pointInPolygon(p, poly)) return true;
-  return poly.some((a, i) => distanceToSegment(p, a, poly[(i + 1) % poly.length]!).distance <= EDGE_MM);
+/** Whether two outlines really overlap: edges that cross, or one inside the other. Beds touching along an edge don't. */
+function outlinesOverlap(a: Point[], b: Point[]): boolean {
+  const edgesOf = (poly: Point[]): Seg[] => poly.map((p, i) => [p, poly[(i + 1) % poly.length]!]);
+  const [ea, eb] = [edgesOf(a), edgesOf(b)];
+  if (ea.some((x) => eb.some((y) => segmentsCross(x, y)))) return true;
+  const strictlyIn = (p: Point, poly: Point[], edges: Seg[]) => pointInPolygon(p, poly) && edges.every((e) => distanceToSegment(p, e[0], e[1]).distance > EDGE_MM);
+  return a.some((p) => strictlyIn(p, b, eb)) || b.some((p) => strictlyIn(p, a, ea)) || strictlyIn(centroid(a), b, eb) || strictlyIn(centroid(b), a, ea);
 }
-const EDGE_MM = 10;
+
+/** Beds drawn over each other, on a plan. A list sets them out for you, and a bed inside a greenhouse is meant to be there. */
+function checkBeds(g: Garden): Finding[] {
+  if (isList(g)) return [];
+  const beds = g.features.filter((f) => f.kind === 'bed');
+  const out: Finding[] = [];
+  beds.forEach((a, i) => {
+    for (const b of beds.slice(i + 1)) {
+      if (!outlinesOverlap(a.footprint, b.footprint)) continue;
+      out.push({ id: `overlap:${a.id}:${b.id}`, kind: 'overlap', level: 'warn', plantingIds: [], featureIds: [a.id, b.id], message: `${featureLabel(a)} and ${featureLabel(b)} overlap. Move one clear of the other.` });
+    }
+  });
+  return out;
+}
+
 
 // ---------- Spacing between plantings ----------
 

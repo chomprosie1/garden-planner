@@ -307,7 +307,7 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
           {open === 'build' && <TreeList phone={phone} plants={plants} onSticker={onSticker} onPlant={onPlant} />}
           {open === 'draw' && (
             <div class="dock-draw">
-              <p class="muted small">Precise drawing: click each corner, or {phone ? 'use the crosshair' : 'drag a rectangle'}, and type exact lengths as you go.</p>
+              <p class="muted small">Precise drawing: {phone ? 'tap' : 'click'} each corner, or {phone ? 'use the crosshair' : 'drag a rectangle'}, and type exact lengths as you go.</p>
               <div class="dock-tools">
                 {DRAW_TOOLS.map((t) => (
                   <button key={t.tool} type="button" class="tool" aria-pressed={tool === t.tool} onClick={() => setTool(tool === t.tool ? 'select' : t.tool)}>

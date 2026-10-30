@@ -64,6 +64,8 @@ export function YearScrubber({ today, date, setDate, playing, setPlaying, phone,
         else if (m === 7) ticks.push({ pos, label: 'Summer' });
         continue;
       }
+      // A part-month at the very start would sit on the next one's name: it's left off.
+      if (ticks.length === 1 && pos - ticks[0]!.pos < 3) ticks.pop();
       // January is marked with its year instead.
       ticks.push({ pos, label: m === 1 ? String(year) : MONTH_NAMES[m - 1]!, ...(m === 1 ? { year } : {}) });
     }

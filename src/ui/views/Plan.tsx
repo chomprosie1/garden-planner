@@ -16,7 +16,6 @@ import { shadowsAt } from '../../sun/shadow';
 import { listGardens, openTraceKey } from '../../storage/gardens';
 import { loadBlob } from '../../storage/idb';
 import { resolveMode } from '../../theme/apply';
-import { LOOKS } from '../../theme/looks';
 import type { Prefs, PrefsStore } from '../../theme/prefs';
 import type { WalkSpot } from '../../three/walk';
 import { ActionPill } from '../ActionPill';
@@ -99,15 +98,16 @@ function hintFor(tool: Tool, phone: boolean, byHand = false, pen?: SketchPen): s
     return phone
       ? 'Tap anything to pick it; drag it to move it. Add beds, pots and plants from below.'
       : 'Scroll to zoom, and 0 fits the garden. Pull a corner to resize. Press ? for all the shortcuts.';
-  if (tool === 'calibrate') return 'Click two points on the photo that you know the real distance between, such as the ends of a fence.';
+  const click = phone ? 'Tap' : 'Click';
+  if (tool === 'calibrate') return `${click} two points on the photo that you know the real distance between, such as the ends of a fence.`;
   if (tool === 'trace') return 'Drag to move the photo under the plan. Press Esc when done.';
-  if (tool === 'plant') return 'Click a bed, pot or planter to plant it. Esc when done.';
+  if (tool === 'plant') return `${click} a bed, pot or planter to plant it.${phone ? '' : ' Esc when done.'}`;
   const g = geometryForTool(tool);
   const exact = 'Type a length and press Enter for an exact edge (3450, or 3.45m).';
-  if (tool === 'boundary') return `Click each corner of your garden. ${exact} Click the first corner or press Enter to finish.`;
-  if (g === 'area') return `Drag for a rectangle, or click each corner for any shape. ${exact}`;
-  if (g === 'line') return `Click along the ${KINDS[tool as FeatureKind].label.toLowerCase()}'s centre line. ${exact} Double-click or press Enter to finish.`;
-  return 'Drag out from the centre, or click the centre and type the radius.';
+  if (tool === 'boundary') return `${click} each corner of your garden. ${exact} ${click} the first corner${phone ? ' to finish.' : ' or press Enter to finish.'}`;
+  if (g === 'area') return `Drag for a rectangle, or ${click.toLowerCase()} each corner for any shape. ${exact}`;
+  if (g === 'line') return `${click} along the ${KINDS[tool as FeatureKind].label.toLowerCase()}'s centre line. ${exact} ${phone ? 'Tap twice' : 'Double-click or press Enter'} to finish.`;
+  return `Drag out from the centre, or ${click.toLowerCase()} the centre and type the radius.`;
 }
 
 const pad2 = (n: number) => String(n).padStart(2, '0');
@@ -183,7 +183,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const [toolsUp, setToolsUp] = useState(false);
   useEffect(() => setToolsUp(false), [sunOn]);
 
-  const hidePhotos = prefs.focus ?? LOOKS[prefs.look].focusByDefault;
+  // The plan gets the room: photos around it are something to ask for, in the ··· menu.
+  const hidePhotos = prefs.focus ?? true;
   const showPhoto = prefs.photos === 'full' && !hidePhotos;
   const month = now.getMonth() + 1;
   const photoMonth = prefs.photoMonth === 'auto' ? month : prefs.photoMonth;
@@ -355,7 +356,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
 
   const showFinding = (f: Finding) => {
     const pts = garden.plantings.filter((p) => f.plantingIds.includes(p.id)).flatMap((p): Point[] => [[p.x, p.y], ...(p.endPoint ? [p.endPoint] : [])]);
-    canvasApi.current?.show(pts);
+    // A check on the beds themselves has no plants to show.
+    canvasApi.current?.show(pts.length ? pts : garden.features.filter((x) => f.featureIds.includes(x.id)).flatMap((x) => x.footprint));
     if (phone) setSheetOpen(false);
   };
 

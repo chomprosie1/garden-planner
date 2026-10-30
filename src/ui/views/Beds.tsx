@@ -6,6 +6,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { jobLabel, jobsFor } from '../../calendar/jobs';
+import { sizeMm } from '../../canvas/snap';
 import { formatAcross, formatSize } from '../../canvas/viewport';
 import { microclimateOf } from '../../climate/microclimate';
 import { bounds } from '../../geometry/polygon';
@@ -15,7 +16,7 @@ import { bookedText, bookedUntil } from '../../planting/booked';
 import { currentStage, stageLabel, type LifeStage } from '../../lifecycle/stages';
 import { deleteFeatures, featureLabel, KINDS, rectInfo, resizeRectAny, updateFeature, type Target } from '../../model/features';
 import { todayIso } from '../../model/ids';
-import { addListBed, copyListBed, LIST_KIND_LABEL, LIST_KINDS, LIST_SIZE, moveInList, nameListBeds, spreadOut, type ListKind } from '../../model/listLayout';
+import { addListBed, copyListBed, LIST_KIND_LABEL, LIST_KINDS, LIST_SIZE, moveInList, nameListBeds, planFromList, spreadOut, type ListKind } from '../../model/listLayout';
 import { updateGarden, type Store } from '../../model/store';
 import { LIGHT_LEVELS, type Feature, type Garden, type Light, type Plant, type Planting } from '../../model/types';
 import { defaultFill, FILL_LABEL, fillsFor, type Fill } from '../../planting/fill';
@@ -59,8 +60,6 @@ interface Props {
 
 const LIGHT_TEXT: Record<Light, string> = { 'full-sun': 'Full sun', 'part-shade': 'Part shade', shade: 'Shade' };
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
-/** Said when a new bed wouldn't fit inside the garden's outline. */
-const OUTSIDE_NOTE = ' There wasn’t room inside your garden’s outline, so it’s set just outside it.';
 /** What you might add several of at once. */
 const SEVERAL: ListKind[] = ['bed', 'pot', 'planter', 'cold-frame'];
 
@@ -139,8 +138,8 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
                 label: 'Show it as a plan',
                 icon: 'plan',
                 onSelect: () => {
-                  // Beds that have come to overlap in the list are moved apart, with their plants, before the plan shows them.
-                  store.apply(updateGarden(({ view: _v, ...g }) => spreadOut(g, isListed(g))));
+                  // A garden that fits: beds moved apart, pots on the paving, and an outline that holds them all, before the plan shows it.
+                  store.apply(updateGarden(({ view: _v, ...g }) => planFromList(g, isListed(g))));
                   app.notify('Now a plan: your beds are set out neatly, ready to arrange. Settings has the list again.', { undo: true });
                 },
               },
@@ -325,17 +324,15 @@ function BedCard({ bed, first, last, garden, store, plantOf, jobs, warnings, tod
                     label: 'Another like this',
                     icon: 'copy' as const,
                     onSelect: () => {
-                      let outside = false;
                       store.apply(
                         updateGarden((g) => {
                           // The copy takes the next free name; the one copied keeps its own.
                           const made = copyListBed(g, bed.id, featureLabel);
                           if (!made) return g;
-                          outside = made[2];
                           return made[0];
                         }),
                       );
-                      app.notify(`Another ${kindText(bed).toLowerCase()} added, the same size.${outside ? OUTSIDE_NOTE : ''}`, { undo: true });
+                      app.notify(`Another ${kindText(bed).toLowerCase()} added, the same size.`, { undo: true });
                     },
                   },
                 ]
@@ -525,10 +522,19 @@ function useModal() {
   return ref;
 }
 
-/** A size typed in metres, in mm; the fallback if it isn't a sensible one. */
+/** The biggest a pot goes, mm: past this it's a slip. */
+const POT_MOST = 2000;
+
+/** A size typed in metres (or with its own unit, such as 6 ft), in mm; the fallback if it isn't a sensible one. */
 const metres = (s: string, fallback: number) => {
-  const n = Number.parseFloat(s.replace(',', '.'));
-  return Number.isFinite(n) && n > 0 && n <= 100 ? Math.round(n * 1000) : fallback;
+  const mm = sizeMm(s, 'm');
+  return mm && mm <= 100000 ? mm : fallback;
+};
+
+/** A pot's size typed in centimetres (or with its own unit), in mm; the fallback if it isn't a sensible one. */
+const potCm = (s: string, fallback: number) => {
+  const mm = sizeMm(s, 'cm');
+  return mm && mm <= POT_MOST ? mm : fallback;
 };
 
 /** Add a bed or area (or several alike): what it is, a name, and (if you like) its size and how sunny it is. */
@@ -541,22 +547,24 @@ function AddBedDialog({ store, close }: { store: Store; close: () => void }) {
   const [d, setD] = useState('');
   const [light, setLight] = useState<Light | ''>('');
   const [many, setMany] = useState('1');
+  const [sizeNote, setSizeNote] = useState('');
   const usual = LIST_SIZE[kind];
   const add = () => {
-    const size: [number, number] = kind === 'pot' ? [metres(w, usual[0]), metres(w, usual[0])] : [metres(w, usual[0]), metres(d, usual[1])];
+    // A pot 25 m across is a slip, and a size that can't be read isn't one: say so, rather than make something else.
+    if (kind === 'pot' && w.trim() && potCm(w, 0) === 0) return setSizeNote('That doesn’t look like a pot’s size. Try a number of centimetres, such as 30.');
+    if (kind !== 'pot' && [w, d].some((s) => s.trim() && metres(s, 0) === 0)) return setSizeNote('That size can’t be read. Try metres, such as 2.4, or feet, such as 6 ft.');
+    const size: [number, number] = kind === 'pot' ? [potCm(w, usual[0]), potCm(w, usual[0])] : [metres(w, usual[0]), metres(d, usual[1])];
     const label = name.trim() || LIST_KIND_LABEL[kind].replace(/^An? /, '').replace(/^./, (c) => c.toUpperCase());
     const n = SEVERAL.includes(kind) ? Math.max(1, Math.min(24, Math.round(Number(many) || 1))) : 1;
-    let outside = false;
     let first = label;
     store.apply(
       updateGarden((g) => {
         let next = g;
         const ids: string[] = [];
         for (let i = 0; i < n; i++) {
-          const [after, id, out] = addListBed(next, kind, label, size);
+          const [after, id] = addListBed(next, kind, label, size);
           next = light ? updateFeature(after, id, { light }) : after;
           ids.push(id);
-          outside ||= out;
         }
         // Two or more alike are numbered as they're added: "Pot 1", "Pot 2".
         next = nameListBeds(next, isListed(next), featureLabel);
@@ -565,7 +573,7 @@ function AddBedDialog({ store, close }: { store: Store; close: () => void }) {
       }),
     );
     const noun = LIST_KIND_LABEL[kind].replace(/^An? /, '').replace(/ or window box$/, '');
-    app.notify(`${n > 1 ? `${n} ${noun}s added.` : `${first} added.`}${outside ? OUTSIDE_NOTE : ''}`, { undo: true });
+    app.notify(n > 1 ? `${n} ${noun}s added.` : `${first} added.`, { undo: true });
     ref.current?.close();
   };
   return (
@@ -599,21 +607,22 @@ function AddBedDialog({ store, close }: { store: Store; close: () => void }) {
           <label class="field">
             {kind === 'pot' ? 'Across' : 'Width'}
             <span class="input-unit">
-              <input inputMode="decimal" value={w} placeholder={String(usual[0] / 1000)} onInput={(e) => setW((e.currentTarget as HTMLInputElement).value)} />
-              <span>m</span>
+              <input value={w} placeholder={String(kind === 'pot' ? usual[0] / 10 : usual[0] / 1000)} onInput={(e) => (setW((e.currentTarget as HTMLInputElement).value), setSizeNote(''))} />
+              <span>{kind === 'pot' ? 'cm' : 'm'}</span>
             </span>
           </label>
           {kind !== 'pot' && (
             <label class="field">
               Length
               <span class="input-unit">
-                <input inputMode="decimal" value={d} placeholder={String(usual[1] / 1000)} onInput={(e) => setD((e.currentTarget as HTMLInputElement).value)} />
+                <input value={d} placeholder={String(usual[1] / 1000)} onInput={(e) => setD((e.currentTarget as HTMLInputElement).value)} />
                 <span>m</span>
               </span>
             </label>
           )}
         </div>
-        <p class="muted small">A rough size is fine; leave it for the usual. It tells you how many plants fit.</p>
+        {sizeNote && <p class="bed-warn small">{sizeNote}</p>}
+        <p class="muted small">A rough size is fine, in feet if you like (6 ft); leave it for the usual. It tells you how many plants fit.</p>
         {SEVERAL.includes(kind) && (
           <label class="field count-field">
             How many?
@@ -817,12 +826,11 @@ const metresText = (mm: number) => String(Math.round(mm / 10) / 100);
  * A size in metres that keeps what you've typed until it's saved (when you leave the field, or press Done), so changing
  * the sun or soil first doesn't put the old size back.
  */
-function MetresInput({ mm, commit }: { mm: number; commit: (text: string) => void }) {
+function MetresInput({ mm, cm = false, commit }: { mm: number; cm?: boolean; commit: (text: string) => void }) {
   const [draft, setDraft] = useState<string | null>(null);
   return (
     <input
-      inputMode="decimal"
-      value={draft ?? metresText(mm)}
+      value={draft ?? (cm ? String(Math.round(mm / 10)) : metresText(mm))}
       onInput={(e) => setDraft((e.currentTarget as HTMLInputElement).value)}
       onChange={(e) => {
         commit((e.currentTarget as HTMLInputElement).value);
@@ -856,8 +864,8 @@ function EditBedDialog({ store, garden, bedId, plantOf, close }: { store: Store;
               <label class="field">
                 Across
                 <span class="input-unit">
-                  <MetresInput mm={bed.circle.radiusMm * 2} commit={(t) => set({ circle: { ...bed.circle!, radiusMm: Math.round(metres(t, bed.circle!.radiusMm * 2) / 2) } })} />
-                  <span>m</span>
+                  <MetresInput mm={bed.circle.radiusMm * 2} cm={bed.kind === 'pot'} commit={(t) => set({ circle: { ...bed.circle!, radiusMm: Math.round((bed.kind === 'pot' ? potCm(t, bed.circle!.radiusMm * 2) : metres(t, bed.circle!.radiusMm * 2)) / 2) } })} />
+                  <span>{bed.kind === 'pot' ? 'cm' : 'm'}</span>
                 </span>
               </label>
             ) : (

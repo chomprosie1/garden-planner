@@ -2,7 +2,7 @@
 // block of the same plant. Positions are worked out from the plant's spacing,
 // so the saved planting stays small however many plants it holds.
 
-import { distance, pointInPolygon } from '../geometry/polygon';
+import { distance, distanceToSegment, pointInPolygon } from '../geometry/polygon';
 import { currentStage, inGroundDefault, inGroundStages, isGrowingStage, setStage, sowingOf } from '../lifecycle/stages';
 import { newId } from '../model/ids';
 import type { Feature, FeatureKind, Garden, Material, Plant, PlantSize, Planting, Point, SpacingStyle, Stage } from '../model/types';
@@ -338,6 +338,25 @@ export function movePlanting(g: Garden, id: string, dx: number, dy: number): Gar
       return bed && bed.id !== p.featureId ? { ...moved, featureId: bed.id } : moved;
     }),
   };
+}
+
+/** How near a bed's edge still counts as in it, mm. */
+export const EDGE_MM = 10;
+
+/** Inside, or on the edge: a plant right at the edge of a bed is still in it. */
+export function insideBed(p: Point, poly: Point[]): boolean {
+  if (pointInPolygon(p, poly)) return true;
+  return poly.some((a, i) => distanceToSegment(p, a, poly[(i + 1) % poly.length]!).distance <= EDGE_MM);
+}
+
+/** Whether a move took a planting out of the bed or pot it was in: not to another one, and not within it. */
+export function leftItsBed(before: Garden, after: Garden, id: string, plantOf: (id: string) => Plant): boolean {
+  const inABed = (g: Garden) => {
+    const pl = g.plantings.find((p) => p.id === id);
+    const bed = pl && g.features.find((f) => f.id === pl.featureId);
+    return !!pl && !!bed && isContainer(bed) && plantPositions(pl, plantOf(pl.plantId)).every((p) => insideBed(p, bed.footprint));
+  };
+  return inABed(before) && !inABed(after);
 }
 
 /** Removes a planting completely, with its notes. For crops you've finished with, use harvestPlantings. */

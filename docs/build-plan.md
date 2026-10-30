@@ -2856,6 +2856,33 @@ Not changed:
 - **Callum's frost day and month reverting** wasn't reproduced: the field reads correctly.
 - **Margaret's Shawbury frosts** need the frost hollow ticked or her own dates: Shawbury's average nights give the same dates as before.
 
+### Release 51 — A plan you can trust (as built)
+Built 30 Oct 2026. No schema change. Version 0.51.0.
+
+- **A drag on a bed moves the bed** (`plantingDrag`, `src/canvas/hit.ts`). Ruth's strawberries came out because a mouse press on any plant dragged that plant. Now one you haven't picked is part of its bed, so the drag moves the bed. A plant you've picked moves itself. With the bed locked or on the lawn, the plant moves. On a touch screen a first press still only picks.
+- **Dragging a planting out of its bed asks first** (`leftItsBed`): "Move it out" or "Keep it in". It stays put until you say, and the move is made on the garden as it is by then. Within a bed, or wholly into another, it doesn't ask. Arrow keys don't ask.
+- **Move buttons** on a bed or pot's pill: left, up, down and right, 10 cm a press, for anyone who can't drag.
+- **The jump was a re-centring:** the canvas changed height (358 to 489 px at 1366 × 768) as the planting bar came up, and the view re-centred, moving beds about 65 px. Only the phone's crosshair needs that, so with a mouse the plan stays put.
+- **Nothing covers a control.** Checked with `elementFromPoint` over every button on Today and Garden at 1366 × 768. Fixed: the season photo over the planting bar, and the month's name over Today's ··· menu, which had "What's new" under it (Callum's Wrapped). A toast only takes taps on its buttons.
+- **More plan on a laptop:** photos around the plan are off to start with, for every look (`focusByDefault` is gone). 958 × 574 with the tray shut and 958 × 358 open, against Callum's 935 × 300.
+- **A list made into a plan** (`planFromList`): beds moved apart as before, pots outside the garden stand on the paving, and a boundary square to the plan grows to hold what's left. A neighbour's paving doesn't count. Other shapes keep theirs. A tree in a pot is drawn and tapped at no more than 1.4 times the pot (`asDrawn`), in 2D only. List mode no longer mentions an outline.
+- **New warnings:** vegetables on a lawn (bulbs, herbs and trees are at home there), and beds drawn over each other. Beds touching along an edge don't count, and beds crossing with no corner inside do.
+- **Labels** (`src/canvas/labels.ts`): each takes its place in turn, beds first, then plants with the most in them. One that would land on another is left off. Bed numbers are release 52.
+- **Set this ground** did nothing for new ground, which stayed open for the visit. It now sets it, and says so. Tip 2 matches.
+- **Words:** no double-click, arrow keys or "click" on a touch screen.
+- **Sizes** (`parseLength`, `sizeMm`): feet and inches as people type them. A bare number is in the field's unit. Pots are in cm, under 2 is read as metres from habit, and over 2 m is questioned. A size that can't be read says so when adding, rather than quietly using the usual one.
+- **The timeline:** a part-month at the start no longer sits on the next month's name.
+- **Checked in a browser at 1366 × 768:** the covering scan, the sizes above, Ruth's drag moving the whole bed with its garlic, and a picked row asking first, with "Keep it in" leaving it. No page errors.
+- **Code review before pushing** (`/code-review`, medium) found ten things. Fixed: the prompt writing back a stale garden, the H key disagreeing with the new default, overlaps on touching and crossed beds, a pot's tree being picked 2 m from where it's drawn, a rotated boundary being squared up, pots going on a neighbour's patio or off L-shaped paving, sizes that read less than before, plantings on a bed's edge skipping the prompt, and herbs warned off a lawn.
+
+Tests: `tests/plan-trust.test.ts`.
+
+Not changed:
+- **A list with an L-shaped or angled outline:** a bed added when there's no room lands outside it with nothing said, as the old message went. That wants a decision on what to do, not a word.
+- **The pill's exact size** is still in mm, and 3D still draws a potted tree full size.
+- **Margaret's "Small bed added" after Undo:** Undo on the toast clears it; the toolbar's Undo doesn't.
+- **Priya's "pots outside the garden" check** was done with tests, not by re-running her garden.
+
 ## Repo layout
 ```
 garden-planner/

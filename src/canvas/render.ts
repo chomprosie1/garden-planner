@@ -11,12 +11,14 @@ import { treeType } from '../model/trees';
 import { SKETCH_WIDTH, sketchesOf } from '../model/sketches';
 import type { Feature, Garden, Material, Plant, Planting, Point, Sketch, SketchColour, SketchKind } from '../model/types';
 import { blockGrid, byHeight, rowSpacingOf, isActive, MAX_PLANTS, plantCount, plantingShape, plantPositions, rowCount, sizedPlant, spreadOf, type Layout, type PlantingShape } from '../planting/place';
+import { asDrawn } from '../planting/pots';
 import type { Finding } from '../planting/rules';
 import { isLineSupport, trainedAngle } from '../planting/supports';
 import type { SunGrid } from '../sun/hours';
 import type { Sun } from '../sun/position';
 import { LEAF_MONTHS, type Shade } from '../sun/shadow';
 import { LOOKS, type LookId, type Mode, type PlanPalette } from '../theme/looks';
+import { claim, type LabelBox } from './labels';
 import { drawEdgingTile, drawHedgeTile, drawMaterialTile, EDGING_TILE_MM, EDGING_WIDTH_MM, materialColour, MATERIAL_TILE_MM, mix, type Edging } from './materials';
 import type { SnapKind } from './snap';
 import { formatLength, gridStep, scaleBarLength, toScreen, type Viewport } from './viewport';
@@ -389,8 +391,11 @@ export function renderStatic(ctx: CanvasRenderingContext2D, s: Scene) {
   if (planted.length) drawFindings(ctx, s);
   const bedsInUse = new Set(planted.map((p) => p.featureId));
   if (!s.noLabels) {
-    for (const f of g.features) drawLabel(ctx, s, f, bedsInUse.has(f.id));
-    for (const pl of planted) drawPlantLabel(ctx, s, pl, plantFor(s, pl));
+    // Beds and places first; then plants, the biggest first. One that would land on another is left off.
+    const taken: LabelBox[] = [];
+    for (const f of g.features) drawLabel(ctx, s, f, bedsInUse.has(f.id), taken);
+    const big = [...planted].sort((a, b) => plantCount(b, plantFor(s, b)) - plantCount(a, plantFor(s, a)));
+    for (const pl of big) drawPlantLabel(ctx, s, pl, plantFor(s, pl), taken);
   }
   if (s.sketches !== false) for (const k of sketchesOf(g)) drawSketch(ctx, s, k);
 }
@@ -882,7 +887,7 @@ function labelPoint(f: Feature): Point {
   return centroid(f.footprint);
 }
 
-function drawLabel(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, planted = false) {
+function drawLabel(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, planted: boolean, taken: LabelBox[]) {
   const v = s.view;
   const st = s.style;
   // Fences, walls and surfaces only carry a label when named.
@@ -903,6 +908,7 @@ function drawLabel(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, planted 
   const xs = f.footprint.map((p) => p[0]);
   const span = (Math.max(...xs) - Math.min(...xs)) * v.scale;
   if (span < Math.min(w * 0.6, 40)) return;
+  if (!claim(taken, { x: x - w / 2 - 6, y: y - 11, w: w + 12, h: 22 })) return;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   if (st.labels === 'sign') {
@@ -1475,7 +1481,7 @@ function drawPlants(ctx: CanvasRenderingContext2D, s: Scene, pts: Point[], shape
 const lookOf = (s: Scene, pl: Planting, plant: Plant): Look => seasonal(stageLook(stageFor(s, pl), plant, pl), plant, s.month ?? new Date().getMonth() + 1);
 
 /** A planting's plant at the size it's been set to. */
-const plantFor = (s: Scene, pl: Planting) => sizedPlant(s.plantOf!(pl.plantId), pl);
+const plantFor = (s: Scene, pl: Planting): Plant => asDrawn(sizedPlant(s.plantOf!(pl.plantId), pl), featuresById(s.garden).get(pl.featureId));
 
 /** The garden's features by id, made once for each list of features (a new list comes with every edit). */
 const byIdCache = new WeakMap<Feature[], Map<string, Feature>>();
@@ -1618,7 +1624,7 @@ function drawFindings(ctx: CanvasRenderingContext2D, s: Scene) {
 }
 
 /** The plant's name beside a planting, when there's room. */
-function drawPlantLabel(ctx: CanvasRenderingContext2D, s: Scene, pl: Planting, plant: Plant) {
+function drawPlantLabel(ctx: CanvasRenderingContext2D, s: Scene, pl: Planting, plant: Plant, taken: LabelBox[]) {
   const v = s.view;
   const shape = plantingShape(pl, plant);
   const n = plantCount(pl, plant);
@@ -1645,6 +1651,7 @@ function drawPlantLabel(ctx: CanvasRenderingContext2D, s: Scene, pl: Planting, p
     x = (a[0] + b[0]) / 2;
     y = (a[1] + b[1]) / 2;
   }
+  if (!claim(taken, { x: x - w / 2 - 3, y: y - 8, w: w + 6, h: 16 })) return;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.lineWidth = 3.5;

@@ -3,6 +3,7 @@
 
 import type { ComponentChildren } from 'preact';
 import { useState } from 'preact/hooks';
+import { touchScreen } from './hooks';
 import { parseLength } from '../canvas/snap';
 import { climateOf, climateText, coverEffects, DEFAULT_CLIMATE, isCover, microclimateAt, microclimateOf, placeFor, type CoverKind } from '../climate/microclimate';
 import { addPlace, makePlace } from '../lifecycle/shed';
@@ -230,7 +231,7 @@ export function Inspector(props: Props) {
           <dt>Corners</dt>
           <dd>{b.length}</dd>
         </dl>
-        <p class="muted small">Drag a corner to move it. Double-click an edge to add a corner. Select a corner and press Delete to remove it.</p>
+        <p class="muted small">Drag a corner to move it. {touchScreen() ? 'Tap an edge twice to add a corner.' : 'Double-click an edge to add a corner. Select a corner and press Delete to remove it.'}</p>
         <button type="button" class="btn" onClick={() => setTool('boundary')}>
           Redraw the boundary
         </button>
@@ -511,9 +512,9 @@ function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf
               {geometry === 'circle'
                 ? 'Drag the square handle to resize.'
                 : f.smooth
-                  ? 'The curve runs through the square handles: drag one to reshape it; double-click near the dotted line to add one.'
-                  : 'Drag a corner to reshape; double-click an edge to add a corner.'}{' '}
-              Arrow keys nudge by 10 mm (100 mm with Shift).
+                  ? `The curve runs through the square handles: drag one to reshape it; ${touchScreen() ? 'tap twice' : 'double-click'} near the dotted line to add one.`
+                  : `Drag a corner to reshape; ${touchScreen() ? 'tap an edge twice' : 'double-click an edge'} to add a corner.`}{' '}
+              {!touchScreen() && 'Arrow keys nudge by 1 cm (10 cm with Shift).'}
             </p>
           )}
           <div class="button-row">
@@ -1288,7 +1289,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
           </label>
           {!props.list && (
             <p class="muted small">
-              Drag to move{layout !== 'single' ? '; drag the square handles to change its size' : ''}. Arrow keys nudge by 10 mm.
+              Drag to move{layout !== 'single' ? '; drag the square handles to change its size' : ''}.{!touchScreen() && ' Arrow keys nudge by 1 cm.'}
             </p>
           )}
                   </details>

@@ -12,6 +12,9 @@ export function usePrefs(prefs: PrefsStore): Prefs {
 
 const PHONE = '(max-width: 700px)';
 
+/** A finger, not a mouse: no double-click and no arrow keys. */
+export const touchScreen = (): boolean => typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+
 export function useIsPhone(): boolean {
   const [phone, setPhone] = useState(() => matchMedia(PHONE).matches);
   useEffect(() => {

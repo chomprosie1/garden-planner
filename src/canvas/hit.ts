@@ -4,6 +4,7 @@ import { distance, distanceToSegment, pointInPolygon } from '../geometry/polygon
 import { centreLineOf, isSetGround, type Target } from '../model/features';
 import type { Feature, Garden, Plant, Planting, Point } from '../model/types';
 import { byHeight, isActive, plantingShape, sizedPlant, spreadOf } from '../planting/place';
+import { asDrawn } from '../planting/pots';
 import { closest } from '../planting/rules';
 
 function hits(f: Feature, p: Point, toleranceMm: number): boolean {
@@ -64,10 +65,20 @@ export function hitPlanting(g: Garden, plantOf: (id: string) => Plant, p: Point,
   const order = byHeight(g.plantings.filter(isActive), plantOf);
   for (let i = order.length - 1; i >= 0; i--) {
     const pl = order[i]!;
-    const plant = sizedPlant(plantOf(pl.plantId), pl);
+    const plant = asDrawn(sizedPlant(plantOf(pl.plantId), pl), g.features.find((f) => f.id === pl.featureId));
     if (closest(plantingShape(pl, plant), { kind: 'point', p }).d <= spreadOf(plant) / 2 + toleranceMm) return pl;
   }
   return null;
+}
+
+/**
+ * What a drag from a planting moves. A plant you've picked moves itself. One you haven't is part of its bed, so the drag
+ * moves the bed, and a steady hand can't pull a row out of it. On a touch screen a first press only picks, so panning
+ * never moves anything by accident.
+ */
+export function plantingDrag(o: { plantEdits: boolean; touch: boolean; wasSelected: boolean; bedMovable: boolean }): 'planting' | 'bed' | 'pan' {
+  if (!o.plantEdits || (o.touch && !o.wasSelected)) return 'pan';
+  return o.wasSelected || !o.bedMovable ? 'planting' : 'bed';
 }
 
 /**

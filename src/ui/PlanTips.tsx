@@ -22,7 +22,7 @@ export const TIPS: Tip[] = [
     title: (simple) => (simple ? 'Ground stays put' : 'The lock'),
     text: (phone, simple) =>
       simple
-        ? `A lawn or patio is set once it’s placed, so the beds and plants on it are easy to pick. To move it, ${phone ? 'tap' : 'click'} it where nothing’s on top and choose Unlock.`
+        ? `New ground stays free to move until you choose Set this ground. After that it stays put, so the beds and plants on it are easy to pick. To move it again, ${phone ? 'tap' : 'click'} it where nothing’s on top and choose Unlock.`
         : 'The padlock at the top locks the layout: beds and paths stay put while you plant. Plants can still be moved.',
     target: (simple) => (simple ? '.plan-stage .sheet' : '.lock-btn'),
   },

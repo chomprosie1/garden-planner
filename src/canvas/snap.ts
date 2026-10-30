@@ -65,10 +65,34 @@ export function snapStepFor(scale: number): number {
 
 /** Parses typed lengths: "3450", "3.45m", "345cm", "3450mm". Returns mm, or null. */
 export function parseLength(text: string): number | null {
-  const m = text.trim().toLowerCase().replace(',', '.').match(/^(\d+(?:\.\d+)?)\s*(mm|cm|m)?$/);
+  const t = text.trim().toLowerCase().replace(',', '.').replace(/[’′]/g, "'").replace(/[”″]/g, '"');
+  // Feet and inches: "6 ft", "8ft", 6', 5' 6", "6 ft 6 in", "10 inches".
+  const feet = t.match(/^(\d+(?:\.\d+)?)\s*(?:ft|feet|foot|')\s*(?:(\d+(?:\.\d+)?)\s*(?:in|inch|inches|")?)?$/);
+  const inches = t.match(/^(\d+(?:\.\d+)?)\s*(?:in|inch|inches|")$/);
+  if (feet || inches) {
+    const mm = Math.round(Number(feet?.[1] ?? 0) * 304.8 + Number(feet?.[2] ?? inches?.[1] ?? 0) * 25.4);
+    return mm > 0 ? mm : null;
+  }
+  const m = t.match(/^(\d+(?:\.\d+)?)\s*(mm|cm|m|metres?|meters?)?$/);
   if (!m) return null;
   const n = Number(m[1]);
-  const unit = m[2] ?? (m[1]!.includes('.') ? 'm' : 'mm');
+  const unit = (m[2] ?? (m[1]!.includes('.') ? 'm' : 'mm')).replace(/^met.*/, 'm');
   const mm = unit === 'm' ? n * 1000 : unit === 'cm' ? n * 10 : n;
   return mm > 0 ? Math.round(mm) : null;
+}
+
+/**
+ * A size typed in a field that's in metres or centimetres, mm: a bare number is in the field's unit, and anything with
+ * a unit is read as written ("6 ft", "45 cm"). Null if it can't be read. In a field in centimetres, a number under 2 is
+ * a size in metres, from habit: no pot is a centimetre across.
+ */
+export function sizeMm(text: string, unit: 'm' | 'cm'): number | null {
+  const t = text.trim().replace(',', '.');
+  if (!t) return null;
+  if (/^(\d+\.?\d*|\.\d+)$/.test(t)) {
+    const n = Number(t);
+    if (n <= 0) return null;
+    return Math.round(unit === 'm' || n < 2 ? n * 1000 : n * 10);
+  }
+  return parseLength(t);
 }

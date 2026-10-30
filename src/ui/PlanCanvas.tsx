@@ -5,7 +5,7 @@ import type { ComponentChildren } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useApp } from './appContext';
 import { copiedPlanting, copyPlanting } from './clipboard';
-import { hitEdge, hitVertex, pickAt } from '../canvas/hit';
+import { hitEdge, hitVertex, pickAt, plantingDrag } from '../canvas/hit';
 import { northCentre, NORTH_RADIUS, plantingHandles, planStyle, renderLive, renderStatic, rotateHandleAt, sketchTextPx, type Draft, type Focus, type Guide, type PlantDraft, type Scene, type Stroke, type TimeScene } from '../canvas/render';
 import { parseLength, snapPoint, snapStepFor, type SnapKind } from '../canvas/snap';
 import { fit, pan, toScreen, toWorld, zoomAt, type Viewport } from '../canvas/viewport';
@@ -52,7 +52,7 @@ import { defaultFill, fillPlanting } from '../planting/fill';
 import { isPot, spotInPot } from '../planting/pots';
 import { besideSupport, boundaryFence, holdsOne, isSupport, wherePhrase } from '../planting/supports';
 import { treeType } from '../model/trees';
-import { addPlanting, blockGrid, containerAt, mayGoUp, deletePlanting, duplicatePlanting, makePlanting, placeCopy, MAX_PLANTS, movePlanting, plantCount, plantingPoint, plantPositions, rowCount, rowSpacingOf, sizedPlant, spreadOf, updatePlanting, type InGroundAt, type Layout } from '../planting/place';
+import { addPlanting, blockGrid, containerAt, isContainer, leftItsBed, mayGoUp, deletePlanting, duplicatePlanting, makePlanting, placeCopy, MAX_PLANTS, movePlanting, plantCount, plantingPoint, plantPositions, rowCount, rowSpacingOf, sizedPlant, spreadOf, updatePlanting, type InGroundAt, type Layout } from '../planting/place';
 import type { Finding } from '../planting/rules';
 import type { SunGrid } from '../sun/hours';
 import type { Sun } from '../sun/position';
@@ -278,6 +278,10 @@ export function PlanCanvas(props: PlanCanvasProps) {
   const pressedTag = useRef<{ target: Target; index: number; at: Point; mm: number } | null>(null);
   /** A length on the selected outline being typed: which edge, where its tag is on screen, and the words so far. */
   const [typing, setTyping] = useState<{ target: Target; index: number; at: Point; text: string } | null>(null);
+  /** A planting dragged out of its bed, waiting to be asked about: the move it would make. */
+  const [leaving, setLeaving] = useState<{ id: string; dx: number; dy: number; text: string } | null>(null);
+  const askFirst = useRef<HTMLButtonElement>(null);
+  useEffect(() => askFirst.current?.focus(), [!!leaving]);
   const typingRef = useRef(typing);
   typingRef.current = typing;
   /** A zoom asked for just before the canvas changes size (the dock's drawer closing on a phone): it's done again at the new size. */
@@ -501,8 +505,9 @@ export function PlanCanvas(props: PlanCanvasProps) {
       const r = el.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const prev = size.current;
-      // Keep the same spot in the middle when the canvas changes size, so the crosshair never drifts.
-      if (view.current && prev.w && prev.h) view.current = pan(view.current, (r.width - prev.w) / 2, (r.height - prev.h) / 2);
+      // With a crosshair, the same spot stays in the middle when the canvas changes size, so it never drifts. With a
+      // mouse the plan stays put, so a bed isn't somewhere else by the time you click it.
+      if (view.current && prev.w && prev.h && P.current.crosshair) view.current = pan(view.current, (r.width - prev.w) / 2, (r.height - prev.h) / 2);
       size.current = { w: r.width, h: r.height, dpr };
       c.width = Math.round(r.width * dpr);
       c.height = Math.round(r.height * dpr);
@@ -1029,10 +1034,16 @@ export function PlanCanvas(props: PlanCanvasProps) {
       const wasSelected = p.selected?.type === 'planting' && p.selected.id === picked.id;
       p.setSelected(picked);
       p.setSelectedVertex(null);
+      const pl = g.plantings.find((x) => x.id === picked.id);
+      const bed = pl && g.features.find((x) => x.id === pl.featureId);
+      const bedMovable = !!bed && layoutEdits && isContainer(bed);
+      const how = plantingDrag({ plantEdits, touch, wasSelected, bedMovable });
       drag.current =
-        !plantEdits || (touch && !wasSelected)
+        how === 'pan'
           ? { kind: 'pan', last: s, moved: false }
-          : { kind: 'movePlanting', id: picked.id, base: g, start: world, startScreen: s, moved: false };
+          : how === 'bed'
+            ? { kind: 'move', id: bed!.id, base: g, start: world, startScreen: s, moved: false }
+            : { kind: 'movePlanting', id: picked.id, base: g, start: world, startScreen: s, moved: false };
       return;
     }
     const f = picked?.type === 'feature' ? g.features.find((x) => x.id === picked.id) : undefined;
@@ -1328,6 +1339,13 @@ export function PlanCanvas(props: PlanCanvasProps) {
       drag.current = null;
       const next = preview.current;
       preview.current = null;
+      // Out of its bed: that's worth asking, not doing. It stays where it was until you say.
+      if (next && d.kind === 'movePlanting' && leftItsBed(d.base, next, d.id, p.plantOf)) {
+        const was = d.base.plantings.find((x) => x.id === d.id)!;
+        const now = next.plantings.find((x) => x.id === d.id)!;
+        setLeaving({ id: d.id, dx: now.x - was.x, dy: now.y - was.y, text: `Move ${p.plantOf(was.plantId).commonName.toLowerCase()} out of ${placeLabel(d.base.features.find((f) => f.id === was.featureId)!)}?` });
+        return redraw();
+      }
       if (next && next !== p.garden) commit(() => next);
       return redraw();
     }
@@ -1770,6 +1788,29 @@ export function PlanCanvas(props: PlanCanvasProps) {
             onKeyDown={(e) => e.key === 'Escape' && setTyping(null)}
           />
         </form>
+      )}
+      {leaving && (
+        <div class="plan-ask" role="alertdialog" aria-label={leaving.text} onKeyDown={(e) => e.key === 'Escape' && setLeaving(null)}>
+          <p>{leaving.text}</p>
+          <div class="button-row">
+            <button
+              type="button"
+              class="btn btn-primary"
+              ref={askFirst}
+              onClick={() => {
+                // On the garden as it is now: anything done since stands.
+                const { id, dx, dy } = leaving;
+                setLeaving(null);
+                commit((g) => movePlanting(g, id, dx, dy));
+              }}
+            >
+              Move it out
+            </button>
+            <button type="button" class="btn" onClick={() => setLeaving(null)}>
+              Keep it in
+            </button>
+          </div>
+        </div>
       )}
       {props.children}
     </div>

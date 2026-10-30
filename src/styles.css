@@ -561,7 +561,8 @@ button:disabled {
   top: 0;
   left: 0;
   right: 0;
-  z-index: 2;
+  /* Above the month's name, or its menu opens underneath it. */
+  z-index: 3;
 }
 .garden-label {
   font-weight: 700;
@@ -885,6 +886,7 @@ button:disabled {
 .plan-margin-photo {
   position: absolute;
   inset: -40px;
+  pointer-events: none;
   opacity: var(--photo-margin-opacity);
 }
 .plan-margin-photo img {
@@ -1283,6 +1285,11 @@ button:disabled {
   color: var(--bg);
   box-shadow: var(--shadow);
   animation: toast-in 0.4s ease-out;
+  /* It says something, it doesn't stop you: only its buttons take a tap. */
+  pointer-events: none;
+}
+.toast button {
+  pointer-events: auto;
 }
 @media (min-width: 701px) {
   .toast {
@@ -6479,6 +6486,22 @@ h2 {
   white-space: normal;
   border-radius: 1rem;
   line-height: 1.3;
+}
+.plan-ask {
+  position: absolute;
+  left: 50%;
+  top: 1rem;
+  transform: translateX(-50%);
+  z-index: 12;
+  width: max-content;
+  max-width: calc(100% - 2rem);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  background: var(--bg);
+  box-shadow: var(--shadow);
+}
+.plan-ask p {
+  margin: 0 0 0.5rem;
 }
 .beds-checks summary {
   cursor: pointer;

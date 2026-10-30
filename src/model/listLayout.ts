@@ -114,6 +114,62 @@ export function spreadOut(g: Garden, which: (f: Feature) => boolean): Garden {
   return next;
 }
 
+/** Hard ground: where pots stand. */
+const paved = (f: Feature) => f.kind === 'surface' && !f.nextDoor && (f.material === 'paving' || f.material === 'decking' || f.material === 'gravel');
+
+/** A pot's room on the paving: the gap between pots, mm. */
+const POT_GAP = 100;
+
+/** A clear place on this paving, inside the garden, for a pot this wide, or null. */
+function spotOnPaving(paving: Point[], outline: Point[], across: number, taken: Bounds[]): Point | null {
+  const p = bounds(paving)!;
+  const step = 50;
+  for (let y = p.minY + POT_GAP; y + across <= p.maxY - POT_GAP; y += step)
+    for (let x = p.minX + POT_GAP; x + across <= p.maxX - POT_GAP; x += step) {
+      const box = { minX: x, minY: y, maxX: x + across, maxY: y + across };
+      const corners: Point[] = [[box.minX, box.minY], [box.maxX, box.minY], [box.maxX, box.maxY], [box.minX, box.maxY]];
+      if (!corners.every((c) => pointInPolygon(c, paving) && pointInPolygon(c, outline))) continue;
+      if (!taken.some((t) => box.minX < t.maxX + POT_GAP && t.minX < box.maxX + POT_GAP && box.minY < t.maxY + POT_GAP && t.minY < box.maxY + POT_GAP)) return [x, y];
+    }
+  return null;
+}
+
+/**
+ * A list made into a plan: a garden that fits what's in it. Beds that have come to overlap are moved apart; pots left
+ * outside the garden stand on the paving, if there's room; and if anything's still outside, a rectangular boundary grows
+ * to hold it, with a little room to spare. A garden with no outline, or one drawn to another shape, keeps it.
+ */
+export function planFromList(g: Garden, which: (f: Feature) => boolean): Garden {
+  let next = spreadOut(g, which);
+  if (next.boundary.length < 3) return next;
+  const edge = bounds(next.boundary)!;
+  const outside = (f: Feature) => which(f) && f.footprint.some((p) => !pointInPolygon(p, next.boundary));
+  const paving = next.features.filter(paved);
+  for (const pot of next.features.filter((f) => f.kind === 'pot' && outside(f))) {
+    const b = bounds(pot.footprint)!;
+    const others = next.features.filter((f) => f.id !== pot.id && !paved(f) && inTheWay(f)).map((f) => bounds(f.footprint)).filter((x): x is Bounds => !!x);
+    for (const p of paving) {
+      const at = spotOnPaving(p.footprint, next.boundary, b.maxX - b.minX, others);
+      if (at) {
+        next = moveFeature(next, pot.id, at[0] - b.minX, at[1] - b.minY);
+        break;
+      }
+    }
+  }
+  const out = next.features.filter(outside).map((f) => bounds(f.footprint)).filter((b): b is Bounds => !!b);
+  // Only a boundary square to the plan: anything else keeps its shape and its angle.
+  const square = next.boundary.length === 4 && next.boundary.every((p, i) => {
+    const q = next.boundary[(i + 1) % 4]!;
+    return p[0] === q[0] || p[1] === q[1];
+  });
+  if (!out.length || !square) return next;
+  const minX = Math.min(edge.minX, ...out.map((b) => b.minX - EDGE));
+  const minY = Math.min(edge.minY, ...out.map((b) => b.minY - EDGE));
+  const maxX = Math.max(edge.maxX, ...out.map((b) => b.maxX + EDGE));
+  const maxY = Math.max(edge.maxY, ...out.map((b) => b.maxY + EDGE));
+  return { ...next, boundary: rectPoints({ x: minX, y: minY, w: maxX - minX, h: maxY - minY }) };
+}
+
 /** The first free place for something w × d: see `placeFor`. */
 export const freeSpot = (g: Garden, w: number, d: number): Point => placeFor(g, w, d).at;
 
