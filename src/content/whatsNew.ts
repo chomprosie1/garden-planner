@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-30-short-season',
+    date: '2026-10-30',
+    title: 'Better dates for a short season',
+    items: [
+      'Potatoes are now lifted by the first frost, not after it.',
+      'Leeks and kale stand through the winter, so a cold autumn no longer puts their first picking off until the new year.',
+      'Seedlings of hardy crops wait for their planting-out months, moved with your season.',
+      'Tomatoes aren’t sown months before they can go out, so a late garden sows later.',
+      'High or cold gardens get a better last frost: the estimate was too late, and we’ve checked it against Met Office records.',
+      'Blackcurrants now flower in spring.',
+      'Settings says so if your two frost dates can’t both be right, or if a day doesn’t exist in that month.',
+    ],
+  },
+  {
     id: '2026-10-30-as-you-asked',
     date: '2026-10-30',
     title: 'Plants go where you asked',

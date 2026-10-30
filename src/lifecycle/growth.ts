@@ -208,9 +208,9 @@ function monthsHere(months: number[], k: number, from: number | null): number[] 
     else out.push(...run);
   }
   if (from === null) return out;
-  // Months over before that day, unless that leaves none: the last then stands.
+  // Months over before that day. If that leaves none, the month of that day: the card and the timeline say the same.
   const kept = out.filter((m) => m >= from || m >= 8);
-  return kept.length ? kept : out.slice(-1);
+  return kept.length ? kept : [from];
 }
 
 /** Each plant moved for a garden, and the plant as listed. */

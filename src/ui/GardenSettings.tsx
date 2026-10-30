@@ -24,7 +24,7 @@ import { flushSave, saveStatus, type SaveStatus } from '../storage/local';
 import { fromDataUrl, loadPhoto, photoIds, putPhoto, toDataUrl } from '../storage/photos';
 import { Icon } from './icons';
 import { isInstalled, isIosSafari } from './Install';
-import { frostDates, frostEstimate, inYear, lastFrostText, short } from '../lifecycle/shed';
+import { frostDates, frostEstimate, inYear, lastFrostText, oddFrosts, short } from '../lifecycle/shed';
 import { averagesAt, averagesHere, referenceAverages, seasonDays, stationNames, yearDegreeDays, yearSoFar } from '../climate/warmth';
 import { ATTRIBUTION } from '../weather/openMeteo';
 import { lastDay } from '../weather/weather';
@@ -476,14 +476,21 @@ const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'Ju
 function MonthDayField({ label, value, onChange }: { label: string; value: string; onChange: (md: string) => void }) {
   const [m, d] = value.split('-').map(Number) as [number, number];
   const days = new Date(Date.UTC(2027, m, 0)).getUTCDate();
-  const set = (month: number, day: number) => onChange(`${String(month).padStart(2, '0')}-${String(Math.min(day, new Date(Date.UTC(2027, month, 0)).getUTCDate())).padStart(2, '0')}`);
+  // A day that doesn't exist is put right, and it says so.
+  const [note, setNote] = useState('');
+  const set = (month: number, typed: number) => {
+    const most = new Date(Date.UTC(2027, month, 0)).getUTCDate();
+    const day = Math.max(1, Math.min(typed, most));
+    setNote(day === typed ? '' : `${MONTH_NAMES[month - 1]} has no day ${typed}, so it’s set to ${day} ${MONTH_NAMES[month - 1]}.`);
+    onChange(`${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+  };
   return (
     <fieldset class="month-day">
       <legend>{label}</legend>
       <div class="field-row">
         <label class="field">
           <span class="visually-hidden">{label}: day</span>
-          <input type="number" min={1} max={days} value={d} onChange={(e) => set(m, Math.max(1, Number((e.currentTarget as HTMLInputElement).value) || 1))} />
+          <input type="number" min={1} max={days} value={d} onChange={(e) => set(m, Math.round(Number((e.currentTarget as HTMLInputElement).value)) || 0)} />
         </label>
         <label class="field">
           <span class="visually-hidden">{label}: month</span>
@@ -496,6 +503,11 @@ function MonthDayField({ label, value, onChange }: { label: string; value: strin
           </select>
         </label>
       </div>
+      {note && (
+        <p class="muted small" role="status">
+          {note}
+        </p>
+      )}
     </fieldset>
   );
 }
@@ -524,6 +536,7 @@ function FrostDates({ store, garden }: { store: Store; garden: Garden }) {
         <MonthDayField label="Last frost in spring" value={f.lastFrost} onChange={(lastFrost) => set({ lastFrost })} />
         <MonthDayField label="First frost in autumn" value={f.firstFrost} onChange={(firstFrost) => set({ firstFrost })} />
       </div>
+      {oddFrosts(f.lastFrost, f.firstFrost) && <p class="bed-warn small">These two dates don’t look right: the last frost usually comes in spring, and the first in autumn. Every sowing date follows them, so please check them.</p>}
       <div class="field-row">
         <label class="field">
           Height above sea level, in metres
@@ -544,7 +557,7 @@ function FrostDates({ store, garden }: { store: Store; garden: Garden }) {
       </label>
       <p class="muted small">
         {f.estimated
-          ? 'Estimated from your location, height and any frost hollow. Local weather records or neighbours will know better: coastal gardens can be weeks either side.'
+          ? 'Estimated from your location, height and any frost hollow. Local weather records or neighbours will know better: coasts and city centres can be weeks milder, and open country colder.'
           : 'Your own dates.'}{' '}
         <GlossText text={`${lastFrostText(f.lastFrost)} A frost is as likely after a 50:50 date as before it, so tender plants are safest out two weeks later.`} /> The dates decide when to sow and
         plant, when the Shed suggests hardening off, and when to protect plants for winter. Move your last frost, and your sowing and planting dates move with it.

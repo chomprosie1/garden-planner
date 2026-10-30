@@ -8,7 +8,8 @@ import varieties from '../data/varieties.json';
 import { sensibleSize } from '../src/canvas/snap';
 import { jobsFor, toggleJob } from '../src/calendar/jobs';
 import { clearingDue, expectedText, isFinished, stageOn, timeline } from '../src/lifecycle/projection';
-import { addDays } from '../src/lifecycle/shed';
+import { plantHere } from '../src/lifecycle/growth';
+import { addDays, frostEstimate, oddFrosts } from '../src/lifecycle/shed';
 import { inGroundStages } from '../src/lifecycle/stages';
 import { withVarieties, type VarietyEntry } from '../src/library/library';
 import { newGarden } from '../src/model/defaults';
@@ -163,6 +164,96 @@ describe('plants go where you asked', () => {
     addGarden({ ...newGarden(), name: 'My garden' }, s, new Date(), true);
     expect(freeGardenName('My garden', s)).toBe('My garden 2');
     expect(freeGardenName('The allotment', s)).toBe('The allotment');
+  });
+});
+
+describe('dates for a short season', () => {
+  // Callum's garden near Aviemore, 250 m up in a frost hollow, with his own frost dates.
+  const callum = (patch: Partial<Garden> = {}): Garden => ({ ...gardenWith(), latitude: 57.19, longitude: -3.83, heightM: 250, frostHollow: true, lastFrost: '06-05', firstFrost: '09-05', ...patch });
+  const TODAY = '2026-10-30';
+  const steps = (id: string, pl: Planting, g: Garden, today = TODAY) => timeline(plantOf(id), pl, addPlanting(g, pl), today);
+  const when = (s: ReturnType<typeof steps>, stage: string) => s.find((x) => x.stage === stage && x.date)?.date ?? '';
+  const planned = (id: string) => makePlanting(plantOf(id), bed.id, 'row', [300, 300], [2700, 300]);
+
+  it('potatoes are lifted by the first frost, not after it', () => {
+    expect(when(steps('potato-second-early', planned('potato-second-early'), callum()), 'harvesting') <= '2027-09-05').toBe(true);
+    expect(when(steps('potato-maincrop', planned('potato-maincrop'), callum()), 'harvesting') <= '2027-09-05').toBe(true);
+  });
+
+  it('leeks go out in their months, moved with the season, and are ready in autumn, not January', () => {
+    const out = when(steps('leek', { ...planned('leek'), sownOn: '2027-04-05', sowing: 'indoors' }, callum(), '2027-04-06'), 'transplanted');
+    expect(out >= '2027-06-15').toBe(true);
+    expect(out <= '2027-07-10').toBe(true);
+    const grown: Planting = { ...planned('leek'), sownOn: '2026-04-05', sowing: 'indoors', stage: 'vegetative', stageDates: { transplanted: '2026-06-26' } };
+    const ready = when(steps('leek', grown, callum()), 'harvesting');
+    expect(ready >= '2026-10-01').toBe(true);
+    expect(ready <= '2026-11-20').toBe(true);
+  });
+
+  it('a late leek agrees with its own months (Margaret)', () => {
+    const late: Planting = { ...planned('leek-late'), sownOn: '2026-03-01', sowing: 'indoors', stage: 'vegetative', stageDates: { transplanted: '2026-06-15' } };
+    const g = gardenWith();
+    expect(when(steps('leek-late', late, g), 'harvesting') >= '2026-12-01').toBe(true);
+  });
+
+  it('kale stays ready through the winter', () => {
+    const kale: Planting = { ...planned('kale'), sownOn: '2026-05-10', sowing: 'indoors', stage: 'vegetative', stageDates: { transplanted: '2026-06-25' } };
+    expect(when(steps('kale', kale, callum()), 'cleared') > '2027-01-31').toBe(true);
+  });
+
+  it('a tomato isn’t sown months before it can go out', () => {
+    const sown = when(steps('tomato', planned('tomato'), callum(), '2026-12-01'), 'sown');
+    expect(sown >= '2027-04-01').toBe(true);
+    expect(sown <= '2027-05-01').toBe(true);
+    // For the polytunnel: late March, as he does (a 6 × 18 ft greenhouse, unheated).
+    const tunnel: Feature = { ...makeFeature('greenhouse', { area: rectPoints({ x: 4000, y: 0, w: 5490, h: 1830 }) }), name: 'Polytunnel' };
+    const inside = makePlanting(plantOf('tomato'), tunnel.id, 'row', [4300, 300], [9000, 300]);
+    const tunnelSown = when(steps('tomato', inside, addFeature(callum(), tunnel), '2026-12-01'), 'sown');
+    expect(tunnelSown >= '2027-03-20').toBe(true);
+    expect(tunnelSown <= '2027-04-05').toBe(true);
+    // In the south, the usual window stands: late March for outside.
+    const south = when(steps('tomato', planned('tomato'), gardenWith(), '2026-12-01'), 'sown');
+    expect(south >= '2027-03-01').toBe(true);
+    expect(south <= '2027-04-01').toBe(true);
+  });
+
+  it('own frost dates move broad beans and potatoes, as they did', () => {
+    expect(when(steps('broad-bean', planned('broad-bean'), callum()), 'sown') >= '2027-04-01').toBe(true);
+    expect(when(steps('potato-second-early', planned('potato-second-early'), callum()), 'sown').slice(0, 7)).toBe('2027-05');
+  });
+
+  it('the card’s month agrees with the timeline in a late garden', () => {
+    const g = callum({ lastFrost: '06-21', firstFrost: '09-09' });
+    const here = plantHere(plantOf('potato-second-early'), addPlanting(g, planned('potato-second-early')));
+    const first = when(steps('potato-second-early', planned('potato-second-early'), g), 'sown');
+    expect(here.sowing![0]!.months).toContain(Number(first.slice(5, 7)));
+  });
+
+  it('height moves a last frost less than a first, from the station records', () => {
+    const at = (s: { latitude: number; longitude: number; heightM?: number; frostHollow?: boolean }) => frostEstimate(s);
+    const braemar = at({ latitude: 57.006, longitude: -3.396, heightM: 327 });
+    expect(braemar.lastFrost >= '05-25').toBe(true);
+    expect(braemar.lastFrost <= '06-12').toBe(true);
+    expect(braemar.firstFrost >= '09-05').toBe(true);
+    expect(braemar.firstFrost <= '09-20').toBe(true);
+    const aviemore = at({ latitude: 57.19, longitude: -3.83, heightM: 250, frostHollow: true });
+    expect(aviemore.lastFrost <= '06-14').toBe(true);
+    expect(aviemore.firstFrost <= '09-12').toBe(true);
+  });
+
+  it('blackcurrants flower in spring, not June', () => {
+    const pl = added('blackcurrant', '2023-11-01', 'vegetative');
+    const dates = timeline(plantOf('blackcurrant'), pl, gardenWith(pl), '2027-02-01').filter((s) => s.stage === 'flowering');
+    expect(Number(dates[0]!.date!.slice(5, 7))).toBeLessThanOrEqual(5);
+    expect(plantOf('blackcurrant').flowerMonths).toEqual([4, 5]);
+  });
+
+  it('frost dates that can’t be right are noticed', () => {
+    expect(oddFrosts('12-28', '01-29')).toBe(true);
+    expect(oddFrosts('06-05', '05-01')).toBe(true);
+    expect(oddFrosts('09-01', '10-01')).toBe(true);
+    expect(oddFrosts('05-03', '10-28')).toBe(false);
+    expect(oddFrosts('06-21', '09-09')).toBe(false);
   });
 });
 

@@ -17,7 +17,7 @@ import { STAGES, type Feature, type Garden, type Plant, type Planting, type Stag
 import { isCovered } from '../planting/balcony';
 import { isContainer } from '../planting/place';
 import { earliestOut, plantHere, readyFrom, runsOf, seasonMonth, seasonShift, upFrom } from './growth';
-import { addDays, frostDatesUnder, germination, hardenOn, inYear, isTender, plantInFrom, plantOutFrom } from './shed';
+import { addDays, frostDatesUnder, germination, hardenOn, inYear, isTender, plantInFrom, plantOutFrom, safeOut } from './shed';
 import { currentStage, flowerMonthsOf, isCropping, isGrowingStage, pathFor, perennial, sowingOf, type LifeStage } from './stages';
 
 export interface Step {
@@ -89,6 +89,15 @@ const MAX_STEPS = 20;
 
 /** A tender crop marked as growing on after the expected frost has plainly missed it: it's given this long. */
 const STILL_GOING_DAYS = 14;
+
+/** What stands through the winter is reckoned ready by this long after its months open, however cold the autumn. */
+const STANDS_BY_DAYS = 42;
+
+/** How far off a hardy seedling's planting-out months can be for it to wait for them. */
+const HARDEN_WAIT_DAYS = 60;
+
+/** How long something tender is grown on under cover before it goes out: eight weeks, a rule of thumb from the RHS's tomato dates. */
+const INDOORS_DAYS = 56;
 
 /** A year and a bit: how far back a perennial's year is worked from, and how long an annual can have been in and still be cropping. */
 const YEAR_BACK_DAYS = 400;
@@ -195,7 +204,7 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
   // the end of its months. A plant grown for its flowers waits for its flower months, however warm it's been: sweet
   // peas sown in October flower the next June, not in the winter.
   const forFlowers = !path.includes('harvesting');
-  const cropBy = (): string | null => {
+  const warmthReady = (): string | null => {
     const d = ready();
     if (!d || !c.start || !cropMonths.length) return d;
     const shift = shiftFor(cropMonths);
@@ -210,6 +219,20 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
       return next ? later(d, next) : d;
     }
     return forFlowers ? later(d, open) : d;
+  };
+  const cropBy = (): string | null => {
+    const d = warmthReady();
+    if (!d || !c.start || forFlowers) return d;
+    const shift = shiftFor(cropMonths);
+    const open = nextInSeason(c.start, cropMonths, shift);
+    // What stands through the winter (leeks, kale) goes by its months, not the warmth: it's picked at whatever size it's
+    // reached, and in a cold autumn the warmth would say next year. So not before its months, nor long after they open.
+    if (open && cropMonths.includes(12) && cropMonths.includes(1)) return sooner(later(d, open), addDays(open, STANDS_BY_DAYS));
+    // Potatoes: a frost takes the tops, and the tubers stop growing. What's there is lifted by then (RHS: second earlies
+    // in July and August, maincrops by October).
+    const frost = plant.sowing?.some((s) => s.from === 'tubers') ? frostsFor(g, cover)?.firstFrost : null;
+    const lastLift = frost ? inYear(frost, yearOf(c.start)) : null;
+    return lastLift && lastLift > c.start ? sooner(d, lastLift) : d;
   };
   // When a tender annual ends, from its usual end: at the first frost, or if that had been and gone by the day it
   // reached this stage, it's plainly come through, and is given a little longer.
@@ -230,7 +253,13 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
       return step('germinated', sowingOf(plant, pl) === 'direct' ? upFrom(plant, g, date, climate, usual, c.weather) : addDays(date, usual));
     }
     case 'germinated': {
-      if (ahead('hardening')) return step('hardening', hardenOn(plant, g, date));
+      if (ahead('hardening')) {
+        const usual = hardenOn(plant, g, date);
+        // Hardy seedlings go out in their months, moved with the season here: a week's hardening off before they open.
+        // Not one for the months to come round to later: an autumn sowing goes out when it's ready.
+        const out = !isTender(plant) && plant.plantOutMonths?.length ? nextInSeason(usual, plant.plantOutMonths, shiftFor(plant.plantOutMonths)) : null;
+        return step('hardening', out && out <= addDays(usual, HARDEN_WAIT_DAYS) ? later(usual, addDays(out, -7)) : usual);
+      }
       // Going under glass: straight in once grown on, with no hardening off.
       if (cover && ahead('transplanted')) return step('transplanted', plantInFrom(plant, g, date, cover.climate));
       return step('vegetative', addDays(date, 21));
@@ -297,9 +326,22 @@ function firstStep(plant: Plant, pl: Planting, today: string, g: Garden): Step |
   const d = nextInMonths(today, months.length ? months : (plant.sowing ?? []).flatMap((s) => s.months));
   if (!d) return null;
   // Outside in a late garden: its month, and no sooner than its frosts allow. Under glass, the frosts don't reach it.
-  const out = how === 'direct' && !microclimateOf(g, pl) ? earliestOut(plant, g) : null;
+  const cover = microclimateOf(g, pl);
+  const out = how === 'direct' && !cover ? earliestOut(plant, g) : null;
   const first = out ? inYear(out.slice(5), yearOf(d)) : null;
-  return { stage: 'sown', date: first && monthOf(d) <= 7 ? later(d, first) : d, guessed: true };
+  const sowFrom = how === 'indoors' && isTender(plant) ? sownForOut(g, cover, yearOf(d)) : null;
+  return { stage: 'sown', date: monthOf(d) <= 7 ? later(d, later(first ?? d, sowFrom ?? d)) : d, guessed: true };
+}
+
+/**
+ * The first day to sow something tender under cover, so it isn't left in a pot for months: this far before it can go out.
+ * The RHS has tomatoes sown from late March for planting out in early summer, and from late February under glass. Null
+ * with heat, where it goes in when it's ready.
+ */
+function sownForOut(g: Garden, cover: Cover | null, year: number): string | null {
+  const frost = frostDatesUnder(g, cover?.climate ?? null);
+  if (!frost) return null;
+  return addDays(cover ? inYear(frost.lastFrost, year) : safeOut(g, year), -INDOORS_DAYS);
 }
 
 /**

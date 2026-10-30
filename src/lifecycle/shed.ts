@@ -46,18 +46,28 @@ export const lastFrostText = (lastFrost: string) =>
   `Last frost: 50:50 by about ${short(inYear(lastFrost, 2027))}; play safe until about ${short(addDays(inYear(lastFrost, 2027), PLAY_SAFE_DAYS))}.`;
 
 /**
- * How many days nearer a frost comes for each degree colder at night. Nights warm and cool by about 3 °C a month through
- * spring and autumn in the station averages, so about ten days a degree.
+ * How many days nearer the first autumn frost comes for each degree colder at night. Nights cool by about 3 °C a month in
+ * the station averages, so about ten days a degree.
  */
 export const FROST_DAYS_PER_C = 10;
+
+/**
+ * How many days later the last spring frost comes for each degree colder. Fewer than in autumn: rough last frosts from
+ * Met Office station records, 1991–2020, put high inland sites (Braemar, Cwmystwyth, Eskdalemuir, Newton Rigg) about
+ * 6 days a degree later than low inland ones. It's a rough fit from monthly air-frost days, from a handful of sites.
+ */
+export const LAST_FROST_DAYS_PER_C = 6;
 
 /** Frost dates estimated for a garden: from its latitude, sooner in autumn and later in spring for its height and a frost hollow. */
 export function frostEstimate(g: Pick<Garden, 'latitude' | 'longitude' | 'heightM' | 'frostHollow'>): { lastFrost: string; firstFrost: string } {
   const est = estimateFrost(g.latitude);
-  const days = Math.round(coolerAt(g).night * FROST_DAYS_PER_C);
-  if (!days) return est;
-  return { lastFrost: addDays(`2027-${est.lastFrost}`, days).slice(5), firstFrost: addDays(`2027-${est.firstFrost}`, -days).slice(5) };
+  const cooler = coolerAt(g).night;
+  if (!cooler) return est;
+  return { lastFrost: addDays(`2027-${est.lastFrost}`, Math.round(cooler * LAST_FROST_DAYS_PER_C)).slice(5), firstFrost: addDays(`2027-${est.firstFrost}`, -Math.round(cooler * FROST_DAYS_PER_C)).slice(5) };
 }
+
+/** Frost dates that can't both be right: a last frost in spring after the first in autumn, or either in the wrong half of the year. */
+export const oddFrosts = (lastFrost: string, firstFrost: string): boolean => lastFrost >= firstFrost || lastFrost > '08-01' || firstFrost < '08-01';
 
 /** The garden's frost dates: your own, or estimated. */
 export function frostDates(g: Garden): { lastFrost: string; firstFrost: string; estimated: boolean } {

@@ -2684,7 +2684,7 @@ Decided:
 | Tue 3 Nov | Testing day | | | |
 | Wed 4 Nov | **57c. Plants go where you asked** | M | Priya, Margaret, Ruth, Sam | Built 30 Oct |
 | Thu 5 Nov | Testing day | | | |
-| Fri 6 Nov | **57d. Dates for a short season** | L | Callum, Margaret, Priya | Planned |
+| Fri 6 Nov | **57d. Dates for a short season** | L | Callum, Margaret, Priya | Built 30 Oct |
 | Mon 9 Nov | Testing day | | | |
 | Tue 10 Nov | **57e. From a list to a plan, and into next year** | M | Priya, Callum, Margaret | Planned |
 | Wed 11 Nov | Testing day | | | |
@@ -3199,6 +3199,31 @@ Built 30 Oct 2026, on a branch. No schema change. Version 0.57.3.
 Not changed:
 - **A name typed in a bed's settings** can still match another bed's. Only adding is covered.
 - **A restored file** can still hold a name over 60 characters. It wraps. Release 57h deals with what restore lets in.
+
+### Release 57d — Dates for a short season (as built)
+Built 30 Oct 2026, on a branch. No schema change. Version 0.57.4.
+
+- **Potatoes are lifted by the first frost.** They were left out of the frost rule, as the tubers survive it, so nothing stopped the date running on. A frost takes the tops and growth stops, so the first harvest is no later than that. RHS, Potatoes: second earlies in July and August, maincrops to October.
+- **What stands through the winter goes by its months** (`cropBy`). Warmth runs out in a cold autumn and pushed Callum's leeks to January, though they're picked at any size. Leeks and kale are ready from their months, and by six weeks after they open (`STANDS_BY_DAYS`). A late leek no longer says it's ready before its months.
+- **Hardy seedlings wait for their planting-out months,** moved with the season. It was one rule for every garden, a week before the month.
+- **Tender sowings are tied to going out** (`sownForOut`): eight weeks before. It's a rule of thumb from the RHS's tomato dates: late February to mid-March under glass, late March to early April for outside.
+- **The last frost was too late at height.** Rough first and last frosts from Met Office monthly air-frost days, 1991–2020, at 35 stations. Coastal stations run weeks milder than the estimate and swamp a plain fit, so inland sites were compared with each other: high ones (Braemar, Cwmystwyth, Eskdalemuir, Newton Rigg) come about 6 days a degree later in spring and 10 earlier in autumn. Autumn was right at 10. Spring is now 6 (`LAST_FROST_DAYS_PER_C`).
+- **Frost estimates by place:** Heathrow, Sheffield and Bradford run 5 to 17 days milder than the estimate, and Shawbury 11 to 12 days colder, so Priya and Margaret are both right. Latitude can't tell a city from a field, so nothing's moved, and Settings now says coasts and city centres can be weeks milder, and open country colder.
+- **Card and timeline:** a late garden's month can't fall before its earliest date, so no "Next: plant May" beside "about 7 Jun".
+- **From Nadia:** blackcurrants flower April to May (9; Wildlife Gardening Forum, and "spring" in the RHS's profiles). Frost dates that can't both be right get a warning (11), and a day that doesn't exist says what it was changed to (20).
+- **The data track's first stage:** `scripts/plant-check.mjs` lists contradictions and gaps across all 521. No tender plant goes out in winter. 12 fruits have no flowering months, 26 crops have no days to crop, and pea, radish and spring onion have a close spacing wider than their ordinary one.
+
+Callum's dates, with his own frost dates: broad beans 10 Apr (mid-April), tomato in the tunnel sown 27 Mar and in 22 May (late March, late May), leeks out 4 Jul and first picked mid-November (late June, November), potatoes in 22 May and lifted 5 Sep (late May, mid-August).
+
+Not changed:
+- **Raspberries in Shropshire and autumn broad beans** stay as they are. The RHS has early raspberries "from June", and autumn-sown beans "as early as May". Margaret's later dates are her garden's: a typed frost date moves them.
+- **Pinching out sweet peas and mice in the frame** aren't in: the RHS's sweet pea pages couldn't be reached, so there's no named source yet.
+- **Gooseberry pruning** was right: the job's in February and March, and I only looked in January and March.
+- **Garlic, rhubarb and apples** are still 3 to 5 weeks early for Callum. They go by months moved with the season, and a truer figure needs more than one garden.
+- **Potatoes' harvest** is now right at the frost, about three weeks after Callum's mid-August.
+- **A card's months are the usual ones,** so a date can fall a few days outside them. Apple "about 28 Jul" beside "Aug–Oct" in Bristol is the season moved.
+- **The frost figures are rough:** monthly records, not nightly, and few cold sites. They're better than the plan's two weeks, and with height and a hollow Aviemore is about 11 Jun against early June.
+- **The other 11 fruits' flowering months:** no named source was to hand, so the app still guesses.
 
 ## Repo layout
 ```

@@ -228,6 +228,10 @@
       2,
       3
     ],
+    "flowerMonths": [
+      4,
+      5
+    ],
     "cropping": {
       "harvestMonths": [
         7
