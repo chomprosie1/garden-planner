@@ -199,8 +199,12 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
     const open = nextInSeason(c.start, cropMonths, shift);
     if (!open) return d;
     const close = addDays(afterSeason(open, cropMonths, shift), -14);
-    // Sown after that, it's too late for this run of its months: it goes by the warmth.
-    if (d > close) return c.start > close ? d : later(close, open);
+    if (d > close) {
+      if (c.start <= close) return later(close, open);
+      // Sown after that, it's too late for this run of its months: the warmth, and the next run.
+      const next = nextInSeason(afterSeason(open, cropMonths, shift), cropMonths, shift);
+      return next ? later(d, next) : d;
+    }
     return forFlowers ? later(d, open) : d;
   };
   // A tender annual that hasn't got there by the first frost is finished.

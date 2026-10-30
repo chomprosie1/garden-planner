@@ -12,6 +12,9 @@ import { isActive, isContainer, plantCount, plantingStatus, plantPositions, spre
 /** Pots, tubs, planters and window boxes: small containers whose size matters to what's in them. */
 export const isPot = (f: Feature): boolean => f.kind === 'pot' || f.kind === 'planter';
 
+/** A tender plant in a pot, which may be on a windowsill for the winter: it isn't over when the frost comes. */
+export const mayOverwinter = (plant: Plant, bed: Feature | undefined): boolean => !!bed && isPot(bed) && plant.wintering?.type === 'protect';
+
 /** Everything here's grown in pots: a balcony, or anywhere with only pots and planters. No soil, weeds or rotation to think about. */
 export function potsOnly(g: Garden): boolean {
   // A cold frame or greenhouse doesn't change that; a bed does, even on what started as a balcony.

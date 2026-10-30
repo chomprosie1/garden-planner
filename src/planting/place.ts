@@ -19,7 +19,7 @@ export const SOFT_GROUND: Material[] = ['lawn', 'meadow', 'soil', 'bark', 'grave
 
 export { MAX_PLANTS };
 
-/** The most plants set out in one planting, however big it's been drawn or saved: a block can run to tens of thousands, and a billion would stop the app. */
+/** The most plants set out in one planting, whatever a file or an old save says: well above what you can draw, as a billion would stop the app. */
 export const MOST_SET_OUT = 50_000;
 
 /** Beds, greenhouses, cold frames and planters hold plants, and so do pots, which are round. */
@@ -236,13 +236,12 @@ export function plantPositions(pl: Planting, plant: Plant): Point[] {
     const x0 = Math.min(start[0], end[0]) + (Math.abs(end[0] - start[0]) - (cols - 1) * sx) / 2;
     const y0 = Math.min(start[1], end[1]) + (Math.abs(end[1] - start[1]) - (rows - 1) * sy) / 2;
     const out: Point[] = [];
-    // Taken evenly through the grid if there are too many to set out.
-    const total = cols * rows;
-    const n = Math.min(total, MOST_SET_OUT);
-    for (let i = 0; i < n; i++) {
-      const at = Math.floor(i * (total / n));
-      out.push([Math.round(x0 + (at % cols) * sx), Math.round(y0 + Math.floor(at / cols) * sy)]);
-    }
+    // Too many to set out: fewer rows and fewer in each, spread evenly over the whole block.
+    const thin = cols * rows > MOST_SET_OUT;
+    const showRows = thin ? Math.min(rows, Math.max(1, Math.round(Math.sqrt((MOST_SET_OUT * rows) / cols)))) : rows;
+    const showCols = thin ? Math.min(cols, Math.floor(MOST_SET_OUT / showRows)) : cols;
+    for (let r = 0; r < showRows; r++)
+      for (let c = 0; c < showCols; c++) out.push([Math.round(x0 + Math.floor((c * cols) / showCols) * sx), Math.round(y0 + Math.floor((r * rows) / showRows) * sy)]);
     return out;
   }
   return [start];

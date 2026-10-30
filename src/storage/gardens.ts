@@ -207,16 +207,17 @@ export function addGarden(garden: Garden, s: Kv | null = safe(), now = new Date(
 }
 
 /**
- * Keeps a copy of a garden that's about to be replaced, hidden for KEEP_DAYS to bring back, with its trace photo.
- * The garden that's open stays open. Its id, or null if it couldn't be kept.
+ * Keeps a copy of a garden that's about to be replaced, hidden for KEEP_DAYS to bring back. The garden that's open
+ * stays open. Its id, or null if it couldn't be kept, with nothing left behind: there's no room, so don't replace it.
  */
 export function keepReplaced(garden: Garden, s: Kv | null = safe(), now = new Date()): string | null {
   const id = addGarden(garden, s, now);
+  if (!id) return null;
   const idx = readIndex(s);
-  if (!id || !idx) return null;
-  const was = idx.gardens.find((e) => e.id === idx.open);
-  writeIndex(s, { ...idx, gardens: idx.gardens.map((e) => (e.id === id ? { ...e, hiddenOn: todayIso(now), ...(was ? { traceKey: traceKeyOf(was) } : {}) } : e)) });
-  return id;
+  const hidden = !!idx?.gardens.some((e) => e.id === id) && writeIndex(s, { ...idx, gardens: idx.gardens.map((e) => (e.id === id ? { ...e, hiddenOn: todayIso(now) } : e)) });
+  if (hidden) return id;
+  deleteGarden(id, s);
+  return null;
 }
 
 /** The open garden as it's kept, with your own plants: what another tab has saved. Null if it can't be read. */

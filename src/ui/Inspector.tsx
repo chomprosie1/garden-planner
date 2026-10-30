@@ -59,7 +59,7 @@ import {
   updatePlanting,
 } from '../planting/place';
 import { formatHours, sunNeeded, type Finding } from '../planting/rules';
-import { cmText, isPot, litresText, potNeeds, potOn, potOnChoices, potSize, sizeText, type PotOnTo } from '../planting/pots';
+import { cmText, isPot, litresText, mayOverwinter, potNeeds, potOn, potOnChoices, potSize, sizeText, type PotOnTo } from '../planting/pots';
 import { expectedText, nextInMonths, shortDate, timeline } from '../lifecycle/projection';
 import { batchDates, batchesOf, batchLabel, canSowInBatches, maxBatches, MIN_BATCHES, setSowBy, splitIntoBatches } from '../planting/batches';
 import { currentStage, restingNow, sowingOf, stageDate, stageLabel, stageNow } from '../lifecycle/stages';
@@ -1147,7 +1147,10 @@ function PlantingPanel(props: Props & { pl: Planting }) {
   const { weather } = useWeatherNow();
   const steps = timeline(plant, pl, garden, today, weather);
   const step = nextStep(pl, plantHere(plant, garden), Number(today.slice(5, 7)), cover?.climate ?? null, steps, today);
-  const expected = status !== 'planned' ? expectedText(steps, plant, today) : null;
+  // Past its season, it's only clearing that's left, unless it may be on a windowsill for the winter.
+  const pastClearing = steps.some((s) => s.due && s.stage === 'cleared');
+  const over = pastClearing && !mayOverwinter(plant, bed);
+  const expected = status !== 'planned' && (over || !pastClearing) ? expectedText(steps, plant, today) : null;
   const canEdit = true;
   // Late to reach its next stage, unless you've said you're still waiting.
   const behind = pl.snoozeUntil && pl.snoozeUntil > today ? null : behindOf(plant, pl, garden, today, weather);
@@ -1165,7 +1168,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
       {expected && (
         <p class="expect-line">
           {expected}
-          {!steps.some((s) => s.due && s.stage === 'cleared') && <span class="muted small">, {weather ? 'by this year’s weather and the forecast' : 'by the usual warmth here'}</span>}
+          {!over && <span class="muted small">, {weather ? 'by this year’s weather and the forecast' : 'by the usual warmth here'}</span>}
         </p>
       )}
       {behind && (
@@ -1192,7 +1195,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
             label: mine.length ? `Care (${mine.length})` : 'Care',
             body: (
               <>
-                <StageAdvice pl={pl} plant={plant} covered={!!cover} over={steps.some((s) => s.due && s.stage === 'cleared')} />
+                <StageAdvice pl={pl} plant={plant} covered={!!cover} over={over} />
                 {bed && isSoftGround(bed) && (bed.material ?? 'lawn') === 'lawn' && plant.art?.form === 'bulb' && (
                   <p class="muted small">In a lawn: leave the grass long round them until their leaves die back, about six weeks after flowering, so they flower again next year.</p>
                 )}

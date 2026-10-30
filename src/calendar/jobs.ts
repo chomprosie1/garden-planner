@@ -21,7 +21,7 @@ import { runEnds, runStarts } from '../library/library';
 import { STAGES, type Garden, type PickSize, type Plant, type Planting, type Stage } from '../model/types';
 import { addPick } from '../planting/harvest';
 import { isActive, isContainer, plantingStatus, stillWanted } from '../planting/place';
-import { isPot } from '../planting/pots';
+import { isPot, mayOverwinter } from '../planting/pots';
 import { bedHowTo, bedSize, firstBedHowTo, MAKE_BED, needsFirstBed } from '../planting/firstBed';
 import { wherePhrase } from '../planting/supports';
 
@@ -280,11 +280,11 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
     // (already in the ground, marked as sown), there's nothing left to do. Plants already growing skip sowing and planting out.
     const isGrowing = (p: Planting) => plantingStatus(p) === 'growing';
     const stepsOf = (p: Planting) => timeline(plant, p, g, today!, weather);
-    // An annual left on the plan: gone by the time this month began, so there's nothing to feed, pick or protect, only
-    // clearing to do. Not a tender plant in a pot, which may well be on a windowsill for the winter.
+    // An annual left on the plan, past its clearing: nothing to feed, pick or protect, only clearing to do, as its card
+    // says. For an earlier month, when you look back, it counts only if it was already over by then.
     const inPot = !!bed && isPot(bed);
     const seasonOver = (p: Planting) =>
-      !!today && !perennial(plant) && !(inPot && plant.wintering?.type === 'protect') && stepsOf(p).some((s) => s.due && s.stage === 'cleared' && s.was! < `${ym(year, month)}-01`);
+      !!today && !perennial(plant) && !mayOverwinter(plant, bed) && stepsOf(p).some((s) => s.due && s.stage === 'cleared' && (ym(year, month) >= today.slice(0, 7) || s.was! < `${ym(year, month)}-01`));
     const notGrowing = group.filter((p) => !isGrowing(p));
     const batchScope = (p: Planting) => `${featureId}~${p.batch?.n ?? p.id}`;
     const sowTicked = (p: Planting) => (['sow-direct', 'sow-indoors'] as const).some((k) => g.jobsDone.some((j) => j.key === keyOf(k, plant.id, p.sowBy ? batchScope(p) : featureId)));
@@ -356,11 +356,11 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
 
     // Sown outside and running behind to come up: nothing to pick or feed until it's up. Today asks about it instead.
     const notUp = (p: Planting) => !!today && currentStage(p) === 'sown' && sowingOf(plant, p) === 'direct' && behindOf(plant, p, g, today, weather)?.next === 'germinated';
-    const inPlace = group.filter((p) => (isGrowing(p) || afterSowing(p, year, month)) && !notUp(p));
+    const inPlace = group.filter((p) => isGrowing(p) || afterSowing(p, year, month));
     const over = inPlace.filter(seasonOver);
-    const growing = inPlace.filter((p) => !over.includes(p));
+    const growing = inPlace.filter((p) => !over.includes(p) && !notUp(p));
     if (over.length) {
-      add('tidy', plant, where, featureId, ids(over), SEASON_OVER, featureId);
+      add('tidy', plant, `${wherePhrase(bed)}${describeGroup(over)}`, `${featureId}:clear`, ids(over), SEASON_OVER, featureId);
       jobs[jobs.length - 1]!.clears = true;
     }
     if (!growing.length) continue;
@@ -419,7 +419,7 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
       jobs[jobs.length - 1]!.care = true;
     });
     if (winter?.type === 'lift-and-store' && grown.length && runEnds(harvest).includes(month)) add('lift', plant, where, featureId, ids(grown), winter.notes, featureId);
-    if (winter?.type === 'annual' && !over.length && grown.length && runEnds(harvest).some((m) => m % 12 === month - 1 && month >= 9)) add('tidy', plant, where, featureId, ids(grown), 'Pull up finished plants and compost them, then mark the planting as harvested.', featureId);
+    if (winter?.type === 'annual' && grown.length && runEnds(harvest).some((m) => m % 12 === month - 1 && month >= 9)) add('tidy', plant, where, featureId, ids(grown), 'Pull up finished plants and compost them, then mark the planting as harvested.', featureId);
   }
 
   // The season's weeding: one job for every bed with something growing in it.
