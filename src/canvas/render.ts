@@ -886,7 +886,7 @@ function mulberry(seed: number) {
 
 /** A bed that isn't there yet: a dashed line round it, as a plan shows something still to be built. */
 function drawToMake(ctx: CanvasRenderingContext2D, s: Scene, f: Feature) {
-  polyPath(ctx, f.footprint.map((p) => toScreen(s.view, p)), true);
+  polyPath(ctx, f.footprint.map((p) => toScreen(s.view, p)), true, f.kind === 'bed' && !f.smooth ? s.style.bedRadiusMm * s.view.scale : 0);
   ctx.strokeStyle = s.style.plan.label;
   ctx.lineWidth = 2;
   ctx.setLineDash([7, 5]);
@@ -927,20 +927,22 @@ function drawLabel(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, planted:
   const xs = f.footprint.map((p) => p[0]);
   const span = (Math.max(...xs) - Math.min(...xs)) * v.scale;
   if (span < Math.min(w * 0.6, 40)) return;
-  if (!claim(taken, { x: x - w / 2 - 6, y: y - (size + 5) / 2, w: w + 12, h: size + 5 })) return;
+  // Room for its pill or sign, which grows with the words.
+  const tall = textPx(s, 22);
+  if (!claim(taken, { x: x - w / 2 - 6, y: y - tall / 2, w: w + 12, h: tall })) return;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   if (st.labels === 'sign') {
-    roundRect(ctx, x - w / 2 - 7, y - 11, w + 14, 22, 4);
+    roundRect(ctx, x - w / 2 - 7, y - tall / 2, w + 14, tall, 4);
     ctx.fillStyle = st.accent;
     ctx.fill();
     ctx.strokeStyle = st.accentText;
     ctx.lineWidth = 1;
-    roundRect(ctx, x - w / 2 - 4.5, y - 8.5, w + 9, 17, 2.5);
+    roundRect(ctx, x - w / 2 - 4.5, y - tall / 2 + 2.5, w + 9, tall - 5, 2.5);
     ctx.stroke();
     ctx.fillStyle = st.accentText;
   } else if (st.labels === 'pill') {
-    roundRect(ctx, x - w / 2 - 9, y - 11, w + 18, 22, 11);
+    roundRect(ctx, x - w / 2 - 9, y - tall / 2, w + 18, tall, tall / 2);
     ctx.fillStyle = st.plan.paper;
     ctx.fill();
     ctx.fillStyle = st.plan.label;

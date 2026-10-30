@@ -27,6 +27,8 @@ export interface Finding {
   message: string;
   /** The same in a few words, for one line about a whole pot. */
   short?: string;
+  /** For one line about a pot: the ids of the checks in it, for saying they're fine. */
+  parts?: string[];
 }
 
 /** Plants this much closer than they need are only a small squeeze, not worth a warning. */
@@ -42,7 +44,7 @@ type PlantOf = (id: string) => Plant;
  * garden kept as a list has spots made up for it, so instead of the gaps between plants, how full each bed is. Rows of
  * one planting raising the same check are one finding.
  */
-export function checkGarden(g: Garden, plantOf: PlantOf, sun: SunGrid | null = null): Finding[] {
+export function checkGarden(g: Garden, plantOf: PlantOf, sun: SunGrid | null = null, dismissed: string[] = []): Finding[] {
   // Weeds aren't checked for spacing, neighbours or light: they're not a planting choice.
   const active = activePlantings(g).filter((pl) => plantOf(pl.plantId).category !== 'weed');
   const said = new Set(g.features.filter((f) => lightHere(g, f)).map((f) => f.id));
@@ -58,7 +60,9 @@ export function checkGarden(g: Garden, plantOf: PlantOf, sun: SunGrid | null = n
     ...(sun ? checkLight(active.filter((pl) => !said.has(pl.featureId)), plantOf, sun) : []),
     ...checkSoil(g, active, plantOf),
   ];
-  return oneForEachPot(onceEach(findings), g).sort((a, b) => (a.level === b.level ? 0 : a.level === 'warn' ? -1 : 1));
+  // What you've said is fine goes first, so it isn't back in a line about the pot, and the line doesn't hide what's new.
+  const open = onceEach(findings).filter((f) => f.level !== 'warn' || !dismissed.includes(f.id));
+  return oneForEachPot(open, g).sort((a, b) => (a.level === b.level ? 0 : a.level === 'warn' ? -1 : 1));
 }
 
 /** Two or more things wrong with what's in a pot are one thing to check: a wall of warnings about a trough helps nobody. */
@@ -69,7 +73,7 @@ function oneForEachPot(findings: Finding[], g: Garden): Finding[] {
     const pot = potOf(f);
     const all = pot ? findings.filter((x) => potOf(x) === pot) : [];
     if (all.length < 2) out.push(f);
-    else if (all[0] === f) out.push({ id: `pot-all:${pot!.id}`, kind: 'pot', level: 'warn', plantingIds: [...new Set(all.flatMap((x) => x.plantingIds))], featureIds: [pot!.id], message: `${featureLabel(pot!)}: ${[...new Set(all.map((x) => x.short))].join('; ')}.` });
+    else if (all[0] === f) out.push({ id: `pot-all:${pot!.id}`, kind: 'pot', level: 'warn', plantingIds: [...new Set(all.flatMap((x) => x.plantingIds))], featureIds: [pot!.id], message: `${featureLabel(pot!)}: ${[...new Set(all.map((x) => x.short))].join('; ')}.`, parts: all.map((x) => x.id) });
   }
   return out;
 }

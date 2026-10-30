@@ -4,7 +4,8 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { jobsFor } from '../src/calendar/jobs';
+import { bedMade, jobsFor, makeBedJobs, toggleJob } from '../src/calendar/jobs';
+import { spillsOver } from '../src/geometry/polygon';
 import { glossed } from '../src/content/glossary';
 import { howTo } from '../src/content/howto';
 import { generalJobs } from '../src/content/seasons';
@@ -69,6 +70,9 @@ describe('only what you have', () => {
     expect(potsOnly(garden([pot(), bed()]))).toBe(false);
     expect(potsOnly(garden([]))).toBe(false);
     expect(potsOnly(garden([], [], { balcony: {} }))).toBe(true);
+    // A bed added to a balcony changes things; a cold frame doesn't.
+    expect(potsOnly(garden([pot(), bed()], [], { balcony: {} }))).toBe(false);
+    expect(potsOnly(garden([pot(), house('cold-frame')], [], { balcony: {} }))).toBe(true);
     expect(shedName(garden([pot()]))).toBe('Seedlings');
     expect(shedName(garden([bed()]))).toBe('Shed');
   });
@@ -163,6 +167,50 @@ describe('a list you can shop from', () => {
     const p = pot();
     const list = (on: string) => shoppingList(garden([p], [makePlanting(plantOf('daffodil'), p.id, 'single', [5000, 500])]), plantOf, on, { feeding: true }).filter((i) => i.kind === 'feed').map((i) => i.key);
     expect(list('2026-10-29')).not.toContain('feed:tomato-feed');
+  });
+});
+
+describe('fixes from the code review', () => {
+  const square: [number, number][] = [
+    [0, 0],
+    [1000, 0],
+    [1000, 1000],
+    [0, 1000],
+  ];
+  const rect = (x0: number, y0: number, x1: number, y1: number): [number, number][] => [
+    [x0, y0],
+    [x1, y0],
+    [x1, y1],
+    [x0, y1],
+  ];
+
+  it('doesn’t call a bed a hair over the edge outside, and does a bed well over', () => {
+    expect(spillsOver(rect(800, 200, 1005, 400), square)).toBe(false);
+    expect(spillsOver(rect(800, 200, 1200, 400), square)).toBe(true);
+  });
+
+  it('sees a bed filling a notch exactly', () => {
+    const u: [number, number][] = [
+      [0, 0],
+      [3000, 0],
+      [3000, 3000],
+      [2000, 3000],
+      [2000, 1500],
+      [1000, 1500],
+      [1000, 3000],
+      [0, 3000],
+    ];
+    expect(spillsOver(rect(500, 1500, 2500, 3000), u)).toBe(true);
+    expect(spillsOver(rect(100, 100, 900, 2900), u)).toBe(false);
+  });
+
+  it('counts a bed marked as made as its job ticked, so it can be unticked', () => {
+    const f = bed({ toMake: true });
+    const made = bedMade(garden([f]), f.id, '2026-10-30');
+    expect(made.features[0]!.toMake).toBeUndefined();
+    const job = makeBedJobs(made, 10, 2026)[0]!;
+    expect(made.jobsDone.map((j) => j.key)).toContain(job.key);
+    expect(toggleJob(made, job, '2026-10-30').features[0]!.toMake).toBe(true);
   });
 });
 

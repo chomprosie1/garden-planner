@@ -17,6 +17,23 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-30-only-what-you-have',
+    date: '2026-10-30',
+    title: 'Only what you have',
+    items: [
+      'Today no longer asks you to look after things you haven’t got: no greenhouse or cold frame jobs without one, and on a balcony no leaf mould, bare-root trees or weeding.',
+      'Done jobs fold away under Done, still there to untick.',
+      'Herbs say they’re ready to pick once as their season starts, not every month.',
+      'The welcome screen shows when a new month starts or when there’s news, with two ways in. Getting started leaves Today after its first day, and waits under the ··· menu.',
+      'The shopping list has an amount on every line, and says what to buy now and what can wait, with fewer feeds.',
+      'Choose the day for your weekly reminder, under Reminders in Settings.',
+      'If you work a bed sitting down, say so in its details, and its weeding job uses hand tools, not a hoe.',
+      'Settings is shorter: north, climate, soil pH and exact location are under one Advanced row.',
+      'If you only have pots, the Shed is called Seedlings. Both plant lists now open on Easy to start, and a few more garden words are explained, including 50:50 and half-hardy.',
+    ],
+    tryIt: { label: 'See Today', view: 'home' },
+  },
+  {
     id: '2026-10-30-balconies',
     date: '2026-10-30',
     title: 'Balconies and pots, properly',

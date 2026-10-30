@@ -7,7 +7,9 @@ import { microclimateOf } from '../climate/microclimate';
 import { isNewSeason, nextStage, stageAction } from '../lifecycle/stages';
 import { sizeField, typedSize } from '../canvas/snap';
 import { closeGround, deleteFeatures, duplicateFeature, featureLabel, geometryOf, freshTarget, isGround, isSetGround, keepOpen, moveFeature, placeLabel, MATERIAL_LABEL, materialPatch, rectInfo, resizeRectAny, setSmooth, updateFeature, type Target } from '../model/features';
+import { bedMade } from '../calendar/jobs';
 import { todayIso } from '../model/ids';
+import { isPot } from '../planting/pots';
 import { asTree, treeSizeText, treeType } from '../model/trees';
 import { updateGarden, type Store } from '../model/store';
 import { MATERIALS, PLANT_SIZES, type Feature, type PlantSize, type Garden, type Material, type Plant, type Point } from '../model/types';
@@ -233,8 +235,8 @@ function FeatureActions({ f, ground, garden, commit, locked, sizing, setSizing, 
   const app = useApp();
   const rect = !f.smooth && geometryOf(f) === 'area' ? rectInfo(f.footprint) : null;
   const circle = f.circle;
-  // In the field's own unit, as anywhere a size is typed: centimetres for a pot, metres for the rest. Feet will do.
-  const unit = f.kind === 'pot' ? 'cm' : 'm';
+  // In the field's own unit, as anywhere a size is typed: centimetres for a pot or planter, metres for the rest. Feet will do.
+  const unit = isPot(f) ? 'cm' : 'm';
   const [w, setW] = useState('');
   const [h, setH] = useState('');
   useEffect(() => {
@@ -245,8 +247,10 @@ function FeatureActions({ f, ground, garden, commit, locked, sizing, setSizing, 
   }, [sizing, f]);
   const apply = (e: Event) => {
     e.preventDefault();
-    const W = typedSize(w, rect ? rect.w : (circle?.radiusMm ?? 0) * 2, unit);
-    const H = rect ? typedSize(h, rect.h, unit) : W;
+    // A size in centimetres typed as metres: 30 for a frame 40 cm deep isn't 30 m.
+    const sane = (typed: number | null, was: number) => (typed !== null && typed >= 5000 && typed > was * 10 ? null : typed);
+    const W = sane(typedSize(w, rect ? rect.w : (circle?.radiusMm ?? 0) * 2, unit), rect ? rect.w : (circle?.radiusMm ?? 0) * 2);
+    const H = rect ? sane(typedSize(h, rect.h, unit), rect.h) : W;
     // A slip keeps the form open, and the size it had.
     if (W === null || H === null) return app.notify(unit === 'cm' ? 'That doesn’t look like a pot’s size. Try a number of centimetres, such as 30.' : 'That doesn’t look like a size. Try metres, such as 2.4, or feet, such as 6 ft.');
     if (rect) commit((g) => updateFeature(g, f.id, { footprint: resizeRectAny(f.footprint, W, H)! }));
@@ -299,7 +303,7 @@ function FeatureActions({ f, ground, garden, commit, locked, sizing, setSizing, 
     <>
       <span class="pill-name">{featureLabel(f)}</span>
       {f.toMake && (
-        <button type="button" class="pill-btn" title="It’s in the ground now, so its jobs can start" onClick={() => commit((g) => updateFeature(g, f.id, { toMake: undefined }))}>
+        <button type="button" class="pill-btn" title="It’s in the ground now, so its jobs can start" onClick={() => commit((g) => bedMade(g, f.id, todayIso()))}>
           It’s made
         </button>
       )}

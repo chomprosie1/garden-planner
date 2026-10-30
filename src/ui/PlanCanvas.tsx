@@ -1472,7 +1472,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === ' ') space.current = e.type === 'keydown';
-      // A question on the screen: nothing moves behind it.
+      // A question on the screen: nothing moves behind it, and Escape puts it away wherever the focus has gone.
+      if (asking.current && e.type === 'keydown' && e.key === 'Escape') setLeaving(null);
       if (e.type !== 'keydown' || isTyping(e.target) || asking.current) return;
       const p = P.current;
       const dr = drawing.current;

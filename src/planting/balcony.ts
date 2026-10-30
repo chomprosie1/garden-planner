@@ -43,10 +43,12 @@ export const isCovered = (g: Garden, f: Feature): boolean => isPot(f) && (f.cove
 
 /**
  * The balcony as you've said it. Pots take its light, except ones you've set yourself to something else. A balcony
- * facing a way has the plan's top pointing that way, as its railing's drawn along the top.
+ * facing a way has the plan's top pointing that way, as its railing's drawn along the top: not if you've set north yourself.
  */
 export function setBalcony(g: Garden, b: Balcony): Garden {
   const was = balconyLight(g.balcony);
+  const northFor = (f: Facing | undefined) => (f ? (360 - facingBearing(f)) % 360 : 0);
+  const turned = !!b.facing && b.facing !== g.balcony?.facing && g.northRotationDeg === northFor(g.balcony?.facing);
   const light = balconyLight(b);
   const { balcony: _old, ...rest } = g;
   const said = b.facing !== undefined || b.sun !== undefined || b.roof !== undefined || b.windy !== undefined;
@@ -56,7 +58,7 @@ export function setBalcony(g: Garden, b: Balcony): Garden {
     const { light: _gone, ...plain } = f;
     return plain;
   });
-  return { ...rest, ...(said ? { balcony: b } : {}), features, ...(b.facing ? { northRotationDeg: (360 - facingBearing(b.facing)) % 360 } : {}) };
+  return { ...rest, ...(said ? { balcony: b } : {}), features, ...(turned ? { northRotationDeg: northFor(b.facing) } : {}) };
 }
 
 /** Whether a plant suits a pot: it fits the pot's width, isn't too tall for it, and likes the light it gets, where that's known. */

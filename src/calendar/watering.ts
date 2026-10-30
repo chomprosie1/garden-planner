@@ -120,7 +120,8 @@ export function potLasts(litres: number, warmest: number, opts: { windy?: boolea
 
 /** The day a pot was last watered by ticking its job, before today. */
 function lastTicked(g: Garden, f: Feature, today: string): string | null {
-  const days = g.jobsDone.filter((j) => j.key.startsWith(`water:${f.id}:`) || j.key.startsWith('water:pots:')).map((j) => j.key.slice(-10));
+  // One job for many pots names them in its key, so it only counts for those.
+  const days = g.jobsDone.filter((j) => j.key.startsWith(`water:${f.id}:`) || (j.key.startsWith('water:pots:') && j.key.includes(f.id))).map((j) => j.key.slice(-10));
   return days.filter((d) => d < today).sort().pop() ?? null;
 }
 
@@ -162,7 +163,7 @@ export function potWaterJobs(g: Garden, plantOf: (id: string) => Plant, w: Weath
     .sort((a, b) => a.size.litres - b.size.litres);
   const feel = 'Push a finger into the compost first: if it’s moist below the surface, leave it for now. Otherwise water until it runs out of the bottom.';
   if (due.length > POT_JOBS)
-    return [{ key: `water:pots:${today}`, title: 'Pots', where: `(${listed(due.map((d) => placeLabel(d.f)))})`, detail: `${due.some((d) => d.covered) ? 'Rain doesn’t reach those under cover. ' : ''}${feel}`, plantingIds: due.flatMap((d) => d.ids) }];
+    return [{ key: `water:pots:${due.map((d) => d.f.id).join(',')}:${today}`, title: 'Pots', where: `(${listed(due.map((d) => placeLabel(d.f)))})`, detail: `${due.some((d) => d.covered) ? 'Rain doesn’t reach those under cover. ' : ''}${feel}`, plantingIds: due.flatMap((d) => d.ids) }];
   return due.map((d, i) => ({
     key: `water:${d.f.id}:${today}`,
     title: placeLabel(d.f),

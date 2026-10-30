@@ -5,7 +5,7 @@
 // list out.
 
 import { amountText, feedById } from '../feeding/feeds';
-import { feedAsBought, feedMonths, shelfFor } from '../feeding/schedule';
+import { feedAsBought, feedMonths, potFeedSteps, shelfFor } from '../feeding/schedule';
 import { plantHere } from '../lifecycle/growth';
 import { nextInMonths } from '../lifecycle/projection';
 import { traysOf } from '../lifecycle/shed';
@@ -14,7 +14,7 @@ import { daysBetween } from '../model/dates';
 import { placeLabel } from '../model/features';
 import type { Garden, Plant, Planting } from '../model/types';
 import { isActive, plantCount, stillWanted } from './place';
-import { bagsText, isPot, potSize, wetWeightText } from './pots';
+import { bagsText, isPot, potsOnly, potSize, wetWeightText } from './pots';
 import { firstBedCompost, makingBeds, needsFirstBed } from './firstBed';
 import { packetsFor, seedState } from './seeds';
 import { sowingNow, startsAs } from './windows';
@@ -221,8 +221,17 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
   if (opts.feeding) {
     const forFeed = new Map<string, string[]>();
     const firstUse = new Map<string, string>();
-    for (const plant of plants)
-      for (const s of plant.feeding?.steps ?? []) {
+    // In pots: liquid feeds only, as their jobs say, and for anything fed by the square metre, a general one.
+    const inPots = (plant: Plant) => {
+      const list = planned.get(plant.id) ?? [];
+      return list.length ? list.every((pl) => !!byId.get(pl.featureId) && isPot(byId.get(pl.featureId)!)) : potsOnly(g);
+    };
+    const general: string[] = [];
+    for (const plant of plants) {
+      const all = plant.feeding?.steps ?? [];
+      const steps = inPots(plant) ? potFeedSteps(all) : all;
+      if (steps.length < all.length) general.push(plant.commonName.toLowerCase());
+      for (const s of steps) {
         const feed = feedById(s.feed);
         // Ones you make yourself aren't bought; one on the shelf, or one that does the same job, is had.
         if (!feed || feed.homeMade || !feed.pack || shelfFor(g, feed.id)) continue;
@@ -235,6 +244,13 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
         if (!names.includes(plant.commonName.toLowerCase())) forFeed.set(id, [...names, plant.commonName.toLowerCase()]);
         if (!firstUse.has(id) || use < firstUse.get(id)!) firstUse.set(id, use);
       }
+    }
+    // RHS: containers are fed from April to the end of August.
+    const season = nextInMonths(today, [4, 5, 6, 7, 8])!;
+    if (general.length && daysBetween(today, season) <= FEED_AHEAD_DAYS && !(g.feedShelf ?? []).some((id) => feedById(id)?.unit === 'ml')) {
+      const by = buyByFor(season, today);
+      items.push({ key: 'feed:pot-liquid', kind: 'feed', name: 'General-purpose liquid feed', amount: 'a bottle', note: `For ${listOf(general)}`, ...(by ? { buyBy: by } : {}) });
+    }
     for (const [id, names] of forFeed) {
       const by = buyByFor(firstUse.get(id) ?? null, today);
       const feed = feedById(id);

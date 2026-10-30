@@ -40,7 +40,7 @@ export function FindingsList({ findings, focus, setFocus, onPick }: Props) {
               type="button"
               class="link-btn small finding-dismiss"
               onClick={() => {
-                app.dismissCheck!(f.id);
+                for (const id of f.parts ?? [f.id]) app.dismissCheck!(id);
                 app.notify('Fine: that check won’t be raised again.', { undo: false });
               }}
             >

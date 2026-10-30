@@ -2939,7 +2939,7 @@ Built 30 Oct 2026. No schema change. Version 0.53.0.
 - **Undo** stays 30 seconds, and 12 over the plan. It's a bar the page makes room for, except on the plan, where the canvas would re-centre if its height changed.
 - **Today opens at the top,** and so does each screen. **The planting's ··· menu** stands on the screen itself, above its button if there's no room below.
 - **Also fixed:** the ··· dots were hard to see, and on a photo the button was a white box. Settings has its word under the sliders on a phone. Example words in empty boxes say "Such as". A bed's soil chips have a heading.
-- **Review:** read through by hand before pushing, not with `/code-review`, to avoid the cost of its subagents.
+- **Review:** not reviewed with `/code-review` before pushing. It was reviewed afterwards, with release 55: see there.
 
 Tests: `contrast`. TalkBack on a real Android phone is yours to check: only what the page announces was checked here.
 
@@ -2961,7 +2961,7 @@ Built 30 Oct 2026, on a branch, as it changes the save format. Schema 26. Versio
 - **Also fixed:** no sun symbol beside part shade.
 - **Checked in a browser at 390 px:** setup for a north-east covered balcony through to Today and Garden, the tower preset with 8 strawberries, the plant filter, the warning with its suggestions, and the Water job in list mode. No page errors.
 - **Sources:** RHS container maintenance (check daily in warm or windy weather, even after rain; feed from about six weeks, April to August, on moist compost) and the RHS chilli guide (warm and bright, pruned, sparingly watered, nights of about 12 °C). **Rules of thumb, not sourced to the RHS:** the sun bands below six hours and light from facing (its own page wasn't found), and 1 kg a litre wet, from weak sources. Help tells people to check what their balcony can carry. Preset sizes vary by make.
-- **Review:** read through by hand before pushing, not with `/code-review`, to avoid the cost of its subagents.
+- **Review:** not reviewed with `/code-review` before pushing. It was reviewed afterwards, with release 55: see there.
 
 Tests: `tests/balcony.test.ts`, including the migration. Changed: `next-year` (pots left the shared water job, and compost says bags: changes of rule from this release), and the schema number in `first-garden-real` and `fruit-next-year`.
 
@@ -2971,6 +2971,35 @@ Not changed:
 - **Greenhouse, cold-frame and leaf-mould jobs on a balcony** are release 55.
 - **Editing a pot's size** takes centimetres, not litres.
 - **A strawberry tower** can be suggested plants that aren't strawberries.
+
+### Release 55 — Only what you have (as built)
+Built 30 Oct 2026, on a branch, as it changes the save format. Schema 27. Version 0.55.0.
+
+- **Only what you have:** general jobs for a greenhouse or cold frame need one, with no plants as well. Jobs that need ground are off for a garden of pots (`potsOnly`): leaf mould, bare-root trees, tools, green manure, covering beds and next year's beds. Tender jobs need something tender, and blossom fleece a fruit tree. The month's "Coming up" list read the raw jobs, so it now uses the same filter.
+- **Sitting down:** a bed can say it's worked sitting down (`handTools`, schema 27). With every bed so, weeding says hand fork and has its own how-to.
+- **Herbs:** "Ready to pick" comes once, as their months start.
+- **Done jobs** fold under Done (n), and to-do jobs take the places on the list first.
+- **Today:** Getting started leaves after its first day and waits under the ···, and the backup card takes over from it. Install already showed once.
+- **The welcome:** two causes found. Nothing recorded it after setup, so the next launch showed it, and unseen news brought it back every new day. Now setup counts, and news is said once (`welcomedNews`). Testers' "every reload" wasn't reproduced as such: reloading on the same day didn't bring it back, before or after. Two buttons: Today, and My garden or What's new.
+- **Shopping:** an amount on every line (a packet, or how many a square metre), grouped as Buy now and Buy by February and so on (`shopGroups`). A feed is listed only if it's wanted within about four months, and pots get a general liquid feed instead of feeds by the square metre.
+- **Words:** 50:50, half-hardy (apart from tender), slightly acidic and bulb planter, with dotted soil text on plant pages and 50:50 in the Shed and Settings.
+- **Both plant lists** open on Easy to start, or on what can go in now for a pot none of those suit.
+- **Settings:** north, climate, pH and exact location are one Advanced row. Soil, pH and weeding go for a garden of pots. The plant editor's switch goes: the page is still at `#/check` for the data track.
+- **The reminder's day** can be chosen (`reminderDay`), and it comes on that day or the first check after.
+- **Seedlings:** the Shed's name for a garden of pots, on the tab and its page.
+- **Code review** (`/code-review`, medium) over releases 53, 54 and 55 found ten things, and a first run by mistake reviewed 52a, finding nine more. All fixed:
+  - in 53 to 55: a fully shady balcony got no kit that suited it (now a Deep shade kit), any balcony answer reset north, a group water tick reset pots not in it, the shopping list ignored how pots are fed, the name sort undid smallest-first, dismissing a pot's merged line hid new problems, a balcony with a bed stayed "pots only", suggestions showed on a pot that was already full, the weather switch showed twice, and label pills stayed one size;
+  - in 52a: a bed a hair over the edge called outside and one filling a notch called inside, 30 typed into a metre field meaning 30 m, placement disagreeing with the check that followed, Escape dead once focus left the question, It's made on the plan skipping the job's record, and the dashed outline ignoring rounded corners, plus three tidy-ups.
+
+Tests: `tests/only-what-you-have.test.ts`, `tests/balcony.test.ts`, including the migration. Changed: `next-year` (shopping groups, and feeds by when they're wanted), and the schema number in `first-garden-real` and `fruit-next-year`.
+
+Checked in a browser at 390 px: setup for a balcony, reloading after it (no welcome), a new month (two buttons, once), the Done fold, Seedlings, All October jobs, Settings and the shopping list. The first check found the "Coming up" bug.
+
+Not changed:
+- **A fix's second review:** the fixes from the review have tests, but weren't themselves reviewed again.
+- **The reminder's day** hasn't been seen firing: it needs a phone and a real week.
+- **Winter jobs for established plants** are release 56.
+- **Sizes of the list's plants by the square metre** are from spacing, and only a guide for a pot.
 
 ## Repo layout
 ```

@@ -5,7 +5,7 @@
 // to a planting there, you can do here.
 
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { jobLabel, jobsFor } from '../../calendar/jobs';
+import { bedMade, jobLabel, jobsFor } from '../../calendar/jobs';
 import { sensibleSize } from '../../canvas/snap';
 import { formatAcross, formatSize } from '../../canvas/viewport';
 import { microclimateOf } from '../../climate/microclimate';
@@ -207,7 +207,8 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
             weather={weather}
             open={setSheet}
             // Warnings on a pot come with something to do about them.
-            ideas={isPot(bed) && findings.some((f) => f.level === 'warn' && f.featureIds.includes(bed.id)) ? plantsFor(plants, garden, bed, month) : []}
+            // Not for a pot that's full already: more plants wouldn't help.
+            ideas={isPot(bed) && howFull(garden, bed, plantOf) < 1 && findings.some((f) => f.level === 'warn' && f.featureIds.includes(bed.id)) ? plantsFor(plants, garden, bed, month) : []}
             addPlant={(plantId) => setAdding({ bedId: bed.id, ...(plantId ? { plantId } : {}) })}
             edit={() => setEditing(bed.id)}
           />
@@ -313,7 +314,7 @@ function BedCard({ bed, first, last, garden, store, plantOf, jobs, warnings, tod
       {bed.toMake && (
         <p class="muted small">
           Still to make. Its jobs wait for it.{' '}
-          <button type="button" class="link-btn" onClick={() => store.apply(updateGarden((g) => updateFeature(g, bed.id, { toMake: undefined })))}>
+          <button type="button" class="link-btn" onClick={() => store.apply(updateGarden((g) => bedMade(g, bed.id, today)))}>
             It’s made
           </button>
         </p>

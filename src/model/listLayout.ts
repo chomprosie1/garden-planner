@@ -59,7 +59,9 @@ const within = (box: Bounds, outline: Point[]) =>
     [box.maxX + EDGE / 2, box.maxY + EDGE / 2],
     [box.minX - EDGE / 2, box.maxY + EDGE / 2],
     [(box.minX + box.maxX) / 2, (box.minY + box.maxY) / 2],
-  ].every((p) => pointInPolygon(p as Point, outline));
+  ].every((p) => pointInPolygon(p as Point, outline)) &&
+  // The same test as the check that follows, so a bed isn't put somewhere that's then called outside.
+  !spillsOver(rectPoints({ x: box.minX, y: box.minY, w: box.maxX - box.minX, h: box.maxY - box.minY }), outline);
 
 /** The first clear place along rows, from (x0, y0), rows up to rowMm wide. */
 function alongRows(taken: Bounds[], w: number, d: number, x0: number, y0: number, rowMm: number): Point {

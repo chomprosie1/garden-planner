@@ -134,6 +134,13 @@ export const KITS: Kit[] = [
     blurb: 'Parsley, rocket and winter purslane in the trough; mint and alpine strawberries in pots of their own.',
     beds: [{ items: [one('parsley'), one('rocket'), one('winter-purslane')], split: 'side' }, { items: [one('mint')] }, { items: [one('alpine-strawberry')] }],
   },
+  {
+    id: 'deep-shade-balcony',
+    space: 'balcony',
+    title: 'Deep shade',
+    blurb: 'Hardy cyclamen and lily of the valley in the trough; a hellebore and a hart’s tongue fern in pots of their own.',
+    beds: [{ items: [one('hardy-cyclamen'), one('lily-of-the-valley')], split: 'side' }, { items: [one('hellebore')] }, { items: [one('harts-tongue-fern')] }],
+  },
   // For autumn: what goes in from September to November, so a garden started then has something to do.
   {
     id: 'autumn-balcony',
@@ -188,16 +195,18 @@ export const KITS: Kit[] = [
 /**
  * The kits for a space. Given the month and the plants, the kits with the most that can be sown or planted this month
  * or next come first, so a garden started in October is offered garlic before tomatoes. Given the light it gets (a
- * balcony's), only kits whose plants all suit it: no kit should start with a warning.
+ * balcony's), only kits whose plants all suit it: no kit should start with a warning. Not knowing, none for deep shade.
  */
 export function kitsFor(space: Space, month?: number, plantOf?: (id: string) => Plant | null, light?: Light | null): Kit[] {
   const all = KITS.filter((k) => k.space === space);
   if (!month || !plantOf) return all;
   const suits = (k: Kit) => kitPlants(k).every((id) => {
     const p = plantOf(id);
-    return !p || !light || LIGHT_RANK[light] >= LIGHT_RANK[p.conditions.light];
+    if (!p) return true;
+    if (!light) return p.conditions.light !== 'shade';
+    return LIGHT_RANK[light] >= LIGHT_RANK[p.conditions.light] && !(p.conditions.light === 'shade' && light === 'full-sun');
   });
-  const kits = all.filter(suits).length ? all.filter(suits) : all;
+  const kits = all.filter(suits);
   const soon = (k: Kit) => {
     const ids = kitPlants(k);
     const ready = ids.filter((id) => {

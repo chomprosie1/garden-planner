@@ -416,7 +416,8 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
   // A bed to make comes first: everything to go in it waits for it.
   // Only now: next month's preview doesn't say it again.
   const ahead = !!today && ym(year, month) > today.slice(0, 7);
-  return [...(ahead ? [] : makeBedJobs(g, month, year)), ...jobs.sort((a, b) => order(a.kind) - order(b.kind) || a.plant.localeCompare(b.plant) || a.where.localeCompare(b.where))];
+  // Watering stays in the order it came: the smallest pot first.
+  return [...(ahead ? [] : makeBedJobs(g, month, year)), ...jobs.sort((a, b) => order(a.kind) - order(b.kind) || (a.kind === 'water' ? 0 : a.plant.localeCompare(b.plant) || a.where.localeCompare(b.where)))];
 }
 
 /**
@@ -459,6 +460,13 @@ export function makeBedJobs(g: Garden, month: number, year: number): Job[] {
   return g.features
     .filter((f) => f.toMake || g.jobsDone.some((d) => d.key === keyOf(f)))
     .map((f) => ({ key: keyOf(f), kind: 'check' as const, verb: 'Make', plantId: '', plant: placeLabel(f), where: 'with cardboard and compost, no digging', detail: bedHowTo(...bedSize(f)), featureId: f.id, plantingIds: [] }));
+}
+
+/** A bed marked as made, from wherever that's said: as ticking its job does, so the job stays ticked for the month and can be unticked. */
+export function bedMade(g: Garden, id: string, date: string): Garden {
+  const key = `${MAKE_BED}${id}:${date.slice(0, 7)}`;
+  const made = updateFeature(g, id, { toMake: undefined });
+  return made.jobsDone.some((j) => j.key === key) ? made : { ...made, jobsDone: [...made.jobsDone, { key, date }] };
 }
 
 /**

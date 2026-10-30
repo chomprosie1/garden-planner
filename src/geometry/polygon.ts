@@ -74,7 +74,6 @@ export function lineLength(line: Point[]): number {
   return total;
 }
 
-/** Shortest distance from p to the segment a–b, and the closest point on it. */
 /** Whether two lines truly cross: touching or lying along each other doesn't count. */
 export function segmentsCross(a: [Point, Point], b: [Point, Point]): boolean {
   const cross = (o: Point, p: Point, q: Point) => (p[0] - o[0]) * (q[1] - o[1]) - (p[1] - o[1]) * (q[0] - o[0]);
@@ -86,17 +85,30 @@ export function segmentsCross(a: [Point, Point], b: [Point, Point]): boolean {
 }
 
 /**
- * Whether a shape goes outside an outline: a point of it out past the edge, a corner of the outline inside it, or their
- * edges crossing, as when a bed spans a notch with all its own corners in. Flush along an edge, within a little, isn't.
+ * Whether a point is within a little of a polygon's edge. Points exactly on an edge may fall either way in pointInPolygon,
+ * so anything "in or on" a shape asks both.
  */
-export function spillsOver(shape: Point[], outline: Point[], tolerance = 10): boolean {
-  const onEdge = (p: Point, poly: Point[]) => poly.some((a, i) => distanceToSegment(p, a, poly[(i + 1) % poly.length]!).distance <= tolerance);
+export const onEdgeOf = (p: Point, poly: Point[], tolerance = EDGE_MM): boolean => poly.some((a, i) => distanceToSegment(p, a, poly[(i + 1) % poly.length]!).distance <= tolerance);
+
+/** How near an edge still counts as on it, mm. */
+export const EDGE_MM = 10;
+
+/**
+ * Whether a shape goes outside an outline: a point of it, or the middle of a side, out past the edge; a corner of the
+ * outline inside it; or their edges crossing, as when a bed spans a notch with all its own corners in. Flush along an
+ * edge, within a little, isn't.
+ */
+export function spillsOver(shape: Point[], outline: Point[], tolerance = EDGE_MM): boolean {
   const edgesOf = (poly: Point[]) => poly.map((p, i): [Point, Point] => [p, poly[(i + 1) % poly.length]!]);
-  if (shape.some((p) => !pointInPolygon(p, outline) && !onEdge(p, outline))) return true;
-  if (outline.some((p) => pointInPolygon(p, shape) && !onEdge(p, shape))) return true;
-  return edgesOf(shape).some((s) => edgesOf(outline).some((o) => segmentsCross(s, o)));
+  const [sides, rim] = [edgesOf(shape), edgesOf(outline)];
+  const middles = sides.map(([a, b]): Point => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]);
+  if ([...shape, ...middles].some((p) => !pointInPolygon(p, outline) && !onEdgeOf(p, outline, tolerance))) return true;
+  if (outline.some((p) => pointInPolygon(p, shape) && !onEdgeOf(p, shape, tolerance))) return true;
+  // A side only just over the edge, within the tolerance at either end, doesn't count as crossing it.
+  return sides.some((s) => rim.some((o) => segmentsCross(s, o) && s.every((p) => distanceToSegment(p, o[0], o[1]).distance > tolerance)));
 }
 
+/** Shortest distance from p to the segment a–b, and the closest point on it. */
 export function distanceToSegment(p: Point, a: Point, b: Point): { distance: number; point: Point; t: number } {
   const dx = b[0] - a[0];
   const dy = b[1] - a[1];

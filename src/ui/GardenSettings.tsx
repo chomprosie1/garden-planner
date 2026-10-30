@@ -265,7 +265,7 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
               <p class="muted small">0 if the top of your plan faces north. On a phone, the compass can work it out for you.</p>
             </>
           )}
-          <Warmth garden={garden} prefsStore={prefsStore} />
+          <Warmth garden={garden} />
           {!potsOnly(garden) && <GardenPh store={store} garden={garden} />}
           <h3>Exact location</h3>
           <div class="field-row">
@@ -491,7 +491,7 @@ const one = (n: number) => `${Math.round(n * 10) / 10} °C`;
 const listed = (names: string[]) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0]!);
 
 /** The usual warmth here, from UK climate averages: what times growth on the plan's year. */
-function Warmth({ garden, prefsStore }: { garden: Garden; prefsStore?: PrefsStore }) {
+function Warmth({ garden }: { garden: Garden }) {
   const av = averagesHere(garden);
   const dd = yearDegreeDays(av);
   const ref = yearDegreeDays(referenceAverages());
@@ -519,7 +519,6 @@ function Warmth({ garden, prefsStore }: { garden: Garden; prefsStore?: PrefsStor
           warmer or colder.
         </p>
       </details>
-      {prefsStore && <WeatherSwitch garden={garden} prefsStore={prefsStore} />}
     </div>
   );
 }

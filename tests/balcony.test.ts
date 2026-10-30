@@ -69,6 +69,24 @@ describe('a balcony', () => {
     expect(next.features.find((f) => f.id === b.id)!.light).toBe('full-sun');
   });
 
+  it('leaves north alone unless the facing changes, and if you’ve set it yourself', () => {
+    const g = setBalcony(garden([pot(0, 30)], []), { facing: 'east' });
+    expect(g.northRotationDeg).toBe(270);
+    const own = { ...g, northRotationDeg: 10 };
+    expect(setBalcony(own, { facing: 'east', windy: true }).northRotationDeg).toBe(10);
+    expect(setBalcony(own, { facing: 'west' }).northRotationDeg).toBe(10);
+    expect(setBalcony(g, { facing: 'west' }).northRotationDeg).toBe(90);
+  });
+
+  it('offers a fully shady balcony a kit that suits it, with no warnings, and none that don’t', () => {
+    const kits = kitsFor('balcony', 10, (id) => byId.get(id) ?? null, 'shade');
+    expect(kits.map((k) => k.id)).toEqual(['deep-shade-balcony']);
+    const made = setBalcony(applyKit(garden([trough(), pot(1000, 30), pot(2000, 30)], []), kits[0]!, (id) => byId.get(id) ?? null, '2026-10-30'), { sun: 'little' });
+    expect(checkGarden(made, plantOf).filter((f) => f.level === 'warn')).toEqual([]);
+    expect(kitsFor('balcony', 10, (id) => byId.get(id) ?? null, 'full-sun').map((k) => k.id)).not.toContain('deep-shade-balcony');
+    expect(kitsFor('balcony', 10, (id) => byId.get(id) ?? null).map((k) => k.id)).not.toContain('deep-shade-balcony');
+  });
+
   it('keeps nothing when nothing is said', () => {
     expect(setBalcony(garden([], []), {}).balcony).toBeUndefined();
   });
@@ -149,12 +167,29 @@ describe('watering each pot', () => {
     const g = garden(pots, pots.map((f) => growing('parsley', f)), { balcony: { roof: true } });
     const jobs = potWaterJobs(g, plantOf, null, today);
     expect(jobs).toHaveLength(1);
-    expect(jobs[0]!.key).toBe(`water:pots:${today}`);
+    expect(jobs[0]!.key).toMatch(/^water:pots:.*:2027-07-10$/);
     // The one tick does for them all: in January, these pots go days between waterings.
     const january = '2027-01-10';
-    const key = `water:pots:${january}`;
-    expect(potWaterJobs(g, plantOf, null, january).map((j) => j.key)).toEqual([key]);
-    expect(potWaterJobs({ ...g, jobsDone: [{ key, date: january }] }, plantOf, null, addDays(january, 1))).toEqual([]);
+    const [key] = potWaterJobs(g, plantOf, null, january).map((j) => j.key);
+    expect(potWaterJobs({ ...g, jobsDone: [{ key: key!, date: january }] }, plantOf, null, addDays(january, 1))).toEqual([]);
+  });
+
+  it('counts a tick on one job for many only for the pots in it', () => {
+    const pots = Array.from({ length: POT_JOBS + 2 }, (_, i) => pot(i * 1000, 30, { name: `Pot ${i + 1}` }));
+    const g = garden(pots, pots.map((f) => growing('parsley', f)), { balcony: { roof: true } });
+    const january = '2027-01-10';
+    // The last pot wasn't in the job that was ticked.
+    const key = `water:pots:${pots.slice(0, -1).map((f) => f.id).join(',')}:${january}`;
+    const next = potWaterJobs({ ...g, jobsDone: [{ key, date: january }] }, plantOf, null, addDays(january, 1));
+    expect(next.map((j) => j.title)).toEqual([`Pot ${POT_JOBS + 2}`]);
+  });
+
+  it('keeps the smallest pot first among the day’s jobs', () => {
+    const [big, small] = [pot(0, 60, { name: 'Apple tub' }), pot(1000, 20, { name: 'Zinnia pot' })];
+    const g = garden([big, small], [growing('tomato', big), growing('chilli', small)], { balcony: { roof: true } });
+    const jobs = jobsFor(g, plantOf, 7, 2027, { today }).filter((j) => j.kind === 'water');
+    expect(jobs[0]!.plant).toBe('Zinnia pot');
+    expect(jobs[0]!.detail).toMatch(/smallest dries fastest/);
   });
 
   it('shows on Today’s jobs, in a list too, and new plantings keep their own job', () => {
@@ -180,6 +215,19 @@ describe('warnings that become answers', () => {
     expect(warn).toHaveLength(1);
     expect(warn[0]!.message).toMatch(/^Herb trough: .*basil wants full sun/);
     expect(warn[0]!.plantingIds).toHaveLength(3);
+  });
+
+  it('keeps what you’ve said is fine out of the line, and a new problem still shows', () => {
+    const t = trough({ light: 'part-shade' });
+    const g = garden([t], [growing('basil', t, [100, 2100]), growing('thyme', t, [300, 2100]), growing('rosemary', t, [500, 2100])]);
+    const [line] = checkGarden(g, plantOf).filter((f) => f.level === 'warn' && f.parts);
+    expect(line!.parts!.length).toBeGreaterThan(1);
+    // Saying the line's fine says each of its parts is.
+    expect(checkGarden(g, plantOf, null, line!.parts!).filter((f) => f.level === 'warn')).toEqual([]);
+    const some = line!.parts!.slice(1);
+    const left = checkGarden(g, plantOf, null, some).filter((f) => f.level === 'warn');
+    expect(left).toHaveLength(1);
+    expect(left[0]!.parts).toBeUndefined();
   });
 
   it('leaves one problem in full', () => {
@@ -244,6 +292,14 @@ describe('sizes, and advice in pot terms', () => {
     const item = shoppingList(garden([p], [planned]), plantOf, '2027-03-01').find((i) => i.key === 'compost:pots')!;
     expect(item.amount).toMatch(/^about \d+ litres \(\d+ bags? of 40 litres\)$/);
     expect(item.note).toMatch(/kg once it’s wet/);
+  });
+
+  it('shops for pots as their jobs feed them', () => {
+    const p = pot(0, 40);
+    const planned = makePlanting(plantOf('strawberry'), p.id, 'single', [0, 0]);
+    const list = shoppingList(garden([p], [planned], { balcony: {} }), plantOf, '2027-03-20', { feeding: true });
+    expect(list.map((i) => i.key)).toContain('feed:pot-liquid');
+    expect(list.some((i) => i.key === 'compost:beds' || i.key === 'feed:blood-fish-bone')).toBe(false);
   });
 
   it('feeds a pot with a liquid feed, not by the square metre', () => {

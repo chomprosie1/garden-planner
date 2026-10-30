@@ -14,8 +14,9 @@ export const isPot = (f: Feature): boolean => f.kind === 'pot' || f.kind === 'pl
 
 /** Everything here's grown in pots: a balcony, or anywhere with only pots and planters. No soil, weeds or rotation to think about. */
 export function potsOnly(g: Garden): boolean {
-  const places = g.features.filter(isContainer);
-  return !!g.balcony || (places.length > 0 && places.every(isPot));
+  // A cold frame or greenhouse doesn't change that; a bed does, even on what started as a balcony.
+  const ground = g.features.filter(isContainer).filter((f) => !isPot(f) && f.kind !== 'cold-frame' && f.kind !== 'greenhouse');
+  return !ground.length && (!!g.balcony || g.features.some(isPot));
 }
 
 /** What the Shed's called: someone with nothing but pots hasn't got one, but has seedlings. */

@@ -167,13 +167,16 @@ describe('trays say where they are', () => {
 });
 
 describe('where things live', () => {
-  const prefs = { northChecked: false, lastBackup: null, setupHidden: false };
+  const prefs = { northChecked: false, lastBackup: null, setupHidden: false, setupFrom: '2026-10-20' };
   const planted = gardenWith(row('garlic'));
 
   it('asks for a backup once: in Getting started while it’s showing, otherwise by itself', () => {
-    expect(setupShowing(planted, prefs)).toBe(true);
-    expect(setupShowing(planted, { ...prefs, setupHidden: true })).toBe(false);
-    expect(setupShowing(planted, { ...prefs, lastBackup: '2026-10-01' })).toBe(false);
+    const day = '2026-10-20';
+    expect(setupShowing(planted, prefs, day)).toBe(true);
+    expect(setupShowing(planted, { ...prefs, setupHidden: true }, day)).toBe(false);
+    expect(setupShowing(planted, { ...prefs, lastBackup: '2026-10-01' }, day)).toBe(false);
+    // Gone from Today after its first day: the backup card asks instead.
+    expect(setupShowing(planted, prefs, '2026-10-21')).toBe(false);
   });
 
   it('calls the Shed the Shed, and still opens it from an old Seedlings link', () => {

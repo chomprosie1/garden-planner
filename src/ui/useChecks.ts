@@ -15,5 +15,5 @@ export function useChecks(garden: Garden, plantOf: (id: string) => Plant, plants
   const plan = !isList(garden) && garden.plantings.some((p) => !p.removedOn);
   const june = useSunHours(garden, 6, new Date().getFullYear(), plan && !!plants, wait);
   // Checks wait for the library, so plants never show as "unknown" for a moment.
-  return useMemo(() => (plants ? stillToCheck(checkGarden(garden, plantOf, plan ? (june ?? null) : null), app.dismissedChecks) : []), [garden, plantOf, plants, plan, june, app.dismissedChecks]);
+  return useMemo(() => (plants ? stillToCheck(checkGarden(garden, plantOf, plan ? (june ?? null) : null, app.dismissedChecks), app.dismissedChecks) : []), [garden, plantOf, plants, plan, june, app.dismissedChecks]);
 }
