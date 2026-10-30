@@ -3002,7 +3002,7 @@ Not changed:
 - **Sizes of the list's plants by the square metre** are from spacing, and only a guide for a pot.
 
 ### Release 56 — Plants that stay (as built)
-Built 31 Oct 2026, on a branch, as it touches the data files. No schema change after all: Resting is worked out from the month, and years ago is only an earlier date. Version 0.56.0.
+Built 30 Oct 2026, on a branch, as it touches the data files. No schema change after all: Resting is worked out from the month, and years ago is only an earlier date. Version 0.56.0.
 
 - **Resting** (`restingNow`, `stageNow`): a plant that comes back each year and isn't evergreen shows Resting from November to February, on its chip, in the plan's list and in "It's now". Not if it flowers or crops then. It isn't stored: a stage in the save would have reached every stage comparison in the app for a label.
 - **Jobs for what's settled in** (`calendar/care.ts`, six months in the ground or more): pruning blackcurrants, currants, gooseberries, apples and pears, tidying strawberries, and trimming chives, rosemary and thyme after they flower, each with a how-to for pruning. A tick stands for that season, and the job comes back next winter. The general pruning jobs give way to them.
@@ -3027,7 +3027,7 @@ Not changed:
 - **Plum and cherry pruning, and raspberry canes,** have no job of their own. Raspberries still have the general ones.
 - **Parsnips "finished by December"** from Margaret's list was release 48's; her other corrections are for the interim round to re-check.
 
-### Interim testing (planned 31 Oct 2026)
+### Interim testing (planned 30 Oct 2026)
 The six testers, and a seventh who's there to break it, will test the build part way through Phase 2, before release 57 and the review proper. Brief: [interim-test-brief.md](interim-test-brief.md). Not started: it waits for the word to go.
 
 ## Repo layout

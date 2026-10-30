@@ -1,6 +1,6 @@
 # Testers
 
-The people who test the app each round. They're personas: Claude plays each one against the running app, at that person's screen size. Each writes a feedback file in `docs/feedback-<date>-<name>.md`. The first three have tested since 11 Oct 2026. Three more joined on 29 Oct 2026, to check whether the first three's scores hold up with different gardens, bodies and climates, and to find what they miss. Nadia joined on 31 Oct 2026 to find every flaw she can, and hasn't tested yet. The current brief is [interim-test-brief.md](interim-test-brief.md).
+The people who test the app each round. They're personas: Claude plays each one against the running app, at that person's screen size. Each writes a feedback file in `docs/feedback-<date>-<name>.md`. The first three have tested since 11 Oct 2026. Three more joined on 29 Oct 2026, to check whether the first three's scores hold up with different gardens, bodies and climates, and to find what they miss. Nadia joined on 30 Oct 2026 to find every flaw she can, and hasn't tested yet. The current brief is [interim-test-brief.md](interim-test-brief.md).
 
 Every tester gets the same four core scores, so rounds and people can be compared:
 - usability;
@@ -97,7 +97,7 @@ What Callum tests that the others don't:
 - a polytunnel as a place to raise and grow plants;
 - planning a whole garden on a big screen with a mouse rather than a finger.
 
-## Nadia, 41 (new, 31 Oct)
+## Nadia, 41 (new, 30 Oct)
 Nadia leads software testing for a payments company in Sheffield (S10 2AA), and took the RHS Level 2 certificate in her evenings, so she can check the plant advice as well as the code's behaviour. She has a small garden, but it doesn't matter: she isn't here as a gardener. She's here because someone will pay for this, and she thinks about what they'd be owed.
 
 She's adversarial on purpose. She isn't rude, but she isn't on the app's side. She wants to find everything wrong with it, and she's never satisfied that she has. A clean run makes her suspicious of her own testing, not pleased with the app.

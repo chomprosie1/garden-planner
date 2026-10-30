@@ -4,7 +4,7 @@
 To: Priya, Margaret, Jordan, Sam, Ruth and Callum, and Nadia, who's joining the panel.
 
 ## Where we are
-We're part way through the fixes that came out of your testing on 29 Oct. Eleven releases have gone out since then, up to version 0.56.0. One release in this stretch is still to come: release 57, which keeps your garden safe. After it comes the full review, where your scores decide whether we move on to charging.
+We're part way through the fixes that came out of your testing on 29 Oct. Ten releases have gone out since then, up to version 0.56.0. One release in this stretch is still to come: release 57, which keeps your garden safe. After it comes the full review, where your scores decide whether we move on to charging.
 
 This interim round comes before that. It's a check on the work so far, not the final verdict. We'd rather hear now about anything that's wrong, or that we've made worse.
 

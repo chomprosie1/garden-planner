@@ -17,8 +17,8 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
-    id: '2026-10-31-plants-that-stay',
-    date: '2026-10-31',
+    id: '2026-10-30-plants-that-stay',
+    date: '2026-10-30',
     title: 'Plants that stay',
     items: [
       'Fruit and other plants that come back each year now show as Resting through the winter.',

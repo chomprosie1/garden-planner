@@ -1,6 +1,6 @@
 // Looking after what's already growing: tidying and pruning fruit and herbs that
 // have settled in, as the rest of the jobs look after what's being planted. From
-// the RHS's growing guides, checked 31 Oct 2026:
+// the RHS's growing guides, checked 30 Oct 2026:
 // - strawberries (rhs.org.uk/fruit/strawberries/grow-your-own): summer-fruiting
 //   kinds cut to about 10 cm above the crown once cropping's over, perpetual
 //   kinds only tidied, the strongest runners kept and the rest taken off;
