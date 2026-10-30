@@ -2682,7 +2682,7 @@ Decided:
 | --- | --- | --- | --- | --- |
 | Next, as soon as you say | **57b. Two live fixes** | S | Everyone on a phone, Margaret | Built 30 Oct |
 | Tue 3 Nov | Testing day | | | |
-| Wed 4 Nov | **57c. Plants go where you asked** | M | Priya, Margaret, Ruth, Sam | Planned |
+| Wed 4 Nov | **57c. Plants go where you asked** | M | Priya, Margaret, Ruth, Sam | Built 30 Oct |
 | Thu 5 Nov | Testing day | | | |
 | Fri 6 Nov | **57d. Dates for a short season** | L | Callum, Margaret, Priya | Planned |
 | Mon 9 Nov | Testing day | | | |
@@ -3181,6 +3181,24 @@ Built 30 Oct 2026, on a branch. No schema change. Version 0.57.2.
 
 Not changed:
 - **An annual saved before this release,** at Flowering or Harvesting with no date and in for under about a year, measures from today, so its next date slides until you mark it, or it passes the year. A migration could stamp a date, but that's a schema change for a case only test gardens have.
+
+### Release 57c — Plants go where you asked (as built)
+Built 30 Oct 2026, on a branch. No schema change. Version 0.57.3.
+
+- **A row is a row's worth.** The gap-filling fallback had no ceiling, so a row in a part-full bed made as many single plants as the room held: 99 spinach. It now stops at what one row along the bed would hold (`rowsWorth`).
+- **Your bed names stay.** A name you type takes the next one free and touches nothing else (`namesFor`): "Bed 1" beside "Bed 1" and "Bed 2" is "Bed 3". Names the app chose for you are numbered as before.
+- **Herbs that come back start on One** (`defaultFill`). Shrubs already did. Bulbs, and veg, keep their usual way.
+- **Over-full says so.** "It's full now" went up when a pot was over-full, so it says that.
+- **Pot on offers empty pots only,** and beds.
+- **The job count:** ticking a bed as made raised it, because the bed could then be weeded. A bed made this month isn't.
+- **Cloves and sets** (`countWord`) on the toast, the Add a plant box and the planting's details, for plants that only go in that way. A plain onion can be sown too, so it stays plants.
+- **Changed from the plan: Sam's two 35 cm pots.** The preset has 8 pockets and a plain pot doesn't, so they aren't the same thing and making them agree would be wrong. A pot's settings now take a number of pockets instead, so anyone's own tower counts as one.
+- **Reverses release 51:** a pot typed as 0.3 was read as metres, "from habit". Nadia's 1.9 made a 1.9 m pot and 0.1 a 10 cm one. Under 2 is now refused, and "0.3 m" still works if you say so.
+- **From Nadia:** names stop at 60 characters and wrap on the card (19). A pasted line break becomes a space (29). The dialog is called Add a pot, or whatever it is, and a default name is "Planter 3" (28). A garden added beside one of the same name is "My garden 2" (5).
+
+Not changed:
+- **A name typed in a bed's settings** can still match another bed's. Only adding is covered.
+- **A restored file** can still hold a name over 60 characters. It wraps. Release 57h deals with what restore lets in.
 
 ## Repo layout
 ```

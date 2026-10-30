@@ -16,14 +16,15 @@ import { bookedText, bookedUntil } from '../../planting/booked';
 import { currentStage, stageNow, type LifeStage } from '../../lifecycle/stages';
 import { deleteFeatures, featureLabel, KINDS, rectInfo, resizeRectAny, updateFeature, type Target } from '../../model/features';
 import { todayIso } from '../../model/ids';
-import { addListBed, copyListBed, LIST_KIND_LABEL, LIST_KINDS, LIST_SIZE, moveInList, nameListBeds, outsideBoundary, planFromList, spreadOut, type ListKind } from '../../model/listLayout';
+import { addListBed, copyListBed, LIST_KIND_LABEL, LIST_KINDS, LIST_SIZE, moveInList, nameListBeds, namesFor, outsideBoundary, planFromList, spreadOut, type ListKind } from '../../model/listLayout';
 import { updateGarden, type Store } from '../../model/store';
 import { LIGHT_LEVELS, type Feature, type Garden, type Light, type Plant, type Planting } from '../../model/types';
 import { defaultFill, FILL_LABEL, fillsFor, type Fill } from '../../planting/fill';
+import { NAME_LENGTH, pasteOneLine } from '../oneLine';
 import { RotationSwitch } from '../RotationSwitch';
 import { fullText, howFull, isListed, listBeds, moveRoom, moveToListBed, placeInList, plantableBeds, plantingsCount, plantOutInList, rowsOfSowing, sowingKey, type ListHow } from '../../planting/listPlant';
 import { balconyLight, plantsFor } from '../../planting/balcony';
-import { isActive, isContainer, plantCount, spacingStyle, type InGroundAt } from '../../planting/place';
+import { countWord, isActive, isContainer, plantCount, spacingStyle, type InGroundAt } from '../../planting/place';
 import { isPot, litresTyped, potOfLitres, potSize, wetWeightText, litresText } from '../../planting/pots';
 import { isSupport } from '../../planting/supports';
 import { plantHere } from '../../lifecycle/growth';
@@ -609,7 +610,8 @@ function AddBedDialog({ store, close, added }: { store: Store; close: () => void
     const size: [number, number] = kind === 'pot' ? [across, across] : [sized(w, usual[0]), sized(d, usual[1])];
     const made: Partial<Feature> = { ...extra, ...(potLitres ? { heightMm: potOfLitres(potLitres).depth } : {}) };
     delete made.name;
-    const label = name.trim() || extra.name || LIST_KIND_LABEL[kind].replace(/^An? /, '').replace(/^./, (c) => c.toUpperCase());
+    const typed = name.trim();
+    const label = typed || extra.name || LIST_KIND_LABEL[kind].replace(/^An? /, '').replace(/ or window box$/, '').replace(/^./, (c) => c.toUpperCase());
     const n = SEVERAL.includes(kind) ? Math.max(1, Math.min(24, Math.round(Number(many) || 1))) : 1;
     let first = label;
     let firstId: string | undefined;
@@ -617,13 +619,15 @@ function AddBedDialog({ store, close, added }: { store: Store; close: () => void
       updateGarden((g) => {
         let next = g;
         const ids: string[] = [];
+        // A name you typed doesn't touch the names you have: it takes the next one free.
+        const names = typed ? namesFor(g, typed, n, featureLabel) : null;
         for (let i = 0; i < n; i++) {
-          const [after, id] = addListBed(next, kind, label, size);
+          const [after, id] = addListBed(next, kind, names?.[i] ?? label, size);
           next = updateFeature(after, id, { ...made, ...(light ? { light } : {}) });
           ids.push(id);
         }
         // Two or more alike are numbered as they're added: "Pot 1", "Pot 2".
-        next = nameListBeds(next, isListed(next), featureLabel);
+        if (!typed) next = nameListBeds(next, isListed(next), featureLabel);
         first = featureLabel(next.features.find((f) => f.id === ids[0])!);
         firstId = ids[0];
         return next;
@@ -644,7 +648,7 @@ function AddBedDialog({ store, close, added }: { store: Store; close: () => void
         }}
       >
         <h2 id="add-bed-title" class="title">
-          Add a bed
+          Add {LIST_KIND_LABEL[kind].replace(/^./, (c) => c.toLowerCase())}
         </h2>
         <fieldset class="choice">
           <legend>What is it?</legend>
@@ -680,7 +684,7 @@ function AddBedDialog({ store, close, added }: { store: Store; close: () => void
         )}
         <label class="field">
           Name
-          <input value={name} placeholder={`Such as ${kind === 'bed' ? 'Veg bed' : kind === 'pot' ? 'Patio pot' : kind === 'ground' ? 'The plot' : LIST_KIND_LABEL[kind].replace(/^An? /, '')}`} onInput={(e) => setName((e.currentTarget as HTMLInputElement).value)} />
+          <input value={name} maxLength={NAME_LENGTH} onPaste={pasteOneLine} placeholder={`Such as ${kind === 'bed' ? 'Veg bed' : kind === 'pot' ? 'Patio pot' : kind === 'ground' ? 'The plot' : LIST_KIND_LABEL[kind].replace(/^An? /, '')}`} onInput={(e) => setName((e.currentTarget as HTMLInputElement).value)} />
         </label>
         <div class="size-row">
           <label class="field">
@@ -790,7 +794,7 @@ function AddPlantDialog({ store, garden, plants, plantOf, month, start, close, n
     store.apply(updateGarden((g) => ({ ...g, plantings: [...g.plantings, ...plantings] })));
     const total = plantings.reduce((t, pl) => t + plantCount(pl, plant), 0);
     if (left) return theRest(`Room for ${total} of ${total + left} in ${featureLabel(bed)}: they’re in. Put the other ${left} in another bed?`, left);
-    app.notify(`${plural(total, name, `${name} plants`)} in ${featureLabel(bed)}.${full ? ' It’s full now.' : ''}`, { undo: true });
+    app.notify(`${plural(total, name, `${name} ${countWord(plant)}`)} in ${featureLabel(bed)}.${full ? ' It’s over-full now.' : ''}`, { undo: true });
     ref.current?.close();
   };
 
@@ -868,7 +872,7 @@ function AddPlantDialog({ store, garden, plants, plantOf, month, start, close, n
                   </div>
                   {how === 'count' && (
                     <label class="field count-field">
-                      Plants
+                      {plant ? countWord(plant).replace(/^./, (c) => c.toUpperCase()) : 'Plants'}
                       <input type="number" inputMode="numeric" min={1} max={500} value={count} onInput={(e) => setCount((e.currentTarget as HTMLInputElement).value)} />
                     </label>
                   )}
@@ -935,7 +939,7 @@ function EditBedDialog({ store, garden, bedId, plantOf, close }: { store: Store;
         </h2>
         <label class="field">
           Name
-          <input value={bed.name ?? ''} placeholder={kindText(bed)} onChange={(e) => set({ name: (e.currentTarget as HTMLInputElement).value.trim() || undefined })} />
+          <input value={bed.name ?? ''} maxLength={NAME_LENGTH} onPaste={pasteOneLine} placeholder={kindText(bed)} onChange={(e) => set({ name: (e.currentTarget as HTMLInputElement).value.trim() || undefined })} />
         </label>
         {(bed.circle || rect) && (
           <div class="size-row">
@@ -990,6 +994,22 @@ function EditBedDialog({ store, garden, bedId, plantOf, close }: { store: Store;
               <input type="checkbox" checked={bed.covered ?? !!garden.balcony?.roof} onChange={(e) => set({ covered: (e.currentTarget as HTMLInputElement).checked })} />
               <span>Under cover: rain doesn’t reach it</span>
             </label>
+            {bed.kind === 'pot' && (
+              <label class="field">
+                Planting pockets, for a strawberry tower or similar
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={100}
+                  value={bed.pockets ?? ''}
+                  onChange={(e) => {
+                    const n = Math.round(Number((e.currentTarget as HTMLInputElement).value));
+                    set({ pockets: n >= 1 && n <= 100 ? n : undefined });
+                  }}
+                />
+              </label>
+            )}
           </>
         )}
         {bed.kind === 'bed' && (

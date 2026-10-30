@@ -9,6 +9,7 @@ import type { Store } from '../model/store';
 import type { Garden } from '../model/types';
 import { downloadFile } from '../storage/file';
 import { daysLeft, listGardens, peekGarden, renameGarden, type GardenEntry } from '../storage/gardens';
+import { NAME_LENGTH, pasteOneLine } from './oneLine';
 import { photoIds } from '../storage/photos';
 import type { PrefsStore } from '../theme/prefs';
 import { useApp } from './appContext';
@@ -73,7 +74,7 @@ export function GardenSwitcher({ store, prefsStore, garden }: { store: Store; pr
                     <label class="visually-hidden" for={`rename-${e.id}`}>
                       Name
                     </label>
-                    <input id={`rename-${e.id}`} name="name" defaultValue={e.name} maxLength={60} autoFocus />
+                    <input id={`rename-${e.id}`} name="name" defaultValue={e.name} maxLength={NAME_LENGTH} onPaste={pasteOneLine} autoFocus />
                     <button type="submit" class="btn btn-small">
                       Save
                     </button>
@@ -188,7 +189,7 @@ export function NewGardenDialog({ store, prefsStore, garden, close }: { store: S
         <p class="muted small">{garden.name} is kept as it is. Switch between them in Settings, under Your gardens.</p>
         <label class="field">
           Name
-          <input value={name} maxLength={60} placeholder="The allotment" autoFocus onInput={(e) => setName((e.currentTarget as HTMLInputElement).value)} />
+          <input value={name} maxLength={NAME_LENGTH} onPaste={pasteOneLine} placeholder="The allotment" autoFocus onInput={(e) => setName((e.currentTarget as HTMLInputElement).value)} />
         </label>
         {somewhere && (
           <label class="clear-option">

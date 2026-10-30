@@ -430,7 +430,9 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
   // The season's weeding: one job for every bed with something growing in it.
   const tip = WEEDING_TIP[month];
   if (opts.weeding && tip) {
-    const beds = g.features.filter((f) => isContainer(f) && !isPot(f) && !f.toMake && g.plantings.some((p) => isActive(p) && p.featureId === f.id && plantOf(p.plantId).category !== 'weed'));
+    // Not a bed made this month: fresh compost over cardboard has no weeds, and finishing a job shouldn't start another.
+    const madeNow = (f: { id: string }) => g.jobsDone.some((j) => j.key === `${MAKE_BED}${f.id}:${ym(year, month)}`);
+    const beds = g.features.filter((f) => isContainer(f) && !isPot(f) && !f.toMake && !madeNow(f) && g.plantings.some((p) => isActive(p) && p.featureId === f.id && plantOf(p.plantId).category !== 'weed'));
     if (beds.length) {
       const names = beds.map(placeLabel);
       const list = names.length > 3 ? `${names.slice(0, 3).join(', ')} and ${names.length - 3} more` : names.join(names.length === 2 ? ' and ' : ', ');

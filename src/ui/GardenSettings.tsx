@@ -16,8 +16,9 @@ import { spacingStyle } from '../planting/place';
 import { useApp } from './appContext';
 import { gardenCount, lastCopy, noteCopy } from './gardenActions';
 import { safetyText } from './setup';
+import { NAME_LENGTH, pasteOneLine } from './oneLine';
 import { usePlants } from './usePlants';
-import { addGarden, keepReplaced, listGardens, openTraceKey, traceKeyOf } from '../storage/gardens';
+import { addGarden, freeGardenName, keepReplaced, listGardens, openTraceKey, traceKeyOf } from '../storage/gardens';
 import { loadBlob, saveBlob } from '../storage/idb';
 import { flushSave, saveStatus, type SaveStatus } from '../storage/local';
 import { fromDataUrl, loadPhoto, photoIds, putPhoto, toDataUrl } from '../storage/photos';
@@ -100,9 +101,11 @@ export async function restoreBackup(store: Store, prefsStore: PrefsStore | undef
   // Your own plants are shared by every garden: the file's are added to yours, and yours win where both have one.
   const mine = store.get().userPlants;
   const userPlants = [...mine, ...result.state.userPlants.filter((p) => !mine.some((m) => m.id === p.id))];
+  // A garden added beside one of the same name is told apart from it: "My garden 2".
+  const garden = asNew ? { ...result.state.garden, name: freeGardenName(result.state.garden.name) } : result.state.garden;
   if (asNew) {
     flushSave();
-    if (!addGarden(result.state.garden, undefined, new Date(), true) && listGardens().open) return null;
+    if (!addGarden(garden, undefined, new Date(), true) && listGardens().open) return null;
   } else if (keepOld) {
     const old = store.get().garden;
     const kept = keepReplaced(old);
@@ -114,7 +117,7 @@ export async function restoreBackup(store: Store, prefsStore: PrefsStore | undef
       // the garden's kept; only its photo isn't
     }
   }
-  store.replace({ garden: result.state.garden, userPlants });
+  store.replace({ garden, userPlants });
   let restored = 0;
   for (const [id, url] of Object.entries(result.photos ?? {})) {
     try {
@@ -244,7 +247,7 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
       setOpened(result);
       return setMessage({ kind: 'error', lines: [`This browser has no room left, so nothing has changed: ${garden.name} is as it was. Download a backup of it to keep it safe.`] });
     }
-    setMessage({ kind: 'ok', lines: [`${asNew ? 'Added' : 'Restored'} "${result.state.garden.name}" from the backup${restored ? `, with ${restored} ${restored === 1 ? 'photo' : 'photos'}` : ''}.${!listGardens().open ? '' : asNew ? ` It’s open now; ${garden.name} is kept, to switch back to in Settings.` : ` Your garden as it was is under Bring back a garden for 30 days.`}`] });
+    setMessage({ kind: 'ok', lines: [`${asNew ? 'Added' : 'Restored'} "${store.get().garden.name}" from the backup${restored ? `, with ${restored} ${restored === 1 ? 'photo' : 'photos'}` : ''}.${!listGardens().open ? '' : asNew ? ` It’s open now; ${garden.name} is kept, to switch back to in Settings.` : ` Your garden as it was is under Bring back a garden for 30 days.`}`] });
   };
 
   return (
@@ -429,7 +432,8 @@ export function GardenNameField({ store, garden }: Props) {
       Garden name
       <input
         value={garden.name}
-        maxLength={60}
+        maxLength={NAME_LENGTH}
+        onPaste={pasteOneLine}
         onChange={(e) => {
           const name = (e.currentTarget as HTMLInputElement).value.trim();
           if (name) store.apply(updateGarden((g) => (g.name === name ? g : { ...g, name })));

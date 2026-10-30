@@ -174,10 +174,11 @@ export function placeInList(g: Garden, bed: Feature, asked: Plant, how: ListHow,
     const next = nextAcross(bed, busy, plant);
     const row = next && make(fillPlanting(plant, bed, 'row', alongMiddle(bed, next.across, next.at)));
     if (row && inside(row)) return done([row]);
-    // No clear strip for a whole row, in a bed its badge says has room: as many as that room holds, in the gaps there are.
+    // No clear strip for a whole row, in a bed its badge says has room: a row's worth in the gaps there are, and no more.
     const spare = Math.floor(((NEARLY_FULL - howFull(g, bed, plantOf)) * polygonArea(bed.footprint)) / s ** 2);
     if (spare <= 0) return done([]);
-    const some = rowsOf(spare);
+    const rowsWorth = Math.max(1, Math.floor(Math.max(b.maxX - b.minX, b.maxY - b.minY) / s));
+    const some = rowsOf(Math.min(spare, rowsWorth));
     return { ...some, left: 0, full: !some.plantings.length };
   }
   // Raised in a cold frame: as many rows of pots or modules as the frame holds.

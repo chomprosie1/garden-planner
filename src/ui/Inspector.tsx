@@ -44,6 +44,7 @@ import {
   deletePlanting,
   harvestPlantings,
   canHold,
+  countWord,
   isContainer,
   isSoftGround,
   plantCount,
@@ -1202,7 +1203,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
                 {mine.length > 0 && <FindingsList findings={mine} {...findingsProps(props)} />}
                 {canEdit && <BatchesSection key={pl.id} store={store} garden={garden} pl={pl} plant={plant} select={(id) => setSelected({ type: 'planting', id })} />}
                 <dl class="facts">
-                  <dt>Plants</dt>
+                  <dt>{countWord(plant).replace(/^./, (c) => c.toUpperCase())}</dt>
                   <dd>
                     {total}
                     {rows.length > 1 ? ` in ${rows.length} rows` : ''}

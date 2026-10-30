@@ -272,8 +272,10 @@ describe('sizes as a gardener types them', () => {
     expect(sizeMm('30 cm', 'cm')).toBe(300);
     expect(sizeMm('', 'm')).toBeNull();
   });
-  it('a pot typed in metres out of habit is still read as metres', () => {
-    expect(sizeMm('0.3', 'cm')).toBe(300);
+  it('a pot typed under 2 in a box in centimetres is asked about, unless it says metres (Nadia: 1.9 made a 1.9 m pot)', () => {
+    expect(sizeMm('0.3', 'cm')).toBeNull();
+    expect(sizeMm('1.9', 'cm')).toBeNull();
+    expect(sizeMm('0.3 m', 'cm')).toBe(300);
   });
   it('a size left as shown stays exact: tapping Set changes nothing (a 30 cm pot was becoming 3 m)', () => {
     expect(typedSize(sizeField(300, 'cm'), 300, 'cm')).toBe(300);

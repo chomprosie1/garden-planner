@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-30-as-you-asked',
+    date: '2026-10-30',
+    title: 'Plants go where you asked',
+    items: [
+      'A row in a bed that’s already part full is a row’s worth of plants, in the gaps there are.',
+      'Herbs that come back, such as thyme and rosemary, now start on One, not a bedful.',
+      'Adding a bed with a name you’ve used leaves your beds as they are: the new one takes the next number.',
+      'Pot on only offers empty pots. Tell a pot it has planting pockets in its settings, and it’s counted like a strawberry tower.',
+      'A pot size under 2 is now asked about, because the box is in centimetres.',
+      'Garlic is counted in cloves and sets in sets, and a pot is called a pot in Add a bed.',
+      'A bed you’ve just made won’t ask to be weeded the same month.',
+    ],
+  },
+  {
     id: '2026-10-30-two-fixes',
     date: '2026-10-30',
     title: 'Two mistakes put right',

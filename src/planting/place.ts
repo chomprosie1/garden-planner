@@ -213,6 +213,12 @@ function evenlyIn(a: Point, b: Point, n: number): Point[] {
   return out;
 }
 
+/** What a count of this plant is a count of: garlic goes in as cloves and onions as sets, not as plants. */
+export function countWord(plant: Plant): string {
+  const from = plant.sowing?.length && plant.sowing.every((s) => s.from && s.from === plant.sowing![0]!.from) ? plant.sowing[0]!.from : undefined;
+  return from === 'cloves' || from === 'sets' || from === 'tubers' ? from : 'plants';
+}
+
 /** Where each plant in a planting sits. */
 export function plantPositions(pl: Planting, plant: Plant): Point[] {
   const start: Point = [pl.x, pl.y];

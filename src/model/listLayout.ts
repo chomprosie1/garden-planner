@@ -237,6 +237,20 @@ export function nameListBeds(g: Garden, isListed: (f: Feature) => boolean, label
   return { ...g, features: g.features.map((f) => (renamed.has(f.id) ? { ...f, name: renamed.get(f.id)! } : f)) };
 }
 
+/**
+ * Names for beds you've named as you add them, leaving the ones you have as they are: "Bed 1" beside "Bed 1" and "Bed 2"
+ * is "Bed 3". Several at once with a new name are numbered: "Back door pot 1", "Back door pot 2".
+ */
+export function namesFor(g: Garden, name: string, n: number, labelOf: (f: Feature) => string): string[] {
+  const used = new Set(g.features.map(labelOf));
+  if (!used.has(name)) return n === 1 ? [name] : Array.from({ length: n }, (_, i) => `${name} ${i + 1}`);
+  return Array.from({ length: n }, () => {
+    const next = nextName(name, used);
+    used.add(next);
+    return next;
+  });
+}
+
 /** Beds on a plan told apart: "Bed 1", "Bed 2", so a job can say which. The border and beds you've named are left alone. */
 export const numberBeds = (g: Garden): Garden => nameListBeds(g, (f) => f.kind === 'bed' && f.name !== 'Border', featureLabel);
 

@@ -7,6 +7,7 @@
 // access is guarded and the app still works.
 
 import { dayNumber } from '../model/dates';
+import { nextName } from '../model/features';
 import { KEEP_DAYS } from '../model/fresh';
 import { newId, todayIso } from '../model/ids';
 import { migratePlant } from '../model/migrate';
@@ -206,6 +207,12 @@ export function addGarden(garden: Garden, s: Kv | null = safe(), now = new Date(
   // Not listed, it isn't kept: the garden that's open stays open, and nothing's left taking up the space.
   drop(s, gardenKey(id));
   return null;
+}
+
+/** A name no garden you can see has: its own if it's free, and the next number if not. */
+export function freeGardenName(name: string, s: Kv | null = safe()): string {
+  const used = new Set(listGardens(s).gardens.map((e) => e.name));
+  return used.has(name) ? nextName(name, used) : name;
 }
 
 /**

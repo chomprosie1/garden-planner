@@ -83,16 +83,16 @@ export function parseLength(text: string): number | null {
 
 /**
  * A size typed in a field that's in metres or centimetres, mm: a bare number is in the field's unit, and anything with
- * a unit is read as written ("6 ft", "45 cm"). Null if it can't be read. In a field in centimetres, a number under 2 is
- * a size in metres, from habit: no pot is a centimetre across.
+ * a unit is read as written ("6 ft", "45 cm"). Null if it can't be read. In a field in centimetres, a number under 2
+ * isn't read at all: no pot is a centimetre across, and 1.9 could mean anything, so it's asked about, not guessed.
  */
 export function sizeMm(text: string, unit: 'm' | 'cm'): number | null {
   const t = text.trim().replace(',', '.');
   if (!t) return null;
   if (/^(\d+\.?\d*|\.\d+)$/.test(t)) {
     const n = Number(t);
-    if (n <= 0) return null;
-    return Math.round(unit === 'm' || n < 2 ? n * 1000 : n * 10);
+    if (n <= 0 || (unit === 'cm' && n < 2)) return null;
+    return Math.round(unit === 'm' ? n * 1000 : n * 10);
   }
   return parseLength(t);
 }

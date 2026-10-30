@@ -3,6 +3,7 @@
 // carrots and onions in rows, a courgette on its own, lettuce filling the bed.
 
 import { bounds, pointInPolygon } from '../geometry/polygon';
+import { perennial } from '../lifecycle/stages';
 import type { Feature, Plant, Planting, Point } from '../model/types';
 import { blockGrid, plantPositions, rowCount, rowSpacingOf, spreadOf } from './place';
 import { bulbsInPot, isBulb, isRoundPot } from './pots';
@@ -31,6 +32,8 @@ export function defaultFill(plant: Plant, bed: Feature): Fill {
   if (isCane(plant) && !lawnLike(bed) && bed.kind !== 'pot' && long >= s * 3) return 'row';
   // Big plants, anywhere with room for only one, and a lawn (a few bulbs, not the whole lawn), get one.
   if (lawnLike(bed) || spread >= 600 || plant.category === 'tree' || plant.category === 'shrub' || long < s * 2) return 'one';
+  // A herb that comes back: you want one thyme, not a bed of it.
+  if (plant.category === 'herb' && perennial(plant)) return 'one';
   // A window box, trough or narrow bed: one row along it.
   if (narrow < s * 2) return 'row';
   if (bed.kind === 'pot') return 'fill';

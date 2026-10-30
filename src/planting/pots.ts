@@ -310,14 +310,15 @@ export function potOnChoices(g: Garden, plantingId: string, plantOf: (id: string
   const need = potNeeds(plantOf(pl.plantId));
   // A size up: what it wants, or a good step bigger than now if it's already there.
   const suggested = Math.max(need, Math.ceil((now.across * 1.4) / 50) * 50);
-  const used = (f: Feature) => g.plantings.filter((p) => p.featureId === f.id && isActive(p)).length;
+  // Empty ones only: a pot with something in it isn't a bigger pot for this one.
+  const empty = (f: Feature) => !g.plantings.some((p) => p.featureId === f.id && isActive(p));
   const pots = g.features
-    .filter((f) => f.id !== from.id && isPot(f))
+    .filter((f) => f.id !== from.id && isPot(f) && empty(f))
     .filter((f) => {
       const s = potSize(f)!;
       return s.across > now.across && s.across >= need * 0.95;
     })
-    .sort((a, b) => used(a) - used(b) || potSize(a)!.across - potSize(b)!.across);
+    .sort((a, b) => potSize(a)!.across - potSize(b)!.across);
   const beds = g.features.filter((f) => f.kind === 'bed' || f.kind === 'greenhouse' || f.kind === 'cold-frame');
   return { suggested, pots, beds };
 }
