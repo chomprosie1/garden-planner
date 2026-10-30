@@ -12,6 +12,7 @@ import { spacingStyle } from '../planting/place';
 import type { Prefs, PrefsStore, View } from '../theme/prefs';
 import { GardenNameField, placeText, UseLocationButton } from './GardenSettings';
 import { KitPicker } from './KitPicker';
+import { EasyToRead } from './LookPicker';
 import { PlaceSearch } from './PlaceSearch';
 import { PlantIcon } from './PlantIcon';
 import { SeasonPhoto } from './SeasonPhoto';
@@ -110,9 +111,9 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
 
   if (step === 0)
     return (
-      <div class="welcome">
-        <SeasonPhoto month={month} sizes="100vw" class="welcome-photo" />
-        <div class="welcome-text on-photo">
+      <div class={`welcome ${prefs.photos === 'off' ? 'welcome-plain' : ''}`}>
+        {prefs.photos !== 'off' && <SeasonPhoto month={month} sizes="100vw" class="welcome-photo" />}
+        <div class={`welcome-text ${prefs.photos === 'off' ? '' : 'on-photo'}`}>
           <p class="eyebrow">{seasonFor(month).name}</p>
           <h1 class="title welcome-title">Plan your garden, month by month.</h1>
           <p>Lay it out to scale, choose what to grow where, and see what to do each week.</p>
@@ -120,9 +121,12 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
             <button type="button" class="btn btn-primary btn-large" onClick={() => setStep(1)}>
               Get started
             </button>
-            <button type="button" class="btn btn-on-photo" onClick={() => finish(true)}>
+            <button type="button" class={`btn ${prefs.photos === 'off' ? '' : 'btn-on-photo'}`} onClick={() => finish(true)}>
               Skip
             </button>
+          </div>
+          <div class="welcome-read">
+            <EasyToRead prefs={prefs} prefsStore={prefsStore} />
           </div>
         </div>
       </div>
@@ -131,9 +135,8 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
   return (
     <div class="onboarding">
       <div class="onboarding-inner">
-        <p class="eyebrow">
-          Step {step} of {steps.length}
-        </p>
+        {/* One piece of text, so a screen reader doesn't read it in fragments. */}
+        <p class="eyebrow">{`Step ${step} of ${steps.length}`}</p>
         {current === 'where' ? (
           <>
             <h1 class="title">Where’s your garden?</h1>
@@ -149,6 +152,9 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
               </div>
             )}
             <GardenNameField store={store} garden={garden} />
+            <div class="onboarding-read">
+              <EasyToRead prefs={prefs} prefsStore={prefsStore} />
+            </div>
           </>
         ) : current === 'track' ? (
           <>

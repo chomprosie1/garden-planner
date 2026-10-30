@@ -215,26 +215,11 @@ function PlantJob({ job, done, onToggle, onPick, plantOf, garden, startHere = fa
   return (
     <>
       <span class="job-line">
-        {/* The tick box ticks; the job itself opens how to do it. */}
-        <span class="job">
+        {/* A tap anywhere on the row ticks it, and its how-to has a button of its own. A garden word in it is a button, and only opens the word. */}
+        <label class="job">
           <input type="checkbox" checked={done} aria-label={`Done: ${jobLabel(job).toLowerCase()}, ${job.plant} ${job.where}`} onChange={() => (buzz(), onToggle())} />
-          {/* Not a <button>: the garden words inside it are buttons of their own. */}
-          <span
-            role="button"
-            tabIndex={0}
-            class="job-text job-open"
-            aria-haspopup="dialog"
-            onClick={() => setOpened(true)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setOpened(true);
-              }
-            }}
-          >
-            {inner}
-          </span>
-        </span>
+          {text}
+        </label>
         <span class="job-actions">
           <button type="button" class="job-link link-btn small" aria-haspopup="dialog" onClick={() => setOpened(true)}>
             How to

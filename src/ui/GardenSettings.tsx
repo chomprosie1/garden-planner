@@ -385,11 +385,11 @@ function MonthDayField({ label, value, onChange }: { label: string; value: strin
       <legend>{label}</legend>
       <div class="field-row">
         <label class="field">
-          <span class="visually-hidden">Day</span>
+          <span class="visually-hidden">{label}: day</span>
           <input type="number" min={1} max={days} value={d} onChange={(e) => set(m, Math.max(1, Number((e.currentTarget as HTMLInputElement).value) || 1))} />
         </label>
         <label class="field">
-          <span class="visually-hidden">Month</span>
+          <span class="visually-hidden">{label}: month</span>
           <select value={m} onChange={(e) => set(Number((e.currentTarget as HTMLSelectElement).value), d)}>
             {MONTH_NAMES.map((name, i) => (
               <option key={name} value={i + 1}>

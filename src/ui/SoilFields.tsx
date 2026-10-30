@@ -73,6 +73,7 @@ export function BedSoil({ store, garden, bed }: { store: Store; garden: Garden; 
   const usualText = bed.kind === 'pot' || bed.kind === 'planter' ? 'Compost (the usual)' : `The garden’s${usual ? ` (${SOIL_LABEL[usual].toLowerCase()})` : ''}`;
   return (
     <>
+      <p class="field-heading">Soil</p>
       <div class="happened-chips" role="group" aria-label="Soil">
         <button type="button" class="chip" aria-pressed={!bed.soil} onClick={() => set({ soil: undefined })}>
           {usualText}

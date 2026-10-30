@@ -2927,6 +2927,27 @@ Tests: `first-garden-real` (the migration), `plan-trust` (the boundary, sizes).
 
 Not changed: the side panel's sizes on a computer are still in mm, as Callum liked them.
 
+### Release 53 — Easy to see and touch (as built)
+Built 30 Oct 2026. No schema change. Version 0.53.0.
+
+- **Targets:** 44 px is now a token (`--tap`), and 48 px (`--tick`) for a row with a tick box, on every kind of pointer rather than only touch. Checked with a size scan at 390 px and Extra large over setup, Today, Garden, Plants, Shed, Settings, Add a bed, Add a plant, the planting sheet and the plan. Words in running text, such as dotted garden words, are left as they are, as the usual exception allows.
+- **A tap anywhere on a job's row ticks it** (a `label` round the box and the words). How to has its own button. A garden word in the row opens only the word. Checked in the browser: tick, untick, word, How to.
+- **Text size:** Large is 125% and Extra large 150%. Fields, boxes, the bottom menu and the plan's words grow with it (`textScale`).
+- **High contrast** is a sixth look, with its own test: 7:1 for all words and 3:1 for edges. It has no photos (`asShown`) and no lawn texture. It's offered with the text size on the welcome, on setup's first step, and at the top of Settings.
+- **Colour alone:** the season bar's stretches now say Seed, Grow, Flower or Pick, and what's expected is striped, not paler. A ticked choice or chip has a ✓. The Timeline says "Now:", and its pale dots and text are darker.
+- **Screen reader:** the frost dates have full names, setup's step is one piece of text, and the menu comes after the page. Help no longer says swipe. The plan's list exists (`PlanList`): a button just after the plan, and under its ···. It picks a bed or plant on the plan. Swiping still works, unmentioned.
+- **Undo** stays 30 seconds, and 12 over the plan. It's a bar the page makes room for, except on the plan, where the canvas would re-centre if its height changed.
+- **Today opens at the top,** and so does each screen. **The planting's ··· menu** stands on the screen itself, above its button if there's no room below.
+- **Also fixed:** the ··· dots were hard to see, and on a photo the button was a white box. Settings has its word under the sliders on a phone. Example words in empty boxes say "Such as". A bed's soil chips have a heading.
+- **Review:** read through by hand before pushing, not with `/code-review`, to avoid the cost of its subagents.
+
+Tests: `contrast`. TalkBack on a real Android phone is yours to check: only what the page announces was checked here.
+
+Not changed:
+- **The toast over the plan** still covers the foot of the plan while it's up.
+- **The credit on the photo** can sit over the month's name at Extra large.
+- **The sun and shade colours on the plan** are still colour first, with a word when you point at a spot.
+
 ## Repo layout
 ```
 garden-planner/

@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'preact/hooks';
-import { VIEW_HASH, viewForHash, type Prefs, type PrefsStore, type View } from '../theme/prefs';
+import { asShown, VIEW_HASH, viewForHash, type Prefs, type PrefsStore, type View } from '../theme/prefs';
 
 export function usePrefs(prefs: PrefsStore): Prefs {
-  const [value, setValue] = useState(prefs.get());
+  const [value, setValue] = useState(() => asShown(prefs.get()));
   useEffect(() => {
-    setValue(prefs.get());
-    return prefs.subscribe(setValue);
+    setValue(asShown(prefs.get()));
+    return prefs.subscribe((p) => setValue(asShown(p)));
   }, [prefs]);
   return value;
 }
+
+/** How much bigger than standard the words are, by the text size here (the app's, and any the browser's set). */
+export const rootTextScale = (): number => parseFloat(getComputedStyle(document.documentElement).fontSize) / 16 || 1;
 
 const PHONE = '(max-width: 700px)';
 

@@ -37,6 +37,7 @@ import { canDrawByHand, geometryForTool, helpForMessage, PlanCanvas, type Canvas
 import { HelpButton, HelpLink, StuckNote } from '../HelpLink';
 import { SeasonPhoto } from '../SeasonPhoto';
 import { PlanChips } from '../PlanChips';
+import { PlanList } from '../PlanList';
 import { PlanTips } from '../PlanTips';
 import { ShareDialog } from '../ShareDialog';
 import { SketchBar } from '../SketchBar';
@@ -151,6 +152,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   const [clearing, setClearing] = useState(false);
   const [drafting, setDrafting] = useState(false);
   const [shopping, setShopping] = useState(false);
+  const [listing, setListing] = useState(false);
   // The first tips wait for your first tap on the plan, so it opens calm.
   const [tapped, setTapped] = useState(false);
   const mode = prefs.planMode;
@@ -661,6 +663,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               ...(prefs.photos === 'full' && !phone
                 ? [{ label: hidePhotos ? 'Show photos around the plan' : 'Hide photos around the plan', icon: (hidePhotos ? 'image-off' : 'image') as IconName, keys: 'H', onSelect: () => prefsStore.set({ focus: !hidePhotos }) }]
                 : []),
+              ...(!empty ? [{ label: 'List of beds and plants', icon: 'notes' as const, onSelect: () => setListing(true) }] : []),
               ...(!empty ? [{ label: 'See it in 3D', icon: 'cube' as const, onSelect: () => setThreeD(true) }] : []),
               ...(phone && !empty && !lensAsked && lens === 'none' ? [{ label: 'Show: sun, shade, flowers, picking or water', icon: 'sun' as IconName, onSelect: () => setLensAsked(true) }] : []),
               ...(phone && !empty && !yearAsked ? [{ label: 'The year ahead: a slider, and Play the year', icon: 'month' as const, onSelect: () => (setYearAsked(true), setYearOpen(true)) }] : []),
@@ -695,7 +698,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       )}
       {!phone && tool === 'sketch' && sketchBar}
       <div class="plan-body">
-        <main class="plan-stage" onPointerDownCapture={() => !tapped && setTapped(true)}>
+        <main class="plan-stage" onPointerDownCapture={(e) => !tapped && !(e.target as Element).closest('.plan-list-skip') && setTapped(true)}>
           {showPhoto && <SeasonPhoto month={photoMonth} sizes="100vw" class="plan-margin-photo" credit={false} />}
           <div class="sheet">
             <PlanCanvas
@@ -747,6 +750,9 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               measuring={measuring}
               onMeasure={setMeasured}
             >
+              <button type="button" class="btn plan-list-skip" onClick={() => setListing(true)}>
+                List of beds and plants
+              </button>
               <ActionPill
                 pillRef={pillRef}
                 target={tool === 'select' ? selected : null}
@@ -894,6 +900,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
           close={() => setThreeD(false)}
         />
       )}
+      {listing && plants && <PlanList garden={garden} plantOf={plantOf} select={select} close={() => setListing(false)} />}
       {clearing && plants && <ClearBedsDialog garden={garden} store={store} plantOf={plantOf} close={() => setClearing(false)} />}
       {drafting && plants && <NextYearDialog garden={garden} store={store} plantOf={plantOf} close={() => setDrafting(false)} />}
       {shopping && plants && <ShoppingDialog garden={garden} store={store} plantOf={plantOf} feeding={prefs.feeding} close={() => setShopping(false)} />}

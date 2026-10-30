@@ -9,6 +9,9 @@ export function SettingsButton({ class: cls = '' }: { class?: string }) {
   return (
     <button type="button" class={`icon-btn settings-btn phone-only ${cls}`} aria-label="Settings" title="Settings: your garden, reminders, backups and text size" onClick={() => app.go('settings')}>
       <Icon name="settings" />
+      <span class="settings-word" aria-hidden="true">
+        Settings
+      </span>
     </button>
   );
 }

@@ -3,8 +3,11 @@
 
 :root {
   --gutter: 16px;
-  --rail: 88px;
+  --rail: 5.5rem;
   --tabbar: 72px;
+  /* The smallest thing to tap, and a row with a tick box: for a finger that can't land exactly. */
+  --tap: 44px;
+  --tick: 48px;
   /* The browser's own text size (16 px unless you've changed it), so a larger size set on the device carries through. */
   font-size: 100%;
   line-height: 1.45;
@@ -13,11 +16,11 @@
   --text: #2f3a2c;
 }
 :root[data-text='large'] {
-  font-size: 112.5%;
+  font-size: 125%;
 }
 /* Extra large: for tired eyes on a phone. Layouts that fit at 390 px wrap rather than overflow. */
 :root[data-text='xlarge'] {
-  font-size: 131.25%;
+  font-size: 150%;
 }
 
 * {
@@ -107,6 +110,21 @@ input,
 select {
   font: inherit;
   color: inherit;
+}
+/* Fields, boxes and rounds grow with the text. No weight here, so a control styled its own way keeps its own size. */
+:where(select, input:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file'])) {
+  min-height: var(--tap);
+}
+:where(input[type='checkbox'], input[type='radio']) {
+  width: 1.4rem;
+  height: 1.4rem;
+  flex: none;
+  accent-color: var(--accent);
+}
+:where(summary) {
+  min-height: var(--tap);
+  padding-block: 0.6rem;
+  box-sizing: border-box;
 }
 .btn {
   display: inline-flex;
@@ -262,9 +280,10 @@ button:disabled {
   height: 100%;
   display: grid;
   grid-template-columns: var(--rail) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
 }
 .rail {
-  grid-row: 1;
+  grid-row: 1 / -1;
   grid-column: 1;
   display: flex;
   flex-direction: column;
@@ -278,6 +297,7 @@ button:disabled {
 .screen {
   /* Positioned, so hidden labels inside stay inside it rather than stretching the page past the tab bar. */
   position: relative;
+  grid-row: 1;
   grid-column: 2;
   min-width: 0;
   min-height: 0;
@@ -292,12 +312,13 @@ button:disabled {
   flex-direction: column;
   align-items: center;
   gap: 0.2rem;
-  width: 70px;
+  width: 4.5rem;
+  min-height: var(--tick);
   padding: 0.55rem 0;
   border-radius: var(--radius);
   color: var(--chrome-muted);
   text-decoration: none;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 600;
 }
 .nav-item[aria-current='page'] {
@@ -314,14 +335,17 @@ button:disabled {
 @media (max-width: 700px) {
   .app {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr) auto auto;
   }
   .screen {
     grid-column: 1;
     grid-row: 1;
   }
+  .toast {
+    grid-column: 1;
+  }
   .rail {
-    grid-row: 2;
+    grid-row: 3;
     grid-column: 1;
     flex-direction: row;
     justify-content: space-around;
@@ -439,7 +463,7 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  min-height: 46px;
+  min-height: var(--tick);
   border-bottom: 1px solid var(--border);
   cursor: pointer;
 }
@@ -447,8 +471,8 @@ button:disabled {
   border-bottom: 0;
 }
 .job input {
-  width: 22px;
-  height: 22px;
+  width: 1.75rem;
+  height: 1.75rem;
   margin: 0;
   flex: none;
   accent-color: var(--accent);
@@ -833,11 +857,6 @@ button:disabled {
   display: flex;
   gap: 0.4rem;
 }
-.toolbar .icon-btn {
-  width: 40px;
-  height: 40px;
-}
-
 /* Simple | Advanced, in the plan's toolbar. */
 .mode-switch {
   display: inline-flex;
@@ -848,7 +867,7 @@ button:disabled {
   background: var(--surface);
 }
 .mode-switch button {
-  min-height: 34px;
+  min-height: var(--tap);
   padding: 0 0.75rem;
   border: 0;
   border-radius: 999px;
@@ -1009,12 +1028,12 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  min-height: 40px;
+  min-height: var(--tick);
   font-size: 0.95rem;
 }
 .check input {
-  width: 20px;
-  height: 20px;
+  width: 1.4rem;
+  height: 1.4rem;
   accent-color: var(--accent);
 }
 .field input[type='range'] {
@@ -1270,7 +1289,17 @@ button:disabled {
 }
 
 /* ---------- Toast ---------- */
+/* A bar under the page, which the page makes room for: it says something without covering anything. */
 .toast {
+  grid-row: 2;
+  grid-column: 2;
+  padding: 0.3rem var(--gutter);
+  background: var(--text);
+  color: var(--bg);
+  animation: toast-in 0.4s ease-out;
+}
+/* The plan is a canvas that pans, and re-centres if its height changes: there it stands over the foot of the plan. */
+.app[data-view='plan']:not([data-list]) .toast {
   position: fixed;
   left: 50%;
   bottom: calc(var(--tabbar) + 1rem);
@@ -1279,20 +1308,16 @@ button:disabled {
   /* As wide as its words, up to the screen less a margin: centred with left 50%, it would otherwise shrink to half. */
   width: max-content;
   max-width: calc(100% - 2 * var(--gutter));
-  padding: 0.75rem 1.1rem;
   border-radius: var(--radius);
-  background: var(--text);
-  color: var(--bg);
   box-shadow: var(--shadow);
-  animation: toast-in 0.4s ease-out;
   /* It says something, it doesn't stop you: only its buttons take a tap. */
   pointer-events: none;
 }
-.toast button {
+.app[data-view='plan']:not([data-list]) .toast button {
   pointer-events: auto;
 }
 @media (min-width: 701px) {
-  .toast {
+  .app[data-view='plan']:not([data-list]) .toast {
     bottom: 1.5rem;
   }
 }
@@ -1679,11 +1704,15 @@ button:disabled {
   margin: 0.15rem 0 0;
 }
 .link-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
   border: 0;
   padding: 0;
   background: none;
   color: var(--link);
   font: inherit;
+  text-align: left;
   text-decoration: underline;
   text-underline-offset: 0.18em;
   cursor: pointer;
@@ -1853,10 +1882,6 @@ button:disabled {
   min-height: 0;
 }
 @media (max-width: 700px) {
-  .plan .toolbar .icon-btn {
-    width: 38px;
-    height: 38px;
-  }
   .plan .toolbar-actions {
     gap: 0.25rem;
   }
@@ -2126,17 +2151,6 @@ button:disabled {
 .job-preview {
   cursor: default;
 }
-/* A job opens its how-to: a button that reads as the job's text. */
-.job-open {
-  flex: 1;
-  min-width: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
 /* Garden words: a dotted underline, and a tap opens their two lines. */
 .gloss {
   display: inline;
@@ -2370,6 +2384,7 @@ button:disabled {
   font-size: 0.85rem;
 }
 .toast-undo {
+  min-height: var(--tap);
   padding: 0.3rem 0.8rem;
   border-radius: var(--radius);
   border: 1px solid currentColor;
@@ -2380,10 +2395,11 @@ button:disabled {
   cursor: pointer;
 }
 .toast-close {
+  min-width: var(--tap);
+  min-height: var(--tap);
   border: 0;
   background: none;
   color: inherit;
-  opacity: 0.7;
   font: inherit;
   cursor: pointer;
   padding: 0.2rem;
@@ -2840,7 +2856,7 @@ kbd {
   left: 0;
   right: 0;
   top: calc(50% - 1px);
-  border-top: 2px solid var(--border);
+  border-top: 2px solid var(--muted);
 }
 .stage-dot::after {
   content: '';
@@ -2851,7 +2867,7 @@ kbd {
   height: 0.9rem;
   box-sizing: border-box;
   border-radius: 50%;
-  border: 2px solid var(--border);
+  border: 2px solid var(--muted);
   background: var(--surface);
 }
 .stage-done .stage-dot::before {
@@ -2870,14 +2886,14 @@ kbd {
 }
 .stage:not(:nth-last-child(2)) .stage-name::after {
   content: ' ·';
-  color: var(--border);
+  color: var(--muted);
 }
 .stage-now .stage-name {
   color: var(--text);
   font-weight: 700;
 }
-.stage-todo .stage-name {
-  opacity: 0.85;
+.stage-now .stage-name::before {
+  content: 'Now: ';
 }
 .stage-date {
   font-weight: 400;
@@ -3478,7 +3494,7 @@ kbd {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  min-height: 34px;
+  min-height: var(--tap);
   padding: 0.2rem 0.75rem;
   border-radius: 999px;
   border: 1px solid var(--border);
@@ -3665,7 +3681,7 @@ kbd {
 .dock-search input {
   flex: 1;
   min-width: 0;
-  min-height: 34px;
+  min-height: var(--tap);
   border: 0;
   background: transparent;
   color: var(--text);
@@ -3808,7 +3824,7 @@ kbd {
   align-items: center;
   justify-content: center;
   gap: 0.3rem;
-  min-height: 34px;
+  min-height: var(--tap);
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -3824,7 +3840,7 @@ kbd {
   background: var(--surface2);
 }
 .pill-icon {
-  width: 34px;
+  width: var(--tap);
 }
 .pill-btn:hover,
 .pill-icon:hover {
@@ -4258,8 +4274,8 @@ kbd {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  min-height: 26px;
-  padding: 0.1rem 0.5rem;
+  min-height: var(--tap);
+  padding: 0.1rem 0.6rem;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--surface);
@@ -4316,11 +4332,6 @@ button.plan-chip:hover {
 .plan-gap .link-btn {
   font-weight: 700;
   padding: 0.2rem 0;
-}
-@media (pointer: coarse) {
-  .plan-chip {
-    min-height: 32px;
-  }
 }
 
 /* Sharing a picture or a timelapse. */
@@ -4431,6 +4442,7 @@ button.plan-chip:hover {
 .garden-name-btn {
   display: inline-flex;
   align-items: center;
+  min-height: var(--tap);
   gap: 0.25rem;
   padding: 0;
   border: 0;
@@ -4610,7 +4622,7 @@ button.plan-chip:hover {
   margin: 0.5rem 0 1rem;
 }
 .favourite {
-  min-height: 40px;
+  min-height: var(--tap);
 }
 .place-search-form {
   display: flex;
@@ -5008,25 +5020,6 @@ button.plan-chip:hover {
 }
 .behind-line p {
   margin: 0;
-}
-
-/* Fingers, not a mouse: 44 px to tap, the usual minimum. */
-@media (pointer: coarse) {
-  .toolbar .icon-btn {
-    width: 44px;
-    height: 44px;
-  }
-  .mode-switch button {
-    min-height: 38px;
-  }
-  .chip,
-  .pill-btn,
-  .pill-icon {
-    min-height: 44px;
-  }
-  .pill-icon {
-    width: 44px;
-  }
 }
 
 /* ---------- The garden in 3D (release 10) ---------- */
@@ -5615,14 +5608,14 @@ h2 {
   display: flex;
   flex-wrap: wrap;
   gap: 0.1rem 1.1rem;
-  padding: 0 0 0.55rem calc(22px + 0.75rem);
+  padding: 0 0 0.3rem calc(1.75rem + 0.75rem);
   margin-top: -0.2rem;
 }
 .job-actions .job-link {
-  padding: 0.3rem 0;
+  padding: 0;
 }
 .job-pick {
-  padding-left: calc(22px + 0.75rem);
+  padding-left: calc(1.75rem + 0.75rem);
 }
 .job-text > span:first-child {
   font-size: var(--step-0);
@@ -6559,31 +6552,55 @@ h2 {
   font-family: var(--font-display);
   font-size: 1.05rem;
 }
+/* Each stretch says what it is: colour helps, but isn't the only way to tell them apart. */
 .season-bar {
-  width: 100%;
-  height: 8px;
+  position: relative;
   display: block;
+  width: 100%;
+  height: 1.2rem;
+  border-radius: 3px;
+  background: var(--surface2);
+  overflow: hidden;
 }
-.season-track {
-  fill: var(--border);
+.season-part {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-right: 1px solid var(--surface);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #1b1b1b;
 }
 .season-seed {
-  fill: #b89a6a;
+  background: #d3b98c;
 }
 .season-leaf {
-  fill: var(--accent);
+  background: #a8c98f;
 }
 .season-flower {
-  fill: #d98cb3;
+  background: #eab3cf;
 }
 .season-crop {
-  fill: #e0a33a;
+  background: #eec06a;
 }
+/* What's expected, not yet seen: striped, as a paler colour alone is easily missed. */
 .season-guess {
-  opacity: 0.45;
+  background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0 4px, transparent 4px 8px);
 }
 .season-today {
-  fill: var(--text);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  margin-left: -1px;
+  background: var(--text);
+  box-shadow: 0 0 0 1px var(--surface);
 }
 /* The key to the bars, above the beds. The swatches are spans, so they take background, not fill. */
 .season-key-list {
@@ -6739,18 +6756,148 @@ h2 {
 /* A switch in Settings: the box beside its words, both growing with the text size (release 40). */
 .switch-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.6em;
+  min-height: var(--tick);
   cursor: pointer;
   line-height: 1.35;
 }
 .switch-row input[type='checkbox'] {
   flex: none;
-  width: 1.15em;
-  height: 1.15em;
-  margin: 0.1em 0 0;
+  width: 1.4rem;
+  height: 1.4rem;
+  margin: 0;
   accent-color: var(--accent);
 }
+/* ---------- Easy to see and touch (release 53) ---------- */
+.field-heading {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+.easy-read {
+  display: grid;
+  gap: 0.4rem;
+}
+/* On the welcome, words on a card of their own: over a photo they'd come and go with the picture. */
+.welcome-read {
+  margin-top: 0.5rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  color: var(--text);
+  text-shadow: none;
+  font-size: 1rem;
+}
+.welcome-plain {
+  background: var(--bg);
+}
+.welcome-plain::after {
+  display: none;
+}
+.onboarding-read {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+/* What's on is said by a tick as well as by its colour. */
+.choice-option input:checked + span::before,
+.chip[aria-checked='true']::before,
+.chip[aria-pressed='true']::before {
+  content: '✓';
+  margin-right: 0.3em;
+}
+/* Example words in an empty box, not values already filled in. */
+::placeholder {
+  color: var(--muted);
+  font-style: italic;
+  opacity: 0.8;
+}
+.more-menu > .icon-btn {
+  color: var(--text);
+  border-color: var(--muted);
+}
+/* The three dots are drawn by the line's width: thicker, so they don't fade away. */
+.more-menu > .icon-btn svg {
+  stroke-width: 3.4;
+}
+.more-menu-list {
+  max-height: calc(100dvh - 16px);
+  overflow-y: auto;
+}
+/* The word as well as the sliders, on a phone, where the rail with Settings on it isn't there. */
+.settings-btn {
+  flex-direction: column;
+  width: auto;
+  min-width: var(--tap);
+  height: auto;
+  min-height: var(--tap);
+  padding: 0.1rem 0.3rem;
+}
+.settings-word {
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+.on-photo .more-menu > .icon-btn {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: transparent;
+  color: #fff;
+}
+.icon-btn.help-quiet,
+.credit summary,
+.season-key-q,
+.advanced summary,
+.shed-place-menu summary,
+.credit-full a {
+  min-height: var(--tap);
+  min-width: var(--tap);
+}
+.credit summary,
+.season-key-q,
+.advanced summary,
+.shed-place-menu summary {
+  display: flex;
+  align-items: center;
+}
+.credit-full a {
+  display: inline-flex;
+  align-items: center;
+}
+/* A list of what's on the plan: there for whoever needs it, and out of the way until then. */
+.plan-list-skip {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  z-index: 6;
+}
+.plan-list-skip:not(:focus) {
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.plan-list-beds {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+.plan-list-beds ul {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0 0 0 1rem;
+}
+.plan-list-beds .btn {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+}
+
 /* Whether a bed's crops go round, and whether it's a fruit cage (release 46). */
 .rotation-switch {
   display: grid;

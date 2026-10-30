@@ -54,6 +54,7 @@ import { besideSupport, boundaryFence, holdsOne, isSupport, wherePhrase } from '
 import { treeType } from '../model/trees';
 import { addNumbered } from '../model/listLayout';
 import { addPlanting, blockGrid, containerAt, isContainer, leftItsBed, mayGoUp, deletePlanting, duplicatePlanting, makePlanting, placeCopy, MAX_PLANTS, movePlanting, plantCount, plantingPoint, plantPositions, rowCount, rowSpacingOf, sizedPlant, spreadOf, updatePlanting, type InGroundAt, type Layout } from '../planting/place';
+import { rootTextScale } from './hooks';
 import type { Finding } from '../planting/rules';
 import type { SunGrid } from '../sun/hours';
 import type { Sun } from '../sun/position';
@@ -356,7 +357,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
       view: v,
       width: w,
       height: h,
-      style: planStyle(p.look, p.mode),
+      style: { ...planStyle(p.look, p.mode), textScale: rootTextScale() },
       selected: p.selected,
       selectedVertex: p.selectedVertex,
       hoverId: hover.current,
@@ -1764,7 +1765,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
         tabIndex={0}
         style={{ cursor }}
         role="img"
-        aria-label={`Plan of ${props.garden.name}. Use the list of features beside the plan to select items.`}
+        aria-label={`Plan of ${props.garden.name}. Everything on it is in the list of beds and plants, the next button.`}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}

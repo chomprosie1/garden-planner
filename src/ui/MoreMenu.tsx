@@ -18,13 +18,20 @@ export function MoreMenu({ items, label = 'More' }: { items: MenuItem[]; label?:
   const wrap = useRef<HTMLDivElement>(null);
   const list = useRef<HTMLDivElement>(null);
 
-  // The menu opens leftwards from the button; where the button sits near the left edge (a phone's second toolbar row), nudge it back on screen.
+  // The menu opens below the button and leftwards from it. Nothing it's inside clips it, a sheet or the page: it stands
+  // on the screen itself, above the button if it wouldn't fit below, and in from the edges.
   useLayoutEffect(() => {
     const el = list.current;
-    if (!open || !el) return;
-    el.style.transform = '';
-    const left = el.getBoundingClientRect().left;
-    if (left < 8) el.style.transform = `translateX(${8 - left}px)`;
+    const button = wrap.current?.querySelector('button');
+    if (!open || !el || !button) return;
+    const b = button.getBoundingClientRect();
+    const { width, height } = el.getBoundingClientRect();
+    const left = Math.max(8, Math.min(b.right - width, innerWidth - width - 8));
+    const top = b.bottom + 4 + height <= innerHeight - 8 ? b.bottom + 4 : Math.max(8, b.top - 4 - height);
+    Object.assign(el.style, { position: 'fixed', right: 'auto', left: `${left}px`, top: `${top}px` });
+    // Something round it with a transform of its own moves what "fixed" means: measure, and put it right.
+    const now = el.getBoundingClientRect();
+    if (now.left !== left || now.top !== top) Object.assign(el.style, { left: `${2 * left - now.left}px`, top: `${2 * top - now.top}px` });
   }, [open]);
 
   useEffect(() => {
@@ -33,13 +40,19 @@ export function MoreMenu({ items, label = 'More' }: { items: MenuItem[]; label?:
       if (!wrap.current?.contains(e.target as Node)) setOpen(false);
     };
     const key = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    // Standing on the screen, it would be left behind as the page moved.
+    const scrolled = (e: Event) => {
+      if (!list.current?.contains(e.target as Node)) setOpen(false);
+    };
     addEventListener('pointerdown', away);
     addEventListener('keydown', key);
+    addEventListener('scroll', scrolled, true);
     // Focus the first item, for the keyboard.
     wrap.current?.querySelector<HTMLButtonElement>('[role="menuitem"]:not([disabled])')?.focus();
     return () => {
       removeEventListener('pointerdown', away);
       removeEventListener('keydown', key);
+      removeEventListener('scroll', scrolled, true);
     };
   }, [open]);
 

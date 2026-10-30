@@ -1,5 +1,5 @@
 import { unseenNews } from '../content/whatsNew';
-import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { seasonFor } from '../content/seasons';
 import type { Target } from '../model/features';
 import type { Store } from '../model/store';
@@ -60,7 +60,12 @@ interface Toast {
 }
 
 /** How long Undo stays on a toast, at least, ms. */
-const UNDO_FOR = 5000;
+const UNDO_FOR = 10000;
+/** How long a toast with Undo stays, and one without, ms: long enough for slow hands, or for a screen reader to reach it. */
+const TOAST_WITH_UNDO = 30000;
+const TOAST_PLAIN = 8000;
+/** Over the plan it's in the way, so it goes sooner. */
+const TOAST_ON_PLAN = 12000;
 
 export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStore }) {
   const { garden, userPlants } = useAppState(store);
@@ -85,6 +90,11 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   // The welcome, on the day's first launch: not the very first (setting up runs then), nor a link or reminder to a particular screen.
   const [welcoming, setWelcoming] = useState(() => prefs.onboarded && welcomesAt(location.hash) && welcomeDue(prefs.welcomedOn, todayIso(), unseenNews(prefs.seenNews).length > 0));
   const weather = useWeatherFeed(garden, prefs.weather && prefs.onboarded);
+  const screenEl = useRef<HTMLDivElement>(null);
+  // Each screen opens at its top, not where the last one was scrolled to. Before the screens' own effects, which may scroll to something.
+  useLayoutEffect(() => {
+    screenEl.current?.scrollTo(0, 0);
+  }, [view]);
 
   /**
    * Goes to a screen. Sub-pages (Settings, Help and the like) remember the way they were reached, so Back retraces it:
@@ -104,7 +114,8 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
       notify(text, opts) {
         clearTimeout(toastTimer.current);
         setToast({ text, after: opts?.undo ? store.get() : null, at: Date.now() });
-        toastTimer.current = setTimeout(() => setToast(null), opts?.undo ? 8000 : 5000);
+        const overPlan = view === 'plan' && store.get().garden.view !== 'list';
+        toastTimer.current = setTimeout(() => setToast(null), !opts?.undo ? TOAST_PLAIN : overPlan ? TOAST_ON_PLAN : TOAST_WITH_UNDO);
       },
       go: navigate,
       draftPlants: prefs.draftPlants,
@@ -362,6 +373,31 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
     <AppContext.Provider value={actions}>
       <WeatherContext.Provider value={weather}>
       <div class="app" data-view={view} {...(garden.view === 'list' ? { 'data-list': '' } : {})}>
+        <div class="screen" ref={screenEl}>
+          {screen}
+        </div>
+        {toast && (
+          <div class="toast" role="status">
+            <span>{toast.text}</span>
+            {canUndo && (
+              <button
+                type="button"
+                class="toast-undo"
+                onClick={() => {
+                  // The change itself, and in its first few seconds anything that followed on from it.
+                  if (store.get() === toast.after || Date.now() - toast.at < UNDO_FOR) store.undoPast(toast.after!);
+                  setToast(null);
+                }}
+              >
+                Undo
+              </button>
+            )}
+            <button type="button" class="toast-close" aria-label="Dismiss" onClick={() => setToast(null)}>
+              ✕
+            </button>
+          </div>
+        )}
+        {/* After the page, so a screen reader comes to the menu once it's read the screen. The grid puts it at the side or the foot. */}
         <nav class="rail" aria-label="Main">
           {NAV.map((n) => (
             <a
@@ -395,28 +431,6 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
             <span class="nav-label">Settings</span>
           </a>
         </nav>
-        <div class="screen">{screen}</div>
-        {toast && (
-          <div class="toast" role="status">
-            <span>{toast.text}</span>
-            {canUndo && (
-              <button
-                type="button"
-                class="toast-undo"
-                onClick={() => {
-                  // The change itself, and in its first few seconds anything that followed on from it.
-                  if (store.get() === toast.after || Date.now() - toast.at < UNDO_FOR) store.undoPast(toast.after!);
-                  setToast(null);
-                }}
-              >
-                Undo
-              </button>
-            )}
-            <button type="button" class="toast-close" aria-label="Dismiss" onClick={() => setToast(null)}>
-              ✕
-            </button>
-          </div>
-        )}
         {shortcuts && <Shortcuts close={() => setShortcuts(false)} />}
         {prefs.onboarded && <ReminderKeeper garden={garden} userPlants={userPlants} frost={prefs.reminders} weekly={prefs.weeklyNudge} uv={prefs.uvReminders} />}
         {wrapping && <WrappedHost garden={garden} userPlants={userPlants} close={() => setWrapping(false)} />}

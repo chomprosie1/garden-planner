@@ -7,7 +7,7 @@ import { FONT_CREDITS } from '../../theme/fonts';
 import type { Prefs, PrefsStore, View } from '../../theme/prefs';
 import { usePlants } from '../usePlants';
 import { Icon } from '../icons';
-import { Choice, LookPicker } from '../LookPicker';
+import { Choice, EasyToRead, LookPicker } from '../LookPicker';
 import { GardenSwitcher, StartAgainCard } from '../Gardens';
 import { GardenSettings, useReminders } from '../GardenSettings';
 
@@ -34,27 +34,9 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
         <h1 class="title">Settings</h1>
       </header>
 
-      {/* First, for anyone who finds the words small: it stays where it is on the screen as the text grows. */}
-      <section class="card text-size-card" id="text-size">
-        <Choice
-          legend="Text size"
-          name="text"
-          value={prefs.textSize}
-          options={[
-            { value: 'standard', label: 'Standard' },
-            { value: 'large', label: 'Large' },
-            { value: 'xlarge', label: 'Extra large' },
-          ]}
-          onChange={(textSize) => {
-            const card = document.getElementById('text-size');
-            const before = card?.getBoundingClientRect().top;
-            prefsStore.set({ textSize });
-            requestAnimationFrame(() => {
-              const after = card?.getBoundingClientRect().top;
-              if (card && before !== undefined && after !== undefined && after !== before) (card.closest('.screen') ?? document.scrollingElement)?.scrollBy(0, after - before);
-            });
-          }}
-        />
+      {/* First, for anyone who finds the words small. */}
+      <section class="card text-size-card">
+        <EasyToRead prefs={prefs} prefsStore={prefsStore} />
       </section>
 
       <p class="muted">Your garden first, then how the app looks on this device.</p>
@@ -80,17 +62,20 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
         />
         <details class="advanced more-display">
           <summary>More display options</summary>
-          <Choice
-            legend="Seasonal photos"
-            name="photos"
-            value={prefs.photos}
-            options={[
-              { value: 'full', label: 'Full' },
-              { value: 'subtle', label: 'Subtle' },
-              { value: 'off', label: 'Off' },
-            ]}
-            onChange={(photos) => prefsStore.set({ photos })}
-          />
+          {/* High contrast has none, whatever's chosen. */}
+          {prefs.look !== 'contrast' && (
+            <Choice
+              legend="Seasonal photos"
+              name="photos"
+              value={prefs.photos}
+              options={[
+                { value: 'full', label: 'Full' },
+                { value: 'subtle', label: 'Subtle' },
+                { value: 'off', label: 'Off' },
+              ]}
+              onChange={(photos) => prefsStore.set({ photos })}
+            />
+          )}
           <label class="field">
             Photo month
             <select

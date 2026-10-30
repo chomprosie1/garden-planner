@@ -1,8 +1,8 @@
-// The five looks. Each has light and dark colours for the app and for the
+// The six looks. Each has light and dark colours for the app and for the
 // plan, its fonts, and how it treats the seasonal photos. Colours here are
 // checked for contrast by tests/contrast.test.ts.
 
-export const LOOK_IDS = ['cottage', 'heritage', 'allotment', 'modern', 'minimal'] as const;
+export const LOOK_IDS = ['cottage', 'heritage', 'allotment', 'modern', 'minimal', 'contrast'] as const;
 export type LookId = (typeof LOOK_IDS)[number];
 export type Mode = 'light' | 'dark';
 
@@ -307,6 +307,52 @@ export const LOOKS: Record<LookId, Look> = {
         bedFill: '#181919', bedStroke: '#c9ccca', building: '#181919', buildingStroke: '#c9ccca',
         glass: '#181919', glassStroke: '#c9ccca', water: '#181919', canopy: 'rgba(0,0,0,0)',
         canopyStroke: '#c9ccca', fence: '#c9ccca', label: '#a3a7a5', selection: '#6cc795',
+      },
+    },
+  },
+
+  // For the easiest reading: an aid rather than a style, so plain fonts, strong edges and no photos (asShown in prefs.ts).
+  contrast: {
+    id: 'contrast',
+    name: 'High contrast',
+    summary: 'Black on white, or white on black, with strong edges and no photos.',
+    fonts: { display: SYSTEM, body: SYSTEM, plan: SYSTEM },
+    title: { italic: false, smallCaps: false, uppercase: false, weight: 700, tracking: '0' },
+    shape: {
+      radius: '6px',
+      radiusCard: '8px',
+      shadow: 'none',
+      shadowDark: 'none',
+    },
+    home: 'band',
+    photo: { filter: 'none', marginOpacity: 0, marginBlur: 0 },
+    plan: { bedRadiusMm: 0, pattern: 'flat', labels: 'pill' },
+    light: {
+      ui: {
+        bg: '#ffffff', surface: '#ffffff', surface2: '#ececec', text: '#000000', muted: '#222222',
+        border: '#000000', accent: '#000000', accentText: '#ffffff', link: '#003a8c',
+        selectedBg: '#000000', selectedText: '#ffffff', chrome: '#ffffff', chromeText: '#000000',
+        chromeMuted: '#222222', warnBg: '#ffffff', warnBorder: '#a30015', warnText: '#8a0012', decor: '#000000',
+      },
+      plan: {
+        paper: '#ffffff', lawn: '#e6f4dc', lawnAlt: '#d9eccb', path: '#f0f0f0', patio: '#e4e4e4',
+        bedFill: '#ffffff', bedStroke: '#000000', building: '#cfcfcf', buildingStroke: '#000000',
+        glass: '#dcecfb', glassStroke: '#000000', water: '#8fc0ea', canopy: 'rgba(0,0,0,0)',
+        canopyStroke: '#000000', fence: '#000000', label: '#000000', selection: '#a30015',
+      },
+    },
+    dark: {
+      ui: {
+        bg: '#000000', surface: '#000000', surface2: '#262626', text: '#ffffff', muted: '#e6e6e6',
+        border: '#ffffff', accent: '#ffffff', accentText: '#000000', link: '#a6d4ff',
+        selectedBg: '#ffffff', selectedText: '#000000', chrome: '#000000', chromeText: '#ffffff',
+        chromeMuted: '#e6e6e6', warnBg: '#000000', warnBorder: '#ffc266', warnText: '#ffd699', decor: '#ffffff',
+      },
+      plan: {
+        paper: '#000000', lawn: '#0c200c', lawnAlt: '#112a11', path: '#1a1a1a', patio: '#242424',
+        bedFill: '#000000', bedStroke: '#ffffff', building: '#333333', buildingStroke: '#ffffff',
+        glass: '#0b2233', glassStroke: '#ffffff', water: '#17466c', canopy: 'rgba(0,0,0,0)',
+        canopyStroke: '#ffffff', fence: '#ffffff', label: '#ffffff', selection: '#ffc266',
       },
     },
   },

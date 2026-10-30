@@ -6,7 +6,7 @@ import { LOOK_IDS, LOOKS, themeVars } from '../theme/looks';
 import type { Prefs, PrefsStore } from '../theme/prefs';
 import { SeasonPhoto } from './SeasonPhoto';
 
-/** The five looks as live preview cards. Choosing one applies it at once. */
+/** The looks as live preview cards. Choosing one applies it at once. */
 export function LookPicker({ prefs, prefsStore, now = new Date() }: { prefs: Prefs; prefsStore: PrefsStore; now?: Date }) {
   useEffect(() => {
     LOOK_IDS.forEach((id) => void loadLookFonts(id));
@@ -49,6 +49,38 @@ export function LookPicker({ prefs, prefsStore, now = new Date() }: { prefs: Pre
         <div class="look-picker">{others.map(card)}</div>
       </details>
     </fieldset>
+  );
+}
+
+/** Text size and high contrast: the first thing in Settings, and offered first of all on a first visit. */
+export function EasyToRead({ prefs, prefsStore }: { prefs: Prefs; prefsStore: PrefsStore }) {
+  return (
+    <div class="easy-read" id="text-size">
+      <Choice
+        legend="Text size"
+        name="text"
+        value={prefs.textSize}
+        options={[
+          { value: 'standard', label: 'Standard' },
+          { value: 'large', label: 'Large' },
+          { value: 'xlarge', label: 'Extra large' },
+        ]}
+        onChange={(textSize) => {
+          // It stays where it is on the screen as the text grows.
+          const card = document.getElementById('text-size');
+          const before = card?.getBoundingClientRect().top;
+          prefsStore.set({ textSize });
+          requestAnimationFrame(() => {
+            const after = card?.getBoundingClientRect().top;
+            if (card && before !== undefined && after !== undefined && after !== before) (card.closest('.screen') ?? document.scrollingElement)?.scrollBy(0, after - before);
+          });
+        }}
+      />
+      <label class="switch-row">
+        <input type="checkbox" checked={prefs.look === 'contrast'} onChange={(e) => prefsStore.set({ look: (e.currentTarget as HTMLInputElement).checked ? 'contrast' : 'cottage' })} />
+        <span>High contrast: strong black and white, with no photos</span>
+      </label>
+    </div>
   );
 }
 

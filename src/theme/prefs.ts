@@ -97,6 +97,8 @@ export interface Prefs {
   dismissedChecks: string[];
 }
 
+/** Preferences as the screen uses them: high contrast has no photos, as words over a photo are what it's there to avoid. */
+export const asShown = (p: Prefs): Prefs => (p.look === 'contrast' && p.photos !== 'off' ? { ...p, photos: 'off' } : p);
 
 const KEY = 'garden-planner:prefs';
 

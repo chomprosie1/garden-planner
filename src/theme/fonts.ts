@@ -43,6 +43,7 @@ const loaders: Record<LookId, () => Promise<unknown>> = {
       import('@fontsource/manrope/800.css'),
     ]),
   minimal: () => Promise.resolve(), // system fonts only
+  contrast: () => Promise.resolve(), // system fonts only
 };
 
 const loaded = new Map<LookId, Promise<unknown>>();

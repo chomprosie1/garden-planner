@@ -469,24 +469,27 @@ function SeasonKey({ today }: { today: string }) {
       </p>
       <ul class="season-key-list">
         <li>
-          <span class="season-swatch season-seed" /> Seed and seedling
+          <span class="season-swatch season-seed" /> Seed: seed and seedling
         </li>
         <li>
-          <span class="season-swatch season-leaf" /> Growing
+          <span class="season-swatch season-leaf" /> Grow: growing
         </li>
         <li>
-          <span class="season-swatch season-flower" /> In flower
+          <span class="season-swatch season-flower" /> Flower: in flower
         </li>
         <li>
-          <span class="season-swatch season-crop" /> To pick
+          <span class="season-swatch season-crop" /> Pick: to pick
         </li>
         <li>
-          <span class="season-swatch season-leaf season-guess" /> Paler: expected
+          <span class="season-swatch season-leaf season-guess" /> Striped: expected
         </li>
       </ul>
     </details>
   );
 }
+
+/** What each stretch of a bar says, where it's wide enough; a short one, its first letter. */
+const BAND_WORD: Record<string, string> = { seed: 'Seed', leaf: 'Grow', flower: 'Flower', crop: 'Pick' };
 
 function SeasonBar({ steps, today }: { steps: Step[]; today: string }) {
   const [y, m] = [Number(today.slice(0, 4)), Number(today.slice(5, 7))];
@@ -499,13 +502,18 @@ function SeasonBar({ steps, today }: { steps: Step[]; today: string }) {
     .filter((p) => p.band && p.to > p.from);
   if (!parts.length) return null;
   return (
-    <svg class="season-bar" viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true">
-      <rect class="season-track" x="0" y="2" width="100" height="2" rx="1" />
-      {parts.map((p, i) => (
-        <rect key={i} class={`season-${p.band} ${p.guessed ? 'season-guess' : ''}`} x={p.from * 100} y="1" width={(p.to - p.from) * 100} height="4" rx="1.5" />
-      ))}
-      <rect class="season-today" x={at(today) * 100 - 0.4} y="0" width="0.8" height="6" />
-    </svg>
+    <span class="season-bar" aria-hidden="true">
+      {parts.map((p, i) => {
+        const wide = p.to - p.from;
+        const word = BAND_WORD[p.band!]!;
+        return (
+          <span key={i} class={`season-part season-${p.band} ${p.guessed ? 'season-guess' : ''}`} style={{ left: `${p.from * 100}%`, width: `${wide * 100}%` }}>
+            {wide >= 0.17 ? word : wide >= 0.05 ? word[0] : ''}
+          </span>
+        );
+      })}
+      <span class="season-today" style={{ left: `${at(today) * 100}%` }} />
+    </span>
   );
 }
 
@@ -609,7 +617,7 @@ function AddBedDialog({ store, close, added }: { store: Store; close: () => void
         </fieldset>
         <label class="field">
           Name
-          <input value={name} placeholder={kind === 'bed' ? 'Veg bed' : kind === 'pot' ? 'Patio pot' : kind === 'ground' ? 'The plot' : LIST_KIND_LABEL[kind].replace(/^An? /, '')} onInput={(e) => setName((e.currentTarget as HTMLInputElement).value)} />
+          <input value={name} placeholder={`Such as ${kind === 'bed' ? 'Veg bed' : kind === 'pot' ? 'Patio pot' : kind === 'ground' ? 'The plot' : LIST_KIND_LABEL[kind].replace(/^An? /, '')}`} onInput={(e) => setName((e.currentTarget as HTMLInputElement).value)} />
         </label>
         <div class="size-row">
           <label class="field">

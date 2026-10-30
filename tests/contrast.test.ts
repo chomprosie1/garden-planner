@@ -29,6 +29,22 @@ describe('contrast', () => {
     expect(contrast('#000000', '#ffffff')).toBeCloseTo(21, 1);
   });
 
+  // The look for anyone who struggles to read the others: 7:1 for everything, and edges you can see.
+  for (const mode of ['light', 'dark'] as const) {
+    it(`high contrast ${mode}: all text meets 7:1, and edges 3:1`, () => {
+      const { ui, plan } = LOOKS.contrast[mode];
+      const failures = [
+        ...UI_PAIRS.map(([fg, bg]) => [`${fg} on ${bg}`, contrast(ui[fg], ui[bg]), 7] as const),
+        ...PLAN_PAIRS.map(([fg, bg]) => [`plan ${fg} on ${bg}`, contrast(plan[fg], plan[bg]), 7] as const),
+        ['border on surface', contrast(ui.border, ui.surface), 3] as const,
+        ['bed edge on lawn', contrast(plan.bedStroke, plan.lawn), 3] as const,
+      ]
+        .filter(([, ratio, need]) => ratio < need)
+        .map(([name, ratio]) => `${name}: ${ratio.toFixed(2)}`);
+      expect(failures).toEqual([]);
+    });
+  }
+
   for (const id of LOOK_IDS) {
     for (const mode of ['light', 'dark'] as const) {
       it(`${id} ${mode}: text pairs meet 4.5:1`, () => {

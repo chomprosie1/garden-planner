@@ -17,6 +17,21 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-30-easy-to-see',
+    date: '2026-10-30',
+    title: 'Easier to see and touch',
+    items: [
+      'Tap anywhere on a job to tick it. How to has its own button underneath.',
+      'Buttons, boxes and menus are bigger everywhere, so they’re easier to hit first time.',
+      'Extra large text is bigger still, and the words on the plan now grow with it.',
+      'There’s a new High contrast look: strong black and white, with no photos. You’ll find it with the text size at the top of Settings.',
+      'Things that were only shown by colour now say so in words, such as the bars under your plants.',
+      'Undo stays for longer, and no longer covers the page.',
+      'A plan now has a list of its beds and plants, under its ··· menu. Pick from it if the plan is hard to tap, or if you use a screen reader.',
+    ],
+    tryIt: { label: 'Change the text size', view: 'settings' },
+  },
+  {
     id: '2026-10-30-loose-ends',
     date: '2026-10-30',
     title: 'Some loose ends',

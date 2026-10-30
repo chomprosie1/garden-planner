@@ -7,7 +7,7 @@ import { drawPlant, hashString, OVERHANG, type ArtStyle, type Look, type Paint }
 import type { PlantArt } from '../model/types';
 
 /** How each look draws its plants. */
-export const ART_STYLE: Record<LookId, ArtStyle> = { cottage: 'wash', heritage: 'ink', allotment: 'wash', modern: 'flat', minimal: 'outline' };
+export const ART_STYLE: Record<LookId, ArtStyle> = { cottage: 'wash', heritage: 'ink', allotment: 'wash', modern: 'flat', minimal: 'outline', contrast: 'outline' };
 
 export function paintFor(look: LookId, mode: Mode): Paint {
   const plan = LOOKS[look][mode].plan;

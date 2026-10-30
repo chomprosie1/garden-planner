@@ -31,6 +31,8 @@ export interface PlanStyle {
   accentText: string;
   fontPlan: string;
   fontBody: string;
+  /** How much bigger than standard the words are: the app's text size. */
+  textScale?: number;
   labels: (typeof LOOKS)[LookId]['plan']['labels'];
   pattern: (typeof LOOKS)[LookId]['plan']['pattern'];
   bedRadiusMm: number;
@@ -51,6 +53,9 @@ export function planStyle(look: LookId, mode: Mode): PlanStyle {
     bedRadiusMm: l.plan.bedRadiusMm,
   };
 }
+
+/** A size of words on the plan, in px, grown with the app's text size. */
+const textPx = (s: Scene, px: number) => Math.round(px * (s.style.textScale ?? 1));
 
 export interface Draft {
   geometry: 'area' | 'line' | 'circle' | 'rect';
@@ -280,6 +285,8 @@ const materialCache = new Map<string, CanvasPattern | string>();
  * soil would otherwise vanish, and its faint marks read like the hatching on a technical drawing.
  */
 function materialFill(ctx: CanvasRenderingContext2D, s: PlanStyle, m: Material): CanvasPattern | string {
+  // High contrast: a plain lawn, as flecks of grass read as snow behind the words.
+  if (s.look === 'contrast' && m === 'lawn') return s.plan.lawn;
   const key = `${s.look}-${s.mode}-${m}`;
   let fill = materialCache.get(key);
   if (!fill) {
@@ -910,7 +917,7 @@ function drawLabel(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, planted:
   const at = b ? toScreen(v, [(b.minX + b.maxX) / 2, b.maxY]) : toScreen(v, labelPoint(f));
   const x = at[0];
   const y = at[1] - (b ? 14 : 0);
-  const size = st.labels === 'hand' ? 17 : st.labels === 'caps' ? 11 : 13;
+  const size = textPx(s, st.labels === 'hand' ? 17 : st.labels === 'caps' ? 11 : 13);
   const weight = st.labels === 'hand' || st.labels === 'sign' ? 700 : st.labels === 'pill' ? 700 : 500;
   const italic = st.labels === 'serif' ? 'italic ' : '';
   ctx.font = `${italic}${weight} ${size}px ${st.labels === 'pill' ? st.fontBody : st.fontPlan}`;
@@ -920,7 +927,7 @@ function drawLabel(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, planted:
   const xs = f.footprint.map((p) => p[0]);
   const span = (Math.max(...xs) - Math.min(...xs)) * v.scale;
   if (span < Math.min(w * 0.6, 40)) return;
-  if (!claim(taken, { x: x - w / 2 - 6, y: y - 11, w: w + 12, h: 22 })) return;
+  if (!claim(taken, { x: x - w / 2 - 6, y: y - (size + 5) / 2, w: w + 12, h: size + 5 })) return;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   if (st.labels === 'sign') {
@@ -984,7 +991,7 @@ function lengthTag(ctx: CanvasRenderingContext2D, s: Scene, a: Point, b: Point, 
   const [bx, by] = toScreen(v, b);
   if (!always && Math.hypot(bx - ax, by - ay) < 46) return;
   const text = formatLength(distance(a, b));
-  ctx.font = `600 11px ${s.style.fontBody}`;
+  ctx.font = `600 ${textPx(s, 11)}px ${s.style.fontBody}`;
   const w = ctx.measureText(text).width + 10;
   const mx = (ax + bx) / 2;
   const my = (ay + by) / 2;
@@ -1641,7 +1648,7 @@ function drawPlantLabel(ctx: CanvasRenderingContext2D, s: Scene, pl: Planting, p
   const shape = plantingShape(pl, plant);
   const n = plantCount(pl, plant);
   const text = n > 1 ? `${plant.commonName} ×${n}` : plant.commonName;
-  ctx.font = `600 11px ${s.style.fontBody}`;
+  ctx.font = `600 ${textPx(s, 11)}px ${s.style.fontBody}`;
   const w = ctx.measureText(text).width;
   const r = (spreadOf(plant) / 2) * v.scale;
   let x: number;
