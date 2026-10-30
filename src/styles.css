@@ -6744,10 +6744,6 @@ h2 {
 .more-looks {
   margin-top: 0.5rem;
 }
-/* Today: a copy is due, as one quiet line. */
-.backup-line {
-  margin: 0.75rem 0 0;
-}
 /* The list's colour-bar key, folded to a ? (release 44). */
 .season-key-q {
   cursor: pointer;
@@ -6768,6 +6764,55 @@ h2 {
   height: 1.4rem;
   margin: 0;
   accent-color: var(--accent);
+}
+/* ---------- Your garden is safe (release 57) ---------- */
+.print-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: auto;
+  padding: var(--gutter);
+  background: var(--bg);
+  color: var(--text);
+}
+.print-actions {
+  margin-bottom: 1rem;
+}
+.print-plan {
+  max-width: 100%;
+  height: auto !important;
+  margin: 0.75rem 0;
+  border: 1px solid var(--border);
+}
+.print-bed {
+  margin-top: 1rem;
+}
+.safety-line .link-btn {
+  margin-left: 0.25rem;
+}
+@media print {
+  html,
+  body,
+  #app,
+  .app {
+    display: block;
+    height: auto;
+    background: #fff;
+  }
+  .app > :not(.print-sheet),
+  .print-actions {
+    display: none !important;
+  }
+  .print-sheet {
+    position: static;
+    overflow: visible;
+    padding: 0;
+    background: #fff;
+    color: #000;
+  }
+  .print-bed {
+    break-inside: avoid;
+  }
 }
 /* ---------- Only what you have (release 55) ---------- */
 .jobs-done > summary {

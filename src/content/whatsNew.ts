@@ -17,6 +17,19 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-30-garden-safe',
+    date: '2026-10-30',
+    title: 'Your garden is safe',
+    items: [
+      'The foot of Today now says where your garden is kept and how old your last copy is, and Settings says the same.',
+      'Setting up on a new phone or computer? Choose I have a backup on the first screen, and your garden opens as it was.',
+      'Settings has a spreadsheet of your plantings and their dates, to open in Excel or Numbers.',
+      'You can print your plan and the year ahead, from Backups in Settings.',
+      'Keeping a copy is no longer a step in Getting started: the line on Today offers it when it’s due.',
+    ],
+    tryIt: { label: 'See Backups', view: 'settings' },
+  },
+  {
     id: '2026-10-30-plants-that-stay',
     date: '2026-10-30',
     title: 'Plants that stay',

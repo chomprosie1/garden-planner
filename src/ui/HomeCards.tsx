@@ -21,27 +21,37 @@ import { useApp } from './appContext';
 import { useChecks } from './useChecks';
 import { CompassNorth } from './CompassNorth';
 import { PlaceSearch } from './PlaceSearch';
-import { backUp, UseLocationButton } from './GardenSettings';
+import { backUp, canShareBackup, shareBackup, UseLocationButton } from './GardenSettings';
 import { Icon } from './icons';
 import { NoteForm, NoteList, noteAbout } from './NotesSection';
-import { backupDue, daysSinceBackup, setupFolded, setupSteps, type StepId } from './setup';
+import { backupDue, safetyText, setupFolded, setupSteps, type StepId } from './setup';
 import { HelpTitle } from './HelpLink';
 
 // ---------- Saved ----------
 
 /** "Saved on this device", or a warning when the browser won't keep it. */
-export function SaveIndicator() {
+/** Where the garden is kept and how old its last copy is, in one line, with the way to make one when it's due. */
+export function SafetyLine({ store, garden, prefs, prefsStore, now = new Date() }: { store: Store; garden: Garden; prefs: Prefs; prefsStore: PrefsStore; now?: Date }) {
   const [status, setStatus] = useState<SaveStatus>(saveStatus.get());
   useEffect(() => saveStatus.subscribe(setStatus), []);
+  const copy = () => (canShareBackup() ? shareBackup(store, prefsStore) : backUp(store, prefsStore));
   if (status === 'failed')
     return (
       <p class="save-status save-failed" role="alert">
-        Not saved: this browser isn’t keeping your changes. Download a backup to keep them.
+        Not saved: this browser isn’t keeping your changes.{' '}
+        <button type="button" class="link-btn" onClick={copy}>
+          Keep a copy now
+        </button>
       </p>
     );
   return (
-    <p class="save-status" aria-live="polite">
-      <Icon name="check" size={14} /> {status === 'saving' ? 'Saving…' : 'Saved on this device'}
+    <p class="save-status safety-line" aria-live="polite">
+      <Icon name="check" size={14} /> {status === 'saving' ? 'Saving…' : safetyText(prefs.lastBackup, now)}
+      {backupDue(garden, prefs.lastBackup, now) && (
+        <button type="button" class="link-btn" onClick={copy}>
+          Keep a copy
+        </button>
+      )}
     </p>
   );
 }
@@ -127,11 +137,6 @@ export function SetupCard({ store, garden, prefs, prefsStore, asked }: { store: 
     plants: (
       <button type="button" class="btn btn-primary" onClick={toPlan}>
         Start planting
-      </button>
-    ),
-    backup: (
-      <button type="button" class="btn btn-primary" onClick={() => backUp(store, prefsStore)}>
-        Download a backup
       </button>
     ),
   };
@@ -342,15 +347,3 @@ export function WhatsNewCard({ prefs, prefsStore }: { prefs: Prefs; prefsStore: 
 // ---------- Keeping it safe ----------
 
 /** When a copy is due: one quiet line at the foot of Today, with a way to make one. */
-export function BackupCard({ store, garden, prefs, prefsStore, now = new Date() }: { store: Store; garden: Garden; prefs: Prefs; prefsStore: PrefsStore; now?: Date }) {
-  if (!backupDue(garden, prefs.lastBackup, now)) return null;
-  const days = daysSinceBackup(prefs.lastBackup, now);
-  return (
-    <p class="backup-line small muted" aria-label="Keep a copy">
-      {days === null ? 'Your garden lives only in this browser, with no copy yet.' : `Your garden’s last copy is ${days} days old.`}{' '}
-      <button type="button" class="link-btn" onClick={() => backUp(store, prefsStore)}>
-        Download a copy
-      </button>
-    </p>
-  );
-}

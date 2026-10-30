@@ -15,7 +15,7 @@ export interface GardenFile {
   photos?: Record<string, string>;
 }
 
-export type ParseResult = { ok: true; state: AppState; photos?: Record<string, string> } | { ok: false; errors: string[] };
+export type ParseResult = { ok: true; state: AppState; photos?: Record<string, string>; /** The day the backup was made, if it says. */ madeOn?: string } | { ok: false; errors: string[] };
 
 export function toFile(state: AppState, now = new Date()): GardenFile {
   return {
@@ -52,7 +52,8 @@ export function parseFile(data: unknown): ParseResult {
           Object.entries(raw.photos as Record<string, unknown>).filter(([id, v]) => /^[\w-]{1,40}$/.test(id) && typeof v === 'string' && /^data:image\/(jpeg|png);base64,/.test(v)),
         ) as Record<string, string>)
       : undefined;
-  return { ok: true, state: { garden: garden as Garden, userPlants: userPlants as Plant[] }, ...(photos && Object.keys(photos).length ? { photos } : {}) };
+  const madeOn = wrapped && typeof raw.exportedAt === 'string' && /^\d{4}-\d{2}-\d{2}/.test(raw.exportedAt) ? raw.exportedAt.slice(0, 10) : undefined;
+  return { ok: true, state: { garden: garden as Garden, userPlants: userPlants as Plant[] }, ...(photos && Object.keys(photos).length ? { photos } : {}), ...(madeOn ? { madeOn } : {}) };
 }
 
 export function parseFileText(text: string): ParseResult {
@@ -72,7 +73,17 @@ export function backupFile(state: AppState, photos?: Record<string, string>): Fi
 
 /** Starts a browser download of the garden as a JSON file, with its photos if they're given. */
 export function downloadFile(state: AppState, photos?: Record<string, string>): void {
-  const file = backupFile(state, photos);
+  saveToDevice(backupFile(state, photos));
+}
+
+/** A spreadsheet of the garden's plantings, named as a backup is. */
+export function csvFile(gardenName: string, csv: string, now = new Date()): File {
+  const slug = gardenName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'garden';
+  return new File([csv], `${slug}-plantings-${now.toISOString().slice(0, 10)}.csv`, { type: 'text/csv' });
+}
+
+/** Starts a browser download of a file. */
+export function saveToDevice(file: File): void {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(file);
   a.download = file.name;

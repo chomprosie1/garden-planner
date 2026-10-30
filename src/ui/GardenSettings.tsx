@@ -9,7 +9,14 @@ import { BalconyFields } from './BalconyFields';
 import type { Garden } from '../model/types';
 import { todayIso } from '../model/ids';
 import type { PrefsStore } from '../theme/prefs';
-import { backupFile, downloadFile, parseFileText, type ParseResult } from '../storage/file';
+import { backupFile, csvFile, downloadFile, parseFileText, saveToDevice, type ParseResult } from '../storage/file';
+import { askToKeep, asksOutLoud } from '../storage/persist';
+import { plantingsCsv } from '../share/export';
+import { spacingStyle } from '../planting/place';
+import { useApp } from './appContext';
+import { gardenCount } from './gardenActions';
+import { safetyText } from './setup';
+import { usePlants } from './usePlants';
 import { addGarden } from '../storage/gardens';
 import { flushSave } from '../storage/local';
 import { fromDataUrl, loadPhoto, photoIds, putPhoto, toDataUrl } from '../storage/photos';
@@ -82,6 +89,33 @@ export async function shareBackup(store: Store, prefsStore?: PrefsStore) {
 }
 
 /**
+ * Puts a checked backup into the app, as a new garden or in place of this one, with its photos back on this device.
+ * The file is a copy that exists, so its day counts as the last copy, unless there's a later one. How many photos came back.
+ */
+export async function restoreBackup(store: Store, prefsStore: PrefsStore | undefined, result: Extract<ParseResult, { ok: true }>, asNew: boolean): Promise<number> {
+  // Your own plants are shared by every garden: the file's are added to yours, and yours win where both have one.
+  const mine = store.get().userPlants;
+  const userPlants = [...mine, ...result.state.userPlants.filter((p) => !mine.some((m) => m.id === p.id))];
+  if (asNew) {
+    flushSave();
+    addGarden(result.state.garden, undefined, new Date(), true);
+  }
+  store.replace({ garden: result.state.garden, userPlants });
+  let restored = 0;
+  for (const [id, url] of Object.entries(result.photos ?? {})) {
+    try {
+      await putPhoto(id, await fromDataUrl(url));
+      restored++;
+    } catch {
+      // a damaged photo is left out
+    }
+  }
+  const last = prefsStore?.get().lastBackup;
+  if (prefsStore && result.madeOn && (!last || result.madeOn > last)) prefsStore.set({ lastBackup: result.madeOn });
+  return restored;
+}
+
+/**
  * Whether the garden is safe here: what the browser said when asked to keep it, and on an iPhone in Safari (not on
  * the home screen), that Safari can clear it after weeks without a visit.
  */
@@ -101,6 +135,23 @@ export function KeptNote({ kept }: { kept: 'kept' | 'not-kept' | 'unknown' | nul
 /** The note, following the preferences, so it changes as soon as the browser answers. */
 function LiveKeptNote({ prefsStore }: { prefsStore: PrefsStore }) {
   return <KeptNote kept={usePrefs(prefsStore).storageKept} />;
+}
+
+/** Where the garden is kept and how old its last copy is: the same line as on Today. */
+function LiveSafety({ prefsStore }: { prefsStore: PrefsStore }) {
+  return <p>{safetyText(usePrefs(prefsStore).lastBackup)}</p>;
+}
+
+/** Firefox asks you out loud, so it's only asked when you choose to. */
+function AskToKeep({ prefsStore, ask }: { prefsStore: PrefsStore; ask: () => void }) {
+  if (usePrefs(prefsStore).storageKept === 'kept') return null;
+  return (
+    <p>
+      <button type="button" class="link-btn" onClick={ask}>
+        Ask this browser to keep your garden
+      </button>
+    </p>
+  );
 }
 
 /** Download, and on a phone that can, the share sheet too (Save to Files, Drive, email). */
@@ -141,6 +192,13 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
     );
   };
 
+  const app = useApp();
+  const { plants, plantOf } = usePlants(store.get().userPlants, spacingStyle(garden));
+  const askedToKeep = async () => {
+    if (!prefsStore) return;
+    const kept = await askToKeep();
+    prefsStore.set({ storageKept: kept, storageAsked: todayIso() });
+  };
   /** A backup read and checked, waiting for you to say whether it's a new garden or replaces this one. */
   const [opened, setOpened] = useState<Extract<ParseResult, { ok: true }> | null>(null);
   const importFile = async (e: Event) => {
@@ -158,24 +216,7 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
   };
   const restore = async (result: Extract<ParseResult, { ok: true }>, asNew: boolean) => {
     setOpened(null);
-    // Your own plants are shared by every garden: the file's are added to yours, and yours win where both have one.
-    const mine = store.get().userPlants;
-    const userPlants = [...mine, ...result.state.userPlants.filter((p) => !mine.some((m) => m.id === p.id))];
-    if (asNew) {
-      flushSave();
-      addGarden(result.state.garden, undefined, new Date(), true);
-    }
-    store.replace({ garden: result.state.garden, userPlants });
-    // Photos in the backup go back on this device.
-    let restored = 0;
-    for (const [id, url] of Object.entries(result.photos ?? {})) {
-      try {
-        await putPhoto(id, await fromDataUrl(url));
-        restored++;
-      } catch {
-        // a damaged photo is left out
-      }
-    }
+    const restored = await restoreBackup(store, prefsStore, result, asNew);
     setMessage({ kind: 'ok', lines: [`${asNew ? 'Added' : 'Restored'} "${result.state.garden.name}" from the backup${restored ? `, with ${restored} ${restored === 1 ? 'photo' : 'photos'}` : ''}.${asNew ? ` It’s open now; ${garden.name} is kept, to switch back to in Settings.` : ''}`] });
   };
 
@@ -295,11 +336,14 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
         <HelpTitle id="backup" topic="backups">
           Backups
         </HelpTitle>
+        {prefsStore && <LiveSafety prefsStore={prefsStore} />}
         <p class="muted small">
-          Your garden is saved automatically, but only in this browser on this device. Clearing your browsing data would delete it. Download a backup now and then
-          to keep it safe, or to move it to another device.{photoCount > 0 ? ' Photos make a backup much bigger, so they’re only in one made with photos.' : ''}
+          Clearing your browsing data would delete your garden, so keep a copy now and then. It’s also how you move to another device.
+          {gardenCount() > 1 ? ' Each garden has its own copy: this one’s for the garden that’s open.' : ''}
+          {photoCount > 0 ? ' Photos make a backup much bigger, so they’re only in one made with photos.' : ''}
         </p>
         {prefsStore && <LiveKeptNote prefsStore={prefsStore} />}
+        {prefsStore && asksOutLoud() && <AskToKeep prefsStore={prefsStore} ask={askedToKeep} />}
         <div class="button-row">
           <BackupButtons store={store} prefsStore={prefsStore} />
           {photoCount > 0 && (
@@ -311,6 +355,16 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
             Restore from a backup…
           </button>
           <input ref={fileInput} type="file" accept="application/json,.json" hidden onChange={importFile} />
+        </div>
+        <h3>To read or print</h3>
+        <p class="muted small">For you, not for restoring: only a backup brings a garden back.</p>
+        <div class="button-row">
+          <button type="button" class="btn" disabled={!plants} onClick={() => saveToDevice(csvFile(garden.name, plantingsCsv(garden, plantOf)))}>
+            Spreadsheet of plantings
+          </button>
+          <button type="button" class="btn" onClick={() => app.printGarden()}>
+            Print the plan and year
+          </button>
         </div>
         {opened && (
           <div class="message ok restore-choice" role="status">

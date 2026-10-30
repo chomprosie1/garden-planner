@@ -83,7 +83,7 @@ describe('getting started (U4)', () => {
 
   it('starts with everything to do, in order', () => {
     const steps = setupSteps(newAppState().garden, prefs);
-    expect(steps.map((s) => s.id)).toEqual(['boundary', 'bed', 'location', 'north', 'plants', 'backup']);
+    expect(steps.map((s) => s.id)).toEqual(['boundary', 'bed', 'location', 'north', 'plants']);
     expect(steps.every((s) => !s.done)).toBe(true);
   });
 
@@ -92,7 +92,7 @@ describe('getting started (U4)', () => {
     const g = { ...addPlanting(g0, makePlanting(plantOf('carrot'), bed, 'single', [100, 100])), latitude: 53.8, longitude: -1.55 };
     const done = (p = prefs) => setupSteps(g, p).filter((s) => s.done).map((s) => s.id);
     expect(done()).toEqual(['boundary', 'bed', 'location', 'plants']);
-    expect(done({ northChecked: true, lastBackup: '2026-10-01' })).toEqual(['boundary', 'bed', 'location', 'north', 'plants', 'backup']);
+    expect(done({ northChecked: true, lastBackup: '2026-10-01' })).toEqual(['boundary', 'bed', 'location', 'north', 'plants']);
     expect(setupSteps({ ...g, northRotationDeg: 15 }, prefs).find((s) => s.id === 'north')!.done).toBe(true);
   });
 

@@ -8,7 +8,7 @@ import { usePlants } from '../usePlants';
 import { spacingStyle } from '../../planting/place';
 import { LOOKS } from '../../theme/looks';
 import type { Prefs, PrefsStore, View } from '../../theme/prefs';
-import { BackupCard, GardenCard, GardenName, JournalCard, MomentCard, SaveIndicator, SetupCard, WhatsNewCard } from '../HomeCards';
+import { GardenCard, GardenName, JournalCard, MomentCard, SafetyLine, SetupCard, WhatsNewCard } from '../HomeCards';
 import { FrostCard, UvCard } from '../WeatherCards';
 import { seasonReady } from '../Wrapped';
 import { canInstall, InstallCard } from '../Install';
@@ -23,7 +23,7 @@ import { useWeatherNow } from '../useWeather';
 import { todayIso } from '../../model/ids';
 import { PLAN_AHEAD_MONTHS, PlanAheadCard } from '../PlanAhead';
 import { TodayJobs } from '../TodayJobs';
-import { setupLeft, setupShowing } from '../setup';
+import { setupLeft } from '../setup';
 
 interface Props {
   store: Store;
@@ -195,8 +195,7 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, startHere =
         <WhatsNewCard prefs={prefs} prefsStore={prefsStore} />
         {(installOnce || installAsked) && <InstallCard hidden={false} prefsStore={prefsStore} />}
         <GardenCard garden={garden} prefs={prefs} plants={plants} plantOf={plantOf} />
-        {!(setupShowing(garden, prefs, today) || setupAsked) && <BackupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} now={now} />}
-        <SaveIndicator />
+        <SafetyLine store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} now={now} />
       </div>
     </div>
   );

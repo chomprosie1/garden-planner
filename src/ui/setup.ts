@@ -5,7 +5,7 @@ import type { Garden } from '../model/types';
 import { isContainer } from '../planting/place';
 import type { Prefs } from '../theme/prefs';
 
-export type StepId = 'boundary' | 'bed' | 'location' | 'north' | 'plants' | 'backup';
+export type StepId = 'boundary' | 'bed' | 'location' | 'north' | 'plants';
 
 export interface Step {
   id: StepId;
@@ -17,14 +17,13 @@ export interface Step {
 /** Where a new garden starts until you set your own. */
 export const isDefaultLocation = (g: Garden) => g.latitude === 52.5 && g.longitude === -1.5;
 
-export function setupSteps(g: Garden, prefs: Pick<Prefs, 'northChecked' | 'lastBackup'>): Step[] {
+export function setupSteps(g: Garden, prefs: Pick<Prefs, 'northChecked'>): Step[] {
   const steps: Step[] = [
     { id: 'boundary', title: 'Set up your space', why: 'A balcony, a patio, a garden or an allotment: the plan is drawn to scale.', done: g.boundary.length >= 3 || g.features.length > 0 },
     { id: 'bed', title: 'Add a bed or pot', why: 'Beds, pots and planters are where plants go. Drag one in from below the plan.', done: g.features.some(isContainer) },
     { id: 'location', title: 'Say where your garden is', why: 'A postcode or town is enough. It times the sun and shade, the frosts and the seasons.', done: !isDefaultLocation(g) },
     { id: 'north', title: 'Point the north arrow north', why: 'Shadows fall the wrong way if north is out. On a phone, the compass can work it out.', done: g.northRotationDeg !== 0 || prefs.northChecked },
     { id: 'plants', title: 'Put plants in a bed', why: 'Then you get spacing checks and a job list for each month.', done: g.plantings.length > 0 },
-    { id: 'backup', title: 'Download a backup', why: 'Your garden is kept only in this browser. A backup keeps it safe.', done: !!prefs.lastBackup },
   ];
   // Kept as a list: no plan to set up or turn north.
   if (g.view !== 'list') return steps;
@@ -54,14 +53,13 @@ export function backupDue(g: Garden, lastBackup: string | null, now = new Date()
 export const setupFolded = (setupFrom: string | null, today: string): boolean => !!setupFrom && today > setupFrom;
 
 /** Steps of Getting started are still to do, and it hasn't been put away: the ··· offers it. */
-export const setupLeft = (g: Garden, prefs: Pick<Prefs, 'northChecked' | 'lastBackup' | 'setupHidden' | 'setupFrom'>, today: string): boolean => !prefs.setupHidden && setupFolded(prefs.setupFrom, today) && setupSteps(g, prefs).some((s) => !s.done);
+export const setupLeft = (g: Garden, prefs: Pick<Prefs, 'northChecked' | 'setupHidden' | 'setupFrom'>, today: string): boolean => !prefs.setupHidden && setupFolded(prefs.setupFrom, today) && setupSteps(g, prefs).some((s) => !s.done);
 
-/**
- * Getting started is showing, with its backup step still to do: it asks for the backup, so the reminder card further
- * down Today doesn't ask a second time.
- */
-export const setupShowing = (g: Garden, prefs: Pick<Prefs, 'northChecked' | 'lastBackup' | 'setupHidden' | 'setupFrom'>, today: string): boolean => {
-  if (prefs.setupHidden || setupFolded(prefs.setupFrom, today)) return false;
-  const steps = setupSteps(g, prefs);
-  return steps.some((s) => !s.done) && !steps.find((s) => s.id === 'backup')!.done;
-};
+/** "today", "yesterday", "12 days ago". */
+const daysAgo = (days: number) => (days <= 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`);
+
+/** The one line on where the garden is and how safe it is: the same on Today and in Settings. */
+export function safetyText(lastBackup: string | null, now = new Date()): string {
+  const days = daysSinceBackup(lastBackup, now);
+  return `Saved only in this browser on this device. ${days === null ? 'No copy yet.' : `Last copy ${daysAgo(days)}.`}`;
+}

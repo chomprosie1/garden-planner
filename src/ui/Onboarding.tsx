@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'preact/hooks';
+import { useMemo, useRef, useState } from 'preact/hooks';
 import { firstJob, toggleWishlist } from '../calendar/jobs';
 import { latestNews } from '../content/whatsNew';
 import { seasonFor } from '../content/seasons';
@@ -11,7 +11,8 @@ import { markBedsToMake } from '../planting/firstBed';
 import { applyKit, kitsFor, type Kit } from '../planting/kits';
 import { spacingStyle } from '../planting/place';
 import type { Prefs, PrefsStore, View } from '../theme/prefs';
-import { GardenNameField, placeText, UseLocationButton } from './GardenSettings';
+import { parseFileText } from '../storage/file';
+import { GardenNameField, placeText, restoreBackup, UseLocationButton } from './GardenSettings';
 import { BalconyFields } from './BalconyFields';
 import { KitPicker } from './KitPicker';
 import { EasyToRead } from './LookPicker';
@@ -51,6 +52,7 @@ const BEDS_TO_MAKE = ['garden', 'allotment', 'bed'];
  */
 export function Onboarding({ store, garden, prefs, prefsStore, go, again = false, showFirst }: Props) {
   const [step, setStep] = useState(again ? 1 : 0);
+  const backupInput = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; lines: string[] } | null>(null);
   const [choice, setChoice] = useState<SpaceChoice | null>(null);
   /** Beds on the plan that aren't in the ground yet: they get a job to make them. */
@@ -116,6 +118,19 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
     setPicked(s);
   };
 
+  /** A new phone or computer: straight back to the garden from a copy of it, with no setting up. */
+  const fromBackup = async (e: Event) => {
+    const input = e.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    const result = parseFileText(await file.text());
+    if (!result.ok) return setMessage({ kind: 'error', lines: ['That file couldn’t be restored:', ...result.errors.slice(0, 4)] });
+    await restoreBackup(store, prefsStore, result, false);
+    prefsStore.set({ onboarded: true, seenNews: latestNews().id, welcomedOn: todayIso() });
+    go('home');
+  };
+
   if (step === 0)
     return (
       <div class={`welcome ${prefs.photos === 'off' ? 'welcome-plain' : ''}`}>
@@ -131,7 +146,18 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
             <button type="button" class={`btn ${prefs.photos === 'off' ? '' : 'btn-on-photo'}`} onClick={() => finish(true)}>
               Skip
             </button>
+            <button type="button" class={`btn ${prefs.photos === 'off' ? '' : 'btn-on-photo'}`} onClick={() => backupInput.current?.click()}>
+              I have a backup
+            </button>
+            <input ref={backupInput} type="file" accept="application/json,.json" hidden aria-label="Choose a backup file" onChange={fromBackup} />
           </div>
+          {message && (
+            <div class={`message ${message.kind}`} role="status">
+              {message.lines.map((l) => (
+                <p key={l}>{l}</p>
+              ))}
+            </div>
+          )}
           <div class="welcome-read">
             <EasyToRead prefs={prefs} prefsStore={prefsStore} />
           </div>

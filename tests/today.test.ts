@@ -19,7 +19,7 @@ import { addPick } from '../src/planting/harvest';
 import { addPlanting, makePlanting, unknownPlant } from '../src/planting/place';
 import { seasonStats, seasonsWorth } from '../src/share/wrapped';
 import { sanitisePrefs, VIEW_HASH, viewForHash } from '../src/theme/prefs';
-import { setupShowing } from '../src/ui/setup';
+import { safetyText, setupSteps } from '../src/ui/setup';
 import { parseGeocoding, placeUrl, searchPlaces } from '../src/weather/places';
 
 const DIR = join(__dirname, '../data/plants');
@@ -167,16 +167,11 @@ describe('trays say where they are', () => {
 });
 
 describe('where things live', () => {
-  const prefs = { northChecked: false, lastBackup: null, setupHidden: false, setupFrom: '2026-10-20' };
   const planted = gardenWith(row('garlic'));
 
-  it('asks for a backup once: in Getting started while it’s showing, otherwise by itself', () => {
-    const day = '2026-10-20';
-    expect(setupShowing(planted, prefs, day)).toBe(true);
-    expect(setupShowing(planted, { ...prefs, setupHidden: true }, day)).toBe(false);
-    expect(setupShowing(planted, { ...prefs, lastBackup: '2026-10-01' }, day)).toBe(false);
-    // Gone from Today after its first day: the backup card asks instead.
-    expect(setupShowing(planted, prefs, '2026-10-21')).toBe(false);
+  it('asks for a copy in one place: the line on Today, not Getting started', () => {
+    expect(setupSteps(planted, { northChecked: false }).map((s) => s.id)).not.toContain('backup');
+    expect(safetyText(null)).toMatch(/only in this browser.*No copy yet/);
   });
 
   it('calls the Shed the Shed, and still opens it from an old Seedlings link', () => {

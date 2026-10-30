@@ -12,6 +12,7 @@ import { Icon, type IconName } from './icons';
 import { Onboarding } from './Onboarding';
 import { gardenCount } from './gardenActions';
 import type { Command } from './search';
+import { PrintSheet } from './PrintSheet';
 import { Shortcuts } from './Shortcuts';
 import { useAppState } from './useStore';
 import { useWeatherFeed, WeatherContext } from './useWeather';
@@ -86,6 +87,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   const [searching, setSearching] = useState(false);
   const [shedSow, setShedSow] = useState<string | null>(null);
   const [wrapping, setWrapping] = useState(false);
+  const [printing, setPrinting] = useState(false);
   /** Just set up: Today picks out the first job, until you go elsewhere. */
   const [startHere, setStartHere] = useState(false);
   // The welcome, on the day's first launch: not the very first (setting up runs then), nor a link or reminder to a particular screen.
@@ -157,6 +159,9 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
       },
       openHelp(topic) {
         navigate('help', topic);
+      },
+      printGarden() {
+        setPrinting(true);
       },
     }),
     [store, view, prefs.draftPlants, prefs.dismissedChecks],
@@ -434,6 +439,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
         </nav>
         {shortcuts && <Shortcuts close={() => setShortcuts(false)} />}
         {prefs.onboarded && <ReminderKeeper garden={garden} userPlants={userPlants} frost={prefs.reminders} weekly={prefs.weeklyNudge} uv={prefs.uvReminders} day={prefs.reminderDay} />}
+        {printing && <PrintSheet garden={garden} userPlants={userPlants} close={() => setPrinting(false)} />}
         {wrapping && <WrappedHost garden={garden} userPlants={userPlants} close={() => setWrapping(false)} />}
         {searching && <CommandSearch garden={garden} userPlants={userPlants} locked={prefs.layoutLocked} run={run} close={() => setSearching(false)} />}
       </div>

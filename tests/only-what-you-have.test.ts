@@ -19,7 +19,7 @@ import { potsOnly, shedName } from '../src/planting/pots';
 import { shopGroups, shoppingList, shoppingText } from '../src/planting/shopping';
 import { sanitisePrefs } from '../src/theme/prefs';
 import { welcomeDue } from '../src/ui/launch';
-import { setupFolded, setupLeft, setupShowing } from '../src/ui/setup';
+import { setupFolded, setupLeft } from '../src/ui/setup';
 
 const DIR = join(__dirname, '..', 'data', 'plants');
 const plants: Plant[] = readdirSync(DIR)
@@ -133,9 +133,7 @@ describe('Getting started', () => {
 
   it('leaves Today after its first day, and the ··· has it', () => {
     expect(setupFolded('2026-10-29', '2026-10-29')).toBe(false);
-    expect(setupShowing(g, prefs, '2026-10-29')).toBe(true);
     expect(setupLeft(g, prefs, '2026-10-29')).toBe(false);
-    expect(setupShowing(g, prefs, '2026-10-30')).toBe(false);
     expect(setupLeft(g, prefs, '2026-10-30')).toBe(true);
     expect(setupLeft(g, { ...prefs, setupHidden: true }, '2026-10-30')).toBe(false);
   });
