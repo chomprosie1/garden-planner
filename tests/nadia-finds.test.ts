@@ -11,7 +11,7 @@ import { newGarden } from '../src/model/defaults';
 import { addFeature, makeFeature, rectPoints } from '../src/model/features';
 import type { AppState, Feature, Garden, Plant, Planting } from '../src/model/types';
 import { MAX_PLANTS, PLAN_LIMIT_MM } from '../src/model/validate';
-import { addPlanting, makePlanting, plantCount, plantPositions, unknownPlant } from '../src/planting/place';
+import { addPlanting, makePlanting, MOST_SET_OUT, plantCount, plantPositions, unknownPlant } from '../src/planting/place';
 import { backupFile, parseFileText, toFile } from '../src/storage/file';
 import { addGarden, changesOpen, gardenKey, keepReplaced, listGardens, openGarden, peekGarden, readOpen, saveOpen, startUp, type Kv } from '../src/storage/gardens';
 
@@ -77,13 +77,18 @@ describe('a file can’t freeze the app', () => {
     expect(startUp(newGarden, s).garden.plantings[0]!.count).toBe(1_000_000_000);
   });
 
-  it('never sets out more than the most a planting can hold', () => {
+  it('never sets out more than the most it can draw, whatever the shape', () => {
     const lots = single('radish', { layout: 'block', x: 0, y: 0, endPoint: [1_000_000, 1_000_000] });
-    const a = plantPositions(lots, plantOf('radish'));
-    expect(a.length).toBeLessThanOrEqual(MAX_PLANTS);
-    expect(a.length).toBeGreaterThan(1000);
-    expect(plantPositions({ ...lots, count: 1_000_000_000 }, plantOf('radish'))).toHaveLength(MAX_PLANTS);
-    expect(plantPositions({ ...lots, layout: 'row', count: 1_000_000_000 }, plantOf('radish'))).toHaveLength(MAX_PLANTS);
+    expect(plantPositions(lots, plantOf('radish'))).toHaveLength(MOST_SET_OUT);
+    expect(plantPositions({ ...lots, endPoint: [1_000_000, 200] }, plantOf('radish')).length).toBeLessThanOrEqual(MOST_SET_OUT);
+    expect(plantPositions({ ...lots, count: 1_000_000_000 }, plantOf('radish'))).toHaveLength(MOST_SET_OUT);
+    expect(plantPositions({ ...lots, layout: 'row', count: 1_000_000_000 }, plantOf('radish'))).toHaveLength(MOST_SET_OUT);
+  });
+
+  it('spreads a thinned block across the whole of it, not just one end', () => {
+    const pts = plantPositions(single('radish', { layout: 'block', x: 0, y: 0, endPoint: [1_000_000, 1_000_000] }), plantOf('radish'));
+    expect(Math.max(...pts.map((p) => p[1]))).toBeGreaterThan(990_000);
+    expect(Math.max(...pts.map((p) => p[0]))).toBeGreaterThan(990_000);
   });
 
   it('sets out an ordinary block as before', () => {

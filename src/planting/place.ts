@@ -19,6 +19,9 @@ export const SOFT_GROUND: Material[] = ['lawn', 'meadow', 'soil', 'bark', 'grave
 
 export { MAX_PLANTS };
 
+/** The most plants set out in one planting, however big it's been drawn or saved: a block can run to tens of thousands, and a billion would stop the app. */
+export const MOST_SET_OUT = 50_000;
+
 /** Beds, greenhouses, cold frames and planters hold plants, and so do pots, which are round. */
 export const isContainer = (f: Feature) => CONTAINER_KINDS.includes(f.kind) && !f.line && (!f.circle || f.kind === 'pot');
 
@@ -214,9 +217,8 @@ function evenlyIn(a: Point, b: Point, n: number): Point[] {
 export function plantPositions(pl: Planting, plant: Plant): Point[] {
   const start: Point = [pl.x, pl.y];
   const end = pl.endPoint ?? start;
-  // However big it's been drawn or saved, no more than MAX_PLANTS are set out: a million would stop the app.
   if (pl.layout === 'row') {
-    const n = Math.min(MAX_PLANTS, Math.max(1, plantCount(pl, plant)));
+    const n = Math.min(MOST_SET_OUT, Math.max(1, plantCount(pl, plant)));
     if (n === 1) return [start];
     const out: Point[] = [];
     for (let i = 0; i < n; i++) {
@@ -227,16 +229,20 @@ export function plantPositions(pl: Planting, plant: Plant): Point[] {
   }
   if (pl.layout === 'block') {
     // A block with its own count (bulbs in a round pot): that many, spread evenly over the pot.
-    if (pl.count) return evenlyIn(start, end, Math.min(MAX_PLANTS, pl.count));
+    if (pl.count) return evenlyIn(start, end, Math.min(MOST_SET_OUT, pl.count));
     // A grid centred in the rectangle, so plants sit half a spacing in from its edges.
     const [sx, sy] = blockSpacing(start, end, plant.size.spacingMm, rowSpacingOf(plant));
     const { cols, rows } = gridOf(pl, plant);
     const x0 = Math.min(start[0], end[0]) + (Math.abs(end[0] - start[0]) - (cols - 1) * sx) / 2;
     const y0 = Math.min(start[1], end[1]) + (Math.abs(end[1] - start[1]) - (rows - 1) * sy) / 2;
     const out: Point[] = [];
-    // Thinned evenly if it's too big to set out plant by plant.
-    const every = cols * rows > MAX_PLANTS ? Math.ceil(Math.sqrt((cols * rows) / MAX_PLANTS)) + 1 : 1;
-    for (let r = 0; r < rows; r += every) for (let c = 0; c < cols; c += every) out.push([Math.round(x0 + c * sx), Math.round(y0 + r * sy)]);
+    // Taken evenly through the grid if there are too many to set out.
+    const total = cols * rows;
+    const n = Math.min(total, MOST_SET_OUT);
+    for (let i = 0; i < n; i++) {
+      const at = Math.floor(i * (total / n));
+      out.push([Math.round(x0 + (at % cols) * sx), Math.round(y0 + Math.floor(at / cols) * sy)]);
+    }
     return out;
   }
   return [start];
