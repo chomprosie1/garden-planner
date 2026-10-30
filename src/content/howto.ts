@@ -8,6 +8,7 @@
 
 import type { Job } from '../calendar/jobs';
 import type { Plant, SpacingStyle } from '../model/types';
+import { makesABed } from '../planting/firstBed';
 import { sowingFor, spacingText, type StartsAs } from '../planting/windows';
 
 export interface HowTo {
@@ -279,8 +280,21 @@ export function howTo(job: Job, from: StartsAs, bulb = false, at?: HowToFor): Ho
   return spaced ? { ...how, spacing: spacingText(at.plant, at.style) } : how;
 }
 
+/** Making a bed on the grass, without digging. The RHS's no-dig bed: see planting/firstBed.ts. */
+const MAKE_A_BED: HowTo = {
+  need: ['Plain brown cardboard, with any tape and staples taken off', 'Compost or well-rotted manure', 'A watering can or hose'],
+  steps: [
+    'Mark out the bed on the grass, somewhere sunny.',
+    'Lay the cardboard over the grass two layers thick, with the sheets overlapping so no grass shows.',
+    'Wet it well.',
+    'Cover it with 10 to 15 cm of compost or well-rotted manure. You can plant into it straight away.',
+  ],
+  time: 'About an hour, once you have everything',
+};
+
 function chosen(job: Job, from: StartsAs, bulb: boolean, at?: HowToFor): HowTo {
   const plant = at?.plant;
+  if (makesABed(job)) return MAKE_A_BED;
   switch (job.kind) {
     case 'sow-direct': {
       if (from === 'cloves') return CLOVES;

@@ -84,6 +84,8 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
   const [sheet, setSheet] = useState<Target | null>(null);
   const [adding, setAdding] = useState<{ bedId?: string; plantId?: string; trayId?: string } | null>(null);
   const [addingBed, setAddingBed] = useState(false);
+  /** The plant in hand when you stopped to add a bed for it: it goes in that bed. */
+  const [waitingPlant, setWaitingPlant] = useState<string | undefined>(undefined);
   const [editing, setEditing] = useState<string | null>(null);
   const [moving, setMoving] = useState<string | null>(null);
   const [clearing, setClearing] = useState(false);
@@ -247,8 +249,8 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
           />
         </Sheet>
       )}
-      {addingBed && <AddBedDialog store={store} close={() => setAddingBed(false)} />}
-      {adding && plants && <AddPlantDialog store={store} garden={garden} plants={plants} plantOf={plantOf} month={month} start={adding} close={() => setAdding(null)} newBed={() => (setAdding(null), setAddingBed(true))} />}
+      {addingBed && <AddBedDialog store={store} close={() => (setAddingBed(false), setWaitingPlant(undefined))} added={(id) => waitingPlant && (setAdding({ bedId: id, plantId: waitingPlant }), setWaitingPlant(undefined))} />}
+      {adding && plants && <AddPlantDialog store={store} garden={garden} plants={plants} plantOf={plantOf} month={month} start={adding} close={() => setAdding(null)} newBed={() => (setWaitingPlant(adding.plantId), setAdding(null), setAddingBed(true))} />}
       {editing && <EditBedDialog store={store} garden={garden} bedId={editing} plantOf={plantOf} close={() => setEditing(null)} />}
       {moving && <MoveDialog store={store} garden={garden} plantOf={plantOf} plantingId={moving} close={() => setMoving(null)} />}
       {clearing && plants && <ClearBedsDialog garden={garden} store={store} plantOf={plantOf} close={() => setClearing(false)} />}
@@ -295,6 +297,14 @@ function BedCard({ bed, first, last, garden, store, plantOf, jobs, warnings, tod
   }, [here]);
   return (
     <section class="card bed-card" id={`bed-${bed.id}`} aria-labelledby={`bed-title-${bed.id}`}>
+      {bed.toMake && (
+        <p class="muted small">
+          Still to make. Its jobs wait for it.{' '}
+          <button type="button" class="link-btn" onClick={() => store.apply(updateGarden((g) => updateFeature(g, bed.id, { toMake: undefined })))}>
+            It’s made
+          </button>
+        </p>
+      )}
       <div class="bed-card-head">
         <button type="button" class="bed-picture" aria-label={`About ${name}`} onClick={() => open({ type: 'feature', id: bed.id })}>
           <BedPicture garden={garden} bed={bed} plantOf={plantOf} />
@@ -538,7 +548,7 @@ const potCm = (s: string, fallback: number) => {
 };
 
 /** Add a bed or area (or several alike): what it is, a name, and (if you like) its size and how sunny it is. */
-function AddBedDialog({ store, close }: { store: Store; close: () => void }) {
+function AddBedDialog({ store, close, added }: { store: Store; close: () => void; added?: (id: string) => void }) {
   const app = useApp();
   const ref = useModal();
   const [kind, setKind] = useState<ListKind>('bed');
@@ -557,6 +567,7 @@ function AddBedDialog({ store, close }: { store: Store; close: () => void }) {
     const label = name.trim() || LIST_KIND_LABEL[kind].replace(/^An? /, '').replace(/^./, (c) => c.toUpperCase());
     const n = SEVERAL.includes(kind) ? Math.max(1, Math.min(24, Math.round(Number(many) || 1))) : 1;
     let first = label;
+    let firstId: string | undefined;
     store.apply(
       updateGarden((g) => {
         let next = g;
@@ -569,9 +580,11 @@ function AddBedDialog({ store, close }: { store: Store; close: () => void }) {
         // Two or more alike are numbered as they're added: "Pot 1", "Pot 2".
         next = nameListBeds(next, isListed(next), featureLabel);
         first = featureLabel(next.features.find((f) => f.id === ids[0])!);
+        firstId = ids[0];
         return next;
       }),
     );
+    if (firstId) added?.(firstId);
     const noun = LIST_KIND_LABEL[kind].replace(/^An? /, '').replace(/ or window box$/, '');
     app.notify(n > 1 ? `${n} ${noun}s added.` : `${first} added.`, { undo: true });
     ref.current?.close();

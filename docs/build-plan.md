@@ -2883,6 +2883,33 @@ Not changed:
 - **Margaret's "Small bed added" after Undo:** Undo on the toast clears it; the toolbar's Undo doesn't.
 - **Priya's "pots outside the garden" check** was done with tests, not by re-running her garden.
 
+### Release 52 — A first garden, for real (as built)
+Built 30 Oct 2026, on a branch, as it changes the save format. Schema 24. Version 0.52.0.
+
+- **"Make your first bed" for a bare garden** (`needsFirstBed`, the cause the review confirmed): a boundary counts as grass unless it's mostly paved. Its label is now "A first bed", as there may be no lawn to speak of.
+- **"Are these beds there yet?"** in setup, for a garden, allotment or single bed. "Not yet" marks the beds with something planned in them, or all of them if nothing is (`toMake`, a new optional field on a feature).
+- **A bed to make** gets:
+  - a job per bed, first on Today and first as "Start here", with a how-to of its own and the bed's own compost figure. It also corrects the how-to for "Make your first bed", which told you to go and look at the plants;
+  - crops that say "once it's made", and no weeding job;
+  - shopping lines: compost in 40-litre bags, and cardboard in big boxes, at two boxes a square metre. **The box count is a rule of thumb;**
+  - "It's made" on the Garden page, or ticking the job, which unticking undoes.
+- **Beds are numbered:** a new garden's and a kit's ("Bed 1", "Bed 2"), and on a plan a drawn, stuck-on or copied bed takes the next free number. Beds you've named keep their names. Saved gardens aren't renamed.
+- **No kit leaves its plants homeless:** with no border, each of its border plants gets a pot of its own at the house end, and the kit's words say "in pots" (`kitBlurb`).
+- **No kit warns about itself,** tested across every kit, as a plan, a list and with no border:
+  - Autumn planting and Autumn bed drop their broad beans, which were beside the garlic: garlic and onions only.
+  - A pot is made big enough for the one plant a kit puts in it (Kitchen herbs' rosemary, 45 cm).
+- **"Add a new bed first"** keeps the plant in hand, and goes on to add it to the new bed.
+- **Checked in a browser:** setup with Bulbs and autumn veg and "Not yet"; Bed 1 first on Today, with garlic "in Bed 1 (2 rows), once it's made". That walk found the Make job coming last, under "Start here" on beans with no bed, and the wrong how-to. Both fixed. The viewport held at 500 px, not 390. No page errors.
+- **Code review before pushing** (`/code-review`, medium) found ten things. Fixed: an allotment asking for over 200 bags by counting empty beds, "Start here" and the first-job note skipping the Make job, a cancelled bed leaving a plant waiting, "Not yet" carrying over to a space that doesn't ask, numbering renaming beds you'd named, copied beds sharing a name, a small patio stopping the first-bed job, the job repeating in next month's preview, and the job's type being read from strings in three places. Tests were tightened for the no-border path.
+
+Tests: `tests/first-garden-real.test.ts`. Changed: `first-garden` (the border's plants get pots, not a wait: a change of rule, as it was Jordan's bug).
+
+Not changed:
+- **The how-to's steps** and the job's own detail both describe making a bed, in two places.
+- **Beds already called "Bed" and "Bed"** in a saved garden stay so until one's renamed.
+- **The plan doesn't draw a bed to make any differently.** Only the Garden list says so.
+- **The patio and balcony** aren't asked about beds. Their beds are taken to be there.
+
 ## Repo layout
 ```
 garden-planner/

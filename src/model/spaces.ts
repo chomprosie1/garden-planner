@@ -3,6 +3,7 @@
 // beds or pots to drop plants into, so the first plant is a few taps away.
 
 import { addFeature, makeFeature, rectPoints } from './features';
+import { numberBeds } from './listLayout';
 import type { Feature, FeatureKind, Garden, Point } from './types';
 
 export type Space = 'balcony' | 'patio' | 'garden' | 'allotment' | 'bed';
@@ -208,7 +209,7 @@ export function makeSpace(g: Garden, space: Space, w: number, d: number, sideRet
   for (const f of contents(space, W, side ? D - side.length : D, opts)) next = addFeature(next, side ? raise(f, side.length) : f);
   // A garden still called "My garden" is named after the space.
   if (g.name === 'My garden' && space !== 'garden' && space !== 'bed') next = { ...next, name: `My ${space === 'patio' ? 'patio' : space}` };
-  return next;
+  return numberBeds(next);
 }
 
 /** Metres for a size field: "2.4", "10". */

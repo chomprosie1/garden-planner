@@ -185,10 +185,27 @@ export function moveFeature(g: Garden, id: string, dx: number, dy: number): Gard
 }
 
 /** Copies a feature, and what's growing in it, offset so it doesn't sit exactly on top. Returns the garden and the copy's id. */
+/** The next free name after this one: "Bed 3" after "Bed 2", "Veg 2" after "Veg". */
+export function nextName(label: string, used: Set<string>): string {
+  const m = /^(.*\S)\s+(\d+)$/.exec(label);
+  const stem = m ? m[1]! : label;
+  let n = m ? Number(m[2]) + 1 : 2;
+  while (used.has(`${stem} ${n}`)) n++;
+  return `${stem} ${n}`;
+}
+
+/** A name for a bed that no other bed has: its own if it's free, and the next number if not ("Bed 3" beside "Bed 1" and "Bed 2"). */
+export function numberedName(g: Garden, f: Feature): string {
+  const used = new Set(g.features.filter((x) => x.kind === 'bed' && x.id !== f.id).map(featureLabel));
+  const label = featureLabel(f);
+  const numbered = [...used].some((u) => u.startsWith(`${label} `) && /^\d+$/.test(u.slice(label.length + 1)));
+  return used.has(label) || numbered ? nextName(numbered ? `${label} 1` : label, used) : label;
+}
+
 export function duplicateFeature(g: Garden, id: string, offsetMm = 500): [Garden, string | null] {
   const f = g.features.find((x) => x.id === id);
   if (!f) return [g, null];
-  const copy = { ...f, id: newId('f') };
+  const copy = { ...f, id: newId('f'), ...(f.kind === 'bed' ? { name: numberedName(g, { ...f, id: '' }) } : {}) };
   const planted = g.plantings.filter((p) => p.featureId === id && !p.removedOn).map((p) => ({ ...p, id: newId('p'), featureId: copy.id }));
   const withCopy = { ...g, features: [...g.features, copy], plantings: [...g.plantings, ...planted] };
   return [moveFeature(withCopy, copy.id, offsetMm, -offsetMm), copy.id];

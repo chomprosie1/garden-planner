@@ -103,6 +103,7 @@ export function validateGarden(g: unknown): string[] {
       need(f.nextDoor === undefined || typeof f.nextDoor === 'boolean', `${at}.nextDoor must be true or false.`);
       need(f.light === undefined || oneOf(LIGHT_LEVELS, f.light), `${at}.light must be full sun, part shade or shade.`);
       need(f.fruitCage === undefined || typeof f.fruitCage === 'boolean', `${at}.fruitCage must be true or false.`);
+      need(f.toMake === undefined || typeof f.toMake === 'boolean', `${at}.toMake must be true or false.`);
       need(f.rotates === undefined || typeof f.rotates === 'boolean', `${at}.rotates must be true or false.`);
     });
 

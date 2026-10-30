@@ -12,7 +12,7 @@ import { placeLabel } from '../model/features';
 import type { Garden, Plant, Planting } from '../model/types';
 import { isActive, plantCount, stillWanted } from './place';
 import { isPot, potSize } from './pots';
-import { firstBedCompost, needsFirstBed } from './firstBed';
+import { firstBedCompost, makingBeds, needsFirstBed } from './firstBed';
 import { packetsFor, seedState } from './seeds';
 import { sowingNow, startsAs } from './windows';
 
@@ -201,6 +201,13 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
     const { litres, bags } = firstBedCompost();
     items.push({ key: 'compost:first-bed', kind: 'compost', name: 'Compost or well-rotted manure', amount: `${bags[0]} to ${bags[1]} bags of 40 litres (${litres[0]} to ${litres[1]} litres)`, note: 'For your first bed: 10 to 15 cm over cardboard on the grass' });
     items.push({ key: 'compost:first-bed-card', kind: 'compost', name: 'Plain brown cardboard', amount: 'enough to cover the bed twice over', note: 'Boxes are fine: no tape, staples or shiny print' });
+  }
+
+  // Beds still to make: the same, for all of them.
+  const making = makingBeds(g);
+  if (making) {
+    items.push({ key: 'compost:to-make', kind: 'compost', name: 'Compost or well-rotted manure', amount: `${making.bags[0]} to ${making.bags[1]} bags of 40 litres (${making.litres[0]} to ${making.litres[1]} litres)`, note: 'For the beds you’re making: 10 to 15 cm over cardboard on the grass' });
+    items.push({ key: 'compost:to-make-card', kind: 'compost', name: 'Plain brown cardboard', amount: `about ${plural(making.boxes, 'big box', 'big boxes')}, opened out`, note: 'Two layers under each bed: no tape, staples or shiny print' });
   }
 
   const order = (k: ShopKind) => SHOP_KINDS.indexOf(k);

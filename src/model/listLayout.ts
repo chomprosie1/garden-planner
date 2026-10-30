@@ -5,7 +5,7 @@
 // Pure functions: a garden in, a new garden out.
 
 import { bounds, pointInPolygon, type Bounds } from '../geometry/polygon';
-import { addFeature, makeFeature, moveFeature, rectPoints } from './features';
+import { addFeature, featureLabel, makeFeature, moveFeature, nextName, numberedName, rectPoints } from './features';
 import type { Feature, FeatureKind, Garden, Point } from './types';
 
 /** What can be added from a list, and its usual size, mm (width × depth, or across for a pot). */
@@ -229,20 +229,19 @@ export function nameListBeds(g: Garden, isListed: (f: Feature) => boolean, label
   return { ...g, features: g.features.map((f) => (renamed.has(f.id) ? { ...f, name: renamed.get(f.id)! } : f)) };
 }
 
+/** Beds on a plan told apart: "Bed 1", "Bed 2", so a job can say which. The border and beds you've named are left alone. */
+export const numberBeds = (g: Garden): Garden => nameListBeds(g, (f) => f.kind === 'bed' && f.name !== 'Border', featureLabel);
+
+/** A feature added on a plan: a bed whose name is taken takes the next number, and the others keep theirs. */
+export const addNumbered = (g: Garden, f: Feature): Garden => addFeature(g, f.kind === 'bed' ? { ...f, name: numberedName(g, f) } : f);
+
 /** The kind to add from the list that a bed is, if it's one the list adds. */
 export function listKindOf(f: Feature): ListKind | null {
   const kind = f.kind === 'surface' ? (f.material === 'cardboard' ? 'cardboard' : 'ground') : f.fruitCage ? 'fruit-cage' : f.kind;
   return (LIST_KINDS as readonly string[]).includes(kind) ? (kind as ListKind) : null;
 }
 
-/** The next free name after this one: "Bed 3" after "Bed 2", "Veg 2" after "Veg". */
-export function nextName(label: string, used: Set<string>): string {
-  const m = /^(.*\S)\s+(\d+)$/.exec(label);
-  const stem = m ? m[1]! : label;
-  let n = m ? Number(m[2]) + 1 : 2;
-  while (used.has(`${stem} ${n}`)) n++;
-  return `${stem} ${n}`;
-}
+export { nextName };
 
 /**
  * Another bed like this one, empty: the same kind, size, sun and soil, in the next free place, under the next free name

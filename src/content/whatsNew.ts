@@ -17,6 +17,21 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-30-first-garden-real',
+    date: '2026-10-30',
+    title: 'A first garden, for real',
+    items: [
+      'A garden with nowhere to grow yet now gets Make your first bed, even with no lawn drawn.',
+      'Setting up, you\u2019re asked if your beds are there yet. If they aren\u2019t, making them comes first on Today, with a how-to, and the cardboard and compost go on your shopping list.',
+      'Jobs for a bed still to make say so. Tick its job, or choose It\u2019s made on your Garden page, when it\u2019s done.',
+      'Beds are numbered as they\u2019re made, so a job can say which one it means.',
+      'With no border, a kit\u2019s bulbs and flowers get pots of their own instead of waiting on your list.',
+      'No kit warns about itself: garlic and broad beans no longer share a bed, and rosemary gets a pot big enough.',
+      'Adding a new bed from a plant\u2019s page keeps the plant, and takes you on to planting it.',
+    ],
+    tryIt: { label: 'Open Today', view: 'home' },
+  },
+  {
     id: '2026-10-30-plan-trust',
     date: '2026-10-30',
     title: 'A plan you can trust',

@@ -6,6 +6,7 @@ import { todayIso } from '../model/ids';
 import { makeSpace } from '../model/spaces';
 import { updateGarden, type Store } from '../model/store';
 import type { Garden } from '../model/types';
+import { markBedsToMake } from '../planting/firstBed';
 import { applyKit, kitsFor, type Kit } from '../planting/kits';
 import { spacingStyle } from '../planting/place';
 import type { Prefs, PrefsStore, View } from '../theme/prefs';
@@ -38,6 +39,9 @@ type Step = 'where' | 'track' | 'space' | 'grow';
 /** Popular, easy plants to pick from on the first run: things people most often want to grow first. */
 export const FAVOURITES = ['tomato', 'lettuce', 'strawberry', 'basil', 'potato', 'courgette', 'carrot', 'radish', 'french-bean', 'pea', 'chilli', 'mint', 'sweet-pea', 'sunflower', 'cosmos', 'lavender'];
 
+/** Spaces with beds of their own, which may not be there yet. */
+const BEDS_TO_MAKE = ['garden', 'allotment', 'bed'];
+
 /**
  * First run: where your garden is, what you're growing in, and what you'd like to grow (a starter kit, and
  * favourites for your sowing list). Then Today, with real jobs. Every step can be skipped; the look is in Settings.
@@ -46,6 +50,8 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
   const [step, setStep] = useState(again ? 1 : 0);
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; lines: string[] } | null>(null);
   const [choice, setChoice] = useState<SpaceChoice | null>(null);
+  /** Beds on the plan that aren't in the ground yet: they get a job to make them. */
+  const [notYet, setNotYet] = useState(false);
   /** The kit you chose, or none; undefined until you choose, when it's the first offered (the one that can go in soonest). */
   const [kitChosen, setKit] = useState<Kit | null | undefined>(undefined);
   const [picked, setPicked] = useState<Set<string>>(new Set());
@@ -75,6 +81,7 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
           // The kit chosen for you only if you saw it: Skip before the last step plants none.
           const planted = kitChosen !== undefined ? kitChosen : current === 'grow' ? kit : null;
           if (planted && plants) next = applyKit(next, planted, (id) => byId.get(id) ?? null, todayIso(), bigger);
+          if (empty && notYet && choice && BEDS_TO_MAKE.includes(choice.space)) next = markBedsToMake(next);
           for (const id of picked) if (!next.wishlist.includes(id)) next = toggleWishlist(next, id);
           // A list, if that was chosen (or left as it was offered) once the question was asked.
           if (empty && asList && steps.indexOf('track') <= step - 1) next = nameListBeds({ ...next, view: 'list' }, isListed(next), featureLabel);
@@ -198,6 +205,19 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
                 <p class="muted small">Planted for you, ready to sow when the time comes. You can change anything.</p>
                 <KitPicker kits={kits} value={kit} onChange={setKit} plantOf={plantOf} bigger={bigger} setBigger={setBigger} {...(choice ? { choice } : {})} />
               </>
+            )}
+            {choice && BEDS_TO_MAKE.includes(choice.space) && (
+              <fieldset class="beds-there">
+                <legend class="onboarding-sub">Are these beds there yet?</legend>
+                <label class="check">
+                  <input type="radio" name="beds-there" checked={!notYet} onChange={() => setNotYet(false)} />
+                  Yes, they’re there
+                </label>
+                <label class="check">
+                  <input type="radio" name="beds-there" checked={notYet} onChange={() => setNotYet(true)} />
+                  Not yet: I’ll make them, and I’d like to know how
+                </label>
+              </fieldset>
             )}
             <h2 class="onboarding-sub">{kits.length ? 'And anything else?' : 'Pick some favourites'}</h2>
             <p class="muted small">They go on your list to grow, with sowing jobs when it’s time.</p>

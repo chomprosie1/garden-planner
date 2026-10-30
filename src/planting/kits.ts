@@ -13,14 +13,15 @@ import { nextInMonths } from '../lifecycle/projection';
 import { inYear } from '../lifecycle/shed';
 import { sowingOf } from '../lifecycle/stages';
 import { addDays } from '../model/dates';
-import { addFeature, makeFeature, rectPoints } from '../model/features';
+import { addFeature, makeFeature, rectPoints, updateFeature } from '../model/features';
+import { numberBeds } from '../model/listLayout';
 import type { Space } from '../model/spaces';
 import { clearSpot } from '../model/stickers';
 import type { Feature, Garden, Plant, Point } from '../model/types';
 import { bounds } from '../geometry/polygon';
 import { splitIntoBatches } from './batches';
 import { addPlanting, isContainer, makePlanting, plantCount, type Layout } from './place';
-import { bulbsInPot, isBulb, potCapacity } from './pots';
+import { bulbsInPot, isBulb, potCapacity, potNeeds } from './pots';
 import type { Planting } from '../model/types';
 
 export interface KitItem {
@@ -34,7 +35,7 @@ export interface KitItem {
 export interface KitBed {
   items: KitItem[];
   split?: 'strips' | 'side';
-  /** For the garden's border: it goes there, or (with no border) its plants wait on Want to grow. */
+  /** For the garden's border: it goes there, or (with no border) into pots of their own. */
   border?: true;
 }
 
@@ -137,15 +138,15 @@ export const KITS: Kit[] = [
     id: 'autumn-patio',
     space: 'patio',
     title: 'Autumn planting',
-    blurb: 'Garlic, broad beans and onion sets in the raised bed, and tulips and daffodils in pots for spring.',
-    beds: [{ items: [row('garlic'), row('broad-bean-autumn-sown'), row('onion-overwintering')] }, { items: [block('tulip')] }, { items: [block('daffodil')] }],
+    blurb: 'Garlic and onion sets in the raised bed, and tulips and daffodils in pots for spring.',
+    beds: [{ items: [row('garlic'), row('garlic'), row('onion-overwintering'), row('onion-overwintering')] }, { items: [block('tulip')] }, { items: [block('daffodil')] }],
   },
   {
     id: 'autumn-bed',
     space: 'bed',
     title: 'Autumn bed',
-    blurb: 'Garlic, broad beans and onion sets, planted this autumn for some of the first crops next year.',
-    beds: [{ items: [row('garlic'), row('garlic'), row('broad-bean-autumn-sown'), row('broad-bean-autumn-sown'), row('onion-overwintering')] }],
+    blurb: 'Garlic and onion sets, planted this autumn for some of the first crops next year.',
+    beds: [{ items: [row('garlic'), row('garlic'), row('onion-overwintering'), row('onion-overwintering')] }],
   },
   {
     id: 'autumn-garden',
@@ -193,6 +194,9 @@ export function kitsFor(space: Space, month?: number, plantOf?: (id: string) => 
   };
   return [...kits].sort((a, b) => soon(b) - soon(a));
 }
+
+/** What a kit says it does, for a garden with a border or without: with none, what would go along it goes in pots. */
+export const kitBlurb = (kit: Kit, border: boolean): string => (border ? kit.blurb : kit.blurb.replace('along the border', 'in pots'));
 
 /** Every plant a kit uses, once each. */
 export const kitPlants = (kit: Kit): string[] => [...new Set(kit.beds.flatMap((b) => b.items.map((i) => i.plant)))];
@@ -269,9 +273,9 @@ const BED_SIZES: [number, number][] = [
  * A bed (or, on a balcony or patio, a pot) added for a kit that needs more than the space has: in the first clear spot
  * inside the garden, nearest its middle, at the biggest size that fits. Null when there's no room for even a small one.
  */
-function addKitBed(g: Garden, pot: boolean): [Garden, Feature] | null {
+function addKitBed(g: Garden, pot: boolean, near?: Point): [Garden, Feature] | null {
   const b = bounds(g.boundary.length >= 3 ? g.boundary : g.features.flatMap((f) => f.footprint));
-  const mid: Point = b ? [Math.round((b.minX + b.maxX) / 2), Math.round((b.minY + b.maxY) / 2)] : [0, 0];
+  const mid: Point = near ?? (b ? [Math.round((b.minX + b.maxX) / 2), Math.round((b.minY + b.maxY) / 2)] : [0, 0]);
   const make = (at: Point, w: number, h: number) =>
     pot ? makeFeature('pot', { circle: { centre: at, radiusMm: w / 2 } }) : { ...makeFeature('bed', { area: rectPoints({ x: Math.round(at[0] - w / 2), y: Math.round(at[1] - h / 2), w, h }) }), edging: 'timber' as const };
   for (const [w, h] of pot ? ([[400, 400], [300, 300]] as [number, number][]) : BED_SIZES) {
@@ -298,14 +302,48 @@ export function applyKit(g: Garden, kit: Kit, plantOf: (id: string) => Plant | n
   let next = g;
   for (const bed of kit.beds) {
     let f = bed.border ? border : beds.shift();
+    if (!f && bed.border) {
+      next = potsFor(next, bed, plantOf, today, full);
+      continue;
+    }
     if (!f && !bed.border && bed.items.length) {
       const pot = (kit.space === 'balcony' || kit.space === 'patio') && bed !== kit.beds[0];
       const added = addKitBed(next, pot);
       if (added) [next, f] = added;
     }
-    if (f) next = plantKitBed(next, f, bed, plantOf, today, full);
+    if (f) {
+      [next, f] = potToFit(next, f, bed, plantOf);
+      next = plantKitBed(next, f, bed, plantOf, today, full);
+    }
   }
   for (const id of kitPlants(kit)) if (plantOf(id) && !next.wishlist.includes(id)) next = toggleWishlist(next, id);
+  return numberBeds(next);
+}
+
+/** A pot big enough for the one plant a kit puts in it: a kit shouldn't start with a warning. */
+function potToFit(g: Garden, f: Feature, bed: KitBed, plantOf: (id: string) => Plant | null): [Garden, Feature] {
+  const item = bed.items[0];
+  const plant = item && item.layout === 'single' && bed.items.length === 1 ? plantOf(item.plant) : null;
+  if (!f.circle || !plant || potNeeds(plant) <= f.circle.radiusMm * 2) return [g, f];
+  const circle = { ...f.circle, radiusMm: potNeeds(plant) / 2 };
+  const patch = { circle, footprint: makeFeature('pot', { circle }).footprint };
+  return [updateFeature(g, f.id, patch), { ...f, ...patch }];
+}
+
+/** With no border to go along, each of a kit's border plants gets a pot of its own, by the house end of the garden. */
+function potsFor(g: Garden, bed: KitBed, plantOf: (id: string) => Plant | null, today: string, full: boolean): Garden {
+  let next = g;
+  const b = bounds(g.boundary.length >= 3 ? g.boundary : g.features.flatMap((f) => f.footprint));
+  bed.items.forEach((item, i) => {
+    const plant = plantOf(item.plant);
+    if (!plant) return;
+    const added = addKitBed(next, true, b ? [Math.round(b.minX + 600 + i * 700), Math.round(b.minY + 600)] : undefined);
+    if (!added) return;
+    const [after, pot] = added;
+    const name = `${plant.commonName} pot`;
+    next = updateFeature(after, pot.id, { name });
+    next = plantKitBed(next, { ...pot, name }, { items: [{ ...item, layout: isBulb(plant) ? 'block' : 'single' }] }, plantOf, today, full);
+  });
   return next;
 }
 

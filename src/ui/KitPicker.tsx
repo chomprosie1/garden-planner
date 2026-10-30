@@ -6,7 +6,7 @@ import { useMemo } from 'preact/hooks';
 import { newGarden } from '../model/defaults';
 import { makeSpace, spaceInfo, type Space } from '../model/spaces';
 import type { Plant } from '../model/types';
-import { applyKit, type Kit } from '../planting/kits';
+import { applyKit, kitBlurb, type Kit } from '../planting/kits';
 import { MiniPlan } from './MiniPlan';
 import { spaceOf, type SpaceChoice } from './SpacePicker';
 
@@ -42,7 +42,7 @@ export function KitPicker({ kits, value, onChange, plantOf, bigger, setBigger, c
               <MiniPlan garden={pictures.get(k.id)!} width={96} height={72} pad={0.04} class="kit-preview" plantOf={plantOf} />
               <span class="kit-text">
                 <span class="kit-title">{k.title}</span>
-                <span class="kit-blurb">{k.blurb}</span>
+                <span class="kit-blurb">{kitBlurb(k, choice?.border !== false)}</span>
               </span>
             </span>
           </label>

@@ -52,6 +52,7 @@ import { defaultFill, fillPlanting } from '../planting/fill';
 import { isPot, spotInPot } from '../planting/pots';
 import { besideSupport, boundaryFence, holdsOne, isSupport, wherePhrase } from '../planting/supports';
 import { treeType } from '../model/trees';
+import { addNumbered } from '../model/listLayout';
 import { addPlanting, blockGrid, containerAt, isContainer, leftItsBed, mayGoUp, deletePlanting, duplicatePlanting, makePlanting, placeCopy, MAX_PLANTS, movePlanting, plantCount, plantingPoint, plantPositions, rowCount, rowSpacingOf, sizedPlant, spreadOf, updatePlanting, type InGroundAt, type Layout } from '../planting/place';
 import type { Finding } from '../planting/rules';
 import type { SunGrid } from '../sun/hours';
@@ -613,13 +614,13 @@ export function PlanCanvas(props: PlanCanvasProps) {
         drawn({ type: 'boundary' }, 'Boundary drawn.');
       } else {
         const f = makeFeature(p.tool as FeatureKind, { area: clean });
-        commit((g) => addFeature(g, f));
+        commit((g) => addNumbered(g, f));
         drawn(freshTarget(f), `${KINDS[f.kind].label} added.`);
       }
       p.setTool('select');
     } else if (geometry === 'line' && clean.length >= 2) {
       const f = makeFeature(p.tool as FeatureKind, { line: clean });
-      commit((g) => addFeature(g, f));
+      commit((g) => addNumbered(g, f));
       drawn(freshTarget(f), `${KINDS[f.kind].label} added.`);
       p.setTool('select');
     }
@@ -632,7 +633,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
     drawing.current = emptyDrawing();
     if (radius < 50) return redraw();
     const f = makeFeature(p.tool as FeatureKind, { circle: { centre, radiusMm: radius } });
-    commit((g) => addFeature(g, f));
+    commit((g) => addNumbered(g, f));
     drawn(freshTarget(f), `${KINDS[f.kind].label} added.`);
     p.setTool('select');
   };
@@ -675,13 +676,13 @@ export function PlanCanvas(props: PlanCanvasProps) {
       // A box drawn by hand becomes a rectangle, with straight sides and square corners; anything else, a smooth shape.
       const box = rectangleOf(pts);
       const f = box ? makeFeature(p.tool as FeatureKind, { area: box }) : makeFeature(p.tool as FeatureKind, { area: corners }, { smooth: true });
-      commit((g) => addFeature(g, f));
+      commit((g) => addNumbered(g, f));
       drawn(freshTarget(f), `${KINDS[f.kind].label} added.`);
     } else if (geometry === 'line') {
       const line = simplify(pts, tol);
       if (line.length < 2 || distance(line[0]!, line[line.length - 1]!) < 100) return say('Draw along the whole line.');
       const f = makeFeature(p.tool as FeatureKind, { line }, { smooth: true });
-      commit((g) => addFeature(g, f));
+      commit((g) => addNumbered(g, f));
       drawn(freshTarget(f), `${KINDS[f.kind].label} added.`);
     }
     p.setTool('select');
@@ -835,7 +836,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
       return;
     }
     const first = garden().features.length === 0 && garden().boundary.length < 3;
-    commit((g) => addFeature(g, f));
+    commit((g) => addNumbered(g, f));
     // The first thing in an empty garden: zoom in on it, with room round it for what comes next.
     if (first) {
       const b = bounds(f.footprint)!;

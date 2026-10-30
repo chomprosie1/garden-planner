@@ -228,6 +228,8 @@ export interface Feature {
   light?: Light;
   /** A bed netted over for fruit: canes in rows, bushes on a grid. It keeps its plants from year to year. */
   fruitCage?: boolean;
+  /** A bed on the plan that isn't there yet: it has a job to make it, and its crops wait for it. */
+  toMake?: boolean;
   /**
    * Whether its crops move round the beds each year (crop rotation). Absent: a bed or patch of soil does, unless it's a
    * fruit cage or holds only plants that come back each year and flowers.

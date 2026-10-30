@@ -14,13 +14,13 @@ import { probableStage, shortDate, stageIn, timeline } from '../lifecycle/projec
 import { behindOf } from '../lifecycle/behind';
 import type { Weather } from '../weather/weather';
 import { waterJob } from './watering';
-import { featureLabel, placeLabel } from '../model/features';
+import { featureLabel, placeLabel, updateFeature } from '../model/features';
 import { runEnds } from '../library/library';
 import { STAGES, type Garden, type PickSize, type Plant, type Planting, type Stage } from '../model/types';
 import { addPick } from '../planting/harvest';
 import { isActive, isContainer, plantingStatus, stillWanted } from '../planting/place';
 import { isPot } from '../planting/pots';
-import { firstBedHowTo, needsFirstBed } from '../planting/firstBed';
+import { bedHowTo, bedSize, firstBedHowTo, MAKE_BED, needsFirstBed } from '../planting/firstBed';
 import { wherePhrase } from '../planting/supports';
 
 export { runEnds };
@@ -245,7 +245,7 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
     const plant = plantOf(plantId);
     const bed = g.features.find((f) => f.id === featureId);
     const bedName = bed ? placeLabel(bed) : 'a bed';
-    const where = `${wherePhrase(bed)}${describeGroup(group)}`;
+    const where = `${wherePhrase(bed)}${describeGroup(group)}${bed?.toMake ? ', once it’s made' : ''}`;
     const ids = (list: Planting[]) => list.map((p) => p.id);
     // A weed gets a job to be rid of it, unless you're keeping it; none of the jobs for crops.
     if (plant.category === 'weed') {
@@ -375,7 +375,7 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
   // The season's weeding: one job for every bed with something growing in it.
   const tip = WEEDING_TIP[month];
   if (opts.weeding && tip) {
-    const beds = g.features.filter((f) => isContainer(f) && !isPot(f) && g.plantings.some((p) => isActive(p) && p.featureId === f.id && plantOf(p.plantId).category !== 'weed'));
+    const beds = g.features.filter((f) => isContainer(f) && !isPot(f) && !f.toMake && g.plantings.some((p) => isActive(p) && p.featureId === f.id && plantOf(p.plantId).category !== 'weed'));
     if (beds.length) {
       const names = beds.map(placeLabel);
       const list = names.length > 3 ? `${names.slice(0, 3).join(', ')} and ${names.length - 3} more` : names.join(names.length === 2 ? ' and ' : ', ');
@@ -396,7 +396,10 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
   if (first) jobs.push(first);
 
   const order = (k: JobKind) => JOB_KINDS.indexOf(k);
-  return jobs.sort((a, b) => order(a.kind) - order(b.kind) || a.plant.localeCompare(b.plant) || a.where.localeCompare(b.where));
+  // A bed to make comes first: everything to go in it waits for it.
+  // Only now: next month's preview doesn't say it again.
+  const ahead = !!today && ym(year, month) > today.slice(0, 7);
+  return [...(ahead ? [] : makeBedJobs(g, month, year)), ...jobs.sort((a, b) => order(a.kind) - order(b.kind) || a.plant.localeCompare(b.plant) || a.where.localeCompare(b.where))];
 }
 
 /**
@@ -433,6 +436,14 @@ export function cardboardJobs(g: Garden, month: number, year: number): Job[] {
   return out;
 }
 
+/** A job for each bed still to be made, until it's ticked; ticked this month, it stays there, ticked. */
+export function makeBedJobs(g: Garden, month: number, year: number): Job[] {
+  const keyOf = (f: { id: string }) => `${MAKE_BED}${f.id}:${ym(year, month)}`;
+  return g.features
+    .filter((f) => f.toMake || g.jobsDone.some((d) => d.key === keyOf(f)))
+    .map((f) => ({ key: keyOf(f), kind: 'check' as const, verb: 'Make', plantId: '', plant: placeLabel(f), where: 'with cardboard and compost, no digging', detail: bedHowTo(...bedSize(f)), featureId: f.id, plantingIds: [] }));
+}
+
 /**
  * A garden that's all lawn: make a first bed, without digging, cardboard and compost over the grass. Until there's a
  * bed, pot or patch of soil to grow in, or it's been ticked in an earlier month.
@@ -442,15 +453,15 @@ export function firstBedJob(g: Garden, month: number, year: number): Job | null 
   const now = ym(year, month);
   const prefix = 'check:first-bed:';
   if (g.jobsDone.some((d) => d.key.startsWith(prefix) && d.key.slice(-7) < now)) return null;
-  return { key: `${prefix}${now}`, kind: 'check', verb: 'Make your first bed', plantId: '', plant: 'A bed on the lawn', where: 'with cardboard and compost, no digging', detail: firstBedHowTo(), plantingIds: [] };
+  return { key: `${prefix}${now}`, kind: 'check', verb: 'Make your first bed', plantId: '', plant: 'A first bed', where: 'with cardboard and compost, no digging', detail: firstBedHowTo(), plantingIds: [] };
 }
 
 /** Jobs grouped by kind, skipping kinds with nothing to do. */
 /** Jobs grouped under what they say, in the order of their kinds: "Sow outside", then "Plant" (cloves, sets), and so on. */
 export function groupJobs(jobs: Job[]): [string, Job[]][] {
   const groups = new Map<string, Job[]>();
-  const order = (k: JobKind) => JOB_KINDS.indexOf(k);
-  for (const j of [...jobs].sort((a, b) => order(a.kind) - order(b.kind))) groups.set(jobLabel(j), [...(groups.get(jobLabel(j)) ?? []), j]);
+  const order = (j: Job) => (j.key.startsWith(MAKE_BED) ? -1 : JOB_KINDS.indexOf(j.kind));
+  for (const j of [...jobs].sort((a, b) => order(a) - order(b))) groups.set(jobLabel(j), [...(groups.get(jobLabel(j)) ?? []), j]);
   return [...groups];
 }
 
@@ -458,8 +469,12 @@ export function groupJobs(jobs: Job[]): [string, Job[]][] {
  * The first job to do, for landing on the plan after setting up: the first of this month's jobs that's about plantings
  * on the plan, with a note of what it is. Null when there's none (nothing planted, or nothing to do this month).
  */
-export function firstJob(g: Garden, plantOf: (id: string) => Plant, now: Date, opts: JobOptions = {}): { target: { type: 'planting'; id: string }; note: string } | null {
-  const job = jobsFor(g, plantOf, now.getMonth() + 1, now.getFullYear(), opts).find((j) => j.plantingIds.length > 0);
+export function firstJob(g: Garden, plantOf: (id: string) => Plant, now: Date, opts: JobOptions = {}): { target: { type: 'planting' | 'feature'; id: string }; note: string } | null {
+  const jobs = jobsFor(g, plantOf, now.getMonth() + 1, now.getFullYear(), opts);
+  // A bed to make comes before anything to go in it.
+  const make = jobs.find((j) => j.key.startsWith(MAKE_BED));
+  if (make) return { target: { type: 'feature', id: make.featureId! }, note: `Your first job: make ${make.plant}.` };
+  const job = jobs.find((j) => j.plantingIds.length > 0);
   if (!job) return null;
   // Two ways to do it: the first, in a sentence; the job itself offers both.
   return { target: { type: 'planting', id: job.plantingIds[0]! }, note: `Your first job: ${job.plant}. ${job.ways?.[0]?.label ?? jobLabel(job)} ${job.where}.` };
@@ -474,8 +489,10 @@ export function firstJob(g: Garden, plantOf: (id: string) => Plant, now: Date, o
 export function toggleJob(g: Garden, job: Job, date: string, plantOf?: (id: string) => Plant, way: JobKind = job.kind): Garden {
   const done = g.jobsDone.find((j) => j.key === job.key);
   const ids = new Set(job.plantingIds);
+  const making = job.key.startsWith(MAKE_BED) && job.featureId;
   if (done) {
     const unticked = { ...g, jobsDone: g.jobsDone.filter((j) => j.key !== job.key) };
+    if (making) return updateFeature(unticked, making, { toMake: true });
     // A weed job unticked: the weeds it cleared are back.
     if (job.kind === 'weed' && ids.size) return { ...unticked, plantings: unticked.plantings.map((p) => (ids.has(p.id) && p.removedOn === done.date ? withoutRemoved(p) : p)) };
     // A sowing unticked: it wasn't sown after all, so the job's back to do. Not if it's moved on since: it's come up, so it was.
@@ -483,6 +500,7 @@ export function toggleJob(g: Garden, job: Job, date: string, plantOf?: (id: stri
     return unticked;
   }
   const ticked = { ...g, jobsDone: [...g.jobsDone, { key: job.key, date }] };
+  if (making) return updateFeature(ticked, making, { toMake: undefined });
   if (!ids.size) return ticked;
   // A weed dug or pulled out is gone from the plan, kept in the bed's history.
   if (job.kind === 'weed') return { ...ticked, plantings: ticked.plantings.map((p) => (ids.has(p.id) && !p.removedOn ? { ...p, removedOn: date } : p)) };

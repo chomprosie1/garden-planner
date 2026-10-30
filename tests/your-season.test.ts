@@ -207,11 +207,10 @@ describe('dates against Callum’s spreadsheet', () => {
 });
 
 describe('the save format', () => {
-  it('schema 23: a v22 garden comes through unchanged but for its version', () => {
+  it('a v22 garden comes through unchanged but for its version', () => {
     const { schemaVersion: _v, ...old } = newGarden();
     const out = migrateGarden({ ...old, schemaVersion: 22, lastFrost: '05-14' }) as Garden;
-    expect(SCHEMA_VERSION).toBe(23);
-    expect(out.schemaVersion).toBe(23);
+    expect(out.schemaVersion).toBe(SCHEMA_VERSION);
     expect(out.lastFrost).toBe('05-14');
     expect(out.heightM).toBeUndefined();
     expect(validateGarden(JSON.parse(JSON.stringify(out)))).toEqual([]);

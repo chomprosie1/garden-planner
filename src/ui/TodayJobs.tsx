@@ -8,6 +8,7 @@ import { jobTiming, upcoming, upcomingVerb, weekWindows } from '../calendar/week
 import { generalJobs, seasonFor } from '../content/seasons';
 import { featureLabel } from '../model/features';
 import { todayIso } from '../model/ids';
+import { makesABed } from '../planting/firstBed';
 import type { Store } from '../model/store';
 import type { Garden, Plant } from '../model/types';
 import { useApp } from './appContext';
@@ -43,8 +44,8 @@ export function TodayJobs({ store, garden, plantOf, jobs, month, year, startHere
   const later = jobs.filter((j) => timing.get(j.key) === 'later');
   // Seedlings coming up, first flowers, ready to pick: not jobs, but worth a look this week.
   const lookOut = useMemo(() => (plantOf ? upcoming(garden, plantOf, today, ...weekWindows(today).thisWeek, weather).filter((u) => !u.todo) : []), [garden, plantOf, today, weather]);
-  // The first job about something in the garden, as it's shown: what to do first.
-  const first = startHere ? groupJobs(now.slice(0, SHOWN)).flatMap(([, list]) => list).find((j) => j.plantingIds.length > 0)?.key ?? null : null;
+  // The first job about something in the garden, or a bed to make, as it's shown: what to do first.
+  const first = startHere ? groupJobs(now.slice(0, SHOWN)).flatMap(([, list]) => list).find((j) => j.plantingIds.length > 0 || makesABed(j))?.key ?? null : null;
   const allLink = (
     <a
       href="#/month"

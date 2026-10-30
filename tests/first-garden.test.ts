@@ -60,15 +60,16 @@ describe('a garden’s beds', () => {
     expect(new Set(plantedIn(planted, b!))).toEqual(new Set(['broad-bean-autumn-sown']));
   });
 
-  it('the border is optional: without it, the veg still gets its beds and the flowers wait on Want to grow', () => {
+  // Changed in release 52: its plants used to wait on Want to grow, with nowhere to go (Jordan).
+  it('the border is optional: without it, the veg still gets its beds and the flowers get pots', () => {
     const g = makeSpace(newGarden(), 'garden', 10000, 14000, null, { border: false });
     expect(g.features.some((f) => f.name === 'Border')).toBe(false);
     const planted = applyKit(g, kit('veg-and-flowers'), plantOf, '2026-04-01');
     const [a, b] = beds(planted);
     expect(plantedIn(planted, a!)).toContain('carrot');
     expect(plantedIn(planted, b!)).toContain('potato');
-    expect(planted.plantings.some((p) => p.plantId === 'lavender')).toBe(false);
-    expect(planted.wishlist).toContain('lavender');
+    const lavender = planted.plantings.find((p) => p.plantId === 'lavender')!;
+    expect(planted.features.find((f) => f.id === lavender.featureId)!.kind).toBe('pot');
   });
 
   it('a kit that needs more beds than the space has adds them inside the garden, clear of the rest', () => {
