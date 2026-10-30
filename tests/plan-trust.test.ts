@@ -8,12 +8,12 @@ import { describe, expect, it } from 'vitest';
 import varieties from '../data/varieties.json';
 import { hitPlanting, plantingDrag } from '../src/canvas/hit';
 import { claim } from '../src/canvas/labels';
-import { parseLength, sizeMm } from '../src/canvas/snap';
+import { parseLength, sensibleSize, sizeField, sizeMm, typedSize } from '../src/canvas/snap';
 import { pointInPolygon } from '../src/geometry/polygon';
 import { withVarieties, type VarietyEntry } from '../src/library/library';
 import { newGarden } from '../src/model/defaults';
 import { addFeature, closeGround, freshTarget, isSetGround, makeFeature, rectPoints } from '../src/model/features';
-import { LIST_SIZE, planFromList } from '../src/model/listLayout';
+import { LIST_SIZE, outsideBoundary, planFromList } from '../src/model/listLayout';
 import type { Feature, Garden, Plant, Planting } from '../src/model/types';
 import { isListed } from '../src/planting/listPlant';
 import { addPlanting, leftItsBed, makePlanting, movePlanting, unknownPlant } from '../src/planting/place';
@@ -147,6 +147,37 @@ describe('switching from a list makes a garden that fits (Priya, twice)', () => 
   });
 });
 
+describe('a bed outside the boundary says so (the L-shaped garden)', () => {
+  const edge: Garden['boundary'] = [[0, 0], [4000, 0], [4000, 2000], [2000, 2000], [2000, 4000], [0, 4000]];
+  const notch = bedAt(2600, 2600, 1000, 1000, 'Bed 3');
+  it('an L keeps its shape, and the plan raises it until it’s moved', () => {
+    const start = addFeature({ ...newGarden(), view: 'list' as const, boundary: edge }, notch);
+    const g = planFromList(start, isListed(start));
+    expect(g.boundary).toEqual(edge);
+    expect(outsideBoundary(g, isListed(start)).map((f) => f.id)).toEqual([notch.id]);
+    const plan = { ...g, view: undefined };
+    expect(warns(plan, 'outside').map((f) => f.featureIds)).toEqual([[notch.id]]);
+  });
+  it('inside it, or on any of its edges, says nothing', () => {
+    for (const bed of [bedAt(0, 0, 2000, 1000, 'Bed'), bedAt(3000, 500, 1000, 1000, 'Right edge'), bedAt(500, 3000, 1000, 1000, 'Top edge')]) {
+      const g = addFeature({ ...newGarden(), boundary: edge }, bed);
+      expect(warns(g, 'outside')).toEqual([]);
+      expect(outsideBoundary(g, () => true)).toEqual([]);
+    }
+  });
+  it('a bed spanning a notch is outside, though all its corners are in', () => {
+    const u: Garden['boundary'] = [[0, 0], [6000, 0], [6000, 3000], [3500, 3000], [3500, 1500], [2500, 1500], [2500, 3000], [0, 3000]];
+    const g = addFeature({ ...newGarden(), boundary: u }, bedAt(1500, 1800, 3000, 800, 'Bed'));
+    expect(warns(g, 'outside')).toHaveLength(1);
+  });
+  it('a list says nothing: it has no boundary to see', () => {
+    expect(warns(addFeature({ ...newGarden(), view: 'list' as const, boundary: edge }, notch), 'outside')).toEqual([]);
+  });
+  it('a neighbour’s things are outside by rights', () => {
+    expect(warns(addFeature({ ...newGarden(), boundary: edge }, { ...notch, nextDoor: true }), 'outside')).toEqual([]);
+  });
+});
+
 describe('a tree in a pot', () => {
   it('is picked where it’s drawn, not 2 m away', () => {
     const pot = potAt(1000, 1000, 300, 'Apple pot');
@@ -243,6 +274,18 @@ describe('sizes as a gardener types them', () => {
   });
   it('a pot typed in metres out of habit is still read as metres', () => {
     expect(sizeMm('0.3', 'cm')).toBe(300);
+  });
+  it('a size left as shown stays exact: tapping Set changes nothing (a 30 cm pot was becoming 3 m)', () => {
+    expect(typedSize(sizeField(300, 'cm'), 300, 'cm')).toBe(300);
+    expect(sizeField(300, 'cm')).toBe('30');
+    expect(typedSize(sizeField(1234, 'm'), 1234, 'm')).toBe(1234);
+    expect(typedSize('2.5', 1234, 'm')).toBe(2500);
+  });
+  it('a slip is refused: an old habit of typing mm isn’t a 1.2 km bed', () => {
+    expect(typedSize('1200', 2400, 'm')).toBeNull();
+    expect(typedSize('900', 300, 'cm')).toBeNull();
+    expect(typedSize('nonsense', 300, 'cm')).toBeNull();
+    expect(sensibleSize('0.01', 'm')).toBeNull();
   });
   it('the usual sizes stand', () => {
     expect(LIST_SIZE.pot[0]).toBe(300);

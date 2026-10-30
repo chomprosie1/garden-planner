@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-30-loose-ends',
+    date: '2026-10-30',
+    title: 'Some loose ends',
+    items: [
+      'A bed or pot outside your garden\u2019s boundary now gets a warning, and switching from a list tells you if anything didn\u2019t fit.',
+      'Beds that shared a name are now numbered, so a job can say which one it means.',
+      'Beds still to make have a dashed outline on the plan, with It\u2019s made to tick them off.',
+      'Picking a plant now shows its bed\u2019s name: tap that to pick the bed, even if it\u2019s full of plants, and move it.',
+      'Typing an exact size on the plan is now in metres, or centimetres for a pot, and feet work too.',
+      'Moving a plant out of its bed with the arrow keys now asks first, as dragging does.',
+    ],
+    tryIt: { label: 'See your garden', view: 'plan' },
+  },
+  {
     id: '2026-10-30-first-garden-real',
     date: '2026-10-30',
     title: 'A first garden, for real',

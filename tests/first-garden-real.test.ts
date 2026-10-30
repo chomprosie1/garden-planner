@@ -227,12 +227,35 @@ describe('a bed with something to plant keeps it', () => {
 });
 
 describe('the save format', () => {
-  it('schema 24: a v23 garden comes through', () => {
+  const bed = (name?: string, patch = {}) => ({ ...makeFeature('bed', { area: rectPoints({ x: 0, y: 0, w: 1200, h: 2400 }) }), ...(name ? { name } : {}), ...patch });
+  const migrated = (...features: unknown[]) => {
+    const { schemaVersion: _v, ...old } = newGarden();
+    return migrateGarden({ ...old, schemaVersion: 24, features }) as Garden;
+  };
+  it('schema 25: a v23 garden comes through', () => {
     const { schemaVersion: _v, ...old } = newGarden();
     const out = migrateGarden({ ...old, schemaVersion: 23 }) as Garden;
-    expect(SCHEMA_VERSION).toBe(24);
-    expect(out.schemaVersion).toBe(24);
+    expect(SCHEMA_VERSION).toBe(25);
+    expect(out.schemaVersion).toBe(25);
     expect(validateGarden(JSON.parse(JSON.stringify(out)))).toEqual([]);
+  });
+  it('saved beds that share a name are numbered (Jordan: "Bed and Bed")', () => {
+    expect(migrated(bed(), bed(), bed('Bed')).features.map((f) => f.name)).toEqual(['Bed 1', 'Bed 2', 'Bed 3']);
+  });
+  it('it steps round a number that’s taken', () => {
+    expect(migrated(bed('Veg'), bed('Veg'), bed('Veg 1')).features.map((f) => f.name)).toEqual(['Veg 2', 'Veg 3', 'Veg 1']);
+  });
+  it('names already different, the border and fruit cages stay as they are', () => {
+    const out = migrated(bed('Veg'), bed('Herbs'), bed('Border'), bed('Border '), bed(undefined, { fruitCage: true }), bed(undefined, { fruitCage: true }), bed('Fruit cage', { fruitCage: true }), bed('Fruit cage', { fruitCage: true }));
+    expect(out.features.map((f) => f.name)).toEqual(['Veg', 'Herbs', 'Border', 'Border ', undefined, undefined, 'Fruit cage', 'Fruit cage']);
+  });
+  it('plantings stay in their beds', () => {
+    const [a, b] = [bed(), bed()];
+    const { schemaVersion: _v, ...old } = newGarden();
+    const pl = makePlanting(plantOf('garlic'), b.id, 'single', [600, 600]);
+    const out = migrateGarden({ ...old, schemaVersion: 24, features: [a, b], plantings: [pl] }) as Garden;
+    expect(out.plantings[0]!.featureId).toBe(b.id);
+    expect(out.features.map((f) => f.id)).toEqual([a.id, b.id]);
   });
   it('a bed to make saves', () => {
     const f = { ...makeFeature('bed', { area: rectPoints({ x: 0, y: 0, w: 1200, h: 2400 }) }), toMake: true };

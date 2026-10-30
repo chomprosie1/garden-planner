@@ -1,7 +1,7 @@
 // Brings saved gardens and plants from older versions up to the current shape.
 // Bump SCHEMA_VERSION whenever the saved shape changes, and add a step here.
 
-export const SCHEMA_VERSION = 24;
+export const SCHEMA_VERSION = 25;
 
 type Raw = Record<string, unknown>;
 
@@ -131,7 +131,39 @@ export function migrateGarden(raw: unknown): unknown {
     g = { ...g, schemaVersion: 24 };
     version = 24;
   }
+  if (version === 24) {
+    g = gardenV24toV25(g);
+    version = 25;
+  }
   return g;
+}
+
+/**
+ * v25: beds that share a name are numbered, as new ones are, so a job can say which it means: "Bed" and "Bed" become
+ * "Bed 1" and "Bed 2". The border, fruit cages and names already different are left alone. Nothing else changes.
+ */
+function gardenV24toV25(g: Raw): Raw {
+  const features = Array.isArray(g.features) ? g.features : [];
+  const labelOf = (f: unknown): string | null => {
+    if (!isObject(f) || f.kind !== 'bed' || f.fruitCage) return null;
+    const name = (typeof f.name === 'string' && f.name.trim()) || 'Bed';
+    return name === 'Border' ? null : name;
+  };
+  const labels = features.map(labelOf).filter((l): l is string => !!l);
+  const used = new Set(labels);
+  const shared = new Set(labels.filter((l, i) => labels.indexOf(l) !== i));
+  return {
+    ...g,
+    schemaVersion: 25,
+    features: features.map((f) => {
+      const label = labelOf(f);
+      if (!label || !shared.has(label)) return f;
+      let n = 1;
+      while (used.has(`${label} ${n}`)) n++;
+      used.add(`${label} ${n}`);
+      return { ...(f as Raw), name: `${label} ${n}` };
+    }),
+  };
 }
 
 /**

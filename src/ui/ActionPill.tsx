@@ -5,13 +5,14 @@
 import { useEffect, useState } from 'preact/hooks';
 import { microclimateOf } from '../climate/microclimate';
 import { isNewSeason, nextStage, stageAction } from '../lifecycle/stages';
+import { sizeField, typedSize } from '../canvas/snap';
 import { closeGround, deleteFeatures, duplicateFeature, featureLabel, geometryOf, freshTarget, isGround, isSetGround, keepOpen, moveFeature, placeLabel, MATERIAL_LABEL, materialPatch, rectInfo, resizeRectAny, setSmooth, updateFeature, type Target } from '../model/features';
 import { todayIso } from '../model/ids';
 import { asTree, treeSizeText, treeType } from '../model/trees';
 import { updateGarden, type Store } from '../model/store';
 import { MATERIALS, PLANT_SIZES, type Feature, type PlantSize, type Garden, type Material, type Plant, type Point } from '../model/types';
 import { rowsOfSowing } from '../planting/listPlant';
-import { canHold, canResize, containerAt, deletePlanting, duplicatePlanting, placeCopy, updatePlanting, plantCount, setPlantingSize, setRowCount, SIZE_FACTOR, SIZE_LABEL, spreadOf } from '../planting/place';
+import { canHold, canResize, containerAt, deletePlanting, isContainer, duplicatePlanting, placeCopy, updatePlanting, plantCount, setPlantingSize, setRowCount, SIZE_FACTOR, SIZE_LABEL, spreadOf } from '../planting/place';
 import { setStage } from '../lifecycle/stages';
 import { holdsPoint, isSupport, wherePhrase } from '../planting/supports';
 import { useApp } from './appContext';
@@ -62,6 +63,7 @@ export function ActionPill({ pillRef, target, garden, store, plantOf, locked, mo
       const plant = plantOf(pl.plantId);
       const next = nextStage(plant, pl, !!microclimateOf(garden, pl));
       const n = plantCount(pl, plant);
+      const bedOf = garden.features.find((x) => x.id === pl.featureId);
       // One row of several sown together: the plan's count is the row's, so say so. The list and shopping count them all.
       const rows = pl.layout === 'row' ? garden.plantings.filter((p) => p.id === pl.id || rowsOfSowing(garden, pl.id).includes(p.id)) : [];
       const rowText = rows.length > 1 ? `row ${rows.indexOf(pl) + 1} of ${rows.length} · ` : '';
@@ -75,6 +77,12 @@ export function ActionPill({ pillRef, target, garden, store, plantOf, locked, mo
               {rowText ? `, ${rowText}${n}` : n > 1 ? ` ×${n}` : ''}
             </span>
           </span>
+          {/* A bed full of plants has nothing else to tap: this picks it, to move it or say it's made. */}
+          {bedOf && isContainer(bedOf) && (
+            <button type="button" class="pill-btn" aria-label={'Pick '+placeLabel(bedOf)} onClick={() => select({ type: 'feature', id: bedOf.id })}>
+              {placeLabel(bedOf)}
+            </button>
+          )}
           {plant.category === 'weed' && (
             <button
               type="button"
@@ -225,20 +233,24 @@ function FeatureActions({ f, ground, garden, commit, locked, sizing, setSizing, 
   const app = useApp();
   const rect = !f.smooth && geometryOf(f) === 'area' ? rectInfo(f.footprint) : null;
   const circle = f.circle;
+  // In the field's own unit, as anywhere a size is typed: centimetres for a pot, metres for the rest. Feet will do.
+  const unit = f.kind === 'pot' ? 'cm' : 'm';
   const [w, setW] = useState('');
   const [h, setH] = useState('');
   useEffect(() => {
     if (rect) {
-      setW(String(Math.round(rect.w)));
-      setH(String(Math.round(rect.h)));
-    } else if (circle) setW(String(circle.radiusMm * 2));
+      setW(sizeField(rect.w, unit));
+      setH(sizeField(rect.h, unit));
+    } else if (circle) setW(sizeField(circle.radiusMm * 2, unit));
   }, [sizing, f]);
   const apply = (e: Event) => {
     e.preventDefault();
-    const W = Math.round(Number(w));
-    const H = Math.round(Number(h));
-    if (rect && W >= 50 && H >= 50) commit((g) => updateFeature(g, f.id, { footprint: resizeRectAny(f.footprint, W, H)! }));
-    if (circle && W >= 50) commit((g) => updateFeature(g, f.id, { circle: { ...circle, radiusMm: Math.round(W / 2) } }));
+    const W = typedSize(w, rect ? rect.w : (circle?.radiusMm ?? 0) * 2, unit);
+    const H = rect ? typedSize(h, rect.h, unit) : W;
+    // A slip keeps the form open, and the size it had.
+    if (W === null || H === null) return app.notify(unit === 'cm' ? 'That doesn’t look like a pot’s size. Try a number of centimetres, such as 30.' : 'That doesn’t look like a size. Try metres, such as 2.4, or feet, such as 6 ft.');
+    if (rect) commit((g) => updateFeature(g, f.id, { footprint: resizeRectAny(f.footprint, W, H)! }));
+    if (circle) commit((g) => updateFeature(g, f.id, { circle: { ...circle, radiusMm: Math.round(W / 2) } }));
     setSizing(false);
   };
   if (sizing && (rect || circle))
@@ -246,18 +258,18 @@ function FeatureActions({ f, ground, garden, commit, locked, sizing, setSizing, 
       <form class="pill-size" onSubmit={apply}>
         <label>
           <span class="visually-hidden">{circle ? 'Across' : 'Width'}</span>
-          <input type="number" inputMode="numeric" min={50} value={w} autoFocus onInput={(e) => setW((e.currentTarget as HTMLInputElement).value)} />
+          <input value={w} autoFocus onInput={(e) => setW((e.currentTarget as HTMLInputElement).value)} />
         </label>
         {rect && (
           <>
             <span aria-hidden="true">×</span>
             <label>
               <span class="visually-hidden">Depth</span>
-              <input type="number" inputMode="numeric" min={50} value={h} onInput={(e) => setH((e.currentTarget as HTMLInputElement).value)} />
+              <input value={h} onInput={(e) => setH((e.currentTarget as HTMLInputElement).value)} />
             </label>
           </>
         )}
-        <span class="muted small">mm</span>
+        <span class="muted small">{unit}</span>
         <button type="submit" class="pill-btn pill-primary">
           Set
         </button>
@@ -286,6 +298,11 @@ function FeatureActions({ f, ground, garden, commit, locked, sizing, setSizing, 
   return (
     <>
       <span class="pill-name">{featureLabel(f)}</span>
+      {f.toMake && (
+        <button type="button" class="pill-btn" title="It’s in the ground now, so its jobs can start" onClick={() => commit((g) => updateFeature(g, f.id, { toMake: undefined }))}>
+          It’s made
+        </button>
+      )}
       {setting ? (
         <button type="button" class="pill-btn pill-primary" title="Keep it in place, so the beds and plants on it are easy to tap" onClick={() => {
           closeGround(f.id);

@@ -282,6 +282,17 @@ export function PlanCanvas(props: PlanCanvasProps) {
   /** A planting dragged out of its bed, waiting to be asked about: the move it would make. */
   const [leaving, setLeaving] = useState<{ id: string; dx: number; dy: number; text: string } | null>(null);
   const askFirst = useRef<HTMLButtonElement>(null);
+  /** If a move would take a planting out of its bed, asks instead, and says so. */
+  const askLeaving = (before: Garden, after: Garden, id: string): boolean => {
+    const { plantOf } = P.current;
+    if (!leftItsBed(before, after, id, plantOf)) return false;
+    const was = before.plantings.find((x) => x.id === id)!;
+    const now = after.plantings.find((x) => x.id === id)!;
+    setLeaving({ id, dx: now.x - was.x, dy: now.y - was.y, text: `Move ${plantOf(was.plantId).commonName.toLowerCase()} out of ${placeLabel(before.features.find((f) => f.id === was.featureId)!)}?` });
+    return true;
+  };
+  const asking = useRef(false);
+  asking.current = !!leaving;
   useEffect(() => askFirst.current?.focus(), [!!leaving]);
   const typingRef = useRef(typing);
   typingRef.current = typing;
@@ -1341,12 +1352,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
       const next = preview.current;
       preview.current = null;
       // Out of its bed: that's worth asking, not doing. It stays where it was until you say.
-      if (next && d.kind === 'movePlanting' && leftItsBed(d.base, next, d.id, p.plantOf)) {
-        const was = d.base.plantings.find((x) => x.id === d.id)!;
-        const now = next.plantings.find((x) => x.id === d.id)!;
-        setLeaving({ id: d.id, dx: now.x - was.x, dy: now.y - was.y, text: `Move ${p.plantOf(was.plantId).commonName.toLowerCase()} out of ${placeLabel(d.base.features.find((f) => f.id === was.featureId)!)}?` });
-        return redraw();
-      }
+      if (next && d.kind === 'movePlanting' && askLeaving(d.base, next, d.id)) return redraw();
       if (next && next !== p.garden) commit(() => next);
       return redraw();
     }
@@ -1465,7 +1471,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === ' ') space.current = e.type === 'keydown';
-      if (e.type !== 'keydown' || isTyping(e.target)) return;
+      // A question on the screen: nothing moves behind it.
+      if (e.type !== 'keydown' || isTyping(e.target) || asking.current) return;
       const p = P.current;
       const dr = drawing.current;
       const geometry = geometryForTool(p.tool);
@@ -1610,6 +1617,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
         const dx = key === 'ArrowLeft' ? -step : key === 'ArrowRight' ? step : 0;
         const dy = key === 'ArrowDown' ? -step : key === 'ArrowUp' ? step : 0;
         const t = p.selected;
+        // A step at a time or not, out of its bed is worth asking.
+        if (t.type === 'planting' && askLeaving(p.garden, movePlanting(p.garden, t.id, dx, dy), t.id)) return;
         commit((g) => (t.type === 'planting' ? movePlanting(g, t.id, dx, dy) : moveFeature(g, t.id, dx, dy)));
         return;
       }

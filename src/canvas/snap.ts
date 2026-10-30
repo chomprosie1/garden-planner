@@ -96,3 +96,18 @@ export function sizeMm(text: string, unit: 'm' | 'cm'): number | null {
   }
   return parseLength(t);
 }
+
+/** The biggest a size goes in each unit, mm: a pot past 2 m, or anything past 100 m, is a slip. */
+const MOST_MM = { cm: 2000, m: 100000 };
+
+/** A typed size that makes sense, mm, or null: readable, at least 5 cm, and not past the most for its unit. */
+export function sensibleSize(text: string, unit: 'm' | 'cm'): number | null {
+  const mm = sizeMm(text, unit);
+  return mm && mm >= 50 && mm <= MOST_MM[unit] ? mm : null;
+}
+
+/** A size as it's shown in a field in this unit: "30" for a pot, "2.4" for a bed. */
+export const sizeField = (mm: number, unit: 'm' | 'cm'): string => String(unit === 'cm' ? Math.round(mm / 10) : +(mm / 1000).toFixed(2));
+
+/** What a size field comes to. Left as it was shown, it's the exact size it was: a rounded figure isn't a change. Null if it makes no sense. */
+export const typedSize = (text: string, was: number, unit: 'm' | 'cm'): number | null => (text.trim() === sizeField(was, unit) ? was : sensibleSize(text, unit));

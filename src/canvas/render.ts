@@ -379,6 +379,7 @@ export function renderStatic(ctx: CanvasRenderingContext2D, s: Scene) {
   const depth = s.depth !== false && !s.minimal && !s.shadows;
   if (depth) for (const f of g.features) drawFeatureShadow(ctx, s, f);
   for (const f of g.features) if (f.kind !== 'surface') drawFeature(ctx, s, f, pats);
+  for (const f of g.features) if (f.toMake) drawToMake(ctx, s, f);
   if (s.time?.frost) drawFrost(ctx, s);
   if (s.time?.gaps.size) for (const f of g.features) if (s.time.gaps.has(f.id)) drawGap(ctx, s, f);
   // On a day, plantings cleared since are back, and ones cleared by then are left out.
@@ -876,6 +877,16 @@ function mulberry(seed: number) {
   };
 }
 
+/** A bed that isn't there yet: a dashed line round it, as a plan shows something still to be built. */
+function drawToMake(ctx: CanvasRenderingContext2D, s: Scene, f: Feature) {
+  polyPath(ctx, f.footprint.map((p) => toScreen(s.view, p)), true);
+  ctx.strokeStyle = s.style.plan.label;
+  ctx.lineWidth = 2;
+  ctx.setLineDash([7, 5]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
 function labelPoint(f: Feature): Point {
   if (f.circle) return [f.circle.centre[0], f.circle.centre[1] - f.circle.radiusMm * 0.45];
   if (f.line) {
@@ -892,7 +903,8 @@ function drawLabel(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, planted:
   const st = s.style;
   // Fences, walls and surfaces only carry a label when named.
   if ((f.kind === 'fence' || f.kind === 'wall' || f.kind === 'surface') && !f.name) return;
-  const text = st.labels === 'sign' || st.labels === 'caps' ? featureLabel(f).toUpperCase() : featureLabel(f);
+  const name = f.toMake ? `${featureLabel(f)}, to make` : featureLabel(f);
+  const text = st.labels === 'sign' || st.labels === 'caps' ? name.toUpperCase() : name;
   // A bed with plants in it has its name just above it, out of the plants' way.
   const b = planted ? bounds(f.footprint) : null;
   const at = b ? toScreen(v, [(b.minX + b.maxX) / 2, b.maxY]) : toScreen(v, labelPoint(f));

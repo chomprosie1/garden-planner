@@ -3,11 +3,11 @@
 // numbers behind it, so no warning is a mystery.
 
 import { formatLength, formatSpacing } from '../canvas/viewport';
-import { centroid, distance, distanceToSegment, pointInPolygon } from '../geometry/polygon';
+import { centroid, distance, distanceToSegment, pointInPolygon, segmentsCross, spillsOver } from '../geometry/polygon';
 import { featureLabel, placeLabel } from '../model/features';
 import type { Garden, Light, Plant, Planting, Point } from '../model/types';
 import { averageHours, type SunGrid } from '../sun/hours';
-import { activePlantings, canHold, EDGE_MM, insideBed, plantCount, plantingShape, plantPositions, rowSpacingOf, sizedPlant, type PlantingShape } from './place';
+import { activePlantings, canHold, EDGE_MM, insideBed, isContainer, plantCount, plantingShape, plantPositions, rowSpacingOf, sizedPlant, type PlantingShape } from './place';
 import { asPlacedIn, isPot, isRoundPot, potProblems } from './pots';
 import { CAGE_SQUEEZE, fullnessFindings, isList } from './listPlant';
 import { seasonsApart } from './rotation';
@@ -46,6 +46,7 @@ export function checkGarden(g: Garden, plantOf: PlantOf, sun: SunGrid | null = n
   const findings = [
     ...checkPlacement(g, active, plantOf),
     ...checkBeds(g),
+    ...checkInsideBoundary(g),
     ...checkPots(g, plantOf),
     ...checkSupports(g, active, plantOf),
     ...(isList(g) ? checkFullness(g, plantOf) : checkSpacing(g, active, plantOf)),
@@ -123,6 +124,14 @@ function outlinesOverlap(a: Point[], b: Point[]): boolean {
   if (ea.some((x) => eb.some((y) => segmentsCross(x, y)))) return true;
   const strictlyIn = (p: Point, poly: Point[], edges: Seg[]) => pointInPolygon(p, poly) && edges.every((e) => distanceToSegment(p, e[0], e[1]).distance > EDGE_MM);
   return a.some((p) => strictlyIn(p, b, eb)) || b.some((p) => strictlyIn(p, a, ea)) || strictlyIn(centroid(a), b, eb) || strictlyIn(centroid(b), a, ea);
+}
+
+/** Beds and pots outside the garden's boundary, on a plan: it may be the boundary that's wrong, so it says both. */
+function checkInsideBoundary(g: Garden): Finding[] {
+  if (isList(g) || g.boundary.length < 3) return [];
+  return g.features
+    .filter((f) => isContainer(f) && !f.nextDoor && spillsOver(f.footprint, g.boundary))
+    .map((f) => ({ id: `boundary:${f.id}`, kind: 'outside' as const, level: 'warn' as const, plantingIds: [], featureIds: [f.id], message: `${featureLabel(f)} is outside your garden’s boundary. Move it in, or drag the boundary out to hold it.` }));
 }
 
 /** Beds drawn over each other, on a plan. A list sets them out for you, and a bed inside a greenhouse is meant to be there. */
@@ -382,15 +391,6 @@ const edges = (s: PlantingShape): Seg[] => {
 };
 
 const inRect = (p: Point, s: PlantingShape) => s.kind === 'rect' && p[0] >= s.min[0] && p[0] <= s.max[0] && p[1] >= s.min[1] && p[1] <= s.max[1];
-
-function segmentsCross(a: Seg, b: Seg): boolean {
-  const cross = (o: Point, p: Point, q: Point) => (p[0] - o[0]) * (q[1] - o[1]) - (p[1] - o[1]) * (q[0] - o[0]);
-  const d1 = cross(b[0], b[1], a[0]);
-  const d2 = cross(b[0], b[1], a[1]);
-  const d3 = cross(a[0], a[1], b[0]);
-  const d4 = cross(a[0], a[1], b[1]);
-  return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
-}
 
 /** The shortest gap between two plantings, and the two nearest points. 0 when they overlap. */
 export function closest(A: PlantingShape, B: PlantingShape): Near {

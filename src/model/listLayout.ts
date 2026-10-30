@@ -4,7 +4,7 @@
 // reads shapes (jobs, checks, the plan if you switch to it) works as before.
 // Pure functions: a garden in, a new garden out.
 
-import { bounds, pointInPolygon, type Bounds } from '../geometry/polygon';
+import { bounds, pointInPolygon, spillsOver, type Bounds } from '../geometry/polygon';
 import { addFeature, featureLabel, makeFeature, moveFeature, nextName, numberedName, rectPoints } from './features';
 import type { Feature, FeatureKind, Garden, Point } from './types';
 
@@ -143,7 +143,7 @@ export function planFromList(g: Garden, which: (f: Feature) => boolean): Garden 
   let next = spreadOut(g, which);
   if (next.boundary.length < 3) return next;
   const edge = bounds(next.boundary)!;
-  const outside = (f: Feature) => which(f) && f.footprint.some((p) => !pointInPolygon(p, next.boundary));
+  const outside = (f: Feature) => which(f) && spillsOver(f.footprint, next.boundary);
   const paving = next.features.filter(paved);
   for (const pot of next.features.filter((f) => f.kind === 'pot' && outside(f))) {
     const b = bounds(pot.footprint)!;
@@ -168,6 +168,12 @@ export function planFromList(g: Garden, which: (f: Feature) => boolean): Garden 
   const maxX = Math.max(edge.maxX, ...out.map((b) => b.maxX + EDGE));
   const maxY = Math.max(edge.maxY, ...out.map((b) => b.maxY + EDGE));
   return { ...next, boundary: rectPoints({ x: minX, y: minY, w: maxX - minX, h: maxY - minY }) };
+}
+
+/** What a plan still has outside its boundary, of these: a boundary drawn to its own shape keeps it, so it may not hold everything. */
+export function outsideBoundary(g: Garden, which: (f: Feature) => boolean): Feature[] {
+  if (g.boundary.length < 3) return [];
+  return g.features.filter((f) => which(f) && spillsOver(f.footprint, g.boundary));
 }
 
 /** The first free place for something w × d: see `placeFor`. */

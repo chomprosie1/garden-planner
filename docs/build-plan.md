@@ -2910,6 +2910,23 @@ Not changed:
 - **The plan doesn't draw a bed to make any differently.** Only the Garden list says so.
 - **The patio and balcony** aren't asked about beds. Their beds are taken to be there.
 
+### Release 52a — Loose ends after release 52 (as built)
+Built 30 Oct 2026, on a branch, as it changes the save format. Schema 25. Version 0.52.1. What the review of 51 and 52 left to do.
+
+- **Outside the boundary:** a bed or pot outside it now raises a check on a plan, and switching from a list says what didn't fit. `spillsOver` is the one test for both, and for growing the boundary: flush along an edge isn't outside, and a bed spanning a notch is.
+- **Saved "Bed" and "Bed":** schema 25 numbers beds that share a name, when the garden loads. Fruit cages and the border are left alone, and so is any name already different.
+- **A bed to make on the plan:** a dashed outline, "Bed 1, to make" as its label, and "It's made" on its pill.
+- **Picking a planted bed:** a picked plant's pill names its bed, and tapping that picks the bed. Without it, a bed full of plants couldn't be picked on a phone, so the Move buttons from release 51 and "It's made" couldn't be reached. Found in the 390 px check.
+- **Exact sizes on the pill** are in metres, or cm for a pot, and take feet. A size left as shown stays exact, and a slip keeps the form open with a word.
+- **Arrow keys** ask before moving a planting out of its bed, and nothing moves behind the question.
+- **The checks skipped last time, done at a true 390 px:** the Make how-to, dashed beds, "It's made", Move, the covering scan on Today (only what's scrolled behind the bottom menu), and a patio list of a bed and 13 pots switched to a plan, all on the paving. No page errors.
+- **Also tried on screen, at 1366 × 768:** the size form on a 30 cm pot. Set unchanged left it at 30 cm, 40 made it 40, and 900 was refused with the form left open.
+- **Code review before pushing** (`/code-review`, medium) found ten things, the worst in this very work: tapping Set on a round pot made it ten times too big. Fixed, with the size limits, one test for "outside", the notification counting fences, the migration's names, sizes changing when not edited, and keys acting behind the question. One not taken: numbering unnamed beds can change a tie in the rotation's order, which was already arbitrary.
+
+Tests: `first-garden-real` (the migration), `plan-trust` (the boundary, sizes).
+
+Not changed: the side panel's sizes on a computer are still in mm, as Callum liked them.
+
 ## Repo layout
 ```
 garden-planner/

@@ -6,7 +6,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { jobLabel, jobsFor } from '../../calendar/jobs';
-import { sizeMm } from '../../canvas/snap';
+import { sensibleSize } from '../../canvas/snap';
 import { formatAcross, formatSize } from '../../canvas/viewport';
 import { microclimateOf } from '../../climate/microclimate';
 import { bounds } from '../../geometry/polygon';
@@ -16,13 +16,13 @@ import { bookedText, bookedUntil } from '../../planting/booked';
 import { currentStage, stageLabel, type LifeStage } from '../../lifecycle/stages';
 import { deleteFeatures, featureLabel, KINDS, rectInfo, resizeRectAny, updateFeature, type Target } from '../../model/features';
 import { todayIso } from '../../model/ids';
-import { addListBed, copyListBed, LIST_KIND_LABEL, LIST_KINDS, LIST_SIZE, moveInList, nameListBeds, planFromList, spreadOut, type ListKind } from '../../model/listLayout';
+import { addListBed, copyListBed, LIST_KIND_LABEL, LIST_KINDS, LIST_SIZE, moveInList, nameListBeds, outsideBoundary, planFromList, spreadOut, type ListKind } from '../../model/listLayout';
 import { updateGarden, type Store } from '../../model/store';
 import { LIGHT_LEVELS, type Feature, type Garden, type Light, type Plant, type Planting } from '../../model/types';
 import { defaultFill, FILL_LABEL, fillsFor, type Fill } from '../../planting/fill';
 import { RotationSwitch } from '../RotationSwitch';
 import { fullText, howFull, isListed, listBeds, moveRoom, moveToListBed, placeInList, plantableBeds, plantingsCount, plantOutInList, rowsOfSowing, sowingKey, type ListHow } from '../../planting/listPlant';
-import { isActive, plantCount, spacingStyle, type InGroundAt } from '../../planting/place';
+import { isActive, isContainer, plantCount, spacingStyle, type InGroundAt } from '../../planting/place';
 import { isSupport } from '../../planting/supports';
 import { plantHere } from '../../lifecycle/growth';
 import { nextStep } from '../../planting/windows';
@@ -142,7 +142,11 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
                 onSelect: () => {
                   // A garden that fits: beds moved apart, pots on the paving, and an outline that holds them all, before the plan shows it.
                   store.apply(updateGarden(({ view: _v, ...g }) => planFromList(g, isListed(g))));
-                  app.notify('Now a plan: your beds are set out neatly, ready to arrange. Settings has the list again.', { undo: true });
+                  // A boundary drawn to its own shape stays that shape, so something may not fit in it: better said than found.
+                  const now = store.get().garden;
+                  const listed = isListed(now);
+                  const left = outsideBoundary(now, (f) => listed(f) && isContainer(f));
+                  app.notify(left.length ? `Now a plan. ${left.length === 1 ? `${featureLabel(left[0]!)} didn’t fit inside your garden’s boundary, so it’s beside it` : `${left.length} beds and pots didn’t fit inside your garden’s boundary, so they’re beside it`}: move them in, or drag the boundary out.` : 'Now a plan: your beds are set out neatly, ready to arrange. Settings has the list again.', { undo: true });
                 },
               },
             ]}
@@ -532,20 +536,11 @@ function useModal() {
   return ref;
 }
 
-/** The biggest a pot goes, mm: past this it's a slip. */
-const POT_MOST = 2000;
-
 /** A size typed in metres (or with its own unit, such as 6 ft), in mm; the fallback if it isn't a sensible one. */
-const metres = (s: string, fallback: number) => {
-  const mm = sizeMm(s, 'm');
-  return mm && mm <= 100000 ? mm : fallback;
-};
+const metres = (s: string, fallback: number) => sensibleSize(s, 'm') ?? fallback;
 
 /** A pot's size typed in centimetres (or with its own unit), in mm; the fallback if it isn't a sensible one. */
-const potCm = (s: string, fallback: number) => {
-  const mm = sizeMm(s, 'cm');
-  return mm && mm <= POT_MOST ? mm : fallback;
-};
+const potCm = (s: string, fallback: number) => sensibleSize(s, 'cm') ?? fallback;
 
 /** Add a bed or area (or several alike): what it is, a name, and (if you like) its size and how sunny it is. */
 function AddBedDialog({ store, close, added }: { store: Store; close: () => void; added?: (id: string) => void }) {
