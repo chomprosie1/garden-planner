@@ -39,6 +39,9 @@ describe('resting', () => {
     expect(restingNow(plantOf('strawberry'), 'vegetative', 12)).toBe(false);
     expect(restingNow(plantOf('kale'), 'vegetative', 12)).toBe(false);
     expect(restingNow(plantOf('blackcurrant'), 'transplanted', 12)).toBe(false);
+    // Not what's in flower or cropping then.
+    expect(restingNow({ ...plantOf('blackcurrant'), flowerMonths: [1, 2] }, 'flowering', 2)).toBe(false);
+    expect(restingNow({ ...plantOf('blackcurrant'), cropping: { harvestMonths: [11] } }, 'harvesting', 11)).toBe(false);
     expect(stageNow(plantOf('blackcurrant'), 'vegetative', undefined, '2026-12-05')).toBe('Resting');
     expect(stageNow(plantOf('blackcurrant'), 'vegetative', undefined, '2026-06-05')).toBe('Growing');
   });
@@ -56,6 +59,21 @@ describe('looking after what’s settled in', () => {
     const done = toggleJob(g, job!, '2026-12-10');
     expect(careJobs(done, 1)).toEqual([]);
     expect(careJobs(withAll([b], [settled('blackcurrant', b, '2026-11-10')]), 12, 2026)).toEqual([]);
+  });
+
+  it('comes back the next winter after a late tick', () => {
+    const g = withAll([b], [settled('blackcurrant', b)]);
+    const [job] = careJobs(g, 2, 2027);
+    const done = toggleJob(g, job!, '2027-02-10');
+    expect(careJobs(done, 11, 2027)).toHaveLength(1);
+    expect(careJobs(done, 1, 2028)).toHaveLength(1);
+  });
+
+  it('counts how long it’s been in from its first date, to the month in question', () => {
+    const young = { ...settled('blackcurrant', b, '2026-10-01'), stageDates: { vegetative: '2026-10-01' } };
+    const g = withAll([b], [young]);
+    expect(jobsFor(g, plantOf, 12, 2026, { today: '2026-12-01' }).filter((j) => j.care)).toEqual([]);
+    expect(jobsFor(g, plantOf, 11, 2027, { today: '2026-12-01' }).filter((j) => j.care)).toHaveLength(1);
   });
 
   it('gives each fruit its own time', () => {
@@ -130,6 +148,8 @@ describe('the plant pages', () => {
     const steps = howTo(job, 'plants', false, { plant: plantOf('apple'), month: 9, style: 'close' }).steps.join(' ');
     expect(steps).toMatch(/slight twist/);
     expect(steps).not.toMatch(/soft fruit/i);
+    const walnut = { ...job, plantId: 'walnut', plant: 'Walnut' };
+    if (byId.has('walnut')) expect(howTo(walnut, 'plants', false, { plant: plantOf('walnut'), month: 9, style: 'close' }).steps.join(' ')).not.toMatch(/slight twist/);
   });
 
   it('doesn’t offer batches of autumn broad beans, and does of lettuce', () => {
@@ -157,6 +177,35 @@ describe('a rotation that sees each crop', () => {
       if (group === 'brassicas') expect(grew).not.toContain('brassicas');
       if (group === 'onions') expect(grew).not.toContain('onions');
     }
+  });
+
+  const mixed = () => {
+    const [a, b, c, d] = [bedAt(0, 'A'), bedAt(2000, 'B'), bedAt(4000, 'C'), bedAt(6000, 'D')];
+    const g = withAll([a, b, c, d], [crop(a, 'kale', 300, '2026-04-01'), crop(a, 'pea', 900, '2026-04-01'), crop(b, 'kale', 300, '2026-04-01'), crop(c, 'potato', 600, '2026-04-01')]);
+    return { g, a, b, c, d };
+  };
+
+  it('leaves your own choice of which crops a bed takes', () => {
+    const { g, a, b } = mixed();
+    const draft = draftNextYear(g, plantOf, today, null, { [b.id]: a.id });
+    const coming = draft.items.filter((i) => i.next.featureId === b.id).map((i) => i.next.plantId);
+    expect(coming).toContain('kale');
+  });
+
+  it('keeps each bed’s summary true to what’s coming', () => {
+    const { g } = mixed();
+    const draft = draftNextYear(g, plantOf, today);
+    for (const bed of draft.beds) {
+      const coming = draft.items.filter((i) => i.next.featureId === bed.bed.id && !i.leftOut).map((i) => rotationGroup(plantOf(i.next.plantId))).filter(Boolean);
+      expect(new Set(bed.nextAll), bed.bed.name).toEqual(new Set(coming));
+    }
+  });
+
+  it('doesn’t send a crop to a bed where you’ve planned it already', () => {
+    const { g, d } = mixed();
+    const mine: Planting = { ...makePlanting(plantOf('kale'), d.id, 'row', [6300, 300], [6300, 2700]), sowBy: '2027-04-01' };
+    const draft = draftNextYear(addPlanting(g, mine), plantOf, today);
+    expect(draft.items.filter((i) => i.next.plantId === 'kale' && !i.leftOut).map((i) => i.next.featureId)).not.toContain(d.id);
   });
 
   it('takes what you say grew in a bed into account', () => {

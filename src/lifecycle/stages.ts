@@ -78,9 +78,14 @@ export function stageLabel(plant: Plant, stage: LifeStage, pl?: Planting): strin
 /** A plant that comes back each year and isn't evergreen rests through these months, whatever stage it was last marked at. */
 export const REST_MONTHS = [11, 12, 1, 2];
 
-/** Resting for the winter: settled, past planting, and bare or dormant. */
+/** Resting for the winter: settled, past planting, and bare or dormant. Not what flowers or crops then, such as snowdrops or medlars. */
 export const restingNow = (plant: Plant, stage: LifeStage, month: number): boolean =>
-  perennial(plant) && plant.lifePath?.winter !== 'evergreen' && REST_MONTHS.includes(month) && (stage === 'vegetative' || stage === 'flowering' || stage === 'harvesting');
+  perennial(plant) &&
+  plant.lifePath?.winter !== 'evergreen' &&
+  REST_MONTHS.includes(month) &&
+  (stage === 'vegetative' || stage === 'flowering' || stage === 'harvesting') &&
+  !flowerMonthsOf(plant).includes(month) &&
+  !plant.cropping?.harvestMonths.includes(month);
 
 /** A stage as it stands today: "Resting" for a blackcurrant in December, otherwise as stageLabel says. */
 export const stageNow = (plant: Plant, stage: LifeStage, pl: Planting | undefined, today: string): string => (restingNow(plant, stage, Number(today.slice(5, 7))) ? 'Resting' : stageLabel(plant, stage, pl));

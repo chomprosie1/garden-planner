@@ -187,7 +187,10 @@ const WEEDING_TIP: Record<number, string> = {
   10: 'Weed beds before winter, then mulch or sow green manure on bare soil.',
 };
 
-const HAND_WEEDING = 'Little and often: work along the bed with a hand fork, from where you sit.';
+/** How many months back a tick stands for a pruning or tidying job: the longest of them runs four months. */
+const CARE_BACK = [1, 2, 3];
+
+const HAND_WEEDING ='Little and often: work along the bed with a hand fork, from where you sit.';
 
 export interface JobOptions {
   /** A monthly "Weed the beds" reminder, March to October. The app asks for it unless it's turned off in Settings. */
@@ -388,13 +391,16 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
     if (winter?.type === 'protect' && month === protectMonth && !cover && inPot && plant.family === 'Solanaceae') add('protect', plant, where, featureId, ids(growing), BRING_IN, featureId, BRING_IN_VERB);
     else if (winter?.type === 'protect' && month === protectMonth && !cover) add('protect', plant, where, featureId, ids(growing), winter.notes ?? 'Bring pots under cover or fleece the plants before the first frosts.', featureId);
     // Looking after what's settled in. Once a season, whichever month it's done in.
+    // Measured to the month in question, from the first date it has.
     const settled = growing.filter((p) => {
-      const went = p.stageDates?.transplanted ?? p.sownOn;
-      return isGrowing(p) && (!went || daysBetween(went, today ?? monthEnd) >= SETTLED_DAYS);
+      const went = [p.sownOn, ...Object.values(p.stageDates ?? {})].filter((d): d is string => !!d).sort()[0];
+      return isGrowing(p) && (!went || daysBetween(went, monthEnd) >= SETTLED_DAYS);
     });
     careFor(plant, month).forEach((c) => {
       const scope = `${featureId}:care-${c.verb}-${c.months?.[0] ?? 'flowers'}`;
-      if (!settled.length || doneBefore(g, `tidy:${plant.id}:${scope}:`, year, month)) return;
+      // Done already this season: a job over a few months, so only those months count, not last winter's.
+      const prefix = `tidy:${plant.id}:${scope}:`;
+      if (!settled.length || CARE_BACK.some((back) => g.jobsDone.some((j) => j.key === `${prefix}${ym(month - back < 1 ? year - 1 : year, ((month - back + 11) % 12) + 1)}`))) return;
       add('tidy', plant, where, scope, ids(settled), c.text, featureId, c.verb);
       jobs[jobs.length - 1]!.care = true;
     });

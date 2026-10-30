@@ -3001,6 +3001,35 @@ Not changed:
 - **Winter jobs for established plants** are release 56.
 - **Sizes of the list's plants by the square metre** are from spacing, and only a guide for a pot.
 
+### Release 56 — Plants that stay (as built)
+Built 31 Oct 2026, on a branch, as it touches the data files. No schema change after all: Resting is worked out from the month, and years ago is only an earlier date. Version 0.56.0.
+
+- **Resting** (`restingNow`, `stageNow`): a plant that comes back each year and isn't evergreen shows Resting from November to February, on its chip, in the plan's list and in "It's now". Not if it flowers or crops then. It isn't stored: a stage in the save would have reached every stage comparison in the app for a label.
+- **Jobs for what's settled in** (`calendar/care.ts`, six months in the ground or more): pruning blackcurrants, currants, gooseberries, apples and pears, tidying strawberries, and trimming chives, rosemary and thyme after they flower, each with a how-to for pruning. A tick stands for that season, and the job comes back next winter. The general pruning jobs give way to them.
+- **Herbs and the RHS:** Ruth asked for chives cut down in autumn. The RHS has them cut after flowering, and they die back by themselves, so that's the job. Rosemary and thyme get "leave it be" through the winter.
+- **Planted two years ago, and three or more,** as choices.
+- **Tulips** from October.
+- **Apples and pears** have their own how-to.
+- **Overwintering onions** tell one story: sets September to November, pushed in to the tip, no planting out in April, hardy all winter, and no claim that a feed stops bolting. The onion's storing note says they don't keep like maincrop.
+- **White rot** reads the same on every crop, at 15 years or more.
+- **Batches** aren't offered for what's only sown in autumn.
+- **The rotation sees each crop:** beds are scored on every group in them, a crop that would follow itself goes on its own to a bed it can have (`wasAll`, `nextAll`), and a bed's line names them all. Your own choice of which crops a bed takes stands. Callum's "telling it what grew changed nothing" wasn't reproduced: told crops already counted, and a test now pins it.
+- **Sources:** RHS growing guides for strawberries, blackcurrants, red and white currants, gooseberries, apples, onions, garlic, tulips, chives, rosemary and thyme, and "Winter pruning soft fruit bushes" and "Onion white rot". Named in `calendar/care.ts`. Mint's "cut old stems down" is still an unchecked draft.
+- **Code review** (`/code-review`, medium) found ten things, all fixed: a late tick hiding next winter's job, a moved crop landing on one you'd planned, missing the wait for what's standing, stale bed summaries and follow-on ideas, a card saying nothing moved to a bed that had a moved crop, moves overriding your own choice, snowdrops in flower shown as Resting, age measured to today and not the month, the tree how-to reaching nuts and stone fruit, and repeated work in the draft.
+
+Tests: `tests/plants-that-stay.test.ts`. Changed: `one-answer`, `explain` (tulips from October, more "years ago"), `how-to` (one story for the onion, as Margaret corrected it), `how-to` and `one-job` (general pruning gives way to the plant's own job).
+
+Not checked in a browser: the dev server was off by request, and the winter labels need a winter date. Tests cover the logic. The Resting chip, the new choices and the draft's wording want a look in the interim round.
+
+Not changed:
+- **Resting has no drawing of its own:** the plant's picture stays as it was.
+- **Late gardens:** care jobs keep their months, and don't move with a late season as sowing does.
+- **Plum and cherry pruning, and raspberry canes,** have no job of their own. Raspberries still have the general ones.
+- **Parsnips "finished by December"** from Margaret's list was release 48's; her other corrections are for the interim round to re-check.
+
+### Interim testing (planned 31 Oct 2026)
+The six testers, and a seventh who's there to break it, will test the build part way through Phase 2, before release 57 and the review proper. Brief: [interim-test-brief.md](interim-test-brief.md). Not started: it waits for the word to go.
+
 ## Repo layout
 ```
 garden-planner/

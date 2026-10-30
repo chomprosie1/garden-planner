@@ -104,7 +104,8 @@ export function NextYearDialog({ garden, store, plantOf, close }: { garden: Gard
         </p>
       );
     }
-    if (!grew.has(b.from)) return <p class="small next-groups muted">No crops move here, so it’s free for whatever you like.</p>;
+    // By what's coming, not where it was to come from: a crop may have moved here on its own, or away.
+    if (!draft.items.some((i) => i.next.featureId === b.bed.id)) return <p class="small next-groups muted">No crops move here, so it’s free for whatever you like.</p>;
     if (!b.was && !b.next) return null;
     const words = (all: DraftBed['wasAll']) => listed(all.map((g, i) => (i ? GROUP_LABEL[g].toLowerCase() : GROUP_LABEL[g])));
     return (

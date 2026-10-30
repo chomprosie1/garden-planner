@@ -299,7 +299,8 @@ export function draftNextYear(g: Garden, plantOf: (id: string) => Plant, today: 
   const order = [...beds].sort((x, y) => slot(x) - slot(y) || (x.name ?? '').localeCompare(y.name ?? '', undefined, { numeric: true }) || x.id.localeCompare(y.id));
   const n = order.length;
   // A bed that's taken loses whatever would have come to it.
-  const grewIn = (id: string) => groupsIn(crops.get(id)!, plantOf);
+  const grew = new Map(beds.map((f) => [f.id, groupsIn(crops.get(f.id)!, plantOf)]));
+  const grewIn = (id: string) => grew.get(id)!;
   const fit = (to: string, src: string) => (taken.has(to) ? -20 * crops.get(src)!.length : fitScore(grewIn(to), grewIn(src)));
   let best = 0;
   let bestScore = -Infinity;
@@ -364,33 +365,37 @@ export function draftNextYear(g: Garden, plantOf: (id: string) => Plant, today: 
       here.push({ ...item, ...(leftOut ? { leftOut } : {}) });
     }
     items.push(...here);
-    // Free again by summer: something to follow on.
-    const after = followOn(busy ?? here.filter((i) => !i.leftOut).map((i) => i.next), plantOf, year, (pl) => goneBy(pl, plantOf(pl.plantId), expected.get(pl.id) ?? pl.sowBy));
-    if (after) draftBeds[draftBeds.length - 1]!.after = after;
   }
   // A bed's crops move together, but not a crop that would follow itself there: it goes on its own to a bed it can have.
+  // Not where you've chosen which crops a bed takes: that stands, and says so if it's the same again.
+  const moved = new Set<string>();
   for (const item of items) {
     const plant = plantOf(item.was.plantId);
     const group = rotationGroup(plant);
-    if (!group || item.leftOut || !repeats(grewIn(item.next.featureId), group)) continue;
-    const others = beds.filter((b) => b.id !== item.next.featureId && !taken.has(b.id) && !repeats(grewIn(b.id), group));
+    const here = item.next.featureId;
+    if (!group || item.leftOut || from[here] || !repeats(grewIn(here), group)) continue;
+    const others = draftBeds.filter(({ bed: b }) => b.id !== here && !taken.has(b.id) && !from[b.id] && !planned.has(`${plant.id}|${b.id}`) && !repeats(grewIn(b.id), group));
     // The bed it should follow on in first.
-    others.sort((a, b) => Number(grewIn(b.id).some((w) => follows(w, group))) - Number(grewIn(a.id).some((w) => follows(w, group))));
-    for (const to of others) {
-      const moved = nextOf(g, plant, item.was, to, mover(byId.get(item.was.featureId)!, to), today, weather, year);
-      const clear = !moved.leftOut && !items.some((o) => o !== item && o.next.featureId === to.id && !o.leftOut && plantingsMeet(o.next, moved.next, plantOf));
-      if (!clear) continue;
-      item.next = moved.next;
+    others.sort((a, b) => Number(grewIn(b.bed.id).some((w) => follows(w, group))) - Number(grewIn(a.bed.id).some((w) => follows(w, group))));
+    for (const { bed: to, standing } of others) {
+      const go = nextOf(g, plant, item.was, to, mover(byId.get(item.was.featureId)!, to), today, weather, year);
+      if (go.leftOut || items.some((o) => o !== item && o.next.featureId === to.id && !o.leftOut && plantingsMeet(o.next, go.next, plantOf))) continue;
+      // As for what was going there anyway: not before what's standing is out.
+      if (standing && go.next.sowBy && sowingOf(plant, item.was) !== 'indoors' && standing.until > go.next.sowBy) go.next.sowBy = standing.until;
+      item.next = go.next;
+      moved.add(here).add(to.id);
       break;
     }
   }
-  // What each bed takes, once that's done.
+  // What each bed takes, as it's ended up, and what can follow on there.
   for (const b of draftBeds) {
-    if (b.taken) continue;
     const coming = items.filter((i) => i.next.featureId === b.bed.id && !i.leftOut).map((i) => i.next);
-    if (!coming.length) continue;
-    b.next = mainGroup(coming, plantOf);
-    b.nextAll = groupsIn(coming, plantOf);
+    if (moved.has(b.bed.id)) {
+      b.next = mainGroup(coming, plantOf);
+      b.nextAll = groupsIn(coming, plantOf);
+    }
+    const after = followOn(b.taken?.plantings ?? coming, plantOf, year, (pl) => goneBy(pl, plantOf(pl.plantId), expected.get(pl.id) ?? pl.sowBy));
+    if (after) b.after = after;
   }
   return { year, beds: draftBeds, items, already, replaces };
 }

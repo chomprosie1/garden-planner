@@ -354,7 +354,8 @@ function chosen(job: Job, from: StartsAs, bulb: boolean, at?: HowToFor): HowTo {
       if (plant.category === 'herb') return SNIP_HERBS;
       if (kind === 'pod') return PICK_PODS;
       if (kind === 'head') return CUT_HEADS;
-      if (plant.category === 'fruit' && plant.art?.form === 'tree') return PICK_TREE_FRUIT;
+      // Apples and pears: nuts, stone fruit and berries on trees don't pick or keep like this.
+      if ((plant.varietyOf ?? plant.id) === 'apple' || (plant.varietyOf ?? plant.id) === 'pear') return PICK_TREE_FRUIT;
       if (kind === 'fruit' || plant.category === 'fruit') return PICK_FRUIT;
       return BY_KIND.harvest;
     }
