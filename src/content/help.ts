@@ -457,8 +457,7 @@ export const HELP: HelpTopic[] = [
     steps: [
       'From September to February, Today has Planning ahead: choose Draft it beside Next year. Any time, it’s under the link to all of the month’s jobs at the foot of Today’s list, and Draft next year is in the plan’s ⋯ menu.',
       'Each bed’s crops move on a step, as the RHS’s four-year rotation has it: peas and beans, then the cabbage family, then potatoes and tomatoes, then onions and roots. Salads, squashes, sweetcorn and peppers can go anywhere, so they move with the bed they’re in.',
-      'A crop that would follow itself in its new bed goes on its own to another that can take it, so kale beside leeks is treated as kale.',
-      'Change which bed takes which crops with Takes the crops from: what you choose stands. Untick anything you won’t grow again.',
+      'A crop that would follow itself goes on its own to another bed, so kale beside leeks is treated as kale. Change which bed takes which crops with Takes the crops from: what you choose stands. Untick anything you won’t grow again.',
       'Crops that never came up are left out; tick one to put it back. Ones you picked from are marked Did well.',
       'Choose Use this. Next year’s crops go on the plan as planned, to sow or plant on the same day as this year, and their jobs come in their months.',
       'Changed your mind? Draft it again and choose Use this: it replaces the last draft’s plantings that aren’t sown yet, rather than adding to them.',
