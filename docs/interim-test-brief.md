@@ -4,7 +4,7 @@
 To: Priya, Margaret, Jordan, Sam, Ruth and Callum, and Nadia, who's joining the panel.
 
 ## Where we are
-We're part way through the road to charging. Eleven releases have gone out since your testing on 29 Oct, up to version 0.57.0, and the fixes planned from that testing are now all in, including keeping your garden safe. Next comes the full review, where your scores decide whether we move on to charging.
+We're part way through the road to charging. Eleven releases have gone out since your testing on 29 Oct, up to version 0.57.0, and the releases planned from that testing are now all out, including keeping your garden safe. Each has its own list of what it didn't change, so don't assume everything you raised is fixed. Next comes the full review, where your scores decide whether we move on to charging.
 
 This interim round comes before that. It's a check on the work so far, not the final verdict. We'd rather hear now about anything that's wrong, or that we've made worse.
 
@@ -42,7 +42,7 @@ Please don't report these as missing. Do report anything that's worse than befor
 - **Callum:** your dates against your spreadsheet, row by row, and the rotation with mixed beds. Please try again to reproduce "telling it what grew changed nothing": we couldn't. Open the plantings spreadsheet beside your own, and say what's missing.
 - **Nadia:** everything. See your brief below.
 
-All of you named losing your garden, or wanting it out of the app, as a reason not to pay. So please each make a backup and restore it into a fresh browser, and say whether you'd now trust it. Restores on a real iPhone and a real Android phone are still to be done by the team, so say if you're only judging from a browser.
+A garden kept only in the browser came up last time as a reason not to pay. So please each make a backup and restore it into a fresh browser, and say whether you'd now trust it. Restores on a real iPhone and a real Android phone are still to be done by the team, so say if you're only judging from a browser.
 
 ## Nadia: your brief
 You're new, and you're here to break it. Please don't hold back or give it the benefit of the doubt.
