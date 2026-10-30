@@ -201,8 +201,9 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
     const close = addDays(afterSeason(open, cropMonths, shift), -14);
     if (d > close) {
       if (c.start <= close) return later(close, open);
-      // Sown after that, it's too late for this run of its months: the warmth, and the next run.
-      const next = nextInSeason(afterSeason(open, cropMonths, shift), cropMonths, shift);
+      // Sown after that, it's too late for this run of its months: a crop goes by the warmth, and a plant grown for its
+      // flowers waits for the next run of them.
+      const next = forFlowers ? nextInSeason(afterSeason(open, cropMonths, shift), cropMonths, shift) : null;
       return next ? later(d, next) : d;
     }
     return forFlowers ? later(d, open) : d;
@@ -373,6 +374,9 @@ export function stageIn(steps: Step[], date: string): Projected {
   }
   return at;
 }
+
+/** Its clearing is due: an annual past the end of its season, still on the plan. */
+export const clearingDue = (steps: Step[]): boolean => steps.some((s) => s.due && s.stage === 'cleared');
 
 /** Where a planting is on a day: what you've marked up to today, a guess after. */
 export const stageOn = (plant: Plant, pl: Planting, g: Garden, date: string, today: string, weather: Weather | null = null): Projected => stageIn(timeline(plant, pl, g, today, weather), date);

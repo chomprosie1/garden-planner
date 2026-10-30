@@ -46,7 +46,8 @@ export function switchGarden(store: Store, id: string): boolean {
 export function makeNewGarden(store: Store, prefsStore: PrefsStore, name: string, samePlace: boolean): void {
   flushSave();
   const garden = newGardenFrom(store.get().garden, name, samePlace);
-  addGarden(garden, undefined, new Date(), true);
+  // No room for it: shown anyway, it would be saved over the garden that's open.
+  if (!addGarden(garden, undefined, new Date(), true) && listGardens().open) return;
   store.replace({ garden, userPlants: store.get().userPlants });
   prefsStore.set({ onboarded: false });
 }
@@ -59,9 +60,9 @@ export function startAgain(store: Store, prefsStore: PrefsStore, keep: Keep = KE
   flushSave();
   const { open } = listGardens();
   const now = new Date();
-  if (open) hideGarden(open, undefined, now);
   const garden = startAgainFrom(store.get().garden, keep);
-  addGarden(garden, undefined, now, true);
+  if (!addGarden(garden, undefined, now, true) && open) return;
+  if (open) hideGarden(open, undefined, now);
   store.replace({ garden, userPlants: keep.ownPlants ? store.get().userPlants : [] });
   prefsStore.set({ onboarded: false, ...(keep.look ? {} : { look: defaultPrefs().look }) });
 }
@@ -73,12 +74,12 @@ export function startAgain(store: Store, prefsStore: PrefsStore, keep: Keep = KE
 export function deleteGardenFor30Days(store: Store, prefsStore: PrefsStore, id: string): void {
   flushSave();
   const { open, gardens } = listGardens();
-  hideGarden(id);
-  if (id !== open) return;
+  if (id !== open) return hideGarden(id);
   const next = gardens.find((g) => g.id !== id);
-  if (next && switchGarden(store, next.id)) return;
+  if (next && switchGarden(store, next.id)) return hideGarden(id);
   const garden = newGarden();
-  addGarden(garden, undefined, new Date(), true);
+  if (!addGarden(garden, undefined, new Date(), true)) return;
+  hideGarden(id);
   store.replace({ garden, userPlants: store.get().userPlants });
   prefsStore.set({ onboarded: false });
 }

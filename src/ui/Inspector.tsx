@@ -60,7 +60,7 @@ import {
 } from '../planting/place';
 import { formatHours, sunNeeded, type Finding } from '../planting/rules';
 import { cmText, isPot, litresText, mayOverwinter, potNeeds, potOn, potOnChoices, potSize, sizeText, type PotOnTo } from '../planting/pots';
-import { expectedText, nextInMonths, shortDate, timeline } from '../lifecycle/projection';
+import { clearingDue, expectedText, nextInMonths, shortDate, timeline } from '../lifecycle/projection';
 import { batchDates, batchesOf, batchLabel, canSowInBatches, maxBatches, MIN_BATCHES, setSowBy, splitIntoBatches } from '../planting/batches';
 import { currentStage, restingNow, sowingOf, stageDate, stageLabel, stageNow } from '../lifecycle/stages';
 import { deleteBlob, saveBlob } from '../storage/idb';
@@ -1148,7 +1148,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
   const steps = timeline(plant, pl, garden, today, weather);
   const step = nextStep(pl, plantHere(plant, garden), Number(today.slice(5, 7)), cover?.climate ?? null, steps, today);
   // Past its season, it's only clearing that's left, unless it may be on a windowsill for the winter.
-  const pastClearing = steps.some((s) => s.due && s.stage === 'cleared');
+  const pastClearing = clearingDue(steps);
   const over = pastClearing && !mayOverwinter(plant, bed);
   const expected = status !== 'planned' && (over || !pastClearing) ? expectedText(steps, plant, today) : null;
   const canEdit = true;

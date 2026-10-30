@@ -202,8 +202,10 @@ export function addGarden(garden: Garden, s: Kv | null = safe(), now = new Date(
   if (!writeGarden(s, id, garden, now)) return null;
   const idx = readIndex(s);
   const entry: GardenEntry = { id, name: garden.name, openedAt: now.toISOString() };
-  writeIndex(s, { open: open || !idx ? id : idx.open, gardens: [...(idx?.gardens ?? []), entry] });
-  return id;
+  if (writeIndex(s, { open: open || !idx ? id : idx.open, gardens: [...(idx?.gardens ?? []), entry] })) return id;
+  // Not listed, it isn't kept: the garden that's open stays open, and nothing's left taking up the space.
+  drop(s, gardenKey(id));
+  return null;
 }
 
 /**
@@ -213,9 +215,8 @@ export function addGarden(garden: Garden, s: Kv | null = safe(), now = new Date(
 export function keepReplaced(garden: Garden, s: Kv | null = safe(), now = new Date()): string | null {
   const id = addGarden(garden, s, now);
   if (!id) return null;
-  const idx = readIndex(s);
-  const hidden = !!idx?.gardens.some((e) => e.id === id) && writeIndex(s, { ...idx, gardens: idx.gardens.map((e) => (e.id === id ? { ...e, hiddenOn: todayIso(now) } : e)) });
-  if (hidden) return id;
+  const idx = readIndex(s)!;
+  if (writeIndex(s, { ...idx, gardens: idx.gardens.map((e) => (e.id === id ? { ...e, hiddenOn: todayIso(now) } : e)) })) return id;
   deleteGarden(id, s);
   return null;
 }

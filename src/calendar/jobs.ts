@@ -11,7 +11,7 @@ import { plantHere } from '../lifecycle/growth';
 import { addDays, frostDates, isTender, plantOutMonthsUnder, safeOut } from '../lifecycle/shed';
 import { daysBetween } from '../model/dates';
 import { currentStage, isRoot, pathFor, perennial, setStage, sowingOf, stageLabel, stageTips, suggestedStage } from '../lifecycle/stages';
-import { probableStage, shortDate, stageIn, timeline } from '../lifecycle/projection';
+import { clearingDue, probableStage, shortDate, stageIn, timeline, type Step } from '../lifecycle/projection';
 import { behindOf } from '../lifecycle/behind';
 import type { Weather } from '../weather/weather';
 import { careFor, SETTLED_DAYS } from './care';
@@ -279,12 +279,16 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
     // Not sown yet, or sown this month by ticking its job (so the tick stays in this month's list). Sown any other way
     // (already in the ground, marked as sown), there's nothing left to do. Plants already growing skip sowing and planting out.
     const isGrowing = (p: Planting) => plantingStatus(p) === 'growing';
-    const stepsOf = (p: Planting) => timeline(plant, p, g, today!, weather);
+    const stepsFound = new Map<string, Step[]>();
+    const stepsOf = (p: Planting) => {
+      if (!stepsFound.has(p.id)) stepsFound.set(p.id, timeline(plant, p, g, today!, weather));
+      return stepsFound.get(p.id)!;
+    };
     // An annual left on the plan, past its clearing: nothing to feed, pick or protect, only clearing to do, as its card
     // says. For an earlier month, when you look back, it counts only if it was already over by then.
     const inPot = !!bed && isPot(bed);
     const seasonOver = (p: Planting) =>
-      !!today && !perennial(plant) && !mayOverwinter(plant, bed) && stepsOf(p).some((s) => s.due && s.stage === 'cleared' && (ym(year, month) >= today.slice(0, 7) || s.was! < `${ym(year, month)}-01`));
+      !!today && !perennial(plant) && !mayOverwinter(plant, bed) && clearingDue(stepsOf(p)) && (ym(year, month) >= today.slice(0, 7) || stepsOf(p).some((s) => s.due && s.stage === 'cleared' && s.was! < `${ym(year, month)}-01`));
     const notGrowing = group.filter((p) => !isGrowing(p));
     const batchScope = (p: Planting) => `${featureId}~${p.batch?.n ?? p.id}`;
     const sowTicked = (p: Planting) => (['sow-direct', 'sow-indoors'] as const).some((k) => g.jobsDone.some((j) => j.key === keyOf(k, plant.id, p.sowBy ? batchScope(p) : featureId)));
@@ -360,7 +364,8 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
     const over = inPlace.filter(seasonOver);
     const growing = inPlace.filter((p) => !over.includes(p) && !notUp(p));
     if (over.length) {
-      add('tidy', plant, `${wherePhrase(bed)}${describeGroup(over)}`, `${featureId}:clear`, ids(over), SEASON_OVER, featureId);
+      // By its own sowing, so one cleared this month doesn't leave the next one looking done.
+      add('tidy', plant, `${wherePhrase(bed)}${describeGroup(over)}`, `${featureId}:clear-${over[0]!.id}`, ids(over), SEASON_OVER, featureId);
       jobs[jobs.length - 1]!.clears = true;
     }
     if (!growing.length) continue;
@@ -369,7 +374,7 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
     // Ready means ready, by the same timeline as the planting's card: in its months and got there by the month's end,
     // or already being picked and not over yet, even before its months (leeks). Over means its clearing is due: that
     // always lands tomorrow, so it isn't measured against the month's end, or the last day of a month would say otherwise.
-    const picking = (p: Planting) => !!today && currentStage(p) === 'harvesting' && stageIn(stepsOf(p), monthEnd).stage === 'harvesting' && !stepsOf(p).some((s) => s.due && s.stage === 'cleared');
+    const picking = (p: Planting) => !!today && currentStage(p) === 'harvesting' && stageIn(stepsOf(p), monthEnd).stage === 'harvesting' && !clearingDue(stepsOf(p));
     const ready = (p: Planting) => !today || currentStage(p) === 'harvesting' || !pathFor(plant, p).includes('harvesting') || stepsOf(p).some((s) => s.stage === 'harvesting' && s.date !== null && s.date <= monthEnd);
     const grown = growing.filter(ready);
     const toPick = growing.filter((p) => (harvesting && ready(p)) || picking(p));

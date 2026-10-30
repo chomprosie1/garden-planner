@@ -17,7 +17,7 @@ import { useApp } from './appContext';
 import { gardenCount, lastCopy, noteCopy } from './gardenActions';
 import { safetyText } from './setup';
 import { usePlants } from './usePlants';
-import { addGarden, keepReplaced, openTraceKey, traceKeyOf } from '../storage/gardens';
+import { addGarden, keepReplaced, listGardens, openTraceKey, traceKeyOf } from '../storage/gardens';
 import { loadBlob, saveBlob } from '../storage/idb';
 import { flushSave, saveStatus, type SaveStatus } from '../storage/local';
 import { fromDataUrl, loadPhoto, photoIds, putPhoto, toDataUrl } from '../storage/photos';
@@ -93,7 +93,8 @@ export async function shareBackup(store: Store, prefsStore?: PrefsStore) {
  * Puts a checked backup into the app, as a new garden or in place of this one, with its photos back on this device.
  * The file is a copy of this garden as it now is, so its day is the last copy. How many photos came back.
  * What it replaces is kept hidden for 30 days, with its own trace photo, unless there's nothing to keep (the very first
- * screen). If it can't be kept, nothing is replaced, and the answer is null.
+ * screen). If there's no room for what's kept or added, nothing changes, and the answer is null. With nothing kept at
+ * all (storage blocked, in a private window), there's nothing to lose, and the backup opens for this visit.
  */
 export async function restoreBackup(store: Store, prefsStore: PrefsStore | undefined, result: Extract<ParseResult, { ok: true }>, asNew: boolean, keepOld = true): Promise<number | null> {
   // Your own plants are shared by every garden: the file's are added to yours, and yours win where both have one.
@@ -101,14 +102,14 @@ export async function restoreBackup(store: Store, prefsStore: PrefsStore | undef
   const userPlants = [...mine, ...result.state.userPlants.filter((p) => !mine.some((m) => m.id === p.id))];
   if (asNew) {
     flushSave();
-    addGarden(result.state.garden, undefined, new Date(), true);
+    if (!addGarden(result.state.garden, undefined, new Date(), true) && listGardens().open) return null;
   } else if (keepOld) {
     const old = store.get().garden;
     const kept = keepReplaced(old);
-    if (!kept) return null;
+    if (!kept && listGardens().open) return null;
     try {
-      const trace = old.trace ? await loadBlob(openTraceKey()) : undefined;
-      if (trace) await saveBlob(traceKeyOf({ id: kept }), trace);
+      const trace = kept && old.trace ? await loadBlob(openTraceKey()) : undefined;
+      if (kept && trace) await saveBlob(traceKeyOf({ id: kept }), trace);
     } catch {
       // the garden's kept; only its photo isn't
     }
@@ -238,8 +239,12 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
   const restore = async (result: Extract<ParseResult, { ok: true }>, asNew: boolean) => {
     setOpened(null);
     const restored = await restoreBackup(store, prefsStore, result, asNew);
-    if (restored === null) return setMessage({ kind: 'error', lines: [`This browser has no room to keep ${garden.name} as well, so nothing has changed. Download a backup of it, then delete a garden you don’t need.`] });
-    setMessage({ kind: 'ok', lines: [`${asNew ? 'Added' : 'Restored'} "${result.state.garden.name}" from the backup${restored ? `, with ${restored} ${restored === 1 ? 'photo' : 'photos'}` : ''}.${asNew ? ` It’s open now; ${garden.name} is kept, to switch back to in Settings.` : ` Your garden as it was is under Bring back a garden for 30 days.`}`] });
+    if (restored === null) {
+      // Still there to try again.
+      setOpened(result);
+      return setMessage({ kind: 'error', lines: [`This browser has no room left, so nothing has changed: ${garden.name} is as it was. Download a backup of it to keep it safe.`] });
+    }
+    setMessage({ kind: 'ok', lines: [`${asNew ? 'Added' : 'Restored'} "${result.state.garden.name}" from the backup${restored ? `, with ${restored} ${restored === 1 ? 'photo' : 'photos'}` : ''}.${!listGardens().open ? '' : asNew ? ` It’s open now; ${garden.name} is kept, to switch back to in Settings.` : ` Your garden as it was is under Bring back a garden for 30 days.`}`] });
   };
 
   return (
@@ -391,7 +396,7 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
         {opened && (
           <div class="message ok restore-choice" role="status">
             <p>
-              “{opened.state.garden.name}” is ready to open. Add it as another garden, or replace {garden.name} with it? Replaced, {garden.name} can be brought back for 30 days.
+              “{opened.state.garden.name}” is ready to open. Add it as another garden, or replace {garden.name} with it?{listGardens().open ? ` Replaced, ${garden.name} can be brought back for 30 days.` : ''}
             </p>
             <div class="button-row">
               <button type="button" class="btn btn-primary" onClick={() => restore(opened, true)}>

@@ -238,10 +238,10 @@ export function plantPositions(pl: Planting, plant: Plant): Point[] {
     const out: Point[] = [];
     // Too many to set out: fewer rows and fewer in each, spread evenly over the whole block.
     const thin = cols * rows > MOST_SET_OUT;
-    const showRows = thin ? Math.min(rows, Math.max(1, Math.round(Math.sqrt((MOST_SET_OUT * rows) / cols)))) : rows;
-    const showCols = thin ? Math.min(cols, Math.floor(MOST_SET_OUT / showRows)) : cols;
+    const showRows = thin ? Math.min(rows, MOST_SET_OUT, Math.max(1, Math.round(Math.sqrt((MOST_SET_OUT * rows) / cols)))) : rows;
+    const showCols = thin ? Math.max(1, Math.min(cols, Math.floor(MOST_SET_OUT / showRows))) : cols;
     for (let r = 0; r < showRows; r++)
-      for (let c = 0; c < showCols; c++) out.push([Math.round(x0 + Math.floor((c * cols) / showCols) * sx), Math.round(y0 + Math.floor((r * rows) / showRows) * sy)]);
+      for (let c = 0; c < showCols; c++) out.push([Math.round(x0 + Math.floor(((c + 0.5) * cols) / showCols) * sx), Math.round(y0 + Math.floor(((r + 0.5) * rows) / showRows) * sy)]);
     return out;
   }
   return [start];
@@ -377,12 +377,12 @@ export function harvestPlantings(g: Garden, ids: string[], date: string): Garden
   return { ...g, plantings: g.plantings.map((p) => (set.has(p.id) && isActive(p) ? { ...p, removedOn: date } : p)) };
 }
 
-/** Puts a harvested planting back on the plan. */
+/** Puts a harvested planting back on the plan, with its clearing job to do again if ticking that took it off. */
 export function restorePlanting(g: Garden, id: string): Garden {
   const p = g.plantings.find((x) => x.id === id);
   if (!p?.removedOn) return g;
   const { removedOn: _gone, ...rest } = p;
-  return { ...g, plantings: g.plantings.map((x) => (x.id === id ? rest : x)) };
+  return { ...g, jobsDone: g.jobsDone.filter((j) => !j.key.includes(`:clear-${id}:`)), plantings: g.plantings.map((x) => (x.id === id ? rest : x)) };
 }
 
 /** Clears a bed: every planting in it is marked harvested today. */

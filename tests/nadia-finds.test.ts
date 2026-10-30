@@ -11,7 +11,7 @@ import { newGarden } from '../src/model/defaults';
 import { addFeature, makeFeature, rectPoints } from '../src/model/features';
 import type { AppState, Feature, Garden, Plant, Planting } from '../src/model/types';
 import { MAX_PLANTS, PLAN_LIMIT_MM } from '../src/model/validate';
-import { addPlanting, makePlanting, MOST_SET_OUT, plantCount, plantPositions, unknownPlant } from '../src/planting/place';
+import { addPlanting, makePlanting, MOST_SET_OUT, plantCount, plantPositions, restorePlanting, unknownPlant } from '../src/planting/place';
 import { backupFile, parseFileText, toFile } from '../src/storage/file';
 import { addGarden, changesOpen, gardenKey, keepReplaced, listGardens, openGarden, peekGarden, readOpen, saveOpen, startUp, traceKeyOf, type Kv } from '../src/storage/gardens';
 
@@ -86,6 +86,15 @@ describe('a file can’t freeze the app', () => {
     }
     expect(plantPositions({ ...lots, count: 1_000_000_000 }, plantOf('radish'))).toHaveLength(MOST_SET_OUT);
     expect(plantPositions({ ...lots, layout: 'row', count: 1_000_000_000 }, plantOf('radish'))).toHaveLength(MOST_SET_OUT);
+  });
+
+  it('keeps a long narrow block on the plan, one plant wide or a few', () => {
+    for (const endPoint of [[30, 3_000_000], [120, 5_000_000], [3_000_000, 30]] as [number, number][]) {
+      const pts = plantPositions(single('radish', { layout: 'block', x: 0, y: 0, endPoint }), plantOf('radish'));
+      expect(pts.length).toBeGreaterThan(1000);
+      expect(pts.length).toBeLessThanOrEqual(MOST_SET_OUT);
+      expect(pts.every((p) => Number.isFinite(p[0]) && Number.isFinite(p[1]))).toBe(true);
+    }
   });
 
   it('spreads a thinned block evenly over all of it, with no stripes or single line', () => {
@@ -207,8 +216,38 @@ describe('a crop left on the plan ends', () => {
     const fresh = single('lettuce', { sownOn: '2026-09-01', sowing: 'direct', stage: 'vegetative', stageDates: { germinated: '2026-09-15' } });
     const clears = jobsFor(gardenWith(old, fresh), plantOf, 9, 2026, { today: '2026-09-20' }).find((j) => j.clears)!;
     expect(clears.plantingIds).toEqual([old.id]);
-    expect(clears.key).toContain(':clear:');
+    expect(clears.key).toContain(`:clear-${old.id}:`);
     expect(clears.where).not.toMatch(/2 plants/);
+  });
+
+  it('a second sowing that ends the same month isn’t shown as already cleared', () => {
+    const lettuce = (d: string) => single('lettuce', { sownOn: d, sowing: 'direct', stage: 'harvesting', stageDates: { germinated: d, harvesting: d } });
+    const first = lettuce('2026-03-01');
+    const second = lettuce('2026-03-10');
+    const clearJob = (x: Garden) => jobsFor(x, plantOf, 9, 2026, { today: '2026-09-20' }).find((j) => j.clears)!;
+    const both = gardenWith(first);
+    const ticked = toggleJob(both, clearJob(both), '2026-09-20', plantOf);
+    const later = addPlanting(ticked, second);
+    const job = clearJob(later);
+    expect(job.plantingIds).toEqual([second.id]);
+    expect(later.jobsDone.some((j) => j.key === job.key)).toBe(false);
+  });
+
+  it('put back on the plan, it has its clearing to do again', () => {
+    const job = listOn(g, '2027-07-15').find((j) => j.clears)!;
+    const cleared = toggleJob(g, job, '2027-07-15', plantOf);
+    const back = restorePlanting(cleared, tomato.id);
+    expect(back.plantings[0]!.removedOn).toBeUndefined();
+    const again = listOn(back, '2027-07-15').find((j) => j.clears)!;
+    expect(again.key).toBe(job.key);
+    expect(back.jobsDone.some((j) => j.key === again.key)).toBe(false);
+  });
+
+  it('a quick crop sown at the end of its months goes by the warmth, not to next year’s months', () => {
+    const quick: Plant = { ...plantOf('radish'), cropping: { harvestMonths: [5, 6, 7, 8, 9] }, growth: { days: [28, 35] } };
+    const pl: Planting = { ...single('radish'), sownOn: '2026-09-20', sowing: 'direct', stage: 'vegetative' };
+    const h = timeline(quick, pl, gardenWith(pl), '2026-09-21').find((s) => s.stage === 'harvesting' && s.date)!;
+    expect(h.date! < '2027-05-01').toBe(true);
   });
 
   it('a crop sown too late for its months waits for the next run of them', () => {
@@ -277,6 +316,18 @@ describe('a replaced garden can be brought back', () => {
     const kept = keepReplaced(state('Mine').garden, s)!;
     const entry = listGardens(s).hidden.find((g) => g.id === kept)!;
     expect(traceKeyOf(entry)).not.toBe(traceKeyOf({ id: open }));
+  });
+
+  it('a new garden with no room in the list isn’t kept, and leaves the open one open', () => {
+    const s = memory();
+    const open = addGarden(state('Mine').garden, s, new Date(), true)!;
+    const before = s.length;
+    let writes = 0;
+    const tight: Kv = { getItem: s.getItem, removeItem: s.removeItem, key: s.key, get length() { return s.length; }, setItem: (k, v) => { if (++writes === 2) throw new Error('full'); s.setItem(k, v); } };
+    expect(addGarden(state('Another').garden, tight, new Date(), true)).toBeNull();
+    expect(s.length).toBe(before);
+    expect(listGardens(s).open).toBe(open);
+    expect(peekGarden(open, s)!.name).toBe('Mine');
   });
 
   it('with no room to keep it, says so and leaves nothing half done', () => {
