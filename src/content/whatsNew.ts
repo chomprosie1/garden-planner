@@ -17,6 +17,15 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-30-two-fixes',
+    date: '2026-10-30',
+    title: 'Two mistakes put right',
+    items: [
+      'On a phone, the page no longer shrinks away while an Undo message is showing.',
+      'A crop you’ve said you’re harvesting is no longer told its season’s over. If your parsnips were told to go on the compost heap, please ignore that: it was our mistake, and it’s gone.',
+    ],
+  },
+  {
     id: '2026-10-30-right-on-time',
     date: '2026-10-30',
     title: 'Fruit on time, and safer restores',

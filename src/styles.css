@@ -341,9 +341,6 @@ button:disabled {
     grid-column: 1;
     grid-row: 1;
   }
-  .toast {
-    grid-column: 1;
-  }
   .rail {
     grid-row: 3;
     grid-column: 1;
@@ -1297,6 +1294,12 @@ button:disabled {
   background: var(--text);
   color: var(--bg);
   animation: toast-in 0.4s ease-out;
+}
+/* A phone has one column: a toast left in the second would squeeze the page out of the first. */
+@media (max-width: 700px) {
+  .toast {
+    grid-column: 1;
+  }
 }
 /* The plan is a canvas that pans, and re-centres if its height changes: there it stands over the foot of the plan. */
 .app[data-view='plan']:not([data-list]) .toast {

@@ -2680,7 +2680,7 @@ Decided:
 
 | When | Release | Size | For | Status |
 | --- | --- | --- | --- | --- |
-| Next, as soon as you say | **57b. Two live fixes** | S | Everyone on a phone, Margaret | Planned |
+| Next, as soon as you say | **57b. Two live fixes** | S | Everyone on a phone, Margaret | Built 30 Oct |
 | Tue 3 Nov | Testing day | | | |
 | Wed 4 Nov | **57c. Plants go where you asked** | M | Priya, Margaret, Ruth, Sam | Planned |
 | Thu 5 Nov | Testing day | | | |
@@ -3167,6 +3167,18 @@ Not changed:
 - **Files can still hold rubbish** that isn't too big, such as `sownOn: "banana"` (her flaw 4).
 - **A garden frozen before this release** opens again, but nothing tells its owner why it looks odd.
 - **Blackcurrant's flowering** (her flaw 9) is data: 13 fruit have no flowering months.
+
+### Release 57b — Two live fixes (as built)
+Built 30 Oct 2026, on a branch. No schema change. Version 0.57.2.
+
+- **The page stays on a phone.** `.toast`'s phone rule sat above the general one, which put it back in column 2, so a phone gained a second column and the page was squeezed out of the first. The phone rule now follows the general one.
+- **The same mistake can't come back unseen.** `tests/phone-rules.test.ts` reads the stylesheet for any small-screen rule that a later general rule undoes. The toast was the only one. That adds `postcss` as a dev dependency, which vite already brought in.
+- **A crop you say is cropping isn't over.** Flowering or Harvesting is what it's doing now, so `InGround` records today for it, whenever it went in. Gardens saved before this have no date for it, so the timeline takes today there too (`doingNow`), and they recover with no migration. Growing with no date still counts from the day it went in, which is what 57a fixed for fruit.
+- **Tests:** each of those for a crop that stands, a tender crop, a quick crop and perennials, and that an annual left at Growing for years still ends.
+- **Browser check:** screenshots at 390 and 412 px, Standard and Extra large, in two looks, with an Undo message up, looked at.
+
+Not changed:
+- **An old save** with Harvesting and no date never ends by itself, because the date moves with today. Ticking What's happened or Finished ends it.
 
 ## Repo layout
 ```

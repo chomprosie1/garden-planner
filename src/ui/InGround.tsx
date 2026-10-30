@@ -8,10 +8,10 @@ import { todayIso } from '../model/ids';
 import type { Plant, Stage } from '../model/types';
 import { inGroundOptions, type InGroundAt } from '../planting/place';
 
-/** When it's this month, the stage was reached today; earlier, not known. */
+/** When it's this month, the stage was reached today. Flowering or harvesting is what it's doing now, whenever it went in. Growing, from earlier: not known. */
 function at(plant: Plant | null, date: string, today: string, stage?: Stage): InGroundAt {
   const s = stage ?? (plant ? inGroundDefault(plant, date, today) : 'transplanted');
-  return date === today ? { date, stage: s, reached: today } : { date, stage: s };
+  return date === today || s === 'flowering' || s === 'harvesting' ? { date, stage: s, reached: today } : { date, stage: s };
 }
 
 /** value: null while it's only planned; when it went in and its stage once ticked. */

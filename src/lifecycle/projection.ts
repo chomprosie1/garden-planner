@@ -312,10 +312,12 @@ export function timeline(asListed: Plant, pl: Planting, g: Garden, today: string
   let last: Step | null;
   if (now === 'planned') last = firstStep(plant, pl, today, g);
   else {
-    // Carry on from the latest stage, measured from when it was reached. With no date for that (added as already
-    // growing, with only the day it went in), from the last date it has, or today if it has none: it isn't new today.
+    // Carry on from the latest stage, measured from when it was reached. With no date for that, added as already growing
+    // with only the day it went in: from the last date it has, as it isn't new today, or today if it has none. Flowering
+    // or harvesting with no date is what it was doing when you said so, not what it was doing the day it went in.
     const latest = steps[steps.length - 1]!;
-    const known = latest.date ?? [...steps].reverse().find((s) => s.date)?.date ?? today;
+    const doingNow = latest.stage === 'flowering' || latest.stage === 'harvesting';
+    const known = latest.date ?? (doingNow ? today : ([...steps].reverse().find((s) => s.date)?.date ?? today));
     // Growing, with no date for when it went in: count the warmth from when it reached this stage, or today.
     if (!c.start && isGrowingStage(latest.stage)) c.start = known;
     // A perennial planted years ago is somewhere in this year's round, however long ago that was.

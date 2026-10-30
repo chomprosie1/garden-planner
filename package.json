@@ -1,7 +1,7 @@
 {
   "name": "garden-planner",
   "private": true,
-  "version": "0.57.1",
+  "version": "0.57.2",
   "description": "A to-scale garden planner: layout, plants, jobs by month, and sun and shade.",
   "type": "module",
   "scripts": {
@@ -31,6 +31,7 @@
     "@preact/preset-vite": "^2.10.6",
     "@types/node": "^26.6.4",
     "@types/three": "^0.186.0",
+    "postcss": "^8.5.29",
     "sharp": "^0.35.5",
     "typescript": "^7.0.2",
     "vite": "^8.3.3",
