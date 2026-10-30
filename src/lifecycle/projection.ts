@@ -15,7 +15,7 @@ import { daysBetween } from '../model/dates';
 import { featureLabel } from '../model/features';
 import { STAGES, type Feature, type Garden, type Plant, type Planting, type Stage } from '../model/types';
 import { isContainer } from '../planting/place';
-import { readyFrom, runsOf, seasonMonth, seasonShift, upFrom } from './growth';
+import { earliestOut, plantHere, readyFrom, runsOf, seasonMonth, seasonShift, upFrom } from './growth';
 import { addDays, frostDatesUnder, germination, hardenOn, inYear, isTender, plantInFrom, plantOutFrom } from './shed';
 import { currentStage, flowerMonthsOf, isGrowingStage, pathFor, perennial, sowingOf, type LifeStage } from './stages';
 
@@ -154,6 +154,8 @@ function frostsFor(g: Garden, cover: Cover | null) {
 function frostEnd(c: Context, from: string): string | null {
   const { plant, g, cover } = c;
   if (!isTender(plant) || perennial(plant)) return null;
+  // A frost takes potatoes' tops, not the tubers in the ground.
+  if (plant.sowing?.some((s) => s.from === 'tubers')) return null;
   const frost = frostsFor(g, cover);
   if (!frost) return null;
   const sameYear = inYear(frost.firstFrost, yearOf(from));
@@ -267,7 +269,7 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
 const startsGrowth = (s: Step, plant: Plant, pl: Planting) => s.date !== null && (s.stage === 'transplanted' || (s.stage === 'sown' && sowingOf(plant, pl) === 'direct'));
 
 /** When a planned planting would usually be sown (or planted, if it isn't grown from seed), on or after today, or when you mean to sow it. */
-function firstStep(plant: Plant, pl: Planting, today: string): Step | null {
+function firstStep(plant: Plant, pl: Planting, today: string, g: Garden): Step | null {
   const how = sowingOf(plant, pl);
   // A batch sown on a date of your choosing: then, whatever the months say.
   if (pl.sowBy) return { stage: how === 'none' ? 'transplanted' : 'sown', date: pl.sowBy, guessed: true };
@@ -277,21 +279,26 @@ function firstStep(plant: Plant, pl: Planting, today: string): Step | null {
   }
   const months = (plant.sowing ?? []).filter((s) => (how === 'direct' ? s.method === 'direct' : s.method !== 'direct')).flatMap((s) => s.months);
   const d = nextInMonths(today, months.length ? months : (plant.sowing ?? []).flatMap((s) => s.months));
-  return d ? { stage: 'sown', date: d, guessed: true } : null;
+  if (!d) return null;
+  // Outside in a late garden: its month, and no sooner than its frosts allow. Under glass, the frosts don't reach it.
+  const out = how === 'direct' && !microclimateOf(g, pl) ? earliestOut(plant, g) : null;
+  const first = out ? inYear(out.slice(5), yearOf(d)) : null;
+  return { stage: 'sown', date: first && monthOf(d) <= 7 ? later(d, first) : d, guessed: true };
 }
 
 /**
  * A planting's life as steps in date order: what you've marked, then (unless it's been cleared) what usually
  * comes next, carried on from its latest stage for about two years.
  */
-export function timeline(plant: Plant, pl: Planting, g: Garden, today: string, weather: Weather | null = null): Step[] {
+export function timeline(asListed: Plant, pl: Planting, g: Garden, today: string, weather: Weather | null = null): Step[] {
+  const plant = plantHere(asListed, g);
   const steps = marked(pl);
   if (pl.removedOn) return steps;
   const now = currentStage(pl);
   const c: Context = { plant, pl, g, cover: microclimateOf(g, pl), start: null, weather };
   for (const s of steps) if (startsGrowth(s, plant, pl)) c.start = s.date;
   let last: Step | null;
-  if (now === 'planned') last = firstStep(plant, pl, today);
+  if (now === 'planned') last = firstStep(plant, pl, today, g);
   else {
     // Carry on from the latest stage, measured from when it was reached (or today, if that's not known).
     const latest = steps[steps.length - 1]!;
@@ -329,7 +336,8 @@ const GROWS_ON: LifeStage[] = ['vegetative', 'flowering', 'harvesting'];
  * tomorrow when it's overdue, as the timeline does. Null when it's planned or cleared, or its latest stage has no date.
  * From: when the latest stage was reached.
  */
-export function expectedNext(plant: Plant, pl: Planting, g: Garden, weather: Weather | null = null): { stage: LifeStage; date: string; from: string } | null {
+export function expectedNext(asListed: Plant, pl: Planting, g: Garden, weather: Weather | null = null): { stage: LifeStage; date: string; from: string } | null {
+  const plant = plantHere(asListed, g);
   const now = currentStage(pl);
   if (now === 'planned' || now === 'cleared' || pl.removedOn) return null;
   const steps = marked(pl);

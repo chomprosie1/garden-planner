@@ -1,6 +1,7 @@
 // A line and a handful of general jobs for each month in an English garden.
 // These are UK averages, shown alongside the jobs for your own plants (src/calendar/jobs.ts).
 
+import { monthsLater } from '../lifecycle/growth';
 import type { FeatureKind, Garden, Plant } from '../model/types';
 
 export interface Season {
@@ -13,9 +14,10 @@ export interface Season {
   jobs: string[];
   /**
    * The plants some of the jobs are about, by their place in `jobs`: shown only to a garden growing one (or meaning to).
-   * own: your own plants' jobs already do it for one in a bed or on your list, so it isn't said twice.
+   * own: your own plants' jobs already do it for one in a bed or on your list, so it isn't said twice. mild: not for a
+   * garden whose season runs a month or more late, where it won't stand the winter.
    */
-  about?: Record<number, { ids?: string[]; kinds?: FeatureKind[]; own?: true }>;
+  about?: Record<number, { ids?: string[]; kinds?: FeatureKind[]; own?: true; mild?: true }>;
 }
 
 export const SEASONS: Season[] = [
@@ -194,7 +196,7 @@ export const SEASONS: Season[] = [
       'Clean the greenhouse glass and gutters, and put up bubble wrap for the winter',
       'Keep the cold frame lid open by day, closing it only when a hard frost is due',
     ],
-    about: { 0: { ids: ['garlic'], own: true }, 1: { ids: ['broad-bean'], own: true }, 2: { ids: ['dahlia'], own: true }, 4: { ids: ['raspberry'] }, 5: { kinds: ['greenhouse'] }, 6: { kinds: ['cold-frame'] } },
+    about: { 0: { ids: ['garlic'], own: true }, 1: { ids: ['broad-bean'], own: true, mild: true }, 2: { ids: ['dahlia'], own: true }, 4: { ids: ['raspberry'] }, 5: { kinds: ['greenhouse'] }, 6: { kinds: ['cold-frame'] } },
   },
   {
     month: 11,
@@ -261,7 +263,8 @@ export function monthLine(month: number, g: Garden, plantOf: (id: string) => Pla
  */
 export function generalJobs(month: number, g: Garden, plantOf: (id: string) => Plant | null = () => null): { text: string; i: number }[] {
   const season = seasonFor(month);
-  const all = season.jobs.map((text, i) => ({ text, i }));
+  const late = monthsLater(g) > 0;
+  const all = season.jobs.map((text, i) => ({ text, i })).filter(({ i }) => !(late && season.about?.[i]?.mild));
   const inBeds = g.plantings.filter((p) => !p.removedOn).map((p) => p.plantId);
   if (!inBeds.length) return all;
   const kinds = (ids: string[]) => new Set(ids.flatMap((id) => [id, plantOf(id)?.varietyOf].filter((x): x is string => !!x)));

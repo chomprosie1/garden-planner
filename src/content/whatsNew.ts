@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-30-your-season',
+    date: '2026-10-30',
+    title: 'Your season, not the south’s',
+    items: [
+      'Sowing and planting dates now move with your garden’s season, for hardy crops as well as tender ones. A cold garden sows and plants later.',
+      'Set your own last frost and everything follows: sowing, planting out and harvest.',
+      'Say how high your garden is, and whether it’s in a frost hollow, in Settings under Frosts. Your frost estimate and climate follow.',
+      'Your climate now comes from a weather station close by, if there’s one, rather than a blend with towns further off.',
+      'Harvests move with the season too, and a frost no longer ends potatoes before they’re lifted.',
+      'Where the season runs late, there are no autumn broad beans, and autumn’s planting window closes sooner.',
+    ],
+    tryIt: { label: 'Open Settings', view: 'settings' },
+  },
+  {
     id: '2026-10-30-one-figure',
     date: '2026-10-30',
     title: 'One figure everywhere',

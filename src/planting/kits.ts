@@ -8,7 +8,9 @@
 
 import { toggleWishlist } from '../calendar/jobs';
 import { canSowIn } from '../library/library';
+import { earliestOut, plantHere } from '../lifecycle/growth';
 import { nextInMonths } from '../lifecycle/projection';
+import { inYear } from '../lifecycle/shed';
 import { sowingOf } from '../lifecycle/stages';
 import { addDays } from '../model/dates';
 import { addFeature, makeFeature, rectPoints } from '../model/features';
@@ -320,9 +322,13 @@ export function plantKitBed(g: Garden, f: Feature, bed: KitBed, plantOf: (id: st
     const pl = potful ? { ...made, ...bulbsInPot(f, plant, full ? undefined : Math.min(STARTER_BLOCK, potCapacity(f, plant))) } : item.layout === 'block' && !full ? smallerBlock(made, plant, STARTER_BLOCK) : made;
     next = addPlanting(next, pl);
     if (item.batches && item.layout !== 'single') {
-      const how = sowingOf(plant);
-      const months = (plant.sowing ?? []).filter((x) => (how === 'direct' ? x.method === 'direct' : x.method !== 'direct')).flatMap((x) => x.months);
-      const first = nextInMonths(addDays(today, 1), months.length ? months : (plant.sowing ?? []).flatMap((x) => x.months)) ?? today;
+      // Its months as they are here: a batch's date stands, whatever the months say.
+      const here = plantHere(plant, next);
+      const how = sowingOf(here);
+      const months = (here.sowing ?? []).filter((x) => (how === 'direct' ? x.method === 'direct' : x.method !== 'direct')).flatMap((x) => x.months);
+      const when = nextInMonths(addDays(today, 1), months.length ? months : (here.sowing ?? []).flatMap((x) => x.months)) ?? today;
+      const out = how === 'direct' ? earliestOut(here, next) : null;
+      const first = out && inYear(out.slice(5), Number(when.slice(0, 4))) > when && Number(when.slice(5, 7)) <= 7 ? inYear(out.slice(5), Number(when.slice(0, 4))) : when;
       next = splitIntoBatches(next, pl.id, plant, item.batches, 21, first);
     }
   }

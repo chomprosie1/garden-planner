@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import { plannedToSow, sownForPlan, sownInTray } from '../../calendar/jobs';
 import { climateOf, climateText, isCover, microclimateOf, placeClimate } from '../../climate/microclimate';
 import { canSowIn } from '../../library/library';
+import { plantHere } from '../../lifecycle/growth';
 import {
   addPlace,
   CONTAINER_COUNT,
@@ -594,11 +595,12 @@ function SowForm({ plants, garden, plantOf, places, sunOf, sunniest, month: sunM
   const [query, setQuery] = useState('');
   const [weeds, setWeeds] = useState(false);
   const tin = useMemo(() => new Set(seedsOf(garden).filter((k) => k.count !== 0).map((k) => k.plantId)), [garden]);
-  const list = useMemo(() => sowList(plants, { month, kind, query, weeds, tin }), [plants, month, kind, query, weeds, tin]);
+  const here = useMemo(() => plants.map((p) => plantHere(p, garden)), [plants, garden]);
+  const list = useMemo(() => sowList(here, { month, kind, query, weeds, tin }), [here, month, kind, query, weeds, tin]);
   // Changing the filter starts each group short again.
   const filterKey = `${kind}|${query}|${weeds}`;
   const [plantId, setPlantId] = useState(initial || list.tin[0]?.id || list.now[0]?.id || plants[0]?.id || '');
-  const plant = plants.find((p) => p.id === plantId);
+  const plant = here.find((p) => p.id === plantId);
   const [container, setContainer] = useState<Container>(plant ? defaultContainer(plant) : 'module-tray');
   const [count, setCount] = useState(String(CONTAINER_COUNT[container]));
   const [placeId, setPlaceId] = useState('');

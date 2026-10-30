@@ -5,8 +5,9 @@
 // less time in the south, in summer or under glass. Pure functions.
 //
 // The averages are each month's mean day (max) and night (min) temperatures
-// for 17 UK stations, 1991–2020. A garden's are weighted from its three
-// nearest stations. They're averages, not this year's weather.
+// for 17 UK stations, 1991–2020. A garden's are from a station close by, or
+// else weighted from its three nearest, then corrected for its height and for
+// a frost hollow if you've said. They're averages, not this year's weather.
 
 import data from '../../data/climate/uk-stations.json';
 import { dayNumber } from '../model/dates';
@@ -18,6 +19,8 @@ export interface Station {
   name: string;
   lat: number;
   lon: number;
+  /** Above sea level, m. */
+  heightM: number;
   /** Each month's average day (max) and night (min) temperature, °C, January first. */
   tmax: number[];
   tmin: number[];
@@ -32,7 +35,22 @@ export interface Averages {
   stations: Station[];
   /** Kilometres to the nearest station. */
   nearestKm: number;
+  /** The height these temperatures are for, m: the stations', weighted as they are. */
+  heightM: number;
 }
+
+/**
+ * How much cooler it gets for each 100 m up, °C. 0.73 by day and through the year, fitted across latitude, longitude and
+ * height from 23 Met Office historic station records, 1991–2020 (metoffice.gov.uk/research/climate/maps-and-data/historic-station-data).
+ */
+export const LAPSE_C_PER_100M = 0.7;
+/**
+ * How much colder a frost hollow's nights are, °C. Cold air drains into low ground on still, clear nights: the COLPEX study
+ * in the Clun valley, Shropshire, found the valley floor at least 1 °C colder than the hilltops on 45% of nights.
+ */
+export const HOLLOW_NIGHT_C = 1;
+/** Within this many km, a station speaks for the garden on its own: towns further off are another climate. */
+export const OWN_STATION_KM = 25;
 
 /** Rough distance in km: plenty for weighting stations. */
 export function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -44,7 +62,7 @@ export function distanceKm(lat1: number, lon1: number, lat2: number, lon2: numbe
 
 const cache = new Map<string, Averages>();
 
-/** The usual temperatures at a place: the three nearest stations, weighted by how near they are (inverse square). */
+/** The usual temperatures at a place: a station close by, or else the three nearest, weighted by how near they are (inverse square). */
 export function averagesAt(lat: number, lon: number): Averages {
   const key = `${lat.toFixed(3)},${lon.toFixed(3)}`;
   const hit = cache.get(key);
@@ -52,14 +70,42 @@ export function averagesAt(lat: number, lon: number): Averages {
   const near = STATIONS.map((s) => ({ s, km: distanceKm(lat, lon, s.lat, s.lon) }))
     .sort((a, b) => a.km - b.km)
     .slice(0, 3);
-  // Within a couple of km, a station speaks for the garden on its own.
-  const used = near[0]!.km < 2 ? [near[0]!] : near;
+  const used = near[0]!.km < OWN_STATION_KM ? [near[0]!] : near;
   const weights = used.map((n) => 1 / Math.max(1, n.km) ** 2);
   const total = weights.reduce((a, b) => a + b, 0);
   const blend = (pick: (s: Station) => number[]) =>
     Array.from({ length: 12 }, (_, m) => Math.round((used.reduce((sum, n, i) => sum + pick(n.s)[m]! * weights[i]!, 0) / total) * 100) / 100);
-  const out: Averages = { tmax: blend((s) => s.tmax), tmin: blend((s) => s.tmin), stations: used.map((n) => n.s), nearestKm: Math.round(near[0]!.km) };
+  const heightM = Math.round(used.reduce((sum, n, i) => sum + n.s.heightM * weights[i]!, 0) / total);
+  const out: Averages = { tmax: blend((s) => s.tmax), tmin: blend((s) => s.tmin), stations: used.map((n) => n.s), nearestKm: Math.round(near[0]!.km), heightM };
   cache.set(key, out);
+  return out;
+}
+
+/** Where a garden is, as far as its climate goes. */
+export interface Site {
+  latitude: number;
+  longitude: number;
+  heightM?: number;
+  frostHollow?: boolean;
+}
+
+/** How much cooler a garden is than the stations' averages, °C: by height, day and night, and at night for a frost hollow. */
+export function coolerAt(s: Site): { day: number; night: number } {
+  const day = s.heightM === undefined ? 0 : ((s.heightM - averagesAt(s.latitude, s.longitude).heightM) / 100) * LAPSE_C_PER_100M;
+  return { day, night: day + (s.frostHollow ? HOLLOW_NIGHT_C : 0) };
+}
+
+const sites = new Map<string, Averages>();
+
+/** A garden's usual temperatures: its stations', corrected for its height and for a frost hollow. The same object for the same place. */
+export function averagesHere(s: Site): Averages {
+  const base = averagesAt(s.latitude, s.longitude);
+  const { day, night } = coolerAt(s);
+  if (!day && !night) return base;
+  const key = `${s.latitude.toFixed(3)},${s.longitude.toFixed(3)},${s.heightM ?? ''},${s.frostHollow ? 1 : 0}`;
+  let out = sites.get(key);
+  const less = (list: number[], by: number) => list.map((t) => Math.round((t - by) * 100) / 100);
+  if (!out) sites.set(key, (out = { ...base, tmax: less(base.tmax, day), tmin: less(base.tmin, night) }));
   return out;
 }
 

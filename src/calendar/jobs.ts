@@ -7,6 +7,7 @@
 
 import { microclimateOf } from '../climate/microclimate';
 import { feedDetail, feedingDue, feedsInUse, isOnce, plantingFeedText } from '../feeding/schedule';
+import { plantHere } from '../lifecycle/growth';
 import { addDays, frostDates, isTender, plantOutMonthsUnder, safeOut } from '../lifecycle/shed';
 import { currentStage, isRoot, pathFor, setStage, sowingOf, stageLabel, stageTips, suggestedStage } from '../lifecycle/stages';
 import { probableStage, shortDate, stageIn, timeline } from '../lifecycle/projection';
@@ -198,7 +199,9 @@ export interface JobOptions {
 }
 
 /** Your jobs for a month, in the order of JOB_KINDS, then by plant name. */
-export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number, year: number, opts: JobOptions = {}): Job[] {
+export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number, year: number, opts: JobOptions = {}): Job[] {
+  // Each plant as it's grown here: its months moved for the garden's season.
+  const plantOf = (id: string) => plantHere(listed(id), g);
   const jobs: Job[] = [];
   const keyOf = (kind: JobKind, plantId: string, scope: string) => `${kind}:${plantId}:${scope ? `${scope}:` : ''}${ym(year, month)}`;
   const add = (kind: JobKind, plant: Plant, where: string, scope: string, plantingIds: string[], detail?: string, featureId?: string, verb?: string) => {

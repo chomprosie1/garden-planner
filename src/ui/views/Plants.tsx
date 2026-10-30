@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Heart } from '../Heart';
 import { blankPlant, canSowIn, copyAsUserPlant, deleteUserPlant, emptyFilter, filterPlants, saveUserPlant, type PlantFilter } from '../../library/library';
 import { beginnerOrder, isEasy, splitCore } from '../../library/order';
+import { plantHere } from '../../lifecycle/growth';
 import { MorePlants } from '../MorePlants';
 import { featureLabel } from '../../model/features';
 import { currentStage, stageLabel } from '../../lifecycle/stages';
@@ -83,10 +84,11 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
   const results = useMemo(() => {
     // With nothing typed, the plants most beginners grow come first; a search keeps its own order.
     // Your list is your list: all of it, easy or not.
-    const matched = filterPlants(plants, wantOnly ? { ...filter, easyOnly: false } : filter);
+    // Sow or plant this month goes by the months here, moved for your season.
+    const matched = filterPlants(plants.map((p) => plantHere(p, garden)), wantOnly ? { ...filter, easyOnly: false } : filter);
     const found = filter.query.trim() ? matched : beginnerOrder(matched);
     return wantOnly ? found.filter((p) => wanted.includes(p.id)) : found;
-  }, [plants, filter, wantOnly, wanted]);
+  }, [plants, filter, wantOnly, wanted, garden.latitude, garden.longitude, garden.heightM, garden.frostHollow, garden.lastFrost]);
 
   // Beyond the core 150, plants wait under More plants until they're checked; a search or your list shows everything.
   const { core, more } = filter.query.trim() || wantOnly ? { core: results, more: [] } : splitCore(results);
@@ -213,7 +215,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
     ) : current ? (
       <PlantCard
         key={current.id}
-        plant={current}
+        plant={plantHere(current, garden)}
         byId={byId}
         month={month}
         open={(id) => setPanel({ kind: 'card', id })}

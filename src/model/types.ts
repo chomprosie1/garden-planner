@@ -28,9 +28,13 @@ export interface Garden {
   shedPlaces?: ShedPlace[];
   /** Seeds sown in trays and pots, not yet planted out. They have no place on the plan until they are. */
   trays?: Tray[];
-  /** Average last spring frost and first autumn frost, "MM-DD". Absent: estimated from the latitude. */
+  /** Average last spring frost and first autumn frost, "MM-DD". Absent: estimated. */
   lastFrost?: string;
   firstFrost?: string;
+  /** Height above sea level, m. Absent: taken to be about the height of the nearest weather stations. */
+  heightM?: number;
+  /** In a frost hollow: low ground cold air drains into on still nights. */
+  frostHollow?: boolean;
   /** Feeds you have in, by id from data/feeds.json. */
   feedShelf?: string[];
   /** The seed tin: packets of seed you have. */

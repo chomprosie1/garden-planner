@@ -6,6 +6,7 @@
 import { useApp } from './appContext';
 import { useMemo, useState } from 'preact/hooks';
 import { canSowIn, plantMatches } from '../library/library';
+import { plantHere } from '../lifecycle/growth';
 import { beginnerOrder, isEasy, MORE_PLANTS, splitCore } from '../library/order';
 import type { Garden, Plant } from '../model/types';
 import { stillWanted, unknownPlant } from '../planting/place';
@@ -23,14 +24,14 @@ export function PlantChooser({ plants, garden, month, pick }: { plants: Plant[];
   const growable = useMemo(() => plants.filter((p) => p.category !== 'weed' && !p.varietyOf), [plants]);
   const lists: Record<Filter, Plant[]> = useMemo(
     () => ({
-      now: beginnerOrder(growable.filter((p) => canSowIn(p, month))),
+      now: beginnerOrder(growable.filter((p) => canSowIn(plantHere(p, garden), month))),
       easy: beginnerOrder(growable.filter(isEasy)),
       list: stillWanted(garden, (id) => byId.get(id) ?? unknownPlant(id)).map((id) => byId.get(id)).filter((p): p is Plant => !!p),
       tin: [...new Set((garden.seeds ?? []).filter((k) => k.count !== 0).map((k) => k.plantId))].map((id) => byId.get(id)).filter((p): p is Plant => !!p),
       mine: plants.filter((p) => p.userAdded),
       all: beginnerOrder(growable),
     }),
-    [plants, growable, month, garden.wishlist, garden.seeds, byId],
+    [plants, growable, month, garden.wishlist, garden.plantings, garden.seeds, byId, garden.latitude, garden.longitude, garden.heightM, garden.frostHollow, garden.lastFrost],
   );
   const q = query.trim().toLowerCase();
   // Typed: plural or not, best match first.

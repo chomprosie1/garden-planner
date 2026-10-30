@@ -173,6 +173,8 @@ export function validateGarden(g: unknown): string[] {
 
   const monthDay = (v: unknown) => v === undefined || (isStr(v) && /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(v));
   need(monthDay(g.lastFrost) && monthDay(g.firstFrost), 'frost dates must be MM-DD.');
+  need(g.heightM === undefined || (isNum(g.heightM) && g.heightM >= -10 && g.heightM <= 1400), 'heightM must be a height in the UK, in metres.');
+  need(g.frostHollow === undefined || typeof g.frostHollow === 'boolean', 'frostHollow must be true or false.');
   if (g.seeds !== undefined) {
     if (!Array.isArray(g.seeds)) errors.push('seeds must be a list.');
     else

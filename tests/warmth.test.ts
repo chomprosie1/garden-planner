@@ -230,8 +230,8 @@ describe('seasons, moved with the warmth', () => {
     expect(seasonShift(LEEDS, COLD_FRAME, 6)).toBeGreaterThan(seasonShift(LEEDS, GREENHOUSE, 6));
     expect(seasonShift(ABERDEEN, null, 12)).toBe(0);
     expect(seasonShift(ABERDEEN, null, 1)).toBe(0);
-    // Never more than six weeks either way.
-    expect(Math.abs(seasonShift(at(60.14, -1.18), null, 7))).toBeLessThanOrEqual(42);
+    // Never more than eight weeks either way (six until release 50: Strathspey at 250 m in a hollow needs more).
+    expect(Math.abs(seasonShift(at(60.14, -1.18), null, 7))).toBeLessThanOrEqual(56);
   });
 
   it('slides a month or two of flowers, and stretches a longer season at both ends', () => {

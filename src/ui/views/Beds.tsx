@@ -23,6 +23,7 @@ import { RotationSwitch } from '../RotationSwitch';
 import { fullText, howFull, isListed, listBeds, moveRoom, moveToListBed, placeInList, plantableBeds, plantingsCount, plantOutInList, rowsOfSowing, sowingKey, type ListHow } from '../../planting/listPlant';
 import { isActive, plantCount, spacingStyle, type InGroundAt } from '../../planting/place';
 import { isSupport } from '../../planting/supports';
+import { plantHere } from '../../lifecycle/growth';
 import { nextStep } from '../../planting/windows';
 import { NextYearDialog } from '../NextYear';
 import { ShoppingDialog } from '../Shopping';
@@ -416,7 +417,7 @@ function PlantingRow({ pl, plant, count, garden, today, weather, which, open }: 
   const now = stageIn(steps, today).stage;
   const marked = currentStage(pl);
   const n = count ?? plantCount(pl, plant);
-  const next = nextStep(pl, plant, Number(today.slice(5, 7)), microclimateOf(garden, pl)?.climate ?? null, steps, today);
+  const next = nextStep(pl, plantHere(plant, garden), Number(today.slice(5, 7)), microclimateOf(garden, pl)?.climate ?? null, steps, today);
   return (
     <button type="button" class={`planting-row ${marked === 'planned' ? 'is-planned' : ''}`} onClick={open}>
       <PlantIcon plant={plant} size={46} view="side" {...(now !== 'planned' && now !== 'cleared' ? { stage: now } : {})} />

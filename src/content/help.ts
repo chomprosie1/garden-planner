@@ -498,8 +498,9 @@ export const HELP: HelpTopic[] = [
     steps: [
       'Open Settings and find Seasons and weather.',
       'The last frost is a 50:50 date: a frost is as likely after it as before. Tender plants are safest out two weeks later, and the Shed says when that is.',
-      'Know your own frost dates, in a frost pocket or a sheltered town garden? Set the day and month under Frosts. Use the estimate puts them back.',
-      'Your climate shows the usual warmth where you are, from the three nearest weather stations, and how it compares with the middle of England. It times how fast crops grow.',
+      'High up, or in a frost hollow? Say so under Frosts: your estimate and climate follow. Cold air settles in low ground on still nights, so a hollow gets frosts when the slope above doesn’t.',
+      'Know your own frost dates, in a frost pocket or a sheltered town garden? Set the day and month under Frosts. Your sowing and planting dates move with your last frost. Use the estimate puts them back.',
+      'Your climate shows the usual warmth where you are, from a weather station close by or the three nearest, and how it compares with the middle of England. It times how fast crops grow.',
       'Tick Use this year’s weather and the forecast to time crops by the real weather so far. Only your garden’s rough location is sent.',
     ],
     notes: ['A city garden, a sunny wall or a hillside can be a degree or two off the averages. Your own frost dates are the best way to say so.'],

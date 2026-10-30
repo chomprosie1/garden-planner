@@ -6,11 +6,13 @@
 // Pure functions: garden in, garden out, so each edit is one undo step.
 
 import { frostShiftDays, microclimateOf, placeClimate, type Cover } from '../climate/microclimate';
+import { coolerAt } from '../climate/warmth';
 import { addDays, daysBetween } from '../model/dates';
 import { featureLabel } from '../model/features';
 import { newId } from '../model/ids';
 import { addNote, makeNote } from '../model/notes';
 import type { Climate, Container, Garden, Plant, Planting, ShedPlace, ShedPlaceKind, Tray, TrayStage } from '../model/types';
+import { plantHere } from './growth';
 import { currentStage, setStage } from './stages';
 
 // ---------- Dates ----------
@@ -43,10 +45,29 @@ export const PLAY_SAFE_DAYS = 14;
 export const lastFrostText = (lastFrost: string) =>
   `Last frost: 50:50 by about ${short(inYear(lastFrost, 2027))}; play safe until about ${short(addDays(inYear(lastFrost, 2027), PLAY_SAFE_DAYS))}.`;
 
-/** The garden's frost dates: your own, or estimated from its latitude. */
-export function frostDates(g: Garden): { lastFrost: string; firstFrost: string; estimated: boolean } {
+/**
+ * How many days nearer a frost comes for each degree colder at night. Nights warm and cool by about 3 °C a month through
+ * spring and autumn in the station averages, so about ten days a degree.
+ */
+export const FROST_DAYS_PER_C = 10;
+
+/** Frost dates estimated for a garden: from its latitude, sooner in autumn and later in spring for its height and a frost hollow. */
+export function frostEstimate(g: Pick<Garden, 'latitude' | 'longitude' | 'heightM' | 'frostHollow'>): { lastFrost: string; firstFrost: string } {
   const est = estimateFrost(g.latitude);
+  const days = Math.round(coolerAt(g).night * FROST_DAYS_PER_C);
+  if (!days) return est;
+  return { lastFrost: addDays(`2027-${est.lastFrost}`, days).slice(5), firstFrost: addDays(`2027-${est.firstFrost}`, -days).slice(5) };
+}
+
+/** The garden's frost dates: your own, or estimated. */
+export function frostDates(g: Garden): { lastFrost: string; firstFrost: string; estimated: boolean } {
+  const est = frostEstimate(g);
   return { lastFrost: g.lastFrost ?? est.lastFrost, firstFrost: g.firstFrost ?? est.firstFrost, estimated: !g.lastFrost && !g.firstFrost };
+}
+
+/** How many days your own last frost is after the middle of England's: the one thing that knows your garden better than any average. Null if you haven't said. */
+export function ownFrostDays(g: Garden, reference: number): number | null {
+  return g.lastFrost ? daysBetween(`2027-${estimateFrost(reference).lastFrost}`, `2027-${g.lastFrost}`) : null;
 }
 
 /**
@@ -369,7 +390,8 @@ export interface Under {
 const COLD_FRAME_DAY = 4;
 
 /** What's next for seedlings at a stage, sown on a date. Shared by trays and plantings still indoors. */
-export function nextFor(p: Plant, g: Garden, stage: TrayStage, sownOn: string, stageDates: Partial<Record<'germinated' | 'hardening', string>>, today: string, under: Under = {}): Next {
+export function nextFor(plant: Plant, g: Garden, stage: TrayStage, sownOn: string, stageDates: Partial<Record<'germinated' | 'hardening', string>>, today: string, under: Under = {}): Next {
+  const p = plantHere(plant, g);
   const [min, max] = germination(p);
   if (stage === 'sown') {
     const age = daysBetween(sownOn, today);

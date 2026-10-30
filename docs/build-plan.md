@@ -2825,6 +2825,37 @@ Not changed:
 - **A plan garden's Today** shows fewer checks for its first 1.5 seconds, until June's sun is worked out.
 - **Lasagne pots:** bulbs layered in a pot still read as crowded.
 
+### Release 50 — Your season, not the south's (as built)
+Built 30 Oct 2026, on a branch, as it changes the save format. Schema 23. Version 0.50.0.
+
+- **The climate follows the garden** (`src/climate/warmth.ts`):
+  - **Height:** a new `heightM` on the garden. Stations now have heights. **0.7 °C for each 100 m**, fitted here across latitude, longitude and height from 23 Met Office historic station records, 1991–2020 (0.73 for the year, 0.74 for April to September). Callum's 0.6 and the usual textbook figure are close; this one is from UK records.
+  - **Frost hollow:** a new `frostHollow`. 1 °C colder at night, from the COLPEX study of the Clun valley in Shropshire (the valley floor was at least 1 °C colder than the hilltops on 45% of nights).
+  - **A station within 25 km speaks alone.** Margaret's garden is now Shawbury only. Birmingham and Manchester are gone.
+- **Frost estimates** (`frostEstimate`): the latitude's estimate moved about ten days for each degree colder at night, the rate nights warm and cool in the station averages. Strathspey at 250 m in a hollow comes out at about 21 June and 9 September, against 26 May and 5 October before. Callum's records say early June and early September: the first is close, and the last errs late. Typing your own wins.
+- **Your last frost sets your season** (`seasonShift`): its days after the middle of England's replace the warmth figure. Before, typed dates moved only tender plant-outs. The furthest a season moves is now eight weeks, not six. Under glass it moves by the same amount as before. Only the date you change is saved as yours.
+- **Plants as they're grown here** (`plantHere`, `src/lifecycle/growth.ts`):
+  - Spring comes `monthsLater` whole months late, from `seasonShift` at April. A spring window that's long loses its first months, as it ends about the same time. A short one moves along. One opening from June stays: leeks and kale go out when Callum's do. A short autumn window closes earlier.
+  - It's used by the timeline, jobs, the Shed, the plant page, the sowing form and the "sow now" lists. In the middle of England it hands back the same plant, so nothing moves.
+  - The warmth a crop needs is still measured at its listed months.
+- **Outside, no sooner than the frosts allow** (`earliestOut`): hardy plants eight weeks before the last frost, half-hardy ones (seed potatoes) two weeks before, tender ones on the play-safe date. **This is a rule of thumb, from Callum's notes and not a named source,** and applies only to gardens running a month or more late. Not under glass.
+- **Autumn broad beans** go for a late garden: the general job, and the plant's own autumn sowing outside. Also a rule of thumb.
+- **Potatoes aren't ended by a frost:** it takes the tops, not the tubers.
+- **Callum's spreadsheet as a test,** with his own frost dates (`tests/your-season.test.ts`): broad beans mid-April (were 1 Feb), second earlies late May (were 1 Apr), tomatoes from March (were 1 Feb), courgettes May (were 1 Apr), leeks and kale unchanged, garlic still October, garlic ready from July (was June).
+- **Checked against the Met Office records:** our Shawbury figures match to 0.1 °C, and Durham, Cambridge, Aberporth, Paisley and Manchester to within 1 °C. Their air-frost days back Margaret: Shawbury averages 4.4 in April and 0.9 in May.
+- **Schema 23:** two optional fields. The migration only moves the version on. Tests: `your-season` (a v22 garden, and validation).
+- **Code review before pushing** (`/code-review`, medium) found ten things. Fixed: kit and batch dates skipping the moved months, changing the first frost pinning the last, warmth measured at the moved months, lists not updating when the settings change, autumn beans on a planting, tender plants allowed out before the frost, the Shed's sowing form, the floor applying under glass, a mistyped height deleting the saved one, and the help text.
+
+Not changed:
+- **Station heights:** eight are from the Met Office files; nine (Plymouth, Wisley, Cardiff, Birmingham, Leeds, Belfast, Edinburgh, Aberdeen, Inverness) are from memory, and the data file says so. Being 30 m out is 0.2 °C.
+- **The height isn't looked up.** You type it. Looking it up would send your location somewhere new.
+- **The Harvest months on cards** are the plant's usual ones: the planting's dates move, the "Harvest Jun–Jul" beside them doesn't. Callum's rhubarb and garlic can read a little oddly until that's joined up.
+- **Early gardens don't move earlier:** months only move later. A Cornish garden keeps the listed months.
+- **Still by the listed months:** kit ordering, the rotation's follow-on crops, the plan's empty-bed ideas, the shopping list's seed-or-sets choice, and the plan's plant picker.
+- **No Bristol-area station:** none is in the Met Office historic files. Priya's first frost stays an estimate.
+- **Callum's frost day and month reverting** wasn't reproduced: the field reads correctly.
+- **Margaret's Shawbury frosts** need the frost hollow ticked or her own dates: Shawbury's average nights give the same dates as before.
+
 ## Repo layout
 ```
 garden-planner/

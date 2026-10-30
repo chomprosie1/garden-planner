@@ -12,8 +12,8 @@ import { flushSave } from '../storage/local';
 import { fromDataUrl, loadPhoto, photoIds, putPhoto, toDataUrl } from '../storage/photos';
 import { Icon } from './icons';
 import { isInstalled, isIosSafari } from './Install';
-import { estimateFrost, frostDates, inYear, lastFrostText, short } from '../lifecycle/shed';
-import { averagesAt, referenceAverages, seasonDays, stationNames, yearDegreeDays, yearSoFar } from '../climate/warmth';
+import { frostDates, frostEstimate, inYear, lastFrostText, short } from '../lifecycle/shed';
+import { averagesAt, averagesHere, referenceAverages, seasonDays, stationNames, yearDegreeDays, yearSoFar } from '../climate/warmth';
 import { ATTRIBUTION } from '../weather/openMeteo';
 import { lastDay } from '../weather/weather';
 import { usePrefs } from './hooks';
@@ -403,11 +403,23 @@ function MonthDayField({ label, value, onChange }: { label: string; value: strin
   );
 }
 
-/** Average last and first frosts: estimated from the latitude until you set your own. They time hardening off and winter jobs. */
+/** Average last and first frosts: estimated until you set your own. They time sowing, planting out, hardening off and winter jobs. */
 function FrostDates({ store, garden }: { store: Store; garden: Garden }) {
   const f = frostDates(garden);
-  const est = estimateFrost(garden.latitude);
-  const set = (patch: Partial<Pick<Garden, 'lastFrost' | 'firstFrost'>>) => store.apply(updateGarden((g) => ({ ...g, lastFrost: g.lastFrost ?? f.lastFrost, firstFrost: g.firstFrost ?? f.firstFrost, ...patch })));
+  const est = frostEstimate(garden);
+  // Only the date you changed is yours: your last frost sets your whole season, so it isn't pinned by changing the first.
+  const set = (patch: Partial<Pick<Garden, 'lastFrost' | 'firstFrost'>>) => store.apply(updateGarden((g) => ({ ...g, ...patch })));
+  const setHeight = (text: string) => {
+    const m = Math.round(Number(text));
+    // A height outside the UK is a slip: what you had stands.
+    if (text.trim() && !(m >= 0 && m <= 1400)) return;
+    store.apply(
+      updateGarden((g) => {
+        const { heightM: _old, ...rest } = g;
+        return text.trim() ? { ...rest, heightM: m } : rest;
+      }),
+    );
+  };
   return (
     <div class="frost-dates">
       <h3>Frosts</h3>
@@ -415,12 +427,30 @@ function FrostDates({ store, garden }: { store: Store; garden: Garden }) {
         <MonthDayField label="Last frost in spring" value={f.lastFrost} onChange={(lastFrost) => set({ lastFrost })} />
         <MonthDayField label="First frost in autumn" value={f.firstFrost} onChange={(firstFrost) => set({ firstFrost })} />
       </div>
+      <div class="field-row">
+        <label class="field">
+          Height above sea level, in metres
+          <input type="number" inputMode="numeric" min={0} max={1400} value={garden.heightM ?? ''} placeholder="Not set" onChange={(e) => setHeight((e.currentTarget as HTMLInputElement).value)} />
+        </label>
+      </div>
+      <label class="check">
+        <input type="checkbox" checked={!!garden.frostHollow} onChange={(e) => {
+          const on = (e.currentTarget as HTMLInputElement).checked;
+          store.apply(
+            updateGarden((g) => {
+              const { frostHollow: _old, ...rest } = g;
+              return on ? { ...rest, frostHollow: true } : rest;
+            }),
+          );
+        }} />
+        In a frost hollow: low ground where cold air settles on still nights
+      </label>
       <p class="muted small">
         {f.estimated
-          ? 'Estimated from your location. Local weather records or neighbours will know better: frost pockets and coastal gardens can be weeks either side.'
+          ? 'Estimated from your location, height and any frost hollow. Local weather records or neighbours will know better: coastal gardens can be weeks either side.'
           : 'Your own dates.'}{' '}
-        {lastFrostText(f.lastFrost)} A frost is as likely after a 50:50 date as before it, so tender plants are safest out two weeks later. The dates decide when the Shed
-        suggests hardening off and planting out tender plants, and when to protect plants for winter.
+        {lastFrostText(f.lastFrost)} A frost is as likely after a 50:50 date as before it, so tender plants are safest out two weeks later. The dates decide when to sow and
+        plant, when the Shed suggests hardening off, and when to protect plants for winter. Move your last frost, and your sowing and planting dates move with it.
         {!f.estimated && (
           <>
             {' '}
@@ -450,7 +480,7 @@ const listed = (names: string[]) => (names.length > 1 ? `${names.slice(0, -1).jo
 
 /** The usual warmth here, from UK climate averages: what times growth on the plan's year. */
 function Warmth({ garden, prefsStore }: { garden: Garden; prefsStore?: PrefsStore }) {
-  const av = averagesAt(garden.latitude, garden.longitude);
+  const av = averagesHere(garden);
   const dd = yearDegreeDays(av);
   const ref = yearDegreeDays(referenceAverages());
   const diff = Math.round(((dd - ref) / ref) * 100);
@@ -471,9 +501,10 @@ function Warmth({ garden, prefsStore }: { garden: Garden; prefsStore?: PrefsStor
         </dl>
         <p class="muted small">
           Averages for 1991–2020 from the weather stations nearest you: {listed(stationNames(av))}
-          {av.nearestKm > 150 ? `, the nearest ${av.nearestKm} km away, so take them as rough` : ''}. They time how fast crops grow on the plan's year:
-          sooner where it's warmer, later where it's cooler, and sooner still under glass. A sheltered garden, a city or a hillside can differ by a degree or two,
-          and any year can be warmer or colder.
+          {av.nearestKm > 150 ? `, the nearest ${av.nearestKm} km away, so take them as rough` : ''}
+          {garden.heightM !== undefined || garden.frostHollow ? ', corrected for your height and frost hollow, as far as you’ve said' : ''}. They time how fast crops grow on the plan's year:
+          sooner where it's warmer, later where it's cooler, and sooner still under glass. A sheltered garden or a city can differ by a degree or two, and any year can be
+          warmer or colder.
         </p>
       </details>
       {prefsStore && <WeatherSwitch garden={garden} prefsStore={prefsStore} />}
@@ -488,7 +519,7 @@ function WeatherSwitch({ garden, prefsStore }: { garden: Garden; prefsStore: Pre
   const prefs = usePrefs(prefsStore);
   const { weather, status, refresh } = useWeatherNow();
   const today = todayIso();
-  const soFar = weather ? yearSoFar(weather, averagesAt(garden.latitude, garden.longitude), today) : null;
+  const soFar = weather ? yearSoFar(weather, averagesHere(garden), today) : null;
   const pct = soFar && soFar.usual > 0 ? Math.round(((soFar.actual - soFar.usual) / soFar.usual) * 100) : null;
   return (
     <div class="weather-switch">

@@ -5,6 +5,7 @@
 import { useApp } from './appContext';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { canSowIn, plantMatches } from '../library/library';
+import { plantHere } from '../lifecycle/growth';
 import { beginnerOrder, isEasy, MORE_PLANTS, splitCore } from '../library/order';
 import { traysOf } from '../lifecycle/shed';
 import { newAppState } from '../model/defaults';
@@ -170,7 +171,7 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
     const q = query.trim().toLowerCase();
     // Typed: plural or not, best match first.
     if (q) return plants.map((p) => ({ p, score: plantMatches(p, q.split(/\s+/)) })).filter((x): x is { p: Plant; score: number } => x.score !== null).sort((a, b) => b.score - a.score).map((x) => x.p);
-    if (filter === 'now') return beginnerOrder(plants.filter((p) => !p.varietyOf && canSowIn(p, month)));
+    if (filter === 'now') return beginnerOrder(plants.filter((p) => !p.varietyOf && canSowIn(plantHere(p, garden), month)));
     if (filter === 'easy') return beginnerOrder(plants.filter((p) => !p.varietyOf && isEasy(p)));
     if (filter === 'climb') return forSupports(beginnerOrder(plants));
     if (filter === 'mine') return plants.filter((p) => p.userAdded);
@@ -179,7 +180,7 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
     if (filter === 'all') return beginnerOrder(plants.filter((p) => p.category !== 'weed' && !p.varietyOf));
     if (filter === 'weeds') return plants.filter((p) => p.category === 'weed');
     return [];
-  }, [plants, query, filter, month, garden.wishlist, garden.seeds]);
+  }, [plants, query, filter, month, garden.wishlist, garden.seeds, garden.plantings, garden.latitude, garden.longitude, garden.heightM, garden.frostHollow, garden.lastFrost]);
   // Beyond the core 150, plants wait under More plants until they're checked: in the lists by kind, not a search or your own lists.
   const [showMore, setShowMore] = useState(false);
   const { draftPlants } = useApp();
@@ -193,7 +194,7 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
   const climbers: [PlantFilter, string, number] = ['climb', 'Climbers', climbCount];
   const filters: [PlantFilter, string, number][] = [
     ...(forSupport ? [climbers] : []),
-    ['now', 'Sow or plant now', plants ? plants.filter((p) => !p.varietyOf && canSowIn(p, month)).length : 0],
+    ['now', 'Sow or plant now', plants ? plants.filter((p) => !p.varietyOf && canSowIn(plantHere(p, garden), month)).length : 0],
     ['easy', 'Easy to start', plants ? plants.filter((p) => !p.varietyOf && isEasy(p)).length : 0],
     ...(forSupport ? [] : [climbers]),
     ['shed', 'In the shed', trays.length],

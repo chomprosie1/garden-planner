@@ -32,6 +32,7 @@ import {
   type Target,
 } from '../model/features';
 import { todayIso } from '../model/ids';
+import { plantHere } from '../lifecycle/growth';
 import { nextStep } from '../planting/windows';
 import { photosOf } from '../model/notes';
 import { updateGarden, type Store } from '../model/store';
@@ -1144,7 +1145,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
   // When it's likely to be ready, from the warmth it gets here (UK climate averages), and under glass if it's covered.
   const { weather } = useWeatherNow();
   const steps = timeline(plant, pl, garden, today, weather);
-  const step = nextStep(pl, plant, Number(today.slice(5, 7)), cover?.climate ?? null, steps, today);
+  const step = nextStep(pl, plantHere(plant, garden), Number(today.slice(5, 7)), cover?.climate ?? null, steps, today);
   const expected = status !== 'planned' ? expectedText(steps, plant, today) : null;
   const canEdit = true;
   // Late to reach its next stage, unless you've said you're still waiting.
@@ -1382,8 +1383,10 @@ function BatchesSection({ store, garden, pl, plant, select }: { store: Store; ga
   const app = useApp();
   const today = todayIso();
   const direct = sowingOf(plant, pl) === 'direct';
-  const sowMonths = (plant.sowing ?? []).filter((x) => (direct ? x.method === 'direct' : x.method !== 'direct')).flatMap((x) => x.months);
-  const months = sowMonths.length ? sowMonths : (plant.sowing ?? []).flatMap((x) => x.months);
+  // Its months as they are here: a batch's date stands, whatever the months say.
+  const here = plantHere(plant, garden);
+  const sowMonths = (here.sowing ?? []).filter((x) => (direct ? x.method === 'direct' : x.method !== 'direct')).flatMap((x) => x.months);
+  const months = sowMonths.length ? sowMonths : (here.sowing ?? []).flatMap((x) => x.months);
   const most = maxBatches(pl, plant);
   const [count, setCount] = useState(Math.min(3, Math.max(MIN_BATCHES, most)));
   const [weeks, setWeeks] = useState(3);
