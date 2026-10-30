@@ -2668,6 +2668,88 @@ Make it work for the people Ruth, Sam and Callum stand for, cut what isn't their
   - no data loss, no plants put in the wrong place, and no contradiction on any planting;
   - Jordan: under 5 unexplained words and under 3 Googles.
 
+### Phase 2b — What the interim round found, releases 57b to 57h (added 30 Oct 2026)
+From the seven testers' interim round: [review-2026-10-30-interim.md](review-2026-10-30-interim.md) and [their reports](feedback-2026-10-30-nadia.md). Phase 2's five releases went out early, so there's time to fix what they found before the review stays on 27 Nov. Nothing here moves Phase 3.
+
+Decided:
+- **Worst first.** What's wrong on the live site, then what puts plants or dates wrong, then what helps a kind of user, then the edges.
+- **The same rules:** one release a day at most, with testing days, and you can pull one forward. Each release gets `/code-review` on its diff before it's pushed, and again if the fixes are large. Everything's reproduced before it's fixed.
+- **New for every release:** a screenshot of Today, Garden and Plants at 390 px with an Undo message showing, looked at, not just read. Text checks can't see a blank page.
+- **No schema change is expected** in any of these. If one turns out to need it, it goes on a branch with a migration test.
+- **Nadia's 22 open flaws are all placed below,** by number from her report, so she has something to re-check.
+
+| When | Release | Size | For | Status |
+| --- | --- | --- | --- | --- |
+| Next, as soon as you say | **57b. Two live fixes** | S | Everyone on a phone, Margaret | Planned |
+| Tue 3 Nov | Testing day | | | |
+| Wed 4 Nov | **57c. Plants go where you asked** | M | Priya, Margaret, Ruth, Sam | Planned |
+| Thu 5 Nov | Testing day | | | |
+| Fri 6 Nov | **57d. Dates for a short season** | L | Callum, Margaret, Priya | Planned |
+| Mon 9 Nov | Testing day | | | |
+| Tue 10 Nov | **57e. From a list to a plan, and into next year** | M | Priya, Callum, Margaret | Planned |
+| Wed 11 Nov | Testing day | | | |
+| Thu 12 Nov | **57f. Pots that follow the weather** | M | Sam, Jordan | Planned |
+| Fri 13 Nov | Testing day | | | |
+| Mon 16 Nov | **57g. Every screen, every size** | M | Ruth, Nadia | Planned |
+| Tue 17 Nov | Testing day | | | |
+| Wed 18 Nov | **57h. True at the edges** | M | Nadia, Margaret, Priya, Jordan | Planned |
+| Thu 19 Nov | Testing day | | | |
+| Fri 27 Nov | **The review again**, all seven, as above | | | Planned |
+| Alongside, from 57d | **The data track** | L | Margaret, Callum | Planned |
+
+- **57b. Two live fixes.**
+  - The page stays full width under an Undo message on a phone, in every look and text size. The toast's phone rule currently loses to a later general one.
+  - A crop added as already Harvesting isn't over: nothing says "pull it up" inside its own harvest months. Check the same path for each stage, and for crops that stand through winter.
+  - Tests: a test for every stage "Already in the ground" offers, for an annual, a crop that stands and a perennial. Stages, jobs, and a check that the phone rules aren't overridden.
+- **57c. Plants go where you asked.**
+  - "A row" makes a row, or says there's no room for one: never 99 single plants (Priya).
+  - Adding a bed never renames one you've named: no "Bed 1 1" (Margaret).
+  - Add a plant starts on One for shrubs and perennial herbs, or asks: no 21 thyme (Ruth).
+  - A pot is the same whichever way it was made: a typed 35 cm pot and the preset agree (Sam).
+  - "It's full now" only when it is, and Pot on doesn't offer pots with plants in (Priya).
+  - The job count doesn't rise on a tick (Jordan). Garlic counts cloves (Margaret).
+  - From Nadia: a pot typed under 2 is asked about, not read as metres (18). Names have a limit (19), and a pasted line break becomes a space (29). A pot's dialog says pot, and default names read properly (28). Two gardens with one name can be told apart (5).
+  - Tests: planting, arrange, depth, ux-first-minute, and a test for each.
+- **57d. Dates for a short season.**
+  - Harvest dates follow the frost dates, as sowing now does. Nothing's picked after the first frost unless it stands. Leeks: planted out in late June and first picked in November, for Callum's dates. Garlic, rhubarb, apples and winter purslane checked the same way.
+  - The frost hollow's spring figure, checked against named cold stations. It's two weeks too late now, while its autumn figure is right.
+  - Card and timeline from one place: no "Next: plant May" beside "Planted about 7 Jun". Tomatoes sown for a windowsill, not a heated greenhouse.
+  - Months that disagree: late leek, apple's 28 Jul against Aug–Oct, and raspberries and broad beans too early in Shropshire.
+  - Winter jobs: gooseberry pruning in February, pinching out sweet peas, mice in the frame.
+  - First-frost estimates for inner cities, checked against Met Office stations (Priya, Margaret).
+  - From Nadia: blackcurrant flowering (9). Impossible frost dates are questioned (11), and a date that's changed says so (20).
+  - Each date needs a named source, as in the ways of working. Tests: year, warmth, microclimate, stages, jobs, and Callum's table as a test.
+- **57e. From a list to a plan, and into next year.**
+  - Switching to a plan makes the garden fit: the boundary grows to hold what's in the list, and pots sit on the paving (Priya). Checks stay the same in both views.
+  - "What grew here" acts when it's chosen, or shows its button where it can be seen (Callum).
+  - The rotation moves each crop, not each bed. Release 56 planned this, and Callum's kale and leeks still moved as one. Find out why first.
+  - One answer per bed: no "Taken until about March… Free again from about September" (Priya). Next year's drop-downs grow with the text (Margaret).
+  - Tests: next-year, plan, arrange, depth, drawing.
+- **57f. Pots that follow the weather.**
+  - Watering changes with the weather and the season, and goes quiet in winter. A plant brought indoors comes off the balcony's job (Sam).
+  - The last garden words go on a balcony: greenhouse lines in sow jobs, and fleece in November. A trough crop sown in the trough isn't "planted out" (Sam).
+  - Swaps suit the use: food for food (Sam). Ferns appear under Light: Shade (Sam).
+  - Heavy compost gets a warning on a balcony, not just a figure (Sam). Bags add up: no "80 litres (3 bags of 40)" (Priya).
+  - Pots are on the shopping list, with sizes (Jordan).
+  - Tests: pots, weather, feeding, good-start, ux-first-minute.
+- **57g. Every screen, every size.**
+  - From Nadia: the plan on a small phone (14), buttons running off at Extra large (15), 200% zoom (16) and Settings on its side (23). The safety line reads in every look (17), and so does the greyed Find button (25).
+  - For Ruth: the last small links reach 44 px, including the ticks at 42 px. Dotted words don't sit where a tap should tick. A main landmark, and a tick is announced.
+  - On a touch screen, no keyboard tips, and the slider's months don't run together (Margaret). "Tip 1 of 3" doesn't sit over the plan (Jordan).
+  - Tests: contrast, usability, ux. Screenshots at 320, 390, 412 and 820 px, and on its side. You check TalkBack on a real phone.
+- **57h. True at the edges.**
+  - From Nadia: restore refuses rubbish it can't use (4): impossible dates, duplicate ids and plantings in beds that don't exist. "Last copy today" can't be false (12). A partly cleared browser doesn't look new (24). `#/check` is for the plant editor only (26). A bad address says so (27). Search gives honest answers (21), and the plant total doesn't jump (22).
+  - A backup warns if it holds something a restore would refuse.
+  - The Shed doesn't say "Nothing sown yet" above sown trays (Priya).
+  - The print-out has a line per crop and the year ahead only (Margaret).
+  - Today's last leftovers: the Journal and Install cards after first use, the note under the jobs, and the north arrow step (Priya, Margaret, Jordan).
+  - Tests: file, stages, words, and Nadia's own attack files kept as fixtures.
+- **The data track.** Stage one from 57d: a script that checks all 521 plants for contradictions, and flowering months for the 13 fruits with none. Stage two, before the review if it fits: the 58 most-grown plants against the RHS. It finishes in Phase 3 as planned, and your sign-off marks each one verified. Nadia's flaw 10 stays open until then.
+
+Not in this set, in the wishlist: a reward on Done, lasagne pots, a rough cost and "start with one bed", year-on-year dates, and houseplants.
+
+The review's targets stand. Against the interim scores: Ruth's hands (8) and Sam's fit (7) already pass, and Callum's dates (7) pass with his own frost dates typed in. Keep-using and trust of 7 for the original three and Ruth are the ones to watch: Margaret's trust is 5, and Ruth's keep-using 6.
+
 ### Phase 3 — Ready to charge (30 Nov to 18 Dec)
 Starts once the review's targets are met; if they aren't, the misses are fixed first. Releases 59 and 60 need your decisions, listed after the table.
 

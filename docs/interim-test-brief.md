@@ -1,6 +1,19 @@
 # Interim testing: brief for testers
 **Status: done, 30 Oct 2026.** All seven have tested. The summary is [review-2026-10-30-interim.md](review-2026-10-30-interim.md).
 
+## Thank you
+Thank you, all seven. This round found things nothing else would have.
+
+- **Ruth:** you looked at the screen and asked why it was blank. Every phone user will have you to thank for that.
+- **Margaret:** you caught the parsnips, and you were right that it's the kind of mistake that ends trust.
+- **Callum:** you held every date to your records, and the rotation complaint nobody could repeat now has an answer.
+- **Sam:** you showed what a balcony still needs, and gave us a fair comparison with what you already pay for.
+- **Jordan:** you showed that the road from a lawn to a bed now works, and exactly where it still costs too much.
+- **Priya:** you found the 99 spinach, and told us the truth about the plan.
+- **Nadia:** you broke it properly, and every flaw you listed has a place in the plan or a note of when it'll be dealt with.
+
+**What happens next:** your findings are now seven planned releases, 57b to 57h, in the [build plan](build-plan.md). The full review stays on Fri 27 Nov, with all seven of you. We'll tell you when it's time, so please hold off until then.
+
 To: Priya, Margaret, Jordan, Sam, Ruth and Callum, and Nadia, who's joining the panel.
 
 ## Where we are

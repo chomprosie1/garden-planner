@@ -43,6 +43,8 @@ Nobody says a plain no now, among the six, which is new. Priya's and Sam's score
 - **Backups:** each tester's file restored into a fresh browser, with the garden, its answers and its frost dates intact. It's still only judged in a browser.
 
 ## What to fix, in order
+This is now planned as releases 57b to 57h: see Phase 2b in the [build plan](build-plan.md).
+
 **Now (live, and small)**
 1. The collapsing page.
 2. The parsnips.

@@ -136,3 +136,7 @@ Sizes: **S** an evening or two · **M** about a week · **L** two weeks or more.
 | Tap a follow-on crop in next year's draft to add it | Priya, 29 Oct 2026 | S | Parked in the eighth round |
 | A count for single plants on the lawn (a rhubarb patch of three crowns) | Callum, 29 Oct 2026 | S | Parked in the eighth round |
 | Hanging baskets and railing planters as containers | Sam, 29 Oct 2026 | S | Parked in the eighth round: troughs, grow bags and towers come first, in release 54 |
+| A rough total cost on the shopping list, and "start with one bed" | Jordan, 30 Oct 2026 | S | Parked in Phase 2b |
+| Something to do in December, when the jobs run out | Jordan, 30 Oct 2026 | M | Parked in Phase 2b |
+| A backup that goes off the device by itself | Priya, Margaret and Jordan, 30 Oct 2026 | M | Parked in Phase 2b: needs a server or a phone feature |
+| Keep each year's dates, so next year starts from them | Callum, 30 Oct 2026 | M | Parked in Phase 2b: goes with the notebook, release 58 |
