@@ -3186,15 +3186,15 @@ Not changed:
 Built 30 Oct 2026, on a branch. No schema change. Version 0.57.3.
 
 - **A row is a row's worth.** The gap-filling fallback had no ceiling, so a row in a part-full bed made as many single plants as the room held: 99 spinach. It now stops at what one row along the bed would hold (`rowsWorth`).
-- **Your bed names stay.** A name you type takes the next one free and touches nothing else (`namesFor`): "Bed 1" beside "Bed 1" and "Bed 2" is "Bed 3". Names the app chose for you are numbered as before.
-- **Herbs that come back start on One** (`defaultFill`). Shrubs already did. Bulbs, and veg, keep their usual way.
-- **Over-full says so.** "It's full now" went up when a pot was over-full, so it says that.
-- **Pot on offers empty pots only,** and beds.
+- **Your bed names stay.** Nothing says which names you chose, so adding a bed never renames another (`namesFor`): "Bed 1" beside "Bed 1" and "Bed 2" is "Bed 3", typed or not. Several at once are numbered, skipping any that are taken.
+- **Herbs that come back start on One** (`defaultFill`). Shrubs already did. Bulbs filed under herbs, such as saffron, and veg keep their usual way. Carpeting herbs do start on One.
+- **Over-full says so.** "It's full now" went up when a pot was over-full, so the toast now uses the bed's own words.
+- **Pot on offers empty pots,** beds, and pots with pockets to spare.
 - **The job count:** ticking a bed as made raised it, because the bed could then be weeded. A bed made this month isn't.
 - **Cloves and sets** (`countWord`) on the toast, the Add a plant box and the planting's details, for plants that only go in that way. A plain onion can be sown too, so it stays plants.
 - **Changed from the plan: Sam's two 35 cm pots.** The preset has 8 pockets and a plain pot doesn't, so they aren't the same thing and making them agree would be wrong. A pot's settings now take a number of pockets instead, so anyone's own tower counts as one.
-- **Reverses release 51:** a pot typed as 0.3 was read as metres, "from habit". Nadia's 1.9 made a 1.9 m pot and 0.1 a 10 cm one. Under 2 is now refused, and "0.3 m" still works if you say so.
-- **From Nadia:** names stop at 60 characters and wrap on the card (19). A pasted line break becomes a space (29). The dialog is called Add a pot, or whatever it is, and a default name is "Planter 3" (28). A garden added beside one of the same name is "My garden 2" (5).
+- **Reverses release 51:** a pot typed as 0.3 was read as metres, "from habit". Nadia's 1.9 made a 1.9 m pot and 0.1 a 10 cm one. A box in centimetres now reads centimetres, so anything under 5 cm is refused with a question, and "0.3 m" still works if you say so.
+- **From Nadia:** names stop at 60 characters in every name box, and wrap on the card (19). A pasted line break becomes a space, and what doesn't fit is cut from the paste, not the name (29). The dialog is called Add a pot, or whatever it is, and a default name is "Planter 3" (28). A garden added beside one of the same name is "My garden 2" (5).
 
 Not changed:
 - **A name typed in a bed's settings** can still match another bed's. Only adding is covered.

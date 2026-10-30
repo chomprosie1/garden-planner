@@ -101,10 +101,10 @@ export async function restoreBackup(store: Store, prefsStore: PrefsStore | undef
   // Your own plants are shared by every garden: the file's are added to yours, and yours win where both have one.
   const mine = store.get().userPlants;
   const userPlants = [...mine, ...result.state.userPlants.filter((p) => !mine.some((m) => m.id === p.id))];
+  if (asNew) flushSave();
   // A garden added beside one of the same name is told apart from it: "My garden 2".
   const garden = asNew ? { ...result.state.garden, name: freeGardenName(result.state.garden.name) } : result.state.garden;
   if (asNew) {
-    flushSave();
     if (!addGarden(garden, undefined, new Date(), true) && listGardens().open) return null;
   } else if (keepOld) {
     const old = store.get().garden;

@@ -25,7 +25,7 @@ export const WHATS_NEW: NewsEntry[] = [
       'Herbs that come back, such as thyme and rosemary, now start on One, not a bedful.',
       'Adding a bed with a name you’ve used leaves your beds as they are: the new one takes the next number.',
       'Pot on only offers empty pots. Tell a pot it has planting pockets in its settings, and it’s counted like a strawberry tower.',
-      'A pot size under 2 is now asked about, because the box is in centimetres.',
+      'A pot size is read as centimetres, as the box says, and one too small to be a pot is asked about.',
       'Garlic is counted in cloves and sets in sets, and a pot is called a pot in Add a bed.',
       'A bed you’ve just made won’t ask to be weeded the same month.',
     ],

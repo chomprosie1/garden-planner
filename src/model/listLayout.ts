@@ -238,16 +238,17 @@ export function nameListBeds(g: Garden, isListed: (f: Feature) => boolean, label
 }
 
 /**
- * Names for beds you've named as you add them, leaving the ones you have as they are: "Bed 1" beside "Bed 1" and "Bed 2"
- * is "Bed 3". Several at once with a new name are numbered: "Back door pot 1", "Back door pot 2".
+ * Names for beds as they're added, leaving the ones you have as they are, as nothing says which names you chose: "Bed 1"
+ * beside "Bed 1" and "Bed 2" is "Bed 3". Several at once are numbered from 1, skipping any that are taken: "Pot 1", "Pot 2".
  */
 export function namesFor(g: Garden, name: string, n: number, labelOf: (f: Feature) => string): string[] {
   const used = new Set(g.features.map(labelOf));
-  if (!used.has(name)) return n === 1 ? [name] : Array.from({ length: n }, (_, i) => `${name} ${i + 1}`);
+  if (n === 1 && !used.has(name)) return [name];
+  let from = used.has(name) ? name : `${name} 0`;
   return Array.from({ length: n }, () => {
-    const next = nextName(name, used);
-    used.add(next);
-    return next;
+    from = nextName(from, used);
+    used.add(from);
+    return from;
   });
 }
 

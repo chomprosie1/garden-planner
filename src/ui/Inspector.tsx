@@ -78,6 +78,7 @@ import { UseLocationButton } from './GardenSettings';
 import { formatDate, NotesSection } from './NotesSection';
 import { deletedMessage, type Tool } from './PlanCanvas';
 import { PlantIcon } from './PlantIcon';
+import { NAME_LENGTH, pasteOneLine } from './oneLine';
 import { StageAdvice, StageCorrect, StageRail, WhatsHappened } from './PlantingStages';
 import { MoreMenu } from './MoreMenu';
 import { PanelTabs } from './PanelTabs';
@@ -392,7 +393,8 @@ function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf
         <input
           value={f.name ?? ''}
           placeholder={f.kind === 'surface' ? MATERIAL_LABEL[f.material ?? 'lawn'] : KINDS[f.kind].label}
-          maxLength={40}
+          maxLength={NAME_LENGTH}
+          onPaste={pasteOneLine}
           onChange={(e) => {
             const name = (e.currentTarget as HTMLInputElement).value.trim();
             set(name ? { name } : { name: undefined });

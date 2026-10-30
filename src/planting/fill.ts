@@ -33,7 +33,7 @@ export function defaultFill(plant: Plant, bed: Feature): Fill {
   // Big plants, anywhere with room for only one, and a lawn (a few bulbs, not the whole lawn), get one.
   if (lawnLike(bed) || spread >= 600 || plant.category === 'tree' || plant.category === 'shrub' || long < s * 2) return 'one';
   // A herb that comes back: you want one thyme, not a bed of it.
-  if (plant.category === 'herb' && perennial(plant)) return 'one';
+  if (plant.category === 'herb' && perennial(plant) && !isBulb(plant)) return 'one';
   // A window box, trough or narrow bed: one row along it.
   if (narrow < s * 2) return 'row';
   if (bed.kind === 'pot') return 'fill';

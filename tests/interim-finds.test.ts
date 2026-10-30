@@ -61,10 +61,17 @@ describe('plants go where you asked', () => {
     expect(namesFor(veg, 'Veg', 1, featureLabel)).toEqual(['Veg 2']);
   });
 
+  it('a batch of names skips any that are taken', () => {
+    const g = addListBed(newGarden(), 'pot', 'Back door pot 2')[0];
+    expect(namesFor(g, 'Back door pot', 3, featureLabel)).toEqual(['Back door pot 1', 'Back door pot 3', 'Back door pot 4']);
+  });
+
   it('one thyme, not a bedful: herbs that come back start on One (Ruth)', () => {
     for (const id of ['thyme', 'rosemary', 'chives', 'sage', 'oregano', 'mint']) expect(defaultFill(plantOf(id), bed), id).toBe('one');
     expect(defaultFill(plantOf('lettuce'), bed)).toBe('fill');
     expect(defaultFill(plantOf('carrot'), bed)).toBe('row');
+    // A bulb that's filed under herbs still goes in by the handful.
+    expect(defaultFill(plantOf('saffron'), bed)).not.toBe('one');
   });
 
   it('says over-full when it is, and full only of what fits (Priya)', () => {
@@ -86,6 +93,12 @@ describe('plants go where you asked', () => {
     const g = addFeature(addFeature(addFeature(newGarden(), small), full), free);
     const c = potOnChoices(addPlanting(addPlanting(g, bay), apple), bay.id, plantOf)!;
     expect(c.pots.map((p) => p.name)).toEqual(['Spare pot']);
+    // A tower with pockets to spare is a place to go; one that's full isn't.
+    const tower: Feature = { ...full, pockets: 8 };
+    const towers = addPlanting(addPlanting(addFeature(addFeature(newGarden(), small), tower), bay), apple);
+    expect(potOnChoices(towers, bay.id, plantOf)!.pots.map((p) => p.name)).toEqual(['Apple pot']);
+    expect(potOnChoices(addPlanting(addFeature(addFeature(newGarden(), small), { ...full, pockets: 1 }), bay), bay.id, plantOf)!.pots).toHaveLength(1);
+    expect(potOnChoices(addPlanting(addPlanting(addFeature(addFeature(newGarden(), small), { ...full, pockets: 1 }), bay), apple), bay.id, plantOf)!.pots).toEqual([]);
   });
 
   it('ticking a bed as made doesn’t add a job: no weeding a bed made today (Jordan)', () => {
@@ -108,9 +121,11 @@ describe('plants go where you asked', () => {
     expect(countWord(plantOf('bay'))).toBe('plants');
   });
 
-  it('a pot size under 2 cm is asked about, not read as metres (Nadia)', () => {
+  it('a pot size too small to be one is asked about, not read as metres (Nadia)', () => {
     expect(sensibleSize('1.9', 'cm')).toBeNull();
     expect(sensibleSize('0.1', 'cm')).toBeNull();
+    expect(sensibleSize('4', 'cm')).toBeNull();
+    expect(sensibleSize('5', 'cm')).toBe(50);
     expect(sensibleSize('0.3 m', 'cm')).toBe(300);
     expect(sensibleSize('30', 'cm')).toBe(300);
     expect(sensibleSize('1.9', 'm')).toBe(1900);

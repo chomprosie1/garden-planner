@@ -16,7 +16,7 @@ import { bookedText, bookedUntil } from '../../planting/booked';
 import { currentStage, stageNow, type LifeStage } from '../../lifecycle/stages';
 import { deleteFeatures, featureLabel, KINDS, rectInfo, resizeRectAny, updateFeature, type Target } from '../../model/features';
 import { todayIso } from '../../model/ids';
-import { addListBed, copyListBed, LIST_KIND_LABEL, LIST_KINDS, LIST_SIZE, moveInList, nameListBeds, namesFor, outsideBoundary, planFromList, spreadOut, type ListKind } from '../../model/listLayout';
+import { addListBed, copyListBed, LIST_KIND_LABEL, LIST_KINDS, LIST_SIZE, moveInList, namesFor, outsideBoundary, planFromList, spreadOut, type ListKind } from '../../model/listLayout';
 import { updateGarden, type Store } from '../../model/store';
 import { LIGHT_LEVELS, type Feature, type Garden, type Light, type Plant, type Planting } from '../../model/types';
 import { defaultFill, FILL_LABEL, fillsFor, type Fill } from '../../planting/fill';
@@ -610,8 +610,7 @@ function AddBedDialog({ store, close, added }: { store: Store; close: () => void
     const size: [number, number] = kind === 'pot' ? [across, across] : [sized(w, usual[0]), sized(d, usual[1])];
     const made: Partial<Feature> = { ...extra, ...(potLitres ? { heightMm: potOfLitres(potLitres).depth } : {}) };
     delete made.name;
-    const typed = name.trim();
-    const label = typed || extra.name || LIST_KIND_LABEL[kind].replace(/^An? /, '').replace(/ or window box$/, '').replace(/^./, (c) => c.toUpperCase());
+    const label = name.trim() || extra.name || LIST_KIND_LABEL[kind].replace(/^An? /, '').replace(/ or window box$/, '').replace(/^./, (c) => c.toUpperCase());
     const n = SEVERAL.includes(kind) ? Math.max(1, Math.min(24, Math.round(Number(many) || 1))) : 1;
     let first = label;
     let firstId: string | undefined;
@@ -619,15 +618,13 @@ function AddBedDialog({ store, close, added }: { store: Store; close: () => void
       updateGarden((g) => {
         let next = g;
         const ids: string[] = [];
-        // A name you typed doesn't touch the names you have: it takes the next one free.
-        const names = typed ? namesFor(g, typed, n, featureLabel) : null;
+        // Taken names go to the next one free, and two or more alike are numbered: "Pot 1", "Pot 2". The beds there are stay as they are.
+        const names = namesFor(g, label, n, featureLabel);
         for (let i = 0; i < n; i++) {
-          const [after, id] = addListBed(next, kind, names?.[i] ?? label, size);
+          const [after, id] = addListBed(next, kind, names[i]!, size);
           next = updateFeature(after, id, { ...made, ...(light ? { light } : {}) });
           ids.push(id);
         }
-        // Two or more alike are numbered as they're added: "Pot 1", "Pot 2".
-        if (!typed) next = nameListBeds(next, isListed(next), featureLabel);
         first = featureLabel(next.features.find((f) => f.id === ids[0])!);
         firstId = ids[0];
         return next;
@@ -794,7 +791,9 @@ function AddPlantDialog({ store, garden, plants, plantOf, month, start, close, n
     store.apply(updateGarden((g) => ({ ...g, plantings: [...g.plantings, ...plantings] })));
     const total = plantings.reduce((t, pl) => t + plantCount(pl, plant), 0);
     if (left) return theRest(`Room for ${total} of ${total + left} in ${featureLabel(bed)}: they’re in. Put the other ${left} in another bed?`, left);
-    app.notify(`${plural(total, name, `${name} ${countWord(plant)}`)} in ${featureLabel(bed)}.${full ? ' It’s over-full now.' : ''}`, { undo: true });
+    // The same words as the bed's badge: packed is full, and past that is over-full.
+    const over = fullText(howFull({ ...garden, plantings: [...garden.plantings, ...plantings] }, bed, plantOf)) === 'Over-full';
+    app.notify(`${plural(total, name, `${name} ${countWord(plant)}`)} in ${featureLabel(bed)}.${over ? ' It’s over-full now.' : full ? ' It’s full now.' : ''}`, { undo: true });
     ref.current?.close();
   };
 
@@ -1004,8 +1003,12 @@ function EditBedDialog({ store, garden, bedId, plantOf, close }: { store: Store;
                   max={100}
                   value={bed.pockets ?? ''}
                   onChange={(e) => {
-                    const n = Math.round(Number((e.currentTarget as HTMLInputElement).value));
-                    set({ pockets: n >= 1 && n <= 100 ? n : undefined });
+                    const box = e.currentTarget as HTMLInputElement;
+                    const n = Math.round(Number(box.value));
+                    // Left blank, it's an ordinary pot. A number that can't be right changes nothing, and the box goes back.
+                    if (!box.value.trim()) set({ pockets: undefined });
+                    else if (n >= 1 && n <= 100) set({ pockets: n });
+                    else box.value = String(bed.pockets ?? '');
                   }}
                 />
               </label>

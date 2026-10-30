@@ -12,7 +12,11 @@ export function pasteOneLine(e: ClipboardEvent): void {
   if (!text || !/[\r\n]/.test(text)) return;
   e.preventDefault();
   const input = e.currentTarget as HTMLInputElement;
-  input.setRangeText(asOneLine(text), input.selectionStart ?? 0, input.selectionEnd ?? 0, 'end');
-  input.value = input.value.slice(0, input.maxLength > 0 ? input.maxLength : undefined);
+  const [from, to] = [input.selectionStart ?? 0, input.selectionEnd ?? 0];
+  // What fits, as typing would: it's the paste that's cut short, not the name it's going into.
+  const room = input.maxLength > 0 ? input.maxLength - (input.value.length - (to - from)) : Infinity;
+  input.setRangeText(asOneLine(text).slice(0, Math.max(0, room)), from, to, 'end');
+  // Some boxes save as you type, and some when you leave them.
   input.dispatchEvent(new Event('input', { bubbles: true }));
+  input.dispatchEvent(new Event('change', { bubbles: true }));
 }
