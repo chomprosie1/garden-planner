@@ -23,7 +23,7 @@ import { useWeatherNow } from '../useWeather';
 import { todayIso } from '../../model/ids';
 import { PLAN_AHEAD_MONTHS, PlanAheadCard } from '../PlanAhead';
 import { TodayJobs } from '../TodayJobs';
-import { setupShowing } from '../setup';
+import { setupLeft, setupShowing } from '../setup';
 
 interface Props {
   store: Store;
@@ -74,11 +74,13 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, startHere =
   const installOnce = useShownOnce('today:install', installable, prefs, prefsStore);
   // Asked for from the ···.
   const [installAsked, setInstallAsked] = useState(false);
+  const [setupAsked, setSetupAsked] = useState(false);
   const wrapped = !!plants && seasonReady(garden, plantOf, today);
   const more: MenuItem[] = [
     { label: 'Garden journal', icon: 'notes', onSelect: () => app.go('notes') },
     ...(wrapped ? [{ label: 'Your season, wrapped', onSelect: () => app.openWrapped() }] : []),
     ...(canInstall() ? [{ label: 'Put it on your home screen', onSelect: () => setInstallAsked(true) }] : []),
+    ...(setupLeft(garden, prefs, today) ? [{ label: 'Getting started', onSelect: () => setSetupAsked(true) }] : []),
     { label: 'What’s new', onSelect: () => app.go('new') },
   ];
   const mine = useMemo(
@@ -186,14 +188,14 @@ export function Home({ store, garden, userPlants, prefs, prefsStore, startHere =
         )}
 
         {plants && PLAN_AHEAD_MONTHS.includes(month) && <PlanAheadCard store={store} garden={garden} plantOf={plantOf} feeding={prefs.feeding} />}
-        <SetupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} />
+        <SetupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} asked={setupAsked} />
         {journalOnce && <JournalCard store={store} garden={garden} plantOf={plantOf} />}
 
         {/* Below: news, installing (once, or when asked), the garden at a glance, and a line about a copy (asked here only when Getting started isn't asking). */}
         <WhatsNewCard prefs={prefs} prefsStore={prefsStore} />
         {(installOnce || installAsked) && <InstallCard hidden={false} prefsStore={prefsStore} />}
         <GardenCard garden={garden} prefs={prefs} plants={plants} plantOf={plantOf} />
-        {!setupShowing(garden, prefs) && <BackupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} now={now} />}
+        {!(setupShowing(garden, prefs, today) || setupAsked) && <BackupCard store={store} garden={garden} prefs={prefs} prefsStore={prefsStore} now={now} />}
         <SaveIndicator />
       </div>
     </div>

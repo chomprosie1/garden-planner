@@ -105,6 +105,7 @@ export function validateGarden(g: unknown): string[] {
       need(f.light === undefined || oneOf(LIGHT_LEVELS, f.light), `${at}.light must be full sun, part shade or shade.`);
       need(f.fruitCage === undefined || typeof f.fruitCage === 'boolean', `${at}.fruitCage must be true or false.`);
       need(f.toMake === undefined || typeof f.toMake === 'boolean', `${at}.toMake must be true or false.`);
+      need(f.handTools === undefined || typeof f.handTools === 'boolean', `${at}.handTools must be true or false.`);
       need(f.covered === undefined || typeof f.covered === 'boolean', `${at}.covered must be true or false.`);
       need(f.pockets === undefined || (isNum(f.pockets) && Number.isInteger(f.pockets) && f.pockets >= 1 && f.pockets <= 100), `${at}.pockets must be a whole number from 1 to 100.`);
       need(f.rotates === undefined || typeof f.rotates === 'boolean', `${at}.rotates must be true or false.`);

@@ -97,7 +97,8 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
       );
     }
     // Everything's new to someone just starting: no "What's new" until the next change. Someone setting up another garden has seen it.
-    prefsStore.set({ onboarded: true, seenNews: again ? prefs.seenNews : latestNews().id });
+    // Nor a welcome back on the next launch: you've just been here.
+    prefsStore.set({ onboarded: true, seenNews: again ? prefs.seenNews : latestNews().id, welcomedOn: todayIso() });
     // Today, with the first job picked out: what to do first. Skipped, or nothing to do yet: Today with Getting started.
     const first = skipped || !plants ? null : firstJob(store.get().garden, plantOf, new Date(), { weeding: prefs.weeding, feeding: prefs.feeding });
     if (first && showFirst) showFirst();

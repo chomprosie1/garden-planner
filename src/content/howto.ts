@@ -280,6 +280,13 @@ export function howTo(job: Job, from: StartsAs, bulb = false, at?: HowToFor): Ho
   return spaced ? { ...how, spacing: spacingText(at.plant, at.style) } : how;
 }
 
+/** Weeding a bed worked sitting down, or at waist height. */
+const WEED_BY_HAND: HowTo = {
+  need: ['A hand fork', 'A bucket or trug within reach'],
+  steps: ['On a dry day, loosen small weeds with the hand fork, and lift them out.', 'Work a short stretch at a time, as far as you can reach in comfort.', 'Dig out weeds with deep roots, getting all of the root.', 'Weeds in flower or seed, and spreading roots, go in the bin, not the compost.'],
+  time: 'About 20 minutes a bed',
+};
+
 /** A tender crop in a pot, brought in for the winter. RHS: pruned to a manageable size, somewhere warm and bright, watered sparingly. */
 const BRING_IN: HowTo = {
   need: ['Secateurs or scissors', 'A warm, bright windowsill', 'A saucer for the pot'],
@@ -333,6 +340,8 @@ function chosen(job: Job, from: StartsAs, bulb: boolean, at?: HowToFor): HowTo {
     }
     case 'protect':
       return job.verb ? BRING_IN : BY_KIND.protect;
+    case 'weed':
+      return job.handTools ? WEED_BY_HAND : BY_KIND.weed;
     default:
       return BY_KIND[job.kind];
   }

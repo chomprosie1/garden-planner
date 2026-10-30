@@ -4,8 +4,7 @@ import { featureLabel } from '../model/features';
 import { nameListBeds, spreadOut } from '../model/listLayout';
 import { setBalcony } from '../planting/balcony';
 import { isListed } from '../planting/listPlant';
-import { isContainer } from '../planting/place';
-import { isPot } from '../planting/pots';
+import { potsOnly } from '../planting/pots';
 import { BalconyFields } from './BalconyFields';
 import type { Garden } from '../model/types';
 import { todayIso } from '../model/ids';
@@ -25,7 +24,8 @@ import { useWeatherNow } from './useWeather';
 import { disableReminders, enableReminders, type ReminderStatus } from '../storage/reminders';
 import { CompassNorth } from './CompassNorth';
 import { PlaceSearch } from './PlaceSearch';
-import { GardenSoil } from './SoilFields';
+import { GlossText } from './Glossary';
+import { GardenPh, GardenSoil } from './SoilFields';
 import { HelpTitle } from './HelpLink';
 
 interface Props {
@@ -121,12 +121,6 @@ export function BackupButtons({ store, prefsStore, primary = true }: { store: St
 
 type Message = { kind: 'ok' | 'error'; lines: string[] } | null;
 
-/** Everything grown here is in pots and planters. */
-const allPots = (g: Garden) => {
-  const places = g.features.filter(isContainer);
-  return places.length > 0 && places.every(isPot);
-};
-
 /** The garden's part of Settings: its name and place, north, spacing, frosts and climate, reminders, and backups. */
 export function GardenSettings({ store, garden, prefsStore }: Props) {
   const fileInput = useRef<HTMLInputElement>(null);
@@ -220,7 +214,7 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
           </p>
         </fieldset>
         {/* Asked of a balcony in setup; here too for anywhere that's all pots, set up before it was asked. */}
-        {(garden.balcony || allPots(garden)) && (
+        {potsOnly(garden) && (
           <>
             <h3>Your balcony or pots</h3>
             <BalconyFields value={garden.balcony ?? {}} onChange={(b) => store.apply(updateGarden((g) => setBalcony(g, b)))} />
@@ -231,33 +225,6 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
         <PlaceSearch store={store} />
         <UseLocationButton store={store} onMessage={setMessage} />
         <p class="muted small">Its place times the sun and shade, the frosts and the seasons.</p>
-        <details class="advanced">
-          <summary>Exact location</summary>
-          <div class="field-row">
-            <label class="field">
-              Latitude
-              <input type="number" step="0.0001" min={-90} max={90} value={garden.latitude} onChange={setNumber('latitude', -90, 90)} />
-            </label>
-            <label class="field">
-              Longitude
-              <input type="number" step="0.0001" min={-180} max={180} value={garden.longitude} onChange={setNumber('longitude', -180, 180)} />
-            </label>
-          </div>
-        </details>
-        {garden.view !== 'list' && (
-          <>
-        <h3>Which way is north</h3>
-        <CompassNorth store={store} />
-        <details class="advanced">
-          <summary>North in degrees</summary>
-          <label class="field">
-            Degrees clockwise from the top of your plan to north
-            <input type="number" step="1" min={-360} max={360} value={garden.northRotationDeg} onChange={setNumber('northRotationDeg', -360, 360)} />
-          </label>
-        </details>
-        <p class="muted small">0 if the top of your plan faces north. On a phone, the compass can work it out for you.</p>
-          </>
-        )}
         <fieldset class="choice">
           <legend>How you space plants</legend>
           <div class="choice-row">
@@ -283,7 +250,35 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
             between rows. Spacing checks and the number of plants in a row or block follow your choice.
           </p>
         </fieldset>
-        <GardenSoil store={store} garden={garden} />
+        {!potsOnly(garden) && <GardenSoil store={store} garden={garden} />}
+        {/* Most people never need these: one row, for those who do. */}
+        <details class="advanced">
+          <summary>Advanced: north, climate, pH and exact location</summary>
+          {garden.view !== 'list' && (
+            <>
+              <h3>Which way is north</h3>
+              <CompassNorth store={store} />
+              <label class="field">
+                Degrees clockwise from the top of your plan to north
+                <input type="number" step="1" min={-360} max={360} value={garden.northRotationDeg} onChange={setNumber('northRotationDeg', -360, 360)} />
+              </label>
+              <p class="muted small">0 if the top of your plan faces north. On a phone, the compass can work it out for you.</p>
+            </>
+          )}
+          <Warmth garden={garden} prefsStore={prefsStore} />
+          {!potsOnly(garden) && <GardenPh store={store} garden={garden} />}
+          <h3>Exact location</h3>
+          <div class="field-row">
+            <label class="field">
+              Latitude
+              <input type="number" step="0.0001" min={-90} max={90} value={garden.latitude} onChange={setNumber('latitude', -90, 90)} />
+            </label>
+            <label class="field">
+              Longitude
+              <input type="number" step="0.0001" min={-180} max={180} value={garden.longitude} onChange={setNumber('longitude', -180, 180)} />
+            </label>
+          </div>
+        </details>
       </section>
 
       <section class="card" aria-labelledby="seasons">
@@ -291,10 +286,10 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
           Seasons and weather
         </HelpTitle>
         <FrostDates store={store} garden={garden} />
-        <Warmth garden={garden} prefsStore={prefsStore} />
+        {prefsStore && <WeatherSwitch garden={garden} prefsStore={prefsStore} />}
       </section>
 
-      {prefsStore && <Reminders prefsStore={prefsStore} />}
+      {prefsStore && <Reminders prefsStore={prefsStore} pots={potsOnly(garden)} />}
 
       <section class="card" aria-labelledby="backup">
         <HelpTitle id="backup" topic="backups">
@@ -466,7 +461,7 @@ function FrostDates({ store, garden }: { store: Store; garden: Garden }) {
         {f.estimated
           ? 'Estimated from your location, height and any frost hollow. Local weather records or neighbours will know better: coastal gardens can be weeks either side.'
           : 'Your own dates.'}{' '}
-        {lastFrostText(f.lastFrost)} A frost is as likely after a 50:50 date as before it, so tender plants are safest out two weeks later. The dates decide when to sow and
+        <GlossText text={`${lastFrostText(f.lastFrost)} A frost is as likely after a 50:50 date as before it, so tender plants are safest out two weeks later.`} /> The dates decide when to sow and
         plant, when the Shed suggests hardening off, and when to protect plants for winter. Move your last frost, and your sowing and planting dates move with it.
         {!f.estimated && (
           <>
@@ -611,7 +606,9 @@ export function useReminders(prefsStore: PrefsStore) {
 }
 
 /** Frost warnings and the week's jobs with the app closed, where the browser allows: it checks now and then in the background. Sun cream is in Settings → More. */
-function Reminders({ prefsStore }: { prefsStore: PrefsStore }) {
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+function Reminders({ prefsStore, pots }: { prefsStore: PrefsStore; pots: boolean }) {
   const { prefs, status, toggle } = useReminders(prefsStore);
   return (
     <section class="card weather-switch" aria-labelledby="reminders">
@@ -628,14 +625,29 @@ function Reminders({ prefsStore }: { prefsStore: PrefsStore }) {
       </p>
       <label class="switch-row">
         <input type="checkbox" checked={prefs.weeklyNudge} onChange={toggle('weeklyNudge')} />
-        <span>This week’s jobs, on Mondays</span>
+        <span>This week’s jobs, once a week</span>
+      </label>
+      <label class="field">
+        The day for it
+        <select value={String(prefs.reminderDay)} onChange={(e) => prefsStore.set({ reminderDay: Number((e.currentTarget as HTMLSelectElement).value) })}>
+          {[1, 2, 3, 4, 5, 6, 0].map((d) => (
+            <option key={d} value={String(d)}>
+              {WEEKDAYS[d]}
+            </option>
+          ))}
+        </select>
       </label>
       <p class="muted small">What there is to sow, harden off or plant out that week. Nothing is sent anywhere for this.</p>
-      <label class="switch-row">
-        <input type="checkbox" checked={prefs.weeding} onChange={(e) => prefsStore.set({ weeding: (e.currentTarget as HTMLInputElement).checked })} />
-        <span>Weeding reminders</span>
-      </label>
-      <p class="muted small">A “Weed the beds” job each month from March to October, with what to do that month. Weeds you’ve marked on the plan get their own jobs either way.</p>
+      {/* A balcony has no beds to weed. */}
+      {!pots && (
+        <>
+          <label class="switch-row">
+            <input type="checkbox" checked={prefs.weeding} onChange={(e) => prefsStore.set({ weeding: (e.currentTarget as HTMLInputElement).checked })} />
+            <span>Weeding reminders</span>
+          </label>
+          <p class="muted small">A “Weed the beds” job each month from March to October, with what to do that month. Weeds you’ve marked on the plan get their own jobs either way.</p>
+        </>
+      )}
       <label class="switch-row">
         <input type="checkbox" checked={prefs.feeding} onChange={(e) => prefsStore.set({ feeding: (e.currentTarget as HTMLInputElement).checked })} />
         <span>Feeding reminders</span>

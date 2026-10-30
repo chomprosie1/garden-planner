@@ -274,7 +274,8 @@ describe('the shopping list', () => {
 
   it('adds feeds you can buy, unless one on the shelf will do', () => {
     const { g } = setup();
-    const keys = (x: Garden) => shoppingList(x, plantOf, today, { feeding: true }).filter((i) => i.kind === 'feed').map((i) => i.key);
+    // In March: since release 55 a feed is listed only when it's wanted in the next few months.
+    const keys = (x: Garden) => shoppingList(x, plantOf, '2027-03-10', { feeding: true }).filter((i) => i.kind === 'feed').map((i) => i.key);
     expect(keys(g)).toContain('feed:tomato-feed');
     // Garden compost is home-made, so it isn't bought.
     expect(keys(g)).not.toContain('feed:garden-compost');
@@ -292,7 +293,11 @@ describe('the shopping list', () => {
     expect(boughtKeys(ticked, later).has('seed:carrot')).toBe(false);
     expect(toggleBought(ticked, 'seed:lettuce', later).bought).toEqual([{ key: 'seed:lettuce', date: later }]);
     const text = shoppingText(shoppingList(ticked, plantOf, today), 'Home');
-    expect(text).toMatch(/^Shopping list for Home\n\nSeed\n- Lettuce seed, for about 1 plant\n- Tomato seed\n\nPlants\n- Elephant garlic, 1 plant\n/);
+    // Release 55: by when to buy, with an amount on every line.
+    expect(text).toMatch(/^Shopping list for Home\n\nBuy now\n/);
+    expect(text).toContain('- Lettuce seed, for about 1 plant');
+    expect(text).toContain('- Tomato seed, a packet');
+    expect(text).toContain('- Elephant garlic, 1 plant');
     expect(text).not.toMatch(/Carrot/);
     expect(validateGarden(JSON.parse(JSON.stringify(ticked)))).toEqual([]);
   });

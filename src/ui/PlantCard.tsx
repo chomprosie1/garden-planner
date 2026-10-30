@@ -236,7 +236,9 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
           {c.soil && (
             <div>
               <dt>Soil</dt>
-              <dd>{c.soil}</dd>
+              <dd>
+                <GlossText text={c.soil} />
+              </dd>
             </div>
           )}
           {c.moisture && (

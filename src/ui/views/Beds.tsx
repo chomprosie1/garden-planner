@@ -991,6 +991,12 @@ function EditBedDialog({ store, garden, bedId, plantOf, close }: { store: Store;
             </label>
           </>
         )}
+        {bed.kind === 'bed' && (
+          <label class="switch-row">
+            <input type="checkbox" checked={!!bed.handTools} onChange={(e) => set({ handTools: (e.currentTarget as HTMLInputElement).checked || undefined })} />
+            <span>I work this bed sitting down, or at waist height: hand tools, not a hoe</span>
+          </label>
+        )}
         <BedSoil store={store} garden={garden} bed={bed} />
         <RotationSwitch garden={garden} bed={bed} plantOf={plantOf} set={set} />
         <div class="button-row">

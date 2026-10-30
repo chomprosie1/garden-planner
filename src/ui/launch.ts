@@ -12,7 +12,7 @@ export function welcomesAt(hash: string): boolean {
 }
 
 /**
- * Not on a normal day: the app opens on Today. The welcome is for the first launch in a new month (or ever), or when
- * there's something new in the app you haven't seen.
+ * Not on a normal day: the app opens on Today. The welcome is for the first launch in a new month, or when there's
+ * something new in the app it hasn't told you about. `news` is that: once it's said, it isn't said again, read or not.
  */
 export const welcomeDue = (welcomedOn: string | null, today: string, news = false): boolean => !welcomedOn || welcomedOn.slice(0, 7) !== today.slice(0, 7) || (news && welcomedOn !== today);

@@ -5,7 +5,6 @@ import type { Store } from '../../model/store';
 import type { Garden } from '../../model/types';
 import { FONT_CREDITS } from '../../theme/fonts';
 import type { Prefs, PrefsStore, View } from '../../theme/prefs';
-import { usePlants } from '../usePlants';
 import { Icon } from '../icons';
 import { Choice, EasyToRead, LookPicker } from '../LookPicker';
 import { GardenSwitcher, StartAgainCard } from '../Gardens';
@@ -22,9 +21,6 @@ interface Props {
 }
 
 export function Settings({ store, garden, prefs, prefsStore, back, go, showShortcuts }: Props) {
-  const { library } = usePlants(store.get().userPlants);
-  const starters = (library ?? []).filter((p) => !p.userAdded);
-  const checked = starters.filter((p) => p.verified).length;
   return (
     <div class="page settings">
       <header class="page-head">
@@ -183,23 +179,9 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
       <details class="card advanced">
         <summary>Advanced</summary>
         <label class="switch-row">
-          <input type="checkbox" checked={prefs.plantEditor} onChange={(e) => prefsStore.set({ plantEditor: (e.currentTarget as HTMLInputElement).checked })} />
-          <span>Plant editor: show the tools for checking plant notes against their sources</span>
-        </label>
-        <label class="switch-row">
           <input type="checkbox" checked={prefs.draftPlants} onChange={(e) => prefsStore.set({ draftPlants: (e.currentTarget as HTMLInputElement).checked })} />
           <span>List the plants still being checked, below the rest. Search finds them either way.</span>
         </label>
-        {prefs.plantEditor && (
-          <>
-            <p class="muted small">
-              The starter plants are drafts until checked against a trusted source. {library ? `${checked} of ${starters.length} checked on this device.` : ''}
-            </p>
-            <button type="button" class="btn" onClick={() => go('check')}>
-              Check the plants
-            </button>
-          </>
-        )}
         <p>
           <button type="button" class="btn btn-quiet" onClick={() => prefsStore.set({ onboarded: false })}>
             Show the welcome again

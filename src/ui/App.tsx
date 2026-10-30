@@ -1,4 +1,4 @@
-import { unseenNews } from '../content/whatsNew';
+import { latestNews, unseenNews } from '../content/whatsNew';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { seasonFor } from '../content/seasons';
 import type { Target } from '../model/features';
@@ -31,6 +31,7 @@ import { Welcome } from './Welcome';
 import { WrappedHost } from './WrappedHost';
 import { ReminderKeeper } from './ReminderKeeper';
 import { worthKeeping } from './setup';
+import { shedName } from '../planting/pots';
 import { askToKeep, asksOutLoud, shouldAskToKeep } from '../storage/persist';
 import { todayIso } from '../model/ids';
 
@@ -88,7 +89,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   /** Just set up: Today picks out the first job, until you go elsewhere. */
   const [startHere, setStartHere] = useState(false);
   // The welcome, on the day's first launch: not the very first (setting up runs then), nor a link or reminder to a particular screen.
-  const [welcoming, setWelcoming] = useState(() => prefs.onboarded && welcomesAt(location.hash) && welcomeDue(prefs.welcomedOn, todayIso(), unseenNews(prefs.seenNews).length > 0));
+  const [welcoming, setWelcoming] = useState(() => prefs.onboarded && welcomesAt(location.hash) && welcomeDue(prefs.welcomedOn, todayIso(), unseenNews(prefs.seenNews).length > 0 && prefs.welcomedNews !== latestNews().id));
   const weather = useWeatherFeed(garden, prefs.weather && prefs.onboarded);
   const screenEl = useRef<HTMLDivElement>(null);
   // Each screen opens at its top, not where the last one was scrolled to. Before the screens' own effects, which may scroll to something.
@@ -413,7 +414,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
               <span class="nav-icon">
                 <Icon name={n.icon} />
               </span>
-              <span class="nav-label">{n.label}</span>
+              <span class="nav-label">{n.view === 'shed' ? shedName(garden) : n.label}</span>
             </a>
           ))}
           <a
@@ -432,7 +433,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
           </a>
         </nav>
         {shortcuts && <Shortcuts close={() => setShortcuts(false)} />}
-        {prefs.onboarded && <ReminderKeeper garden={garden} userPlants={userPlants} frost={prefs.reminders} weekly={prefs.weeklyNudge} uv={prefs.uvReminders} />}
+        {prefs.onboarded && <ReminderKeeper garden={garden} userPlants={userPlants} frost={prefs.reminders} weekly={prefs.weeklyNudge} uv={prefs.uvReminders} day={prefs.reminderDay} />}
         {wrapping && <WrappedHost garden={garden} userPlants={userPlants} close={() => setWrapping(false)} />}
         {searching && <CommandSearch garden={garden} userPlants={userPlants} locked={prefs.layoutLocked} run={run} close={() => setSearching(false)} />}
       </div>

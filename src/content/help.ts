@@ -159,7 +159,7 @@ export const HELP: HelpTopic[] = [
     view: 'plan',
     tier: 1,
     steps: [
-      { phone: 'Open Plants along the bottom of the plan. “Sow or plant now” shows what suits this month; Find a plant searches them all.', computer: 'Open Plants along the bottom of the plan. “Sow or plant now” shows what suits this month; Find a plant searches them all.' },
+      { phone: 'Open Plants along the bottom of the plan. It opens on Easy to start; “Sow or plant now” shows what suits this month, and Find a plant searches them all.', computer: 'Open Plants along the bottom of the plan. It opens on Easy to start; “Sow or plant now” shows what suits this month, and Find a plant searches them all.' },
       {
         phone: 'Tap a plant, then tap the bed, pot or patch of lawn it goes in.',
         computer: 'Drag a plant onto a bed, pot or patch of lawn. Or click it, then click where it goes.',
@@ -399,13 +399,13 @@ export const HELP: HelpTopic[] = [
   {
     id: 'reminders',
     title: 'Reminders and frost warnings',
-    summary: 'A note on Mondays of the week’s jobs, and a warning when a frost could hurt your plants.',
+    summary: 'A weekly note of the jobs, on the day you choose, and a warning when a frost could hurt your plants.',
     view: 'settings',
     tier: 2,
     steps: [
       'Open Settings and find Reminders.',
       'Tick Frost warnings to be told when a frost could hurt your tender plants or seedlings. It checks the forecast for your garden’s rough location.',
-      'Tick This week’s jobs, on Mondays, for what there is to sow, harden off or plant out that week.',
+      'Tick This week’s jobs, once a week, for what there is to sow, harden off or plant out that week, and choose the day for it.',
       'The first time, your phone or computer asks whether the app may show notifications. Say Allow.',
       'Weeding reminders and Feeding reminders add their jobs to Today. Untick either if you’d rather not have them.',
     ],

@@ -7,10 +7,19 @@ import { bounds, pointInPolygon, polygonArea } from '../geometry/polygon';
 import { featureLabel, makeFeature, pivotOf, rectInfo } from '../model/features';
 import { addNote, makeNote } from '../model/notes';
 import type { Feature, Garden, Plant, Planting, Point } from '../model/types';
-import { isActive, plantCount, plantingStatus, plantPositions, spreadOf } from './place';
+import { isActive, isContainer, plantCount, plantingStatus, plantPositions, spreadOf } from './place';
 
 /** Pots, tubs, planters and window boxes: small containers whose size matters to what's in them. */
 export const isPot = (f: Feature): boolean => f.kind === 'pot' || f.kind === 'planter';
+
+/** Everything here's grown in pots: a balcony, or anywhere with only pots and planters. No soil, weeds or rotation to think about. */
+export function potsOnly(g: Garden): boolean {
+  const places = g.features.filter(isContainer);
+  return !!g.balcony || (places.length > 0 && places.every(isPot));
+}
+
+/** What the Shed's called: someone with nothing but pots hasn't got one, but has seedlings. */
+export const shedName = (g: Garden): string => (potsOnly(g) ? 'Seedlings' : 'Shed');
 
 export interface PotSize {
   /** Across, mm: a round pot's width, or a planter's narrower side. */

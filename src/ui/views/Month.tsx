@@ -2,7 +2,7 @@ import { useMemo } from 'preact/hooks';
 import { PlanAheadCard } from '../PlanAhead';
 import { isDefaultLocation } from '../setup';
 import { jobsFor } from '../../calendar/jobs';
-import { monthLine, seasonFor } from '../../content/seasons';
+import { generalJobs, monthLine, seasonFor } from '../../content/seasons';
 import type { Store } from '../../model/store';
 import type { Garden, Plant } from '../../model/types';
 import type { Prefs, View } from '../../theme/prefs';
@@ -99,8 +99,8 @@ export function Month({ store, garden, userPlants, prefs, go, back, now = new Da
         {comingUp.length > 0 && <PlantJobs jobs={comingUp} garden={garden} />}
         <h3 class="job-kind">Around the garden</h3>
         <ul class="plain-list">
-          {seasonFor(next).jobs.map((j) => (
-            <li key={j}>{j}</li>
+          {generalJobs(next, garden, plants ? plantOf : undefined).map(({ text }) => (
+            <li key={text}>{text}</li>
           ))}
         </ul>
       </section>

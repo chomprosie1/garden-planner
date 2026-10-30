@@ -241,6 +241,8 @@ export interface Feature {
   nextDoor?: boolean;
   /** How sunny a bed is, as you said: for a garden kept as a list, where there's no plan to work the sun out from. */
   light?: Light;
+  /** Worked sitting down, or at waist height: hand tools, not a hoe. */
+  handTools?: boolean;
   /** A pot or planter under cover, so rain doesn't reach it. Absent: as the balcony's roof says. */
   covered?: boolean;
   /** A strawberry tower or the like: how many plants it holds, each in a pocket of its own. */

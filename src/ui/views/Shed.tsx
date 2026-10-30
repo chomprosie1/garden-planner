@@ -59,6 +59,8 @@ import { TrayArt } from '../TrayArt';
 import { FeedShelf } from '../FeedShelf';
 import { SeedTin } from '../SeedTin';
 import { plantCount } from '../../planting/place';
+import { shedName } from '../../planting/pots';
+import { GlossText } from '../Glossary';
 import { packetsFor, packetText, seedsOf, useSeeds } from '../../planting/seeds';
 import { usePlants } from '../usePlants';
 
@@ -125,7 +127,7 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
   return (
     <div class="page shed-page">
       <header class="page-head">
-        <h1 class="title">Shed</h1>
+        <h1 class="title">{shedName(garden)}</h1>
         <HelpButton topic="sowing" />
         <SettingsButton />
         <button type="button" class="btn btn-primary shed-sow-btn" onClick={() => (show('trays'), setSowing(''))}>
@@ -133,7 +135,7 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
         </button>
       </header>
       <p class="muted small shed-frost">
-        {lastFrostText(frost.lastFrost)} First frost about {short(inYear(frost.firstFrost, 2027))}
+        <GlossText text={lastFrostText(frost.lastFrost)} /> First frost about {short(inYear(frost.firstFrost, 2027))}
         {frost.estimated ? ', estimated from your location' : ''}.{' '}
         <a
           href="#/settings"

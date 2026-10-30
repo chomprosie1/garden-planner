@@ -60,10 +60,21 @@ export function GardenSoil({ store, garden }: { store: Store; garden: Garden }) 
         ))}
       </div>
       <p class="muted small">{garden.soil ? SOIL_HINT[garden.soil] : 'Squeeze a damp handful: clay makes a sticky ball, sandy soil feels gritty and falls apart. Beds and pots can have their own soil.'}</p>
-      <PhField label="pH, if you've tested it" value={garden.soilPh} set={(ph) => set({ soilPh: ph })} />
       <p class="muted small">Plants whose soil doesn't suit them are flagged in the plant checks, from what their cards say.</p>
     </fieldset>
   );
+}
+
+/** The garden's soil pH, if it's been tested. */
+export function GardenPh({ store, garden }: { store: Store; garden: Garden }) {
+  const set = (ph: number | undefined) =>
+    store.apply(
+      updateGarden((g) => {
+        const { soilPh: _old, ...rest } = g;
+        return ph === undefined ? rest : { ...rest, soilPh: ph };
+      }),
+    );
+  return <PhField label="Soil pH, if you've tested it" value={garden.soilPh} set={set} />;
 }
 
 /** A bed's, pot's or lawn's own soil: the garden's (compost, for a pot or planter) unless you say otherwise. */

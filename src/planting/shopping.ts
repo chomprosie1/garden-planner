@@ -4,10 +4,13 @@
 // buy them; a tick lasts the season. Pure functions: garden and plants in, a
 // list out.
 
-import { feedById } from '../feeding/feeds';
-import { feedAsBought, shelfFor } from '../feeding/schedule';
+import { amountText, feedById } from '../feeding/feeds';
+import { feedAsBought, feedMonths, shelfFor } from '../feeding/schedule';
+import { plantHere } from '../lifecycle/growth';
+import { nextInMonths } from '../lifecycle/projection';
 import { traysOf } from '../lifecycle/shed';
 import { currentStage } from '../lifecycle/stages';
+import { daysBetween } from '../model/dates';
 import { placeLabel } from '../model/features';
 import type { Garden, Plant, Planting } from '../model/types';
 import { isActive, plantCount, stillWanted } from './place';
@@ -34,6 +37,33 @@ export interface ShopItem {
   plantId?: string;
   /** Ticked as bought this season. */
   bought: boolean;
+  /** The first of the month to have it by (ISO), when it isn't wanted yet. Absent: buy it now. */
+  buyBy?: string;
+}
+
+/** Wanted within this many days, it's on the list to buy now. */
+export const BUY_NOW_DAYS = 42;
+/** A feed that won't be used for longer than this isn't on the list yet. */
+export const FEED_AHEAD_DAYS = 125;
+
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+/** The month before something's wanted, to have it by: wanted in March, "buy by February". Nothing if it's wanted soon. */
+function buyByFor(use: string | null, today: string): string | undefined {
+  if (!use || daysBetween(today, use) <= BUY_NOW_DAYS) return undefined;
+  const [y, m] = [Number(use.slice(0, 4)), Number(use.slice(5, 7))];
+  return m === 1 ? `${y - 1}-12-01` : `${y}-${String(m - 1).padStart(2, '0')}-01`;
+}
+
+/** The list in the order to shop from it: what's wanted now, then by when, and what's bought last. Each is by kind, then A to Z. */
+export function shopGroups(items: ShopItem[]): { label: string; list: ShopItem[] }[] {
+  const toBuy = items.filter((i) => !i.bought);
+  const later = [...new Set(toBuy.map((i) => i.buyBy).filter((d): d is string => !!d))].sort();
+  return [
+    { label: 'Buy now', list: toBuy.filter((i) => !i.buyBy) },
+    ...later.map((d) => ({ label: `Buy by ${MONTHS[Number(d.slice(5, 7)) - 1]}`, list: toBuy.filter((i) => i.buyBy === d) })),
+    { label: 'Bought', list: items.filter((i) => i.bought) },
+  ].filter((g) => g.list.length);
 }
 
 /**
@@ -133,6 +163,8 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
   const plants = [...planned.keys(), ...wanted].map(plantOf);
 
   let sowUnderCover = false;
+  /** Plants going in soon. */
+  const soon = new Set<string>();
   for (const plant of plants) {
     const list = planned.get(plant.id) ?? [];
     const n = list.reduce((t, pl) => t + plantCount(pl, plant), 0);
@@ -140,12 +172,21 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
     // When it goes in: the soonest planned sowing, or now. That decides what goes in (onions: sets in autumn, seed in winter).
     const sowOn = list.map((pl) => pl.sowBy).filter((d): d is string => !!d && d > today).sort()[0] ?? today;
     const from = startsAs(plant, Number(sowOn.slice(5, 7)), list[0]);
+    // When it's wanted: a date you've set, or its next time to go in.
+    const here = plantHere(plant, g);
+    const use = sowOn > today ? sowOn : nextInMonths(today, [...(here.sowing ?? []).flatMap((s) => s.months), ...(here.plantOutMonths ?? [])]);
+    const by = buyByFor(use, today);
+    const when = by ? { buyBy: by } : {};
+    if (!by) soon.add(plant.id);
+    // With nothing on the plan to count: what a square metre takes, to go by.
+    const perMetre = `about ${Math.max(1, Math.round(1e6 / plant.size.spacingMm ** 2))} a square metre`;
     if (from === 'plants') {
-      items.push({ key: `plant:${plant.id}`, kind: 'plant', name: plant.commonName, plantId: plant.id, ...(n ? { amount: plural(n, 'plant', 'plants') } : {}), note: forWhat });
+      items.push({ key: `plant:${plant.id}`, kind: 'plant', name: plant.commonName, plantId: plant.id, amount: n ? plural(n, 'plant', 'plants') : perMetre, note: forWhat, ...when });
       continue;
     }
     if (from !== 'seed') {
-      items.push({ key: `bulb:${plant.id}`, kind: 'bulb', ...bulbItem(plant, from, n, Number(sowOn.slice(5, 7))), plantId: plant.id, note: forWhat });
+      const item = bulbItem(plant, from, n, Number(sowOn.slice(5, 7)));
+      items.push({ key: `bulb:${plant.id}`, kind: 'bulb', ...item, amount: item.amount ?? perMetre, plantId: plant.id, note: forWhat, ...when });
       continue;
     }
     if (sowingNow(plant, Number(sowOn.slice(5, 7)), list[0])?.method !== 'direct') sowUnderCover = true;
@@ -156,7 +197,7 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
     const old = packetsFor(g, plant, plantOf).length > good.length && !good.length;
     const note = old ? `The packet in your tin is past its sow-by date by then: fresh seed comes up better. ${forWhat}` : good.length ? `Your tin has about ${plural(have, 'seed', 'seeds')}. ${forWhat}` : forWhat;
     const kind = autumnKind(plant, Number(sowOn.slice(5, 7)));
-    items.push({ key: `seed:${plant.id}`, kind: 'seed', name: `${named(plant, 'seed')}${kind ? `, ${kind}` : ''}`, plantId: plant.id, ...(n ? { amount: `for about ${plural(n, 'plant', 'plants')}` } : {}), note });
+    items.push({ key: `seed:${plant.id}`, kind: 'seed', name: `${named(plant, 'seed')}${kind ? `, ${kind}` : ''}`, plantId: plant.id, amount: n ? `for about ${plural(n, 'plant', 'plants')}` : 'a packet', note, ...when });
   }
 
   if (sowUnderCover) items.push({ key: 'compost:seed', kind: 'compost', name: 'Seed compost', amount: 'a bag', note: 'For sowing in trays and modules: finer, and lower in feed, than multi-purpose' });
@@ -179,6 +220,7 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
 
   if (opts.feeding) {
     const forFeed = new Map<string, string[]>();
+    const firstUse = new Map<string, string>();
     for (const plant of plants)
       for (const s of plant.feeding?.steps ?? []) {
         const feed = feedById(s.feed);
@@ -186,15 +228,22 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
         if (!feed || feed.homeMade || !feed.pack || shelfFor(g, feed.id)) continue;
         const id = feedAsBought(g, feed.id);
         if (id !== 'compost' && id !== feed.id && shelfFor(g, id)) continue;
+        // Only what's wanted in the next few months: no tomato feed for daffodils in October.
+        const use = s.when === 'planting' ? (soon.has(plant.id) ? today : null) : nextInMonths(today, feedMonths(plant, s));
+        if (!use || daysBetween(today, use) > FEED_AHEAD_DAYS) continue;
         const names = forFeed.get(id) ?? [];
         if (!names.includes(plant.commonName.toLowerCase())) forFeed.set(id, [...names, plant.commonName.toLowerCase()]);
+        if (!firstUse.has(id) || use < firstUse.get(id)!) firstUse.set(id, use);
       }
-    for (const [id, names] of forFeed)
+    for (const [id, names] of forFeed) {
+      const by = buyByFor(firstUse.get(id) ?? null, today);
+      const feed = feedById(id);
       items.push(
         id === 'compost'
-          ? { key: 'compost:beds', kind: 'compost', name: 'Well-rotted manure or bagged compost', amount: 'a bag or two a bed', note: `To dig in or spread on top, for ${listOf(names)}` }
-          : { key: `feed:${id}`, kind: 'feed', name: feedById(id)!.name, note: `For ${listOf(names)}` },
+          ? { key: 'compost:beds', kind: 'compost', name: 'Well-rotted manure or bagged compost', amount: 'a bag or two a bed', note: `To dig in or spread on top, for ${listOf(names)}`, ...(by ? { buyBy: by } : {}) }
+          : { key: `feed:${id}`, kind: 'feed', name: feed!.name, ...(feed!.pack ? { amount: `a pack of ${amountText(feed!, feed!.pack.amount)}` } : {}), note: `For ${listOf(names)}`, ...(by ? { buyBy: by } : {}) },
       );
+    }
   }
 
   // A garden that's all lawn: what the first bed takes, made without digging.
@@ -218,10 +267,9 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
 /** The list as plain text to share or paste: what's still to buy, under each heading. */
 export function shoppingText(items: ShopItem[], gardenName: string): string {
   const lines = [`Shopping list for ${gardenName}`];
-  for (const kind of SHOP_KINDS) {
-    const list = items.filter((i) => i.kind === kind && !i.bought);
-    if (!list.length) continue;
-    lines.push('', SHOP_LABEL[kind]);
+  for (const { label, list } of shopGroups(items)) {
+    if (label === 'Bought') continue;
+    lines.push('', label);
     for (const i of list) lines.push(`- ${i.name}${i.amount ? `, ${i.amount}` : ''}`);
   }
   return lines.length > 1 ? lines.join('\n') : `${lines[0]}\n\nNothing to buy.`;

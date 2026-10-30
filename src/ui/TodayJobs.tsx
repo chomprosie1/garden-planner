@@ -40,7 +40,9 @@ export function TodayJobs({ store, garden, plantOf, jobs, month, year, startHere
   const today = todayIso();
   const name = seasonFor(month).name;
   const timing = useMemo(() => (plantOf ? jobTiming(jobs, garden, plantOf, today, weather) : new Map<string, 'now' | 'later'>()), [jobs, garden, plantOf, today, weather]);
-  const now = jobs.filter((j) => timing.get(j.key) !== 'later');
+  // What's still to do first, so ticked jobs don't take up the places on the list.
+  const ticked = new Set(garden.jobsDone.map((j) => j.key));
+  const now = jobs.filter((j) => timing.get(j.key) !== 'later').sort((a, b) => Number(ticked.has(a.key)) - Number(ticked.has(b.key)));
   const later = jobs.filter((j) => timing.get(j.key) === 'later');
   // Seedlings coming up, first flowers, ready to pick: not jobs, but worth a look this week.
   const lookOut = useMemo(() => (plantOf ? upcoming(garden, plantOf, today, ...weekWindows(today).thisWeek, weather).filter((u) => !u.todo) : []), [garden, plantOf, today, weather]);

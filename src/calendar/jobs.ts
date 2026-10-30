@@ -15,7 +15,7 @@ import { behindOf } from '../lifecycle/behind';
 import type { Weather } from '../weather/weather';
 import { potWaterJobs, waterJob } from './watering';
 import { featureLabel, placeLabel, updateFeature } from '../model/features';
-import { runEnds } from '../library/library';
+import { runEnds, runStarts } from '../library/library';
 import { STAGES, type Garden, type PickSize, type Plant, type Planting, type Stage } from '../model/types';
 import { addPick } from '../planting/harvest';
 import { isActive, isContainer, plantingStatus, stillWanted } from '../planting/place';
@@ -67,6 +67,8 @@ export interface Job {
    * one job, done once whichever way; the first is the job's own kind.
    */
   ways?: JobWay[];
+  /** For weeding: every bed's worked sitting down. */
+  handTools?: boolean;
 }
 
 /** One way to do a job: its kind, what it says, and its own advice. */
@@ -180,6 +182,8 @@ const WEEDING_TIP: Record<number, string> = {
   9: 'Clear weeds from beds as crops finish, and dig out spreading roots while the soil’s soft.',
   10: 'Weed beds before winter, then mulch or sow green manure on bare soil.',
 };
+
+const HAND_WEEDING = 'Little and often: work along the bed with a hand fork, from where you sit.';
 
 export interface JobOptions {
   /** A monthly "Weed the beds" reminder, March to October. The app asks for it unless it's turned off in Settings. */
@@ -348,8 +352,10 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
     const ready = (p: Planting) => !today || currentStage(p) === 'harvesting' || !pathFor(plant, p).includes('harvesting') || stepsOf(p).some((s) => s.stage === 'harvesting' && s.date !== null && s.date <= monthEnd);
     const grown = growing.filter(ready);
     const toPick = growing.filter((p) => (harvesting && ready(p)) || picking(p));
-    // Something picked all year round (bay, rosemary) is just there to pick: not a job every month.
-    if (toPick.length && harvest.length < 12) add('harvest', plant, where, featureId, ids(toPick), plant.cropping?.notes, featureId, isRoot(plant) ? 'Ready to lift' : undefined);
+    // Something picked all year round (bay, rosemary) is just there to pick: not a job every month. A herb is the same
+    // through its months, so it's said once, as they start.
+    const nowAndThen = plant.category === 'herb' && !runStarts(harvest).includes(month);
+    if (toPick.length && harvest.length < 12 && !nowAndThen) add('harvest', plant, where, featureId, ids(toPick), plant.cropping?.notes, featureId, isRoot(plant) ? 'Ready to lift' : undefined);
 
     // Probably flowering by now? Ask, unless it's ready to pick anyway. The key holds the stage, so a tick is per stage.
     if (!toPick.length) {
@@ -388,7 +394,9 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
     if (beds.length) {
       const names = beds.map(placeLabel);
       const list = names.length > 3 ? `${names.slice(0, 3).join(', ')} and ${names.length - 3} more` : names.join(names.length === 2 ? ' and ' : ', ');
-      jobs.push({ key: `weed:beds:${ym(year, month)}`, kind: 'weed', plantId: '', plant: 'Weed the beds', where: `(${list})`, plantingIds: [], detail: tip });
+      // Every bed worked sitting down: no hoe.
+      const hand = beds.every((f) => f.handTools);
+      jobs.push({ key: `weed:beds:${ym(year, month)}`, kind: 'weed', plantId: '', plant: 'Weed the beds', where: `(${list})`, plantingIds: [], detail: hand ? HAND_WEEDING : tip, ...(hand ? { handTools: true } : {}) });
     }
   }
 

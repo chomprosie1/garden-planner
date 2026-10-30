@@ -9,6 +9,7 @@ import { KitchenHint } from './Kitchen';
 import { groupJobs, jobLabel, logPick, toggleJob, type Job, type JobKind } from '../calendar/jobs';
 import { GlossText } from './Glossary';
 import { spacingStyle } from '../planting/place';
+import { shedName } from '../planting/pots';
 import { JobHowTo } from './JobHowTo';
 import { feedById } from '../feeding/feeds';
 import { shelfFor } from '../feeding/schedule';
@@ -104,8 +105,11 @@ interface Props {
  * A tick is saved under the job's place in the whole month's list, so hiding one doesn't move another's tick.
  */
 export function JobList({ store, garden, month, year, limit, plantOf }: Props) {
-  const jobs = generalJobs(month, garden, plantOf).slice(0, limit);
   const done = new Set(garden.jobsDone.map((j) => j.key));
+  // Done ones last, so what's left to do stays in view.
+  const jobs = generalJobs(month, garden, plantOf)
+    .sort((a, b) => Number(done.has(jobKey(year, month, a.i))) - Number(done.has(jobKey(year, month, b.i))))
+    .slice(0, limit);
 
   const toggle = (key: string) =>
     store.apply(
@@ -196,7 +200,7 @@ function PlantJob({ job, done, onToggle, onPick, plantOf, garden, startHere = fa
   const shed =
     job.kind === 'sow-indoors' && !first && onToggle ? (
       <button type="button" class="job-link link-btn small" onClick={() => app.sowInShed(job.plantId)}>
-        Sow in the shed
+        {garden && shedName(garden) !== 'Shed' ? 'Sow some' : 'Sow in the shed'}
       </button>
     ) : null;
   if (!onToggle)
@@ -246,10 +250,13 @@ function PlantJob({ job, done, onToggle, onPick, plantOf, garden, startHere = fa
 }
 
 /** Your jobs, grouped by what kind of job they are. Without a store they're a preview, with no ticks. startHere: a job to pick out, by key. */
-export function PlantJobs({ jobs, garden, store, limit, plantOf, startHere }: { jobs: Job[]; garden: Garden; store?: Store; limit?: number; plantOf?: (id: string) => Plant; startHere?: string | null }) {
+export function PlantJobs({ jobs, garden, store, limit, plantOf, startHere, fold = true }: { jobs: Job[]; garden: Garden; store?: Store; limit?: number; plantOf?: (id: string) => Plant; startHere?: string | null; fold?: boolean }) {
   const app = useApp();
   const done = new Set(garden.jobsDone.map((j) => j.key));
-  const shown = limit ? jobs.slice(0, limit) : jobs;
+  const all = limit ? jobs.slice(0, limit) : jobs;
+  // Done jobs fold away under a line of their own, still there to untick.
+  const folded = fold && store ? all.filter((j) => done.has(j.key)) : [];
+  const shown = folded.length ? all.filter((j) => !done.has(j.key)) : all;
   return (
     <div class="job-groups">
       {groupJobs(shown).map(([label, list]) => (
@@ -281,6 +288,12 @@ export function PlantJobs({ jobs, garden, store, limit, plantOf, startHere }: { 
           </ul>
         </section>
       ))}
+      {folded.length > 0 && (
+        <details class="jobs-done">
+          <summary>Done ({folded.length})</summary>
+          <PlantJobs jobs={folded} garden={garden} {...(store ? { store } : {})} {...(plantOf ? { plantOf } : {})} fold={false} />
+        </details>
+      )}
     </div>
   );
 }

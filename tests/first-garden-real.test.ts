@@ -235,8 +235,8 @@ describe('the save format', () => {
   it('schema 25: a v23 garden comes through', () => {
     const { schemaVersion: _v, ...old } = newGarden();
     const out = migrateGarden({ ...old, schemaVersion: 23 }) as Garden;
-    expect(SCHEMA_VERSION).toBe(26);
-    expect(out.schemaVersion).toBe(26);
+    expect(SCHEMA_VERSION).toBe(27);
+    expect(out.schemaVersion).toBe(27);
     expect(validateGarden(JSON.parse(JSON.stringify(out)))).toEqual([]);
   });
   it('saved beds that share a name are numbered (Jordan: "Bed and Bed")', () => {

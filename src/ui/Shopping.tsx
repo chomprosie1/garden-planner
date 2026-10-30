@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef } from 'preact/hooks';
 import { todayIso } from '../model/ids';
 import { updateGarden, type Store } from '../model/store';
 import type { Garden, Plant } from '../model/types';
-import { SHOP_KINDS, SHOP_LABEL, shoppingList, shoppingText, toggleBought, type ShopItem } from '../planting/shopping';
+import { shopGroups, shoppingList, shoppingText, toggleBought, type ShopItem } from '../planting/shopping';
 import { useApp } from './appContext';
 
 export function ShoppingDialog({ garden, store, plantOf, feeding, close }: { garden: Garden; store: Store; plantOf: (id: string) => Plant; feeding: boolean; close: () => void }) {
@@ -19,7 +19,7 @@ export function ShoppingDialog({ garden, store, plantOf, feeding, close }: { gar
   }, []);
   const items = useMemo(() => shoppingList(garden, plantOf, today, { feeding }), [garden, plantOf, today, feeding]);
   const toBuy = items.filter((i) => !i.bought);
-  const groups = [...SHOP_KINDS.map((k) => ({ label: SHOP_LABEL[k], list: toBuy.filter((i) => i.kind === k) })), { label: 'Bought', list: items.filter((i) => i.bought) }].filter((g) => g.list.length);
+  const groups = shopGroups(items);
 
   const tick = (i: ShopItem) => store.apply(updateGarden((g) => toggleBought(g, i.key, today)));
   const share = async () => {

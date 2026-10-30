@@ -22,7 +22,8 @@ type Filter = 'now' | 'easy' | 'list' | 'tin' | 'mine' | 'all';
 export function PlantChooser({ plants, garden, month, pick, bed }: { plants: Plant[]; garden: Garden; month: number; pick: (id: string) => void; bed?: Feature }) {
   const { draftPlants } = useApp();
   const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<Filter>('now');
+  // Opens as the Plants tab does: on the easy ones.
+  const [chosen, setFilter] = useState<Filter>('easy');
   const [showMore, setShowMore] = useState(false);
   const [everything, setEverything] = useState(false);
   const byId = useMemo(() => new Map(plants.map((p) => [p.id, p])), [plants]);
@@ -40,6 +41,8 @@ export function PlantChooser({ plants, garden, month, pick, bed }: { plants: Pla
     }),
     [plants, growable, month, garden.wishlist, garden.plantings, garden.seeds, byId, garden.latitude, garden.longitude, garden.heightM, garden.frostHollow, garden.lastFrost],
   );
+  // A pot none of the easy ones suit opens on what can go in now.
+  const filter: Filter = chosen === 'easy' && !lists.easy.length ? 'now' : chosen;
   const q = query.trim().toLowerCase();
   // Typed: plural or not, best match first.
   const shown = q
@@ -80,6 +83,8 @@ export function PlantChooser({ plants, garden, month, pick, bed }: { plants: Pla
         <div class="dock-filters" role="radiogroup" aria-label="Show">
           {chips
             .filter(([id]) => id === 'now' || id === 'all' || lists[id].length > 0)
+            // Easy to start first, as it opens.
+            .sort(([a], [b]) => Number(b === 'easy') - Number(a === 'easy'))
             .map(([id, label]) => (
               <button
                 key={id}

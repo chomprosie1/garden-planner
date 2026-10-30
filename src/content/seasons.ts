@@ -2,7 +2,9 @@
 // These are UK averages, shown alongside the jobs for your own plants (src/calendar/jobs.ts).
 
 import { monthsLater } from '../lifecycle/growth';
+import { isTender } from '../lifecycle/shed';
 import type { FeatureKind, Garden, Plant } from '../model/types';
+import { potsOnly } from '../planting/pots';
 
 export interface Season {
   month: number; // 1 to 12
@@ -15,9 +17,11 @@ export interface Season {
   /**
    * The plants some of the jobs are about, by their place in `jobs`: shown only to a garden growing one (or meaning to).
    * own: your own plants' jobs already do it for one in a bed or on your list, so it isn't said twice. mild: not for a
-   * garden whose season runs a month or more late, where it won't stand the winter.
+   * garden whose season runs a month or more late, where it won't stand the winter. kinds: only with one of these,
+   * planted up or not. ground: only with ground to work, so not for a balcony or a garden of pots. tender: only for a
+   * garden growing something tender.
    */
-  about?: Record<number, { ids?: string[]; kinds?: FeatureKind[]; own?: true; mild?: true }>;
+  about?: Record<number, { ids?: string[]; kinds?: FeatureKind[]; own?: true; mild?: true; ground?: true; tender?: true }>;
 }
 
 export const SEASONS: Season[] = [
@@ -54,7 +58,7 @@ export const SEASONS: Season[] = [
       'Cover beds with fleece or sheeting to warm the soil',
       'Cut autumn-fruiting raspberry canes down to the ground',
     ],
-    about: { 0: { ids: ['potato'] }, 1: { ids: ['chilli', 'sweet-pepper'], own: true }, 3: { ids: ['raspberry'] } },
+    about: { 0: { ids: ['potato'] }, 1: { ids: ['chilli', 'sweet-pepper'], own: true }, 2: { ground: true }, 3: { ids: ['raspberry'] } },
   },
   {
     month: 3,
@@ -88,7 +92,7 @@ export const SEASONS: Season[] = [
       'Sow courgettes and squash indoors',
       'Cover blossom with fleece on frosty nights',
     ],
-    about: { 0: { ids: ['potato'], own: true }, 1: { ids: ['carrot', 'beetroot', 'lettuce'], own: true }, 2: { ids: ['courgette', 'winter-squash', 'summer-squash', 'pumpkin'], own: true } },
+    about: { 0: { ids: ['potato'], own: true }, 1: { ids: ['carrot', 'beetroot', 'lettuce'], own: true }, 2: { ids: ['courgette', 'winter-squash', 'summer-squash', 'pumpkin'], own: true }, 3: { ids: ['apple', 'pear', 'plum', 'cherry'] } },
   },
   {
     month: 5,
@@ -105,7 +109,7 @@ export const SEASONS: Season[] = [
       'Earth up potatoes as the shoots appear',
       'Sow French and runner beans outdoors late in the month',
     ],
-    about: { 1: { ids: ['tomato', 'courgette'], own: true }, 2: { ids: ['potato'] }, 3: { ids: ['french-bean', 'runner-bean'], own: true } },
+    about: { 0: { tender: true }, 1: { ids: ['tomato', 'courgette'], own: true }, 2: { ids: ['potato'] }, 3: { ids: ['french-bean', 'runner-bean'], own: true } },
   },
   {
     month: 6,
@@ -175,7 +179,7 @@ export const SEASONS: Season[] = [
       'Sow green manure on empty beds',
       'Cut summer raspberry canes that have fruited down to the ground, and tie in the new ones',
     ],
-    about: { 0: { ids: ['apple', 'pear'], own: true }, 2: { ids: ['potato'], own: true }, 4: { ids: ['raspberry'] } },
+    about: { 0: { ids: ['apple', 'pear'], own: true }, 2: { ids: ['potato'], own: true }, 3: { ground: true }, 4: { ids: ['raspberry'] } },
   },
   {
     month: 10,
@@ -196,7 +200,7 @@ export const SEASONS: Season[] = [
       'Clean the greenhouse glass and gutters, and put up bubble wrap for the winter',
       'Keep the cold frame lid open by day, closing it only when a hard frost is due',
     ],
-    about: { 0: { ids: ['garlic'], own: true }, 1: { ids: ['broad-bean'], own: true, mild: true }, 2: { ids: ['dahlia'], own: true }, 4: { ids: ['raspberry'] }, 5: { kinds: ['greenhouse'] }, 6: { kinds: ['cold-frame'] } },
+    about: { 0: { ids: ['garlic'], own: true }, 1: { ids: ['broad-bean'], own: true, mild: true }, 2: { ids: ['dahlia'], own: true }, 3: { ground: true }, 4: { ids: ['raspberry'] }, 5: { kinds: ['greenhouse'] }, 6: { kinds: ['cold-frame'] } },
   },
   {
     month: 11,
@@ -215,7 +219,7 @@ export const SEASONS: Season[] = [
       'Open the greenhouse vents a little on mild mornings, and close them by early afternoon',
       'Keep the cold frame lid open by day, closing it only when a hard frost is due',
     ],
-    about: { 1: { ids: ['tulip'], own: true }, 4: { kinds: ['greenhouse'] }, 5: { kinds: ['cold-frame'] } },
+    about: { 0: { ground: true }, 1: { ids: ['tulip'], own: true }, 2: { tender: true }, 3: { ground: true }, 4: { kinds: ['greenhouse'] }, 5: { kinds: ['cold-frame'] } },
   },
   {
     month: 12,
@@ -232,7 +236,7 @@ export const SEASONS: Season[] = [
       'Check stored fruit and vegetables',
       'Plan next year’s crops and where they will go',
     ],
-    about: { 0: { ids: ['apple', 'pear'] }, 1: { ids: ['leek', 'parsnip', 'brussels-sprout'], own: true } },
+    about: { 0: { ids: ['apple', 'pear'] }, 1: { ids: ['leek', 'parsnip', 'brussels-sprout'], own: true }, 3: { ground: true } },
   },
 ];
 
@@ -264,17 +268,28 @@ export function monthLine(month: number, g: Garden, plantOf: (id: string) => Pla
 export function generalJobs(month: number, g: Garden, plantOf: (id: string) => Plant | null = () => null): { text: string; i: number }[] {
   const season = seasonFor(month);
   const late = monthsLater(g) > 0;
-  const all = season.jobs.map((text, i) => ({ text, i })).filter(({ i }) => !(late && season.about?.[i]?.mild));
+  const has = new Set(g.features.map((f) => f.kind));
+  const pots = potsOnly(g);
+  // Only what you have, whether or not there's anything planted yet: no greenhouse jobs without a greenhouse.
+  const all = season.jobs
+    .map((text, i) => ({ text, i }))
+    .filter(({ i }) => {
+      const about = season.about?.[i];
+      if (late && about?.mild) return false;
+      if (about?.kinds) return about.kinds.some((k) => has.has(k));
+      return !(about?.ground && pots);
+    });
   const inBeds = g.plantings.filter((p) => !p.removedOn).map((p) => p.plantId);
   if (!inBeds.length) return all;
   const kinds = (ids: string[]) => new Set(ids.flatMap((id) => [id, plantOf(id)?.varietyOf].filter((x): x is string => !!x)));
   const grown = kinds([...inBeds, ...g.wishlist]);
-  const has = new Set(g.features.map((f) => f.kind));
   return all.filter(({ i }) => {
     const about = season.about?.[i];
-    if (!about) return true;
-    // A job for a greenhouse or cold frame: only with one.
-    if (about.kinds) return about.kinds.some((k) => has.has(k));
+    if (!about || about.kinds || about.ground) return true;
+    if (about.tender) return [...grown].some((id) => {
+      const p = plantOf(id);
+      return !!p && isTender(p);
+    });
     // One your own jobs do: they say it if you grow it, and it doesn't apply if you don't.
     return !about.own && !!about.ids?.some((id) => grown.has(id));
   });

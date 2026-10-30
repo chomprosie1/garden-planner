@@ -81,10 +81,9 @@ export function MomentCard({ garden, plantOf }: { garden: Garden; plantOf: (id: 
 
 // ---------- Getting started ----------
 
-export function SetupCard({ store, garden, prefs, prefsStore }: { store: Store; garden: Garden; prefs: Prefs; prefsStore: PrefsStore }) {
+export function SetupCard({ store, garden, prefs, prefsStore, asked }: { store: Store; garden: Garden; prefs: Prefs; prefsStore: PrefsStore; asked: boolean }) {
   const app = useApp();
   const today = todayIso();
-  const [opened, setOpened] = useState(false);
   const steps = setupSteps(garden, prefs);
   const done = steps.filter((s) => s.done).length;
   const showing = !prefs.setupHidden && done < steps.length;
@@ -93,17 +92,8 @@ export function SetupCard({ store, garden, prefs, prefsStore }: { store: Store; 
     if (showing && !prefs.setupFrom) prefsStore.set({ setupFrom: today });
   }, [showing, prefs.setupFrom]);
   if (prefs.setupHidden || done === steps.length) return null;
-  if (setupFolded(prefs.setupFrom, today) && !opened)
-    return (
-      <section class="card setup-card setup-folded" aria-label="Getting started">
-        <button type="button" class="setup-fold" aria-expanded={false} onClick={() => setOpened(true)}>
-          <strong>Getting started</strong>
-          <span class="muted small">
-            {done} of {steps.length} done ›
-          </span>
-        </button>
-      </section>
-    );
+  // After its first day it waits under the ···.
+  if (setupFolded(prefs.setupFrom, today) && !asked) return null;
   const next = steps.find((s) => !s.done)!;
   const toPlan = () => app.go('plan');
   const action: Record<StepId, preact.JSX.Element> = {

@@ -6769,6 +6769,12 @@ h2 {
   margin: 0;
   accent-color: var(--accent);
 }
+/* ---------- Only what you have (release 55) ---------- */
+.jobs-done > summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--muted);
+}
 /* ---------- Balconies and pots (release 54) ---------- */
 .balcony-fields {
   display: grid;

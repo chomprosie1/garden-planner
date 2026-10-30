@@ -45,16 +45,19 @@ export interface Snapshot {
   weeks: WeekNudge[];
   /** Sun cream reminders are on. */
   uv: boolean;
+  /** The day of the week for the weekly reminder: 0 is Sunday. */
+  day: number;
 }
 
 /** What the service worker is given: only what each reminder that's on needs. */
-export const snapshot = (frost: boolean, lat: number, lon: number, items: Watched[], weeks: WeekNudge[] | null, uv = false): Snapshot => ({
+export const snapshot = (frost: boolean, lat: number, lon: number, items: Watched[], weeks: WeekNudge[] | null, uv = false, day = 1): Snapshot => ({
   on: frost,
   lat: Math.round(lat * 100) / 100,
   lon: Math.round(lon * 100) / 100,
   items: frost ? items : [],
   weeks: weeks ?? [],
   uv,
+  day,
 });
 
 /** Keeps the note the service worker checks. */

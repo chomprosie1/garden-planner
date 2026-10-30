@@ -6,6 +6,7 @@ import { useMemo, useState } from 'preact/hooks';
 import { todayIso } from '../model/ids';
 import type { Store } from '../model/store';
 import type { Garden, Plant } from '../model/types';
+import { potsOnly } from '../planting/pots';
 import { draftYear } from '../planting/rotation';
 import { shoppingList } from '../planting/shopping';
 import { NextYearDialog } from './NextYear';
@@ -40,7 +41,7 @@ export function PlanAheadCard({ store, garden, plantOf, feeding }: { store: Stor
         <div class="plan-ahead-row">
           <span>
             <strong>Next year</strong>
-            <span class="muted small"> · {draftYear(today)}, with the crops rotated</span>
+            <span class="muted small"> · {draftYear(today)}{potsOnly(garden) ? '' : ', with the crops rotated'}</span>
           </span>
           <button type="button" class="btn btn-small" onClick={() => setDrafting(true)}>
             Draft it

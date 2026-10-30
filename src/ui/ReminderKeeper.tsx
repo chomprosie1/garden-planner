@@ -12,17 +12,17 @@ import { saveSnapshot, snapshot } from '../storage/reminders';
 import { usePlants } from './usePlants';
 import { useWeatherNow } from './useWeather';
 
-export function ReminderKeeper({ garden, userPlants, frost, weekly, uv }: { garden: Garden; userPlants: Plant[]; frost: boolean; weekly: boolean; uv: boolean }) {
+export function ReminderKeeper({ garden, userPlants, frost, weekly, uv, day }: { garden: Garden; userPlants: Plant[]; frost: boolean; weekly: boolean; uv: boolean; day: number }) {
   const { plants, plantOf } = usePlants(userPlants, spacingStyle(garden));
   const { weather } = useWeatherNow();
   useEffect(() => {
     if (!plants) return;
     // A moment after the last change, so editing the plan doesn't rewrite it every keystroke.
     const t = setTimeout(() => {
-      const s = snapshot(frost, garden.latitude, garden.longitude, frost ? frostWatchList(garden, plantOf) : [], weekly ? weekNudges(garden, plantOf, todayIso(), 5, weather) : null, uv);
+      const s = snapshot(frost, garden.latitude, garden.longitude, frost ? frostWatchList(garden, plantOf) : [], weekly ? weekNudges(garden, plantOf, todayIso(), 5, weather) : null, uv, day);
       void saveSnapshot(s).catch(() => undefined);
     }, 1500);
     return () => clearTimeout(t);
-  }, [garden, plants, frost, weekly, uv, weather]);
+  }, [garden, plants, frost, weekly, uv, weather, day]);
   return null;
 }

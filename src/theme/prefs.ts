@@ -71,8 +71,12 @@ export interface Prefs {
   walkFrom: Record<string, { at: [number, number]; heading: number }>;
   /** The line shown on the loading screen last time, so the next one is different. */
   lastQuote: string | null;
-  /** The day the welcome last showed (ISO): it shows at most once a day. */
+  /** The day the welcome last showed (ISO). */
   welcomedOn: string | null;
+  /** The newest "What's new" entry the welcome has told you about, by id: it says so once. */
+  welcomedNews: string | null;
+  /** The day of the week for the weekly reminder: 0 is Sunday. */
+  reminderDay: number;
   /** The day's UV on Today, from April to September. Off unless you turn it on in Settings. */
   uvOnToday: boolean;
   /** The first day Getting started showed on Today (ISO): after it, the list folds to one line. */
@@ -132,6 +136,8 @@ export function defaultPrefs(): Prefs {
     storageAsked: null,
     lastQuote: null,
     welcomedOn: null,
+    welcomedNews: null,
+    reminderDay: 1,
     uvOnToday: false,
     setupFrom: null,
     reminders: false,
@@ -198,6 +204,8 @@ export function sanitisePrefs(raw: unknown): Prefs {
     storageAsked: typeof r.storageAsked === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.storageAsked) ? r.storageAsked : null,
     lastQuote: typeof r.lastQuote === 'string' ? r.lastQuote : null,
     welcomedOn: typeof r.welcomedOn === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.welcomedOn) ? r.welcomedOn : null,
+    welcomedNews: typeof r.welcomedNews === 'string' ? r.welcomedNews : null,
+    reminderDay: typeof r.reminderDay === 'number' && Number.isInteger(r.reminderDay) && r.reminderDay >= 0 && r.reminderDay <= 6 ? r.reminderDay : 1,
     uvOnToday: r.uvOnToday === true,
     setupFrom: typeof r.setupFrom === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.setupFrom) ? r.setupFrom : null,
     reminders: r.reminders === true,

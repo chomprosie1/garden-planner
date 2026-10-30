@@ -39,10 +39,10 @@ const established: Partial<Planting> = { stage: 'transplanted', stageDates: { tr
 
 describe('save format 22', () => {
   it('names a border, a flower bed or a fruit cage out of the rotation, and leaves the veg beds alone', () => {
-    expect(SCHEMA_VERSION).toBe(26);
+    expect(SCHEMA_VERSION).toBe(27);
     const g = withAll([bedAt(0, 'Border'), bedAt(2000, 'Fruit cage'), bedAt(4000, 'Bed 2'), bedAt(6000, 'Herb bed'), bedAt(8000, 'Cut flowers')], []);
     const migrated = migrateGarden({ ...JSON.parse(JSON.stringify(g)), schemaVersion: 21 }) as Garden;
-    expect(migrated.schemaVersion).toBe(26);
+    expect(migrated.schemaVersion).toBe(27);
     const by = Object.fromEntries(migrated.features.map((f) => [f.name, f]));
     expect(by['Border']!.rotates).toBe(false);
     expect(by['Fruit cage']).toMatchObject({ rotates: false, fruitCage: true });

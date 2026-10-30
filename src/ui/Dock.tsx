@@ -161,7 +161,8 @@ interface Props {
 export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, onTray, onSticker, tool, setTool, byHand, setByHand, phone, mode, forSupport = false }: Props) {
   const trays = traysOf(garden);
   const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<PlantFilter>('now');
+  // Opens as the Plants tab does: on the easy ones.
+  const [filter, setFilter] = useState<PlantFilter>('easy');
   // Plant, on a fence: climbers first.
   useEffect(() => {
     if (open === 'plants' && forSupport) setFilter('climb');

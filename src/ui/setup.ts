@@ -50,15 +50,18 @@ export function backupDue(g: Garden, lastBackup: string | null, now = new Date()
   return days === null || days >= 30;
 }
 
-/** After the first day Getting started showed, it folds to one line ("2 of 6 done ›"), to open when wanted. */
+/** After the first day Getting started showed, it leaves Today, and waits under the ··· until it's wanted. */
 export const setupFolded = (setupFrom: string | null, today: string): boolean => !!setupFrom && today > setupFrom;
+
+/** Steps of Getting started are still to do, and it hasn't been put away: the ··· offers it. */
+export const setupLeft = (g: Garden, prefs: Pick<Prefs, 'northChecked' | 'lastBackup' | 'setupHidden' | 'setupFrom'>, today: string): boolean => !prefs.setupHidden && setupFolded(prefs.setupFrom, today) && setupSteps(g, prefs).some((s) => !s.done);
 
 /**
  * Getting started is showing, with its backup step still to do: it asks for the backup, so the reminder card further
  * down Today doesn't ask a second time.
  */
-export const setupShowing = (g: Garden, prefs: Pick<Prefs, 'northChecked' | 'lastBackup' | 'setupHidden'>): boolean => {
-  if (prefs.setupHidden) return false;
+export const setupShowing = (g: Garden, prefs: Pick<Prefs, 'northChecked' | 'lastBackup' | 'setupHidden' | 'setupFrom'>, today: string): boolean => {
+  if (prefs.setupHidden || setupFolded(prefs.setupFrom, today)) return false;
   const steps = setupSteps(g, prefs);
   return steps.some((s) => !s.done) && !steps.find((s) => s.id === 'backup')!.done;
 };

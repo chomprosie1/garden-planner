@@ -142,6 +142,9 @@ async function weekCheck() {
   const snap = await saved.json();
   const nudge = Array.isArray(snap.weeks) && snap.weeks.find((w) => w.week === week);
   if (!nudge) return;
+  // On the day you chose, or the first check after it. Weeks run from Monday.
+  const fromMonday = (day) => (day + 6) % 7;
+  if (fromMonday(now.getDay()) < fromMonday(snap.day ?? 1)) return;
   const told = `told-week-${week}`;
   if (await state.match(told)) return;
   await state.put(told, new Response('1'));
