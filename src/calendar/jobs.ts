@@ -6,7 +6,7 @@
 // When a planting has probably reached flowering, a "check progress" job asks you to confirm it.
 
 import { microclimateOf } from '../climate/microclimate';
-import { feedDetail, feedingDue, isOnce, plantingFeedText } from '../feeding/schedule';
+import { feedDetail, feedingDue, feedsInUse, isOnce, plantingFeedText } from '../feeding/schedule';
 import { addDays, frostDates, isTender, plantOutMonthsUnder, safeOut } from '../lifecycle/shed';
 import { currentStage, isRoot, pathFor, setStage, sowingOf, stageLabel, stageTips, suggestedStage } from '../lifecycle/stages';
 import { probableStage, shortDate, stageIn, timeline } from '../lifecycle/projection';
@@ -17,7 +17,7 @@ import { featureLabel, placeLabel } from '../model/features';
 import { runEnds } from '../library/library';
 import { STAGES, type Garden, type PickSize, type Plant, type Planting, type Stage } from '../model/types';
 import { addPick } from '../planting/harvest';
-import { isActive, isContainer, plantingStatus } from '../planting/place';
+import { isActive, isContainer, plantingStatus, stillWanted } from '../planting/place';
 import { isPot } from '../planting/pots';
 import { firstBedHowTo, needsFirstBed } from '../planting/firstBed';
 import { wherePhrase } from '../planting/supports';
@@ -263,7 +263,7 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
     const toSow = notGrowing.filter((p) => !p.sownOn || (sownThisMonth(p, year, month) && sowTicked(p)));
     // Batches are sown in the month you chose for each, one job each; the rest in the plant's sowing months.
     const plain = toSow.filter((p) => !p.sowBy);
-    const before = opts.feeding ? plantingFeedText(plant) : undefined;
+    const before = opts.feeding ? plantingFeedText(plant, g) : undefined;
     const withFeed = (detail?: string) => [detail, before].filter(Boolean).join(' ') || undefined;
     if (plain.length) {
       // One job however many ways it can be sown, done once whichever way. Once you've said how (by ticking it), it's
@@ -359,8 +359,8 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
       for (const due of inGround.length ? feedingDue(plant, month) : []) {
         const scope = `${featureId}:${due.when}`;
         if (isOnce(due.when) && doneBefore(g, `feed:${plant.id}:${scope}:`, year, month)) continue;
-        add('feed', plant, where, scope, ids(inGround), feedDetail(due.steps), featureId);
-        jobs[jobs.length - 1]!.feeds = [...new Set(due.steps.map((s) => s.feed))];
+        add('feed', plant, where, scope, ids(inGround), feedDetail(due.steps, g), featureId);
+        jobs[jobs.length - 1]!.feeds = feedsInUse(g, due.steps);
       }
     }
     const winter = plant.wintering;
@@ -381,9 +381,7 @@ export function jobsFor(g: Garden, plantOf: (id: string) => Plant, month: number
   }
 
   // Your sowing list: plants you mean to grow that aren't on the plan yet.
-  const planned = new Set(g.plantings.filter(isActive).map((p) => p.plantId));
-  for (const id of new Set(g.wishlist)) {
-    if (planned.has(id)) continue;
+  for (const id of stillWanted(g, plantOf)) {
     const plant = plantOf(id);
     // Sowing-list keys have no bed: "sow-indoors:tomato:2026-03". The "2" starts the year, so bed jobs don't match.
     for (const s of sowingKinds(plant, month)) if (!doneBefore(g, `${s.kind}:${plant.id}:2`, year, month)) add(s.kind, plant, 'on your Want to grow list', '', [], s.detail, undefined, s.verb);

@@ -259,6 +259,12 @@ export function plantingShape(pl: Planting, plant: Plant): PlantingShape {
 export const isActive = (pl: Planting) => !pl.removedOn;
 export const activePlantings = (g: Garden) => g.plantings.filter(isActive);
 
+/** What's on your Want to grow list and not in the garden yet, as itself or as a kind of it. */
+export function stillWanted(g: Garden, plantOf: (id: string) => Plant): string[] {
+  const here = new Set(activePlantings(g).flatMap((p) => [p.plantId, plantOf(p.plantId).varietyOf ?? p.plantId]));
+  return [...new Set(g.wishlist)].filter((id) => !here.has(id));
+}
+
 // ---------- Edits. Each returns a new Garden, so each is one undo step. ----------
 
 /** Already in the ground: when it went in, the stage it's at now, and when it got there (left out when that's not known). */

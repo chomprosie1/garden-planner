@@ -20,15 +20,15 @@ import { updateGarden, type Store } from '../../model/store';
 import { LIGHT_LEVELS, type Feature, type Garden, type Light, type Plant, type Planting } from '../../model/types';
 import { defaultFill, FILL_LABEL, fillsFor, type Fill } from '../../planting/fill';
 import { RotationSwitch } from '../RotationSwitch';
-import { fullText, howFull, isListed, listBeds, moveRoom, moveToListBed, placeInList, plantableBeds, plantOutInList, rowsOfSowing, sowingKey, type ListHow } from '../../planting/listPlant';
+import { fullText, howFull, isListed, listBeds, moveRoom, moveToListBed, placeInList, plantableBeds, plantingsCount, plantOutInList, rowsOfSowing, sowingKey, type ListHow } from '../../planting/listPlant';
 import { isActive, plantCount, spacingStyle, type InGroundAt } from '../../planting/place';
-import { checkGarden } from '../../planting/rules';
 import { isSupport } from '../../planting/supports';
 import { nextStep } from '../../planting/windows';
 import { NextYearDialog } from '../NextYear';
 import { ShoppingDialog } from '../Shopping';
 import type { Prefs, PrefsStore } from '../../theme/prefs';
-import { stillToCheck, useApp } from '../appContext';
+import { useApp } from '../appContext';
+import { useChecks } from '../useChecks';
 import { ClearBedsDialog } from '../ClearBeds';
 import { Icon } from '../icons';
 import { Inspector } from '../Inspector';
@@ -90,7 +90,8 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
   const [drafting, setDrafting] = useState(false);
   const [shopping, setShopping] = useState(false);
   const beds = listBeds(garden);
-  const findings = useMemo(() => (plants ? stillToCheck(checkGarden(garden, plantOf), app.dismissedChecks) : []), [garden, plantOf, plants, app.dismissedChecks]);
+  const findings = useChecks(garden, plantOf, plants);
+  const warnings = findings.filter((f) => f.level === 'warn');
   const jobs = useMemo(() => {
     if (!plants) return [];
     const done = new Set(garden.jobsDone.map((j) => j.key));
@@ -111,7 +112,7 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
     clearIntent?.();
   }, [intent]);
 
-  const growing = garden.plantings.filter((p) => isActive(p) && plants && plantOf(p.plantId).category !== 'weed').length;
+  const growing = plants ? plantingsCount(garden, plantOf) : 0;
 
   return (
     <div class="page beds-page">
@@ -157,6 +158,23 @@ export function Beds({ store, garden, userPlants, prefs, intent, clearIntent }: 
             Add your first bed
           </button>
         </section>
+      )}
+
+      {warnings.length > 0 && (
+        <details class="card beds-checks">
+          <summary class="garden-warn">
+            <span aria-hidden="true">!</span> {plural(warnings.length, 'thing', 'things')} to check in your planting
+          </summary>
+          <ul class="plain-list">
+            {warnings.map((f) => (
+              <li key={f.id}>
+                <button type="button" class="link-btn" onClick={() => (f.plantingIds[0] ? setSheet({ type: 'planting', id: f.plantingIds[0] }) : f.featureIds[0] ? setSheet({ type: 'feature', id: f.featureIds[0] }) : undefined)}>
+                  {f.message}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </details>
       )}
 
       {plants && growing > 0 && <SeasonKey today={today} />}
@@ -911,15 +929,17 @@ function MoveDialog({ store, garden, plantOf, plantingId, close }: { store: Stor
         {asking ? (
           <>
             <p>
-              {featureLabel(asking.bed)} has room for {asking.fit} of the {asking.have} {name} plants, at their usual spacing.
+              {asking.fit > 0 ? `${featureLabel(asking.bed)} has room for ${asking.fit} of the ${asking.have} ${name} plants, at their usual spacing.` : `${featureLabel(asking.bed)} is full already.`}
             </p>
             <div class="button-row">
               <button type="button" class="btn btn-primary" onClick={() => move(asking.bed, true, asking.have)}>
                 Move all {asking.have}, closer together
               </button>
-              <button type="button" class="btn" onClick={() => move(asking.bed, false, asking.fit)}>
-                Move {asking.fit}, leave the rest
-              </button>
+              {asking.fit > 0 && (
+                <button type="button" class="btn" onClick={() => move(asking.bed, false, asking.fit)}>
+                  Move {asking.fit}, leave the rest
+                </button>
+              )}
             </div>
           </>
         ) : others.length === 0 ? (

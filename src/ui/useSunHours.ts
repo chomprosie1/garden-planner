@@ -34,10 +34,11 @@ const keyOf = (g: Garden, month: number, year: number): Key => ({
 });
 
 /**
- * Sun hours for the 15th of a month. Worked out just after the screen has drawn, so it never holds up a tap.
- * Returns undefined while working, and null when there's nothing to work out.
+ * Sun hours for the 15th of a month. Worked out just after the screen has drawn, so it never holds up a tap; `wait`
+ * holds it back longer on a screen where it's only for a count. Returns undefined while working, and null when there's
+ * nothing to work out.
  */
-export function useSunHours(g: Garden, month: number, year: number, enabled: boolean): SunGrid | null | undefined {
+export function useSunHours(g: Garden, month: number, year: number, enabled: boolean, wait = 30): SunGrid | null | undefined {
   const key = keyOf(g, month, year);
   const [entry, setEntry] = useState<Entry | null>(() => cache.find((c) => same(c.key, key)) ?? null);
   useEffect(() => {
@@ -45,11 +46,12 @@ export function useSunHours(g: Garden, month: number, year: number, enabled: boo
     const hit = cache.find((c) => same(c.key, key));
     if (hit) return setEntry(hit);
     const t = setTimeout(() => {
-      const made = { key, grid: sunHours(g, month, year) };
-      cache.unshift(made);
+      // Another part of the screen may have asked for the same one meanwhile.
+      const made = cache.find((c) => same(c.key, key)) ?? { key, grid: sunHours(g, month, year) };
+      if (!cache.includes(made)) cache.unshift(made);
       cache.length = Math.min(cache.length, KEEP);
       setEntry(made);
-    }, 30);
+    }, wait);
     return () => clearTimeout(t);
   }, [enabled, g.features, g.boundary, g.latitude, g.longitude, g.northRotationDeg, month, year]);
   if (!enabled) return null;

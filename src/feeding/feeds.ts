@@ -83,9 +83,10 @@ export function stepHeading(p: Plant, s: FeedStep): string {
 }
 
 /** What to do, in a line: "Liquid tomato feed, as the bottle says, in a can of water. Weekly once fruit has set." */
-export function stepText(s: FeedStep): string {
+export function stepText(s: FeedStep, using: string = s.feed): string {
   const f = feedById(s.feed);
-  const what = f ? `${f.name}, ${f.dose}.` : '';
+  // Another feed standing in goes on in the same way: the amount is the step's.
+  const what = f ? `${(feedById(using) ?? f).name}, ${f.dose}.` : '';
   return [what, s.note ?? ''].filter(Boolean).join(' ');
 }
 

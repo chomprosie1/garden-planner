@@ -4,6 +4,7 @@
 // garden alone, and drawn on the device.
 
 import { formatWeight, picksIn, type CropTotal } from '../planting/harvest';
+import { sowingKey } from '../planting/listPlant';
 import type { Garden } from '../model/types';
 import { fitFont, theme } from './poster';
 
@@ -48,7 +49,8 @@ export function seasonStats(g: Garden, year: number, known: (id: string) => bool
   const crops = [...new Set(grown.map((p) => p.plantId))];
   return {
     year,
-    plantings: grown.length,
+    // Rows of one sowing are one planting, as the Garden list shows them.
+    plantings: new Set(grown.map(sowingKey)).size,
     crops,
     firstPick: first,
     grams: top.reduce((a, t) => a + t.grams, 0),

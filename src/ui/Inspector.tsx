@@ -6,7 +6,7 @@ import { useState } from 'preact/hooks';
 import { parseLength } from '../canvas/snap';
 import { climateOf, climateText, coverEffects, DEFAULT_CLIMATE, isCover, microclimateAt, microclimateOf, placeFor, type CoverKind } from '../climate/microclimate';
 import { addPlace, makePlace } from '../lifecycle/shed';
-import { formatArea, formatLength } from '../canvas/viewport';
+import { formatArea, formatLength, formatSpacing } from '../canvas/viewport';
 import { lineLength, perimeter, polygonArea } from '../geometry/polygon';
 import { monthRanges } from '../library/library';
 import {
@@ -1204,11 +1204,11 @@ function PlantingPanel(props: Props & { pl: Planting }) {
                     </>
                   )}
                   <dt>Spacing</dt>
-                  <dd>{formatLength(plant.size.spacingMm)}</dd>
+                  <dd>{formatSpacing(plant.size.spacingMm)}</dd>
                   {layout === 'row' && (
                     <>
                       <dt>Between rows</dt>
-                      <dd>{formatLength(rowSpacingOf(plant))}</dd>
+                      <dd>{formatSpacing(rowSpacingOf(plant))}</dd>
                     </>
                   )}
                   <dt>Spread</dt>

@@ -90,16 +90,36 @@ export function feedingDue(p: Plant, month: number): { when: FeedTime; steps: Fe
   return out;
 }
 
+/** The one feed a first garden buys for nearly everything. */
+const GENERAL_FEED = 'blood-fish-bone';
+/** Feeds it does the job of. Bonemeal is the same slow feed in the hole. */
+const GENERAL_DOES = ['bonemeal', 'balanced-granular', 'chicken-manure-pellets'];
+/** Bought by the bag, to dig in: compost, not feed. */
+const BULKY_FEEDS = ['rotted-manure'];
+
+/**
+ * What a garden buys for a feed its plants call for. A first garden (no feed shelf yet) gets one general feed for those
+ * it does the job of, and compost. A feed for one thing (tomato feed, potash for fruit) is bought as itself.
+ */
+export const feedAsBought = (g: Garden, id: string): string => (g.feedShelf ? id : BULKY_FEEDS.includes(id) ? 'compost' : GENERAL_DOES.includes(id) ? GENERAL_FEED : id);
+
+/** The feed to name in a job, for one a plant calls for: what's on the shopping list, so the two agree. */
+const feedInUse = (g: Garden, id: string): string => (feedAsBought(g, id) === GENERAL_FEED ? GENERAL_FEED : id);
+
+/** The feeds these steps come to in this garden, by id. */
+export const feedsInUse = (g: Garden, steps: FeedStep[]): string[] => [...new Set(steps.map((s) => feedInUse(g, s.feed)))];
+
 /** A feed job's advice: "Every week: liquid tomato feed, as the bottle says. Weekly once fruit has set." */
-export function feedDetail(steps: FeedStep[]): string {
-  return steps.map((s) => (s.when === 'growing' || s.when === 'flowering' ? `${everyText(s.every)}: ${lowerFirst(stepText(s))}` : stepText(s))).join(' ');
+export function feedDetail(steps: FeedStep[], g: Garden): string {
+  const say = (s: FeedStep) => stepText(s, feedInUse(g, s.feed));
+  return steps.map((s) => (s.when === 'growing' || s.when === 'flowering' ? `${everyText(s.every)}: ${lowerFirst(say(s))}` : say(s))).join(' ');
 }
 
 /** What goes in before planting, for the sowing and planting-out jobs: "Before planting: well-rotted manure, a bucketful a square metre." */
-export function plantingFeedText(p: Plant): string | undefined {
+export function plantingFeedText(p: Plant, g: Garden): string | undefined {
   const steps = (p.feeding?.steps ?? []).filter((s) => s.when === 'planting' && feedById(s.feed));
   if (!steps.length) return undefined;
-  return `Before planting: ${steps.map((s) => lowerFirst(stepText(s))).join(' ')}`;
+  return `Before planting: ${steps.map((s) => lowerFirst(stepText(s, feedInUse(g, s.feed)))).join(' ')}`;
 }
 
 // ---------- The feed shelf ----------

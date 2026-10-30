@@ -1,7 +1,7 @@
 import { monthRanges, varietiesOf } from '../library/library';
 import { growthText } from '../lifecycle/growth';
 import type { Light, Plant, Pollinators, Sowing } from '../model/types';
-import { formatLength } from '../canvas/viewport';
+import { formatLength, formatSpacing } from '../canvas/viewport';
 import { Icon } from './icons';
 import { PlantIcon } from './PlantIcon';
 import { PlantKitchen } from './Kitchen';
@@ -258,15 +258,15 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
             <dd>
               {s.closeSpacingMm ? (
                 <>
-                  In a bed: {formatLength(s.closeSpacingMm)} each way
+                  In a bed: {formatSpacing(s.closeSpacingMm)} each way
                   <br />
                   <span class="muted">
-                    In rows: {formatLength(s.spacingMm)} apart{s.rowSpacingMm ? `, rows ${formatLength(s.rowSpacingMm)} apart` : ''}
+                    In rows: {formatSpacing(s.spacingMm)} apart{s.rowSpacingMm ? `, rows ${formatSpacing(s.rowSpacingMm)} apart` : ''}
                   </span>
                 </>
               ) : (
                 <>
-                  {formatLength(s.spacingMm)} apart{s.rowSpacingMm ? `, rows ${formatLength(s.rowSpacingMm)}` : ''}
+                  {formatSpacing(s.spacingMm)} apart{s.rowSpacingMm ? `, rows ${formatSpacing(s.rowSpacingMm)}` : ''}
                 </>
               )}
             </dd>
@@ -316,7 +316,7 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
               sw.notes || sw.depthMm ? (
                 <li key={i}>
                   <strong>{sowLabel(sw)}</strong>
-                  {sw.depthMm ? ` ${sw.depthMm} mm deep.` : '.'} {sw.notes && <GlossText text={sw.notes} />}
+                  {sw.depthMm ? ` ${sw.depthMm >= 10 ? formatSpacing(sw.depthMm) : `${sw.depthMm} mm`} deep.` : '.'} {sw.notes && <GlossText text={sw.notes} />}
                 </li>
               ) : null,
             )}

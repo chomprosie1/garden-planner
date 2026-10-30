@@ -8,6 +8,7 @@ import { useMemo, useState } from 'preact/hooks';
 import { canSowIn, plantMatches } from '../library/library';
 import { beginnerOrder, isEasy, MORE_PLANTS, splitCore } from '../library/order';
 import type { Garden, Plant } from '../model/types';
+import { stillWanted, unknownPlant } from '../planting/place';
 import { Icon } from './icons';
 import { PlantIcon } from './PlantIcon';
 
@@ -24,7 +25,7 @@ export function PlantChooser({ plants, garden, month, pick }: { plants: Plant[];
     () => ({
       now: beginnerOrder(growable.filter((p) => canSowIn(p, month))),
       easy: beginnerOrder(growable.filter(isEasy)),
-      list: [...new Set(garden.wishlist)].map((id) => byId.get(id)).filter((p): p is Plant => !!p),
+      list: stillWanted(garden, (id) => byId.get(id) ?? unknownPlant(id)).map((id) => byId.get(id)).filter((p): p is Plant => !!p),
       tin: [...new Set((garden.seeds ?? []).filter((k) => k.count !== 0).map((k) => k.plantId))].map((id) => byId.get(id)).filter((p): p is Plant => !!p),
       mine: plants.filter((p) => p.userAdded),
       all: beginnerOrder(growable),

@@ -70,6 +70,9 @@ export function formatLength(mm: number): string {
   return `${Number.isInteger(Math.round(m * 100) / 100) ? m.toFixed(0) : m.toFixed(2)} m`;
 }
 
+/** A spacing or a depth, in the units on a seed packet: "2.5 cm", "15 cm", "1.25 m". Small ones keep their half centimetre. */
+export const formatSpacing = (mm: number): string => (mm < 100 ? `${Number((mm / 10).toFixed(1))} cm` : mm < 1000 ? `${Math.round(mm / 10)} cm` : `${Number((mm / 1000).toFixed(2))} m`);
+
 /**
  * Two lengths in one unit, the longer first, so two beds the same size read the same: "2.4 × 1.2 m", or "60 × 45 cm"
  * when both are under a metre.

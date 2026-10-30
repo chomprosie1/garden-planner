@@ -17,6 +17,24 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-30-one-figure',
+    date: '2026-10-30',
+    title: 'One figure everywhere',
+    items: [
+      'Things to check are the same number on Today, in your Garden and on the plan, and shade you’ve set on a bed or pot counts on all of them.',
+      'Your Garden now lists the things to check at the top. Tap one to go to it.',
+      'Plants in separate pots are no longer told they’re too close, and sweet peas in a cold frame go by their pots, not their final spacing.',
+      'How full a bed or pot is comes from one figure: its label, the warning and moving plants in all agree. A crowded pot says so once.',
+      'A fruit cage takes a row of canes and five bushes, pruned to fit.',
+      'Spacing is in centimetres everywhere, and it’s the same number in the Plants list, on the plant’s page and on your planting.',
+      'Rows sown together count as one planting. A picked row says which row it is, such as row 1 of 2.',
+      'Asking for more plants in a list makes the row longer, then adds a second row, rather than squeezing them closer.',
+      'A first garden’s jobs name the feed on its shopping list. Bonemeal is now blood, fish and bone in both, and a feed for one thing, such as potash, goes on the list as itself.',
+      'Want to grow leaves out what’s already in the garden. Choosing a light in Plants shows all of them, not just the easy ones, and the count is what’s listed.',
+    ],
+    tryIt: { label: 'See your garden', view: 'plan' },
+  },
+  {
     id: '2026-10-30-today-follows',
     date: '2026-10-30',
     title: 'Today follows what you’ve done',

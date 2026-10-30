@@ -3,11 +3,11 @@
 // into something bigger, and trees from the Trees list put in a pot. Pure
 // functions: garden in, answers or garden out.
 
-import { bounds, pointInPolygon } from '../geometry/polygon';
+import { bounds, pointInPolygon, polygonArea } from '../geometry/polygon';
 import { featureLabel, makeFeature, pivotOf, rectInfo } from '../model/features';
 import { addNote, makeNote } from '../model/notes';
 import type { Feature, Garden, Plant, Planting, Point } from '../model/types';
-import { isActive, plantCount, plantPositions, spreadOf } from './place';
+import { isActive, plantCount, plantingStatus, plantPositions, spreadOf } from './place';
 
 /** Pots, tubs, planters and window boxes: small containers whose size matters to what's in them. */
 export const isPot = (f: Feature): boolean => f.kind === 'pot' || f.kind === 'planter';
@@ -94,6 +94,19 @@ export function asPlacedIn(p: Plant, bed: Feature | undefined): Plant {
   return p;
 }
 
+/** Over this much is worth a word: plants vary, and close planting is fine. */
+export const OVER_FULL = 1.15;
+
+/**
+ * The room a planting wants where it is, square mm: the one figure behind a bed's badge, its over-full warning and a
+ * crowded pot. A plant on its own in a pot wants the pot it would want; anything else, a square of its spacing each.
+ */
+export function plantRoom(pl: Planting, plant: Plant, bed: Feature): number {
+  const n = plantCount(pl, plant);
+  if (isPot(bed) && n === 1) return isRoundPot(bed) ? Math.PI * (potNeeds(plant) / 2) ** 2 : potNeeds(plant) ** 2;
+  return n * asPlacedIn(plant, bed).size.spacingMm ** 2;
+}
+
 /** The round room inside a pot for bulbs at this spacing: the pot, less a little at the rim. */
 function bulbRoom(pot: Feature, s: number): { c: Point; r: number } | null {
   const b = bounds(pot.footprint);
@@ -168,13 +181,14 @@ export function potProblems(g: Garden, plantOf: (id: string) => Plant): PotProbl
     // Counted by plants, not plantings: a block of lettuce is several plants.
     const counts = here.map((pl) => plantCount(pl, plantOf(pl.plantId)));
     if (tooSmall || counts.reduce((a, b) => a + b, 0) < 2) continue;
-    // A plant on its own wants a square of the pot it would want; plants in a row or block, a square of their spacing.
-    // Together, more room than the pot has is crowded.
+    // Together, more room than the pot has is crowded: the same figure as its badge, which keeps what's planned for a
+    // date (next year's draft) apart from what's in it now.
     const plants = here.map((pl) => plantOf(pl.plantId));
-    const demand = plants.reduce((n, p, i) => n + (counts[i]! > 1 ? counts[i]! * asPlacedIn(p, f).size.spacingMm ** 2 : potNeeds(p) ** 2), 0);
-    if (demand <= size.room * 1.1) continue;
+    const demand = here.reduce((n, pl, i) => n + (plantingStatus(pl) === 'planned' && pl.sowBy ? 0 : plantRoom(pl, plants[i]!, f)), 0);
+    const area = polygonArea(f.footprint);
+    if (demand <= area * OVER_FULL) continue;
     const names = [...new Set(plants.map((p) => lower(p.commonName)))];
-    const together = Math.sqrt(demand);
+    const together = size.across * Math.sqrt(demand / area);
     out.push({
       kind: 'crowded',
       feature: f,

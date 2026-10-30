@@ -164,7 +164,7 @@ const BULBS: HowTo = {
   need: ['The bulbs', 'A trowel or a bulb planter'],
   steps: [
     'Dig a hole about three times as deep as the bulb is tall.',
-    'Set the bulb in, pointed end up, with a little bonemeal in the hole if you have some.',
+    'Set the bulb in, pointed end up, with a little feed in the hole if you have some.',
     'Fill the hole and firm the soil. In a pot, set them close but not touching.',
     'Water them in, then leave them be: they come up in spring.',
   ],

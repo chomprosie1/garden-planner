@@ -229,7 +229,8 @@ describe('the review’s fixes', () => {
     expect(howFull(next, bed, plantOf)).toBeCloseTo(one, 5);
   });
 
-  it('checks neighbours only within a bed, and the sun as you said it only in a list, by its level', () => {
+  // Changed in release 49: the sun you said counts on a plan too, or the checks drop when you switch (Sam: 19 against 6).
+  it('checks neighbours only within a bed, and the sun as you said it, by its level, on a plan as in a list', () => {
     let [g, [a, b]] = withBeds(listGarden(), [['bed', 'A'], ['bed', 'B']]);
     g = plant(g, a!, 'onion', 'one');
     g = plant(g, b!, 'pea', 'one');
@@ -240,7 +241,7 @@ describe('the review’s fixes', () => {
     expect(checkGarden(withLover, plantOf).filter((f) => f.kind === 'light')).toEqual([]);
     const shady = { ...withLover, features: withLover.features.map((f) => ({ ...f, light: 'shade' as const })) };
     expect(checkGarden(shady, plantOf).filter((f) => f.kind === 'light').length).toBeGreaterThan(0);
-    expect(checkGarden({ ...shady, view: undefined }, plantOf).filter((f) => f.kind === 'light')).toEqual([]);
+    expect(checkGarden({ ...shady, view: undefined }, plantOf).filter((f) => f.kind === 'light').length).toBeGreaterThan(0);
   });
 
   it('numbers names without landing on one already used', () => {

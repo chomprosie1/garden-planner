@@ -20,7 +20,8 @@ import { CATEGORY_LABEL, LIGHT_LABEL, PlantCard } from '../PlantCard';
 import { PlantForm } from '../PlantForm';
 import { PlantIcon } from '../PlantIcon';
 import { packetsFor, packetText } from '../../planting/seeds';
-import { unknownPlant } from '../../planting/place';
+import { formatSpacing } from '../../canvas/viewport';
+import { asGrown, spacingStyle, stillWanted, unknownPlant } from '../../planting/place';
 
 interface Props {
   store: Store;
@@ -78,15 +79,20 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
   const plantOf = (id: string) => byId.get(id) ?? unknownPlant(id);
   const hasSeed = (p: Plant) => !!garden.seeds?.length && packetsFor(garden, p, plantOf).length > 0;
   const [wantOnly, setWantOnly] = useState(false);
+  const wanted = useMemo(() => stillWanted(garden, plantOf), [garden.wishlist, garden.plantings, byId]);
   const results = useMemo(() => {
     // With nothing typed, the plants most beginners grow come first; a search keeps its own order.
-    const matched = filterPlants(plants, filter);
+    // Your list is your list: all of it, easy or not.
+    const matched = filterPlants(plants, wantOnly ? { ...filter, easyOnly: false } : filter);
     const found = filter.query.trim() ? matched : beginnerOrder(matched);
-    return wantOnly ? found.filter((p) => garden.wishlist.includes(p.id)) : found;
-  }, [plants, filter, wantOnly, garden.wishlist]);
+    return wantOnly ? found.filter((p) => wanted.includes(p.id)) : found;
+  }, [plants, filter, wantOnly, wanted]);
 
   // Beyond the core 150, plants wait under More plants until they're checked; a search or your list shows everything.
   const { core, more } = filter.query.trim() || wantOnly ? { core: results, more: [] } : splitCore(results);
+  // The count is of what's shown: plants waiting to be checked only count once they're on.
+  const shownCount = app.draftPlants ? results.length : core.length;
+  const allCount = app.draftPlants || filter.query.trim() || wantOnly ? plants.length : splitCore(plants).core.length;
 
   // On a wide screen, show the first result in view rather than an empty pane.
   const firstShown = core[0] ?? results[0];
@@ -122,7 +128,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
           <span class="plant-row-name">{p.commonName}</span>
         </span>
         <span class="plant-row-meta small muted">
-          {LIGHT_LABEL[p.conditions.light]} · {p.size.spacingMm < 1000 ? `${Math.round(p.size.spacingMm / 10)} cm` : `${Number((p.size.spacingMm / 1000).toFixed(1))} m`} apart
+          {LIGHT_LABEL[p.conditions.light]} · {formatSpacing(asGrown(p, spacingStyle(garden)).size.spacingMm)} apart
         </span>
         {hasSeed(p) && <span class="badge badge-seed">Seed</span>}
         {p.userAdded ? <span class="badge badge-own">Yours</span> : editor && !p.verified && <span class="dot-warn" title="Not yet checked" aria-label="Not yet checked" />}
@@ -152,7 +158,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
             </option>
           ))}
         </select>
-        <select aria-label="Light" value={filter.light} onChange={(e) => setFilter({ ...filter, light: (e.currentTarget as HTMLSelectElement).value as PlantFilter['light'] })}>
+        <select aria-label="Light" value={filter.light} onChange={(e) => setFilter({ ...filter, light: (e.currentTarget as HTMLSelectElement).value as PlantFilter['light'], easyOnly: false })}>
           <option value="all">Any light</option>
           {LIGHT_LEVELS.map((l) => (
             <option key={l} value={l}>
@@ -162,7 +168,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
         </select>
         <button type="button" class="chip want-chip" aria-pressed={wantOnly} onClick={() => setWantOnly(!wantOnly)}>
           <Icon name="heart" size={15} filled={wantOnly} />
-          Want to grow ({new Set(garden.wishlist).size})
+          Want to grow ({wanted.length})
         </button>
         <button type="button" class="chip" aria-pressed={!!filter.easyOnly} title="Crops and herbs the RHS calls easy to grow" onClick={() => setFilter({ ...filter, easyOnly: !filter.easyOnly })}>
           Easy to start
@@ -186,7 +192,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
       {!library && !failed && <p class="muted">Loading plants…</p>}
       {library && (
         <p class="muted small" aria-live="polite">
-          {results.length} of {plants.length} plants
+          {shownCount} of {allCount} plants
         </p>
       )}
       <ul class="plant-list">{core.map((p) => row(p))}</ul>
@@ -196,7 +202,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
         </MorePlants>
       )}
       {library && results.length === 0 && (
-        <p class="muted">{wantOnly && !garden.wishlist.length ? 'Nothing on your list yet. Tap the heart on a plant you’d like to grow.' : 'No plants match. Try fewer words or clear a filter.'}</p>
+        <p class="muted">{wantOnly && !wanted.length ? (garden.wishlist.length ? 'Everything on your list is in the garden.' : 'Nothing on your list yet. Tap the heart on a plant you’d like to grow.') : 'No plants match. Try fewer words or clear a filter.'}</p>
       )}
     </div>
   );

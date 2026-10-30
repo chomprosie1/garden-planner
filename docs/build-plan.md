@@ -2786,6 +2786,45 @@ Not changed:
 - **Something sown where it grows, under cover** (Callum's purslane in the tunnel) still says "Plant out now".
 - **The broad bean's out date** stays about a week before its month, the usual rule for hardy plants. Margaret's "harvest 2 May is early for Shropshire" is release 50.
 
+### Release 49 — One figure everywhere (as built)
+Built 30 Oct 2026. No schema change. Version 0.49.0.
+
+- **Things to check** (`checkGarden`, `src/ui/useChecks.ts`):
+  - Today, the Garden list and the plan all call one hook. Sam's 19 against 6 was the plan overruling shade set on each container: a bed or pot's stated sun now counts in every view, and June's worked-out sun only for what hasn't been said.
+  - Today waits 1.5 seconds before working out June's sun, so its jobs come first. The hook shares the plan's result rather than doing it twice.
+  - The same words about the same bed are one finding. The same words about another bed stay two.
+  - The Garden list has the checks at the top, each going to its planting.
+- **Spacing checks are for plants that share the ground:** none between separate pots, none inside a round pot, and no neighbour warnings between pots. A row's check uses the spacing it stands at, so sweet peas in a frame go by module spacing.
+- **Room** (`plantRoom` and `OVER_FULL`, now in `src/planting/pots.ts`):
+  - One figure behind the badge, the over-full warning and a crowded pot. A pot says "Too crowded" only, and the size it gives comes from the same figure.
+  - A plant on its own in a pot wants a circle of the pot it would want; anything else, a square of its spacing each. Crowded used to be 1.1 of the pot's square, and is now 1.15 of its real area, as the badge is.
+  - Next year's draft in a pot doesn't count as crowding it now.
+  - A move into a pot counts what's there: Priya's "room for 16" is now about 1. A pot with no room says it's full and offers only "Move all, closer together".
+  - A row in a bed that reads as having room goes into the gaps when there's no clear strip (Priya saw this after laying rows out on the plan). From "Nearly full" it's refused, as before.
+- **Fruit cage:** a 4 × 3 m cage takes a row of raspberries and five bushes. Bushes are set one by one, along the cage first, on a finer grid, nearer the netting, and at 80% of their spacing (`CAGE_SQUEEZE`), pruned to fit. The plan's check allows the same, so switching to a plan raises nothing.
+- **Spacing in words** (`formatSpacing`): in cm, keeping half centimetres under 10 cm and two decimals over a metre. On warnings, the Plants list, the plant's page and the planting. The Plants list shows the spacing this garden uses, so strawberries read 30 cm, not 40.
+- **Counts:** `plantingsCount` counts what the list shows: rows of one sowing are one, as are 8 strawberries in one tower. On the Garden list, Today and Wrapped. A picked row on the plan says "row 1 of 2 · 20".
+- **In a list, raising a row's count** lays it again if it won't fit at its spacing: as long as the bed, then a second row. This does what the plan asked for a row length or a second row, without a new field. Lowering a count leaves the row alone.
+- **Feeds** (`feedAsBought`, `src/feeding/schedule.ts`):
+  - The rule is in one place. A first garden's general feed stands in only for what it does the job of: bonemeal, balanced granular and chicken pellets. Jobs name it too.
+  - A change: a feed for one thing (potash, seaweed) used to be swapped for the general feed on the list while the job still named it. It now goes on the list as itself, so a first garden's list can be a line or two longer.
+- **The Shed and the timeline:** "Seedlings due from 5 Nov, most likely about 12 Nov", the timeline's day. Six single plants say "6 plants", not "6 rows".
+- **Want to grow** (`stillWanted`): leaves out what's in the garden, as itself or as a kind of it, in Plants, the plan's tray, the chooser, jobs and shopping. Your list shows all of itself, easy or not.
+- **Plants filter:** choosing a light turns Easy to start off, as searching does. The count is what's listed: "3 of 251", not "22 of 604" with 3 shown.
+- **Checked in a browser:** a balcony with the herb kit shows 1 thing to check and 6 plantings on both Today and Garden, the list opens with its check, and Shade shows 3 of 251 with 3 rows. No page errors. The viewport held at 500 px, not 390.
+- **Code review before pushing** (`/code-review`, medium) found ten things. Fixed, with tests: depths rounded to whole centimetres, findings merged across beds, potash on the job but not the list, next year's draft crowding a pot, lowering a count tearing up a row, the sun worked out twice, the cage against the plan's check, and the tray still counting planted plants. One not taken: it flagged `wrapped.ts` importing from `planting`, which it already did.
+
+Tests: `tests/one-figure.test.ts`, one for each of the above.
+
+Changed tests:
+- `list`: "the sun as you said it only in a list" is now "on a plan as in a list". A change of rule: it was Sam's bug.
+- `planting`: warnings in cm.
+
+Not changed:
+- **Shade is honest but thin:** Shade lists 3 plants until more are checked. The data track adds to them; "More plants" in Settings shows the rest.
+- **A plan garden's Today** shows fewer checks for its first 1.5 seconds, until June's sun is worked out.
+- **Lasagne pots:** bulbs layered in a pot still read as crowded.
+
 ## Repo layout
 ```
 garden-planner/

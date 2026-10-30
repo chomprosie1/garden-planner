@@ -373,7 +373,8 @@ export function nextFor(p: Plant, g: Garden, stage: TrayStage, sownOn: string, s
   const [min, max] = germination(p);
   if (stage === 'sown') {
     const age = daysBetween(sownOn, today);
-    if (age < min) return { text: `Seedlings due from ${short(addDays(sownOn, min))}. Keep the compost just moist.`, ready: false, due: false };
+    // Most likely the day the planting's timeline says: the middle of its usual days.
+    if (age < min) return { text: `Seedlings due from ${short(addDays(sownOn, min))}, most likely about ${short(addDays(sownOn, Math.round((min + max) / 2)))}. Keep the compost just moist.`, ready: false, due: false };
     if (age <= max) return { text: `Seedlings due any day now, up to ${short(addDays(sownOn, max))}.`, ready: false, due: true };
     return { text: `Not up after ${Math.round(age / 7)} weeks? If nothing shows soon, the sowing may have failed.`, ready: false, due: true };
   }

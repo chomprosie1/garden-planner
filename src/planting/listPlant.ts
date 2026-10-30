@@ -9,10 +9,12 @@ import { placeLabel } from '../model/features';
 import { newId } from '../model/ids';
 import type { Feature, Garden, Plant, Planting, Point } from '../model/types';
 import { defaultFill, fillPlanting, type Fill } from './fill';
-import { isActive, isContainer, isSoftGround, makePlanting, MAX_PLANTS, plantCount, plantPositions, rowCount, rowSpacingOf, spreadOf, type InGroundAt } from './place';
-import { asPlacedIn, bulbsInPot, isBulb, isRoundPot, potCapacity, raisedIn, spotInPot } from './pots';
+import { isActive, isContainer, isSoftGround, makePlanting, MAX_PLANTS, plantCount, plantPositions, rowCount, rowSpacingOf, type InGroundAt } from './place';
+import { asPlacedIn, bulbsInPot, isBulb, isPot, isRoundPot, OVER_FULL, plantRoom, potCapacity, raisedIn, spotInPot } from './pots';
 import { goneBy } from './rotation';
 import { isSupport } from './supports';
+
+export { OVER_FULL };
 
 /** A garden kept as a list. */
 export const isList = (g: Garden) => g.view === 'list';
@@ -43,6 +45,9 @@ export function rowsOfSowing(g: Garden, id: string): string[] {
   return g.plantings.filter((p) => p.id !== id && isActive(p) && sowingKey(p) === k).map((p) => p.id);
 }
 
+/** How many plantings a garden has, as the list shows them: rows of one sowing are one, and weeds and what's cleared don't count. */
+export const plantingsCount = (g: Garden, plantOf: (id: string) => Plant): number => new Set(g.plantings.filter((p) => isActive(p) && plantOf(p.plantId).category !== 'weed').map(sowingKey)).size;
+
 /** How many to plant: one of the usual ways, or a number of plants. */
 export type ListHow = Fill | number;
 
@@ -56,11 +61,17 @@ function taken(g: Garden, bed: Feature, plantOf: (id: string) => Plant): Busy[] 
     .flatMap((pl) => {
       const plant = asPlacedIn(plantOf(pl.plantId), bed);
       const a = (pl.layout ?? 'single') === 'single' ? plant.size.spacingMm / 2 : rowSpacingOf(plant) / 2;
-      return plantPositions(pl, plantOf(pl.plantId)).map((p) => ({ p, a }));
+      // Beside a row, a little more: the check on a plan measures to the row, and the gaps between its plants don't count.
+      const own = (plant.size.spacingMm / 2) * (pl.layout === 'row' ? 1.25 : 1);
+      return plantPositions(pl, plantOf(pl.plantId)).map((p) => ({ p, a, own }));
     });
 }
 
-type Busy = { p: Point; a: number };
+/** How close bushes go in a fruit cage, as a share of their spacing: they're pruned to fit. */
+export const CAGE_SQUEEZE = 0.8;
+
+/** `own`: its room without the path a row keeps beside it. */
+type Busy = { p: Point; a: number; own: number };
 
 /** The first point across the bed (away from its first long edge) clear of what's planted, for a row of this plant. */
 function nextAcross(bed: Feature, busy: Busy[], plant: Plant): { across: boolean; at: number } | null {
@@ -84,18 +95,25 @@ const alongMiddle = (bed: Feature, across: boolean, at: number): Point => {
 /**
  * The first clear spot in a bed, along it from one end: on a grid of the plant's spacing, then of half of it, each
  * plant as far from the others as the plan's spacing check wants (half its spacing, and half theirs, or half a row's
- * spacing beside a row). Null when there's none. In a fruit cage, bushes stand nearer the netting.
+ * spacing beside a row). Null when there's none. In a fruit cage, bushes are pruned to fit and packed in: nearer the
+ * netting, closer together (the plan's check allows the same), and beside a row of canes with no path between, on a
+ * finer grid.
  */
 function freePoint(bed: Feature, busy: Busy[], plant: Plant): Point | null {
   const b = bounds(bed.footprint)!;
   const s = Math.max(100, plant.size.spacingMm);
   const half = plant.size.spacingMm / 2;
-  const edge = bed.fruitCage ? s / 3 : s / 2;
-  for (const step of [s, s / 2])
-    for (let x = b.minX + edge; x <= b.maxX - edge + 1; x += step)
-      for (let y = b.minY + edge; y <= b.maxY - edge + 1; y += step) {
-        const p: Point = [Math.round(x), Math.round(y)];
-        if (pointInPolygon(p, bed.footprint) && busy.every((o) => Math.hypot(o.p[0] - p[0], o.p[1] - p[1]) >= (o.a + half) * 0.9)) return p;
+  const cage = !!bed.fruitCage;
+  const edge = cage ? s / 4 : s / 2;
+  const gap = cage ? CAGE_SQUEEZE : 0.9;
+  // In a cage, along its length first: each row of bushes filled before the next, so none is wasted.
+  const flip = cage && b.maxX - b.minX >= b.maxY - b.minY;
+  const [outer, inner] = flip ? [[b.minY, b.maxY], [b.minX, b.maxX]] : [[b.minX, b.maxX], [b.minY, b.maxY]];
+  for (const step of cage ? [s / 8] : [s, s / 2])
+    for (let u = outer[0]! + edge; u <= outer[1]! - edge + 1; u += step)
+      for (let v = inner[0]! + edge; v <= inner[1]! - edge + 1; v += step) {
+        const p: Point = flip ? [Math.round(v), Math.round(u)] : [Math.round(u), Math.round(v)];
+        if (pointInPolygon(p, bed.footprint) && busy.every((o) => Math.hypot(o.p[0] - p[0], o.p[1] - p[1]) >= ((cage ? o.own : o.a) + half) * gap)) return p;
       }
   return null;
 }
@@ -155,7 +173,12 @@ export function placeInList(g: Garden, bed: Feature, asked: Plant, how: ListHow,
   if (way === 'row') {
     const next = nextAcross(bed, busy, plant);
     const row = next && make(fillPlanting(plant, bed, 'row', alongMiddle(bed, next.across, next.at)));
-    return done(row && inside(row) ? [row] : []);
+    if (row && inside(row)) return done([row]);
+    // No clear strip for a whole row, in a bed its badge says has room: as many as that room holds, in the gaps there are.
+    const spare = Math.floor(((NEARLY_FULL - howFull(g, bed, plantOf)) * polygonArea(bed.footprint)) / s ** 2);
+    if (spare <= 0) return done([]);
+    const some = rowsOf(spare);
+    return { ...some, left: 0, full: !some.plantings.length };
   }
   // Raised in a cold frame: as many rows of pots or modules as the frame holds.
   if (way === 'fill' && raisedIn(bed, asked)) return { ...rowsOf(Math.floor((b.maxX - b.minX) / s) * Math.floor((b.maxY - b.minY) / s)), left: 0 };
@@ -184,7 +207,8 @@ export function placeInList(g: Garden, bed: Feature, asked: Plant, how: ListHow,
     let left = n;
     let next = g;
     while (left > 0 && out.length < 500) {
-      const spot = nextAcross(bed, taken(next, bed, plantOf), plant);
+      // Bushes in a fruit cage are set one by one where they fit; canes go in rows.
+      const spot = bed.fruitCage && s >= 1000 ? null : nextAcross(bed, taken(next, bed, plantOf), plant);
       const shape = spot ? fillPlanting(plant, bed, 'row', alongMiddle(bed, spot.across, spot.at)) : null;
       let pl: Planting | null = null;
       if (shape && shape.layout === 'row' && shape.endPoint) {
@@ -218,14 +242,6 @@ const xy = (p: Point) => ({ x: Math.round(p[0]), y: Math.round(p[1]) });
 /** The usual way to plant this in this bed, from the list. */
 export const usualHow = (plant: Plant, bed: Feature): Fill => defaultFill(plant, bed);
 
-/** The plant's room: a square of its spacing for each plant; in a round pot, a circle of its spread, as it fills the pot. */
-const roomOf = (pl: Planting, plant: Plant, bed: Feature) => {
-  const placed = asPlacedIn(plant, bed);
-  // Bulbs in a pot and seedlings in a frame: a square of the spacing they stand at, each.
-  const own = placed !== plant || !isRoundPot(bed) ? placed.size.spacingMm ** 2 : Math.PI * (spreadOf(plant) / 2) ** 2;
-  return plantCount(pl, plant) * own;
-};
-
 /**
  * How full a bed is: the room its plantings want against its area, as a share (1 is full). One plant in a pot is never
  * more than full. Everything in it now counts together, whenever it was started. Plantings planned for a date (next
@@ -248,7 +264,7 @@ export function howFull(g: Garden, bed: Feature, plantOf: (id: string) => Plant)
     const plant = plantOf(pl.plantId);
     if (plant.category === 'weed') continue;
     plants += plantCount(pl, plant);
-    const room = roomOf(pl, plant, bed);
+    const room = plantRoom(pl, plant, bed);
     if (currentStage(pl) === 'planned' && pl.sowBy) {
       const y = pl.sowBy.slice(0, 4);
       const was = later.get(y);
@@ -265,12 +281,13 @@ export function howFull(g: Garden, bed: Feature, plantOf: (id: string) => Plant)
   return round && plants === 1 ? Math.min(share, 1) : share;
 }
 
-/** Over this much is worth a word: plants vary, and close planting is fine. */
-export const OVER_FULL = 1.15;
+/** From here a bed reads as nearly full, and takes no more than it has clear room for. */
+const NEARLY_FULL = 0.7;
 
-/** "Veg bed is over-full: about 130%." For each listed bed the plants want more room than it has. */
+/** "Veg bed is over-full: about 130%." For each listed bed the plants want more room than it has. A pot says "Too crowded" instead: one problem, one warning. */
 export function fullnessFindings(g: Garden, plantOf: (id: string) => Plant): { id: string; featureId: string; plantingIds: string[]; message: string }[] {
   return listBeds(g)
+    .filter((bed) => !isPot(bed))
     .map((bed) => ({ bed, share: howFull(g, bed, plantOf) }))
     .filter(({ share }) => share > OVER_FULL)
     .map(({ bed, share }) => ({
@@ -285,7 +302,7 @@ export function fullnessFindings(g: Garden, plantOf: (id: string) => Plant): { i
 export function fullText(share: number): string {
   if (share <= 0.02) return 'Empty';
   if (share < 0.35) return 'Plenty of room';
-  if (share < 0.7) return 'About half full';
+  if (share < NEARLY_FULL) return 'About half full';
   if (share <= OVER_FULL) return 'Nearly full';
   return 'Over-full';
 }
@@ -300,7 +317,7 @@ export function fullText(share: number): string {
 export function moveToListBed(g: Garden, plantingId: string, bedId: string, plantOf: (id: string) => Plant, keepAll = false): Garden {
   const pl = g.plantings.find((p) => p.id === plantingId);
   const moved = moveInto(g, plantingId, bedId, plantOf, keepAll);
-  if (!pl || !moved) return g;
+  if (!pl || !moved || moved.kept <= 0) return g;
   // Any there wasn't room for stay where they were, as a planting of their own.
   const left = plantCount(pl, plantOf(pl.plantId)) - moved.kept;
   if (left <= 0) return moved.garden;
@@ -324,9 +341,10 @@ function moveInto(g: Garden, plantingId: string, bedId: string, plantOf: (id: st
   const have = plantCount(pl, own);
   const { endPoint: _e, count: _c, ...life } = pl;
   const put = (shape: Pick<Planting, 'layout' | 'x' | 'y'> & Partial<Pick<Planting, 'endPoint' | 'count'>>): Planting => ({ ...life, featureId: bed.id, ...shape });
-  // Bulbs into a round pot: a potful of them, or all of them, closer.
+  // Bulbs into a round pot: a potful of them less what's in it already, or all of them, closer.
   if (isRoundPot(bed) && isBulb(own) && have > 1) {
-    const kept = keepAll ? have : Math.min(have, potCapacity(bed, own));
+    const free = Math.max(0, 1 - howFull(g, bed, plantOf));
+    const kept = keepAll ? have : Math.min(have, Math.floor(potCapacity(bed, own) * free));
     return { garden: { ...g, plantings: g.plantings.map((p) => (p.id === plantingId ? put(bulbsInPot(bed, own, kept)) : p)) }, kept };
   }
   const without = { ...g, plantings: g.plantings.filter((p) => p.id !== plantingId) };
@@ -406,9 +424,11 @@ function layAgain(g: Garden, from: Planting, bed: Feature, plant: Plant, n: numb
 }
 
 /**
- * A planting set to a number of plants, from its details. One row keeps its ends, its plants closer or further apart;
- * a potful of bulbs is that many; a block grows or shrinks about its middle, keeping to the bed. Rows of one sowing (a
- * list's planting) are laid again as that many, in rows. `left` is how many there wasn't room for.
+ * A planting set to a number of plants, from its details. One row keeps its ends, its plants closer or further apart,
+ * unless it's in a list and they won't fit at their spacing: there's no dragging a row longer there, so it's laid again,
+ * as long as the bed and then a second row. A potful of bulbs is that many; a block grows or shrinks about its middle,
+ * keeping to the bed. Rows of one sowing (a list's planting) are laid again as that many, in rows. `left` is how many
+ * there wasn't room for.
  */
 export function setPlantingCount(g: Garden, ids: string[], count: number, plantOf: (id: string) => Plant): { garden: Garden; left: number } {
   const rows = ids.map((id) => g.plantings.find((p) => p.id === id)).filter((p): p is Planting => !!p && isActive(p));
@@ -418,7 +438,8 @@ export function setPlantingCount(g: Garden, ids: string[], count: number, plantO
   const n = Math.max(1, Math.min(MAX_PLANTS, Math.round(count)));
   const plant = plantOf(first.plantId);
   const set = (patch: Partial<Planting>) => ({ ...g, plantings: g.plantings.map((p) => (p.id === first.id ? { ...p, ...patch } : p)) });
-  if (rows.length === 1 && first.layout === 'row') return { garden: set({ count: n }), left: 0 };
+  const outgrown = isList(g) && !!first.endPoint && n > plantCount(first, plant) && n > rowCount([first.x, first.y], first.endPoint, asPlacedIn(plant, bed).size.spacingMm);
+  if (rows.length === 1 && first.layout === 'row' && !outgrown) return { garden: set({ count: n }), left: 0 };
   if (rows.length === 1 && first.layout === 'block' && first.count) return { garden: set({ count: n }), left: 0 };
   if (rows.length === 1 && first.layout === 'block' && first.endPoint) {
     const block = blockOf(first, plant, bed, n);

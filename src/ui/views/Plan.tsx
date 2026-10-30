@@ -8,7 +8,8 @@ import { updateGarden, type Store } from '../../model/store';
 import type { FeatureKind, Garden, Plant, Point } from '../../model/types';
 import { formatLength } from '../../canvas/viewport';
 import { distance } from '../../geometry/polygon';
-import { checkGarden, formatHours, type Finding } from '../../planting/rules';
+import { formatHours, type Finding } from '../../planting/rules';
+import { useChecks } from '../useChecks';
 import { hoursAt } from '../../sun/hours';
 import { fromUkClock, sunAt, sunDay, ukClock } from '../../sun/position';
 import { shadowsAt } from '../../sun/shadow';
@@ -43,7 +44,7 @@ import { SketchBar } from '../SketchBar';
 import { SpaceDialog } from '../SpacePicker';
 import { applyKit, type Kit } from '../../planting/kits';
 import { trayFrom } from '../../lifecycle/shed';
-import { stillToCheck, useApp } from '../appContext';
+import { useApp } from '../appContext';
 import { clockText, SunBar, type CalendarDate, type SunView } from '../SunBar';
 import { usePlants } from '../usePlants';
 import { spacingStyle, type InGroundAt } from '../../planting/place';
@@ -255,8 +256,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
     dismiss: () => prefsStore.set({ stuckSeen: [...new Set([...prefsStore.get().stuckSeen, id])] }),
   });
   const juneGrid = useSunHours(garden, 6, today.year, (growing || sunOn) && !!plants);
-  // Checks wait for the library, so plants never show as "unknown" for a moment.
-  const findings: Finding[] = useMemo(() => (plants ? stillToCheck(checkGarden(garden, plantOf, juneGrid ?? null), app.dismissedChecks) : []), [garden, plantOf, plants, juneGrid, app.dismissedChecks]);
+  const findings: Finding[] = useChecks(garden, plantOf, plants, 30);
   // The garden through the year: each planting's life, read at the chosen day.
   // With this year's weather on, the days it covers count as they were (or are forecast to be).
   const { weather } = useWeatherNow();

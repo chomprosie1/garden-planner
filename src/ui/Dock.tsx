@@ -12,7 +12,7 @@ import { KINDS } from '../model/features';
 import { STICKERS, stickerById, stickerFeature, treeStickerId, type Sticker, type StickerGroup } from '../model/stickers';
 import { findTrees, FRUIT_TREE_PLANTS, treeSizeText } from '../model/trees';
 import { PLANT_SIZES, type FeatureKind, type Garden, type Plant, type PlantSize } from '../model/types';
-import { SIZE_LABEL } from '../planting/place';
+import { SIZE_LABEL, stillWanted } from '../planting/place';
 import { forSupports } from '../planting/supports';
 import { DRAWERS_IN, showsSticker, type PlanMode } from './planMode';
 import { Icon, type IconName } from './icons';
@@ -174,7 +174,7 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
     if (filter === 'easy') return beginnerOrder(plants.filter((p) => !p.varietyOf && isEasy(p)));
     if (filter === 'climb') return forSupports(beginnerOrder(plants));
     if (filter === 'mine') return plants.filter((p) => p.userAdded);
-    if (filter === 'list') return [...new Set(garden.wishlist)].map(plantOf);
+    if (filter === 'list') return stillWanted(garden, plantOf).map(plantOf);
     if (filter === 'tin') return [...new Set((garden.seeds ?? []).filter((k) => k.count !== 0).map((k) => k.plantId))].map(plantOf);
     if (filter === 'all') return beginnerOrder(plants.filter((p) => p.category !== 'weed' && !p.varietyOf));
     if (filter === 'weeds') return plants.filter((p) => p.category === 'weed');
@@ -197,7 +197,7 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
     ['easy', 'Easy to start', plants ? plants.filter((p) => !p.varietyOf && isEasy(p)).length : 0],
     ...(forSupport ? [] : [climbers]),
     ['shed', 'In the shed', trays.length],
-    ['list', 'Want to grow', garden.wishlist.length],
+    ['list', 'Want to grow', stillWanted(garden, plantOf).length],
     ['tin', 'In the seed tin', new Set((garden.seeds ?? []).filter((k) => k.count !== 0).map((k) => k.plantId)).size],
     ['mine', 'Your plants', plants ? plants.filter((p) => p.userAdded).length : 0],
     ['all', 'All plants', plants ? plants.filter((p) => p.category !== 'weed' && !p.varietyOf).length : 0],
@@ -269,7 +269,7 @@ export function Dock({ open, setOpen, plants, plantOf, garden, month, onPlant, o
                       </li>
                     ))}
                 {!plants && <li class="muted small">Loading plants…</li>}
-                {plants && !query && filter === 'list' && garden.wishlist.length === 0 && <li class="muted small">Nothing here yet. Tap the heart on a plant you want to grow.</li>}
+                {plants && !query && filter === 'list' && stillWanted(garden, plantOf).length === 0 && <li class="muted small">Nothing here yet. Tap the heart on a plant you want to grow.</li>}
                 {plants && query && shown.length === 0 && <li class="muted small">No plants match.</li>}
                 {plants && !query && core.length === 0 && more.length > 0 && !showMore && <li class="muted small">None of the most-grown plants here. See the plants still being checked, below.</li>}
               </ul>

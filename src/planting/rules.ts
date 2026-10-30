@@ -2,14 +2,14 @@
 // a list of findings out. Each finding says what's wrong in words, with the
 // numbers behind it, so no warning is a mystery.
 
-import { formatLength } from '../canvas/viewport';
+import { formatLength, formatSpacing } from '../canvas/viewport';
 import { distance, distanceToSegment, pointInPolygon } from '../geometry/polygon';
 import { featureLabel, placeLabel } from '../model/features';
 import type { Garden, Light, Plant, Planting, Point } from '../model/types';
 import { averageHours, type SunGrid } from '../sun/hours';
 import { activePlantings, canHold, plantCount, plantingShape, plantPositions, rowSpacingOf, sizedPlant, type PlantingShape } from './place';
-import { asPlacedIn, isPot, potProblems } from './pots';
-import { fullnessFindings, isList } from './listPlant';
+import { asPlacedIn, isPot, isRoundPot, potProblems } from './pots';
+import { CAGE_SQUEEZE, fullnessFindings, isList } from './listPlant';
 import { seasonsApart } from './rotation';
 import { phOf, soilClash, soilOf } from './soil';
 import { holdsOne, holdsPoint, isSupport } from './supports';
@@ -34,22 +34,38 @@ export const NEIGHBOUR_MM = 1000;
 type PlantOf = (id: string) => Plant;
 
 /**
- * Checks everything. With a sun-hours grid (normally June's), light is checked too. A garden kept as a list has spots made
- * up for it, so instead of the gaps between plants, how full each bed is; and light from each bed's sun, as you said.
+ * Checks everything, the one place any screen's "things to check" comes from. A bed or pot's sun, where you've said it,
+ * is what light is checked against, on a plan as in a list; with a sun-hours grid (normally June's), the rest is too. A
+ * garden kept as a list has spots made up for it, so instead of the gaps between plants, how full each bed is. Rows of
+ * one planting raising the same check are one finding.
  */
 export function checkGarden(g: Garden, plantOf: PlantOf, sun: SunGrid | null = null): Finding[] {
   // Weeds aren't checked for spacing, neighbours or light: they're not a planting choice.
   const active = activePlantings(g).filter((pl) => plantOf(pl.plantId).category !== 'weed');
+  const said = new Set(g.features.filter((f) => f.light).map((f) => f.id));
   const findings = [
     ...checkPlacement(g, active, plantOf),
     ...checkPots(g, plantOf),
     ...checkSupports(g, active, plantOf),
     ...(isList(g) ? checkFullness(g, plantOf) : checkSpacing(g, active, plantOf)),
     ...checkNeighbours(g, active, plantOf),
-    ...(sun ? checkLight(active, plantOf, sun) : isList(g) ? checkStatedLight(g, active, plantOf) : []),
+    ...checkStatedLight(g, active, plantOf),
+    ...(sun ? checkLight(active.filter((pl) => !said.has(pl.featureId)), plantOf, sun) : []),
     ...checkSoil(g, active, plantOf),
   ];
-  return findings.sort((a, b) => (a.level === b.level ? 0 : a.level === 'warn' ? -1 : 1));
+  return onceEach(findings).sort((a, b) => (a.level === b.level ? 0 : a.level === 'warn' ? -1 : 1));
+}
+
+/** Findings in one bed that say the same thing are one, for all the plantings they're about. The same words about another bed are another problem. */
+function onceEach(findings: Finding[]): Finding[] {
+  const once = new Map<string, Finding>();
+  for (const f of findings) {
+    const key = `${f.featureIds.join()}|${f.message}`;
+    const was = once.get(key);
+    if (!was) once.set(key, { ...f });
+    else was.plantingIds = [...new Set([...was.plantingIds, ...f.plantingIds])];
+  }
+  return [...once.values()];
 }
 
 // ---------- In a bed ----------
@@ -78,7 +94,8 @@ function checkPlacement(g: Garden, active: Planting[], plantOf: PlantOf): Findin
     }
     if (pl.layout === 'row' && pts.length > 1) {
       const gap = distance(pts[0]!, pts[1]!);
-      const need = plant.size.spacingMm;
+      // As they're spaced there: pots and root trainers in a cold frame go by their module spacing, not their final one.
+      const need = asPlacedIn(plant, bed).size.spacingMm;
       if (gap < need * SLACK)
         out.push({
           id: `row:${pl.id}`,
@@ -86,7 +103,7 @@ function checkPlacement(g: Garden, active: Planting[], plantOf: PlantOf): Findin
           level: 'warn',
           plantingIds: [pl.id],
           featureIds: [pl.featureId],
-          message: `The ${plant.commonName.toLowerCase()} plants in this row are ${formatLength(Math.round(gap))} apart; they need about ${formatLength(need)}. Fewer plants, or a longer row, would fit.`,
+          message: `The ${plant.commonName.toLowerCase()} plants in this row are ${formatSpacing(Math.round(gap))} apart; they need about ${formatSpacing(need)}. Fewer plants, or a longer row, would fit.`,
         });
     }
   }
@@ -103,8 +120,10 @@ const EDGE_MM = 10;
 // ---------- Spacing between plantings ----------
 
 function checkSpacing(g: Garden, active: Planting[], plantOf: PlantOf): Finding[] {
-  // Single plants sharing a pot are checked as a pot, for crowding (checkPots), not for the gaps between them.
+  // Plants in pots don't share the ground: each pot is checked as a pot, for crowding (checkPots), not for the gaps
+  // between what's in it or what's in the next one. Rows and blocks in a planter still keep their spacing.
   const pots = new Set(g.features.filter(isPot).map((f) => f.id));
+  const rounds = new Set(g.features.filter(isRoundPot).map((f) => f.id));
   const out: Finding[] = [];
   // Each plant as it's spaced where it is: bulbs closer in a pot, seedlings in a cold frame at module spacing.
   const bedOf = new Map(g.features.map((f) => [f.id, f]));
@@ -119,8 +138,8 @@ function checkSpacing(g: Garden, active: Planting[], plantOf: PlantOf): Finding[
       const pb = placed(b);
       // Bulbs under a tree or shrub are the usual way to grow them, not a squeeze. Next year's plan over this year's crops never meets them.
       if (underplanted(pa, pb) || underplanted(pb, pa) || seasonsApart(a, b, pa, pb)) continue;
-      // Single plants sharing a pot are checked as a pot; rows and blocks in a planter still keep their spacing.
-      if (a.featureId === b.featureId && pots.has(a.featureId) && (a.layout ?? 'single') === 'single' && (b.layout ?? 'single') === 'single') continue;
+      if (a.featureId !== b.featureId && pots.has(a.featureId) && pots.has(b.featureId)) continue;
+      if (a.featureId === b.featureId && (rounds.has(a.featureId) || (pots.has(a.featureId) && (a.layout ?? 'single') === 'single' && (b.layout ?? 'single') === 'single'))) continue;
       const near = closest(shapes[i]!, shapes[j]!);
       const names = `${describe(a, pa)} and ${describe(b, pb, true)}`;
       const base = { kind: 'spacing' as const, level: 'warn' as const, plantingIds: [a.id, b.id], featureIds: [...new Set([a.featureId, b.featureId])] };
@@ -130,10 +149,12 @@ function checkSpacing(g: Garden, active: Planting[], plantOf: PlantOf): Finding[
       }
       const dir: Point = [near.pb[0] - near.pa[0], near.pb[1] - near.pa[1]];
       const across = (pl: Planting, s: PlantingShape) => pl.layout === 'row' && s.kind === 'segment' && !along(s, dir);
-      const need = halfNeed(a, pa, shapes[i]!, dir) + halfNeed(b, pb, shapes[j]!, dir);
-      if (near.d < need * SLACK) {
+      // In a fruit cage, bushes are pruned to fit and stand beside the canes with no path: as the list packs them.
+      const cage = a.featureId === b.featureId && !!bedOf.get(a.featureId)?.fruitCage;
+      const need = cage ? (pa.size.spacingMm + pb.size.spacingMm) / 2 : halfNeed(a, pa, shapes[i]!, dir) + halfNeed(b, pb, shapes[j]!, dir);
+      if (near.d < need * (cage ? CAGE_SQUEEZE : SLACK)) {
         const rows = across(a, shapes[i]!) || across(b, shapes[j]!) ? ' between rows' : '';
-        out.push({ ...base, id: `spacing:${a.id}:${b.id}`, message: `${names} are ${formatLength(Math.round(near.d))} apart; they need about ${formatLength(Math.round(need))}${rows}.` });
+        out.push({ ...base, id: `spacing:${a.id}:${b.id}`, message: `${names} are ${formatSpacing(Math.round(near.d))} apart; they need about ${formatSpacing(Math.round(need))}${rows}.` });
       }
     }
   }
@@ -160,6 +181,7 @@ function halfNeed(pl: Planting, plant: Plant, s: PlantingShape, dir: Point): num
 
 function checkNeighbours(g: Garden, active: Planting[], plantOf: PlantOf): Finding[] {
   const list = isList(g);
+  const potIds = new Set(g.features.filter(isPot).map((f) => f.id));
   const groups = new Map<string, Finding>();
   const shapes = new Map(active.map((pl) => [pl.id, plantingShape(pl, plantOf(pl.plantId))]));
   const bedName = (id: string) => {
@@ -179,8 +201,8 @@ function checkNeighbours(g: Garden, active: Planting[], plantOf: PlantOf): Findi
       const good = !avoid && (!!pa.companions?.good.includes(pb.id) || !!pb.companions?.good.includes(pa.id));
       if (!avoid && !good) continue;
       const sameBed = a.featureId === b.featureId;
-      // In a list, beds are set out for you, so only plants in the same bed are neighbours.
-      if (!sameBed && (list || closest(shapes.get(a.id)!, shapes.get(b.id)!).d > NEIGHBOUR_MM)) continue;
+      // In a list, beds are set out for you, so only plants in the same bed are neighbours. Pots keep their roots to themselves.
+      if (!sameBed && (list || (potIds.has(a.featureId) && potIds.has(b.featureId)) || closest(shapes.get(a.id)!, shapes.get(b.id)!).d > NEIGHBOUR_MM)) continue;
       const where = sameBed ? `bed:${a.featureId}` : `near:${[a.featureId, b.featureId].sort().join(':')}`;
       const key = `${avoid ? 'avoid' : 'good'}:${pa.id}:${pb.id}:${where}`;
       const existing = groups.get(key);

@@ -10,6 +10,7 @@ import { todayIso } from '../model/ids';
 import { asTree, treeSizeText, treeType } from '../model/trees';
 import { updateGarden, type Store } from '../model/store';
 import { MATERIALS, PLANT_SIZES, type Feature, type PlantSize, type Garden, type Material, type Plant, type Point } from '../model/types';
+import { rowsOfSowing } from '../planting/listPlant';
 import { canHold, canResize, containerAt, deletePlanting, duplicatePlanting, placeCopy, updatePlanting, plantCount, setPlantingSize, setRowCount, SIZE_FACTOR, SIZE_LABEL, spreadOf } from '../planting/place';
 import { setStage } from '../lifecycle/stages';
 import { holdsPoint, isSupport, wherePhrase } from '../planting/supports';
@@ -61,6 +62,9 @@ export function ActionPill({ pillRef, target, garden, store, plantOf, locked, mo
       const plant = plantOf(pl.plantId);
       const next = nextStage(plant, pl, !!microclimateOf(garden, pl));
       const n = plantCount(pl, plant);
+      // One row of several sown together: the plan's count is the row's, so say so. The list and shopping count them all.
+      const rows = pl.layout === 'row' ? garden.plantings.filter((p) => p.id === pl.id || rowsOfSowing(garden, pl.id).includes(p.id)) : [];
+      const rowText = rows.length > 1 ? `row ${rows.indexOf(pl) + 1} of ${rows.length} · ` : '';
       content = (
         <>
           <span class="pill-name" title={plant.commonName}>
@@ -68,7 +72,7 @@ export function ActionPill({ pillRef, target, garden, store, plantOf, locked, mo
             {/* On a narrow screen the icon stands for the name: the plan labels it too. */}
             <span class="pill-name-text">
               {plant.commonName}
-              {n > 1 ? ` ×${n}` : ''}
+              {rowText ? `, ${rowText}${n}` : n > 1 ? ` ×${n}` : ''}
             </span>
           </span>
           {plant.category === 'weed' && (

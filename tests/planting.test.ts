@@ -188,8 +188,8 @@ describe('spacing rules', () => {
     const g = setRowCount(addPlanting(g0, r), r.id, 21); // now 30 mm apart
     const f = check(g);
     expect(f.map((x) => x.kind)).toEqual(['row']);
-    expect(f[0]!.message).toContain('30 mm apart');
-    expect(f[0]!.message).toContain('60 mm');
+    expect(f[0]!.message).toContain('3 cm apart');
+    expect(f[0]!.message).toContain('6 cm');
   });
 
   it('a row at its own spacing is fine', () => {
@@ -203,7 +203,7 @@ describe('spacing rules', () => {
     const tooClose = addPlanting(addPlanting(g0, row('carrot', a, [1200, 1200], [3800, 1200])), row('carrot', a, [1200, 1300], [3800, 1300]));
     const f = check(tooClose);
     expect(f.map((x) => x.kind)).toEqual(['spacing']);
-    expect(f[0]!.message).toBe('The row of carrot and the row of carrot are 100 mm apart; they need about 150 mm between rows.');
+    expect(f[0]!.message).toBe('The row of carrot and the row of carrot are 10 cm apart; they need about 15 cm between rows.');
     const fine = addPlanting(addPlanting(g0, row('carrot', a, [1200, 1200], [3800, 1200])), row('carrot', a, [1200, 1350], [3800, 1350]));
     expect(check(fine)).toEqual([]);
   });
@@ -223,7 +223,7 @@ describe('spacing rules', () => {
     const g = addPlanting(addPlanting(g0, one('courgette', a, [1500, 1600])), one('courgette', a, [2320, 1600]));
     expect(check(g)).toEqual([]);
     const g2 = addPlanting(addPlanting(g0, one('courgette', a, [1500, 1600])), one('courgette', a, [2200, 1600]));
-    expect(check(g2)[0]!.message).toBe('Courgette and courgette are 700 mm apart; they need about 900 mm.');
+    expect(check(g2)[0]!.message).toBe('Courgette and courgette are 70 cm apart; they need about 90 cm.');
   });
 
   it('flags plantings that overlap', () => {

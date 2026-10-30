@@ -57,6 +57,7 @@ import { PlantIcon } from '../PlantIcon';
 import { TrayArt } from '../TrayArt';
 import { FeedShelf } from '../FeedShelf';
 import { SeedTin } from '../SeedTin';
+import { plantCount } from '../../planting/place';
 import { packetsFor, packetText, seedsOf, useSeeds } from '../../planting/seeds';
 import { usePlants } from '../usePlants';
 
@@ -309,7 +310,7 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
                       <PlantIcon plant={p} size={30} stage={stage} />
                       <span class="shed-indoor-text">
                         <strong>{p.commonName}</strong> for {bed ? featureLabel(bed) : 'a bed'}
-                        {rows.length > 1 ? ` (${rows.length} rows)` : ''} · {STAGE_NAME[stage]}
+                        {rows.length > 1 ? ` (${rows.every((r) => r.layout === 'row') ? `${rows.length} rows` : `${rows.reduce((t, r) => t + plantCount(r, p), 0)} plants`})` : ''} · {STAGE_NAME[stage]}
                         <span class="small muted">{next.text}</span>
                       </span>
                       <button type="button" class={`btn ${next.ready ? 'btn-primary' : ''}`} onClick={() => commit((g) => setIndoorStage(g, rows.map((r) => r.id), forward, today))}>
