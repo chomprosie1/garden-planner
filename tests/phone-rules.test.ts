@@ -9,28 +9,27 @@ import { describe, expect, it } from 'vitest';
 const css = readFileSync(join(__dirname, '../src/styles.css'), 'utf8');
 
 /**
- * Each small-screen declaration that a later top-level rule, for the very same selector and property, changes, unless a
- * later small-screen rule sets it back. It doesn't work out shorthands or which of two different selectors wins.
+ * Each small-screen declaration that doesn't survive to the end of the stylesheet: a later top-level rule, for the very
+ * same selector and property, changes it, and no later rule at the same breakpoint sets it back. It doesn't work out
+ * shorthands, or which of two different selectors wins.
  */
 function overridden(source: string): string[] {
   const nodes = postcss.parse(source).nodes;
-  const sets = (node: (typeof nodes)[number], selectors: string[], prop: string): string | null => {
-    let value: string | null = null;
-    const rules = node.type === 'rule' ? [node] : [];
-    if (node.type === 'atrule' && /max-width/.test(node.params)) node.walkRules((r) => void rules.push(r));
-    for (const r of rules) if (r.selectors.some((s) => selectors.includes(s))) r.walkDecls(prop, (d) => void (value = d.value));
-    return value;
-  };
   const lost: string[] = [];
   nodes.forEach((node, i) => {
     if (node.type !== 'atrule' || node.name !== 'media' || !/max-width/.test(node.params)) return;
     node.walkRules((rule) =>
       rule.walkDecls((decl) => {
-        const after = nodes.slice(i + 1);
-        const undone = after.findIndex((n) => n.type === 'rule' && ![null, decl.value].includes(sets(n, rule.selectors, decl.prop)));
-        if (undone < 0) return;
-        const back = after.slice(undone + 1).some((n) => n.type === 'atrule' && sets(n, rule.selectors, decl.prop) === decl.value);
-        if (!back) lost.push(`${rule.selector} ${decl.prop}: ${decl.value} is undone`);
+        for (const selector of rule.selectors) {
+          // The last word: a general rule's undoes it, and one at the same breakpoint, whatever it says, is still a phone rule.
+          let undoneBy: string | null = null;
+          for (const later of nodes.slice(i + 1)) {
+            const general = later.type === 'rule';
+            const rules = general ? [later] : later.type === 'atrule' && later.params === node.params ? (later.nodes ?? []) : [];
+            for (const r of rules) if (r.type === 'rule' && r.selectors.includes(selector)) r.walkDecls(decl.prop, (d) => void (undoneBy = general && d.value !== decl.value ? d.value : null));
+          }
+          if (undoneBy !== null) lost.push(`${selector} ${decl.prop}: ${decl.value} is undone by ${undoneBy}`);
+        }
       }),
     );
   });
@@ -49,5 +48,14 @@ describe('rules for small screens', () => {
 
   it('a phone rule set back after a general one is fine', () => {
     expect(overridden('@media (max-width: 700px) { .x { order: 1; } } .x { order: 2; } @media (max-width: 700px) { .x { order: 1; } }')).toEqual([]);
+  });
+
+  it('set back at a narrower width, or undone again after that, doesn’t count', () => {
+    expect(overridden('@media (max-width: 700px) { .x { order: 1; } } .x { order: 2; } @media (max-width: 520px) { .x { order: 1; } }')).toHaveLength(1);
+    expect(overridden('@media (max-width: 700px) { .x { order: 1; } } .x { order: 2; } @media (max-width: 700px) { .x { order: 1; } } .x { order: 3; }')).not.toEqual([]);
+  });
+
+  it('a later rule at the same breakpoint may change it', () => {
+    expect(overridden('@media (max-width: 700px) { .x { order: 1; } } @media (max-width: 700px) { .x { order: 2; } }')).toEqual([]);
   });
 });

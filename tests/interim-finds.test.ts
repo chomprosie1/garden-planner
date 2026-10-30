@@ -65,17 +65,41 @@ describe('a crop you say is cropping isn’t finished (Margaret)', () => {
         for (const stage of inGroundStages(plantOf(id)).filter((s) => s === 'flowering' || s === 'harvesting'))
           for (const reached of [undefined, TODAY]) {
             const pl = added(id, date, stage, reached);
-            expect(clearingDue(timeline(plantOf(id), pl, gardenWith(pl), TODAY)), `${id} ${date} ${stage}`).toBe(false);
+            const g = gardenWith(pl);
+            expect(clearingDue(timeline(plantOf(id), pl, g, TODAY)), `${id} ${date} ${stage}`).toBe(false);
+            expect(isFinished(plantOf(id), pl, g, TODAY), `${id} ${date} ${stage}`).toBe(false);
           }
   });
 
-  it('a tender crop you say is cropping after the frost date isn’t finished by tomorrow', () => {
+  it('a tender crop you say is cropping after the frost date isn’t finished by tomorrow, flowering or harvesting', () => {
     const today = '2026-11-20';
-    const pl = added('tomato', '2026-05-20', 'harvesting', today);
-    const g = gardenWith(pl);
-    expect(isFinished(plantOf('tomato'), pl, g, today)).toBe(false);
-    expect(isFinished(plantOf('tomato'), pl, g, addDays(today, 7))).toBe(false);
-    expect(isFinished(plantOf('tomato'), pl, g, addDays(today, 30))).toBe(true);
+    for (const [id, stage] of [['tomato', 'harvesting'], ['tomato', 'flowering'], ['courgette', 'flowering']] as const) {
+      const pl = added(id, '2026-05-20', stage, today);
+      const g = gardenWith(pl);
+      expect(isFinished(plantOf(id), pl, g, today), `${id} ${stage}`).toBe(false);
+      expect(isFinished(plantOf(id), pl, g, addDays(today, 7)), `${id} ${stage}`).toBe(false);
+      expect(isFinished(plantOf(id), pl, g, addDays(today, 40)), `${id} ${stage}`).toBe(true);
+    }
+  });
+
+  it('before the frost, a tender crop still ends at the frost, not after it', () => {
+    const g = gardenWith();
+    const frost = (d: string) => `2026-${d}`;
+    for (const stage of ['harvesting', 'flowering'] as const) {
+      const pl = added('tomato', '2026-05-20', stage, '2026-10-20');
+      const end = timeline(plantOf('tomato'), pl, addPlanting(g, pl), '2026-10-20').find((s) => s.stage === 'cleared')!.date!;
+      // Nothing's added for being marked close to it.
+      expect(end <= frost('11-05'), stage).toBe(true);
+    }
+    const early = added('tomato', '2026-05-20', 'harvesting', '2026-10-20');
+    const late = added('tomato', '2026-05-20', 'harvesting', '2026-09-01');
+    const when = (pl: Planting, today: string) => timeline(plantOf('tomato'), pl, addPlanting(g, pl), today).find((s) => s.stage === 'cleared')!.date!;
+    expect(when(early, '2026-10-20')).toBe(when(late, '2026-09-01'));
+  });
+
+  it('an old save at Harvesting with no date, in for over a year, does end', () => {
+    const pl = added('parsnip', '2024-04-15', 'harvesting');
+    expect(clearingDue(timeline(plantOf('parsnip'), pl, gardenWith(pl), TODAY))).toBe(true);
   });
 
   it('an undated perennial goes round the year, as it did', () => {

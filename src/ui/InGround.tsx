@@ -24,7 +24,7 @@ export function InGround({ plant, value, set, label = 'Already in the ground', s
           <label class={`field-inline${small ? ' small' : ''}`}>
             It went in
             {/* A date changes the usual stage, but not flowering or harvesting if that's what you've said it's doing. */}
-            <select value={value.date} onChange={(e) => set(inGroundChoice(plant, (e.currentTarget as HTMLSelectElement).value, today, isCropping(value.stage) ? (value.stage as Stage) : undefined))}>
+            <select value={value.date} onChange={(e) => set(inGroundChoice(plant, (e.currentTarget as HTMLSelectElement).value, today, isCropping(value.stage) && stages.includes(value.stage) ? value.stage : undefined))}>
               {options.map((o) => (
                 <option key={o.date} value={o.date}>
                   {o.label}

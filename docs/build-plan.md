@@ -3174,13 +3174,13 @@ Built 30 Oct 2026, on a branch. No schema change. Version 0.57.2.
 - **The page stays on a phone.** `.toast`'s phone rule sat above the general one, which put it back in column 2, so a phone gained a second column and the page was squeezed out of the first. The phone rule now follows the general one.
 - **A check for the same mistake.** `tests/phone-rules.test.ts` reads the stylesheet for any small-screen rule that a later general rule, for the same selector and property, undoes. The toast was the only one. It doesn't work out shorthands, or which of two different selectors wins, so a screenshot is still the real check. That adds `postcss` as a dev dependency, which vite already brought in.
 - **A crop you say is cropping isn't over.** Flowering or Harvesting is what it's doing now, so `inGroundChoice` records today for it, whenever it went in, and changing "It went in" afterwards keeps that stage. It lives in `place.ts`, where it's tested. Annuals saved before this have no date for it, so the timeline takes today there too, and they recover with no migration. Growing with no date still counts from the day it went in, which is what 57a fixed for fruit.
-- **After the frost date:** a tender crop you mark as cropping has plainly missed the frost, so it's given two weeks (`STILL_GOING_DAYS`), not one day.
+- **After the frost date:** a tender crop you mark as growing on has plainly come through the frost, so it's given two weeks (`STILL_GOING_DAYS`), not one day. Marked before the frost, it still ends at the frost. The rule was written out three times, and it's now one (`endsBy`).
 - **A stage it can't reach** (chosen for a tomato, then the plant changed to lettuce) doesn't leave a false date on the stage that replaces it.
 - **Tests:** each of those for a crop that stands, a tender crop, a quick crop and perennials, that an annual left at Growing for years still ends, and that an undated perennial goes round its year. With the fix taken out, they fail.
 - **Browser check:** screenshots at 320, 390 and 412 px, Standard and Extra large, in three looks, with an Undo message up, and the parsnips added through the real form.
 
 Not changed:
-- **An annual saved before this release,** at Flowering or Harvesting with no date, measures from today, so its next date keeps sliding until you mark it. A migration could stamp a date, but that's a schema change for a case only test gardens have.
+- **An annual saved before this release,** at Flowering or Harvesting with no date and in for under about a year, measures from today, so its next date slides until you mark it, or it passes the year. A migration could stamp a date, but that's a schema change for a case only test gardens have.
 
 ## Repo layout
 ```
