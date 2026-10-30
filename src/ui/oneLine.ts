@@ -1,8 +1,7 @@
 // A name is one line. A box drops a pasted line break altogether, joining the words ("a" and "b" become "ab"), so a paste
 // is put in by hand, with the breaks as spaces.
 
-/** The most a name can be: enough for any bed or garden, and short enough to fit a card. */
-export const NAME_LENGTH = 60;
+export { NAME_LENGTH } from '../model/listLayout';
 
 export const asOneLine = (text: string) => text.replace(/\s*[\r\n]+\s*/g, ' ').trim();
 

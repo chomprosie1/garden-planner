@@ -22,7 +22,7 @@ import { LIGHT_LEVELS, type Feature, type Garden, type Light, type Plant, type P
 import { defaultFill, FILL_LABEL, fillsFor, type Fill } from '../../planting/fill';
 import { NAME_LENGTH, pasteOneLine } from '../oneLine';
 import { RotationSwitch } from '../RotationSwitch';
-import { fullText, howFull, isListed, listBeds, moveRoom, moveToListBed, placeInList, plantableBeds, plantingsCount, plantOutInList, rowsOfSowing, sowingKey, type ListHow } from '../../planting/listPlant';
+import { fullText, howFull, isListed, listBeds, moveRoom, moveToListBed, OVER_FULL, placeInList, plantableBeds, plantingsCount, plantOutInList, rowsOfSowing, sowingKey, type ListHow } from '../../planting/listPlant';
 import { balconyLight, plantsFor } from '../../planting/balcony';
 import { countWord, isActive, isContainer, plantCount, spacingStyle, type InGroundAt } from '../../planting/place';
 import { isPot, litresTyped, potOfLitres, potSize, wetWeightText, litresText } from '../../planting/pots';
@@ -792,7 +792,7 @@ function AddPlantDialog({ store, garden, plants, plantOf, month, start, close, n
     const total = plantings.reduce((t, pl) => t + plantCount(pl, plant), 0);
     if (left) return theRest(`Room for ${total} of ${total + left} in ${featureLabel(bed)}: they’re in. Put the other ${left} in another bed?`, left);
     // The same words as the bed's badge: packed is full, and past that is over-full.
-    const over = fullText(howFull({ ...garden, plantings: [...garden.plantings, ...plantings] }, bed, plantOf)) === 'Over-full';
+    const over = howFull({ ...garden, plantings: [...garden.plantings, ...plantings] }, bed, plantOf) > OVER_FULL;
     app.notify(`${plural(total, name, `${name} ${countWord(plant)}`)} in ${featureLabel(bed)}.${over ? ' It’s over-full now.' : full ? ' It’s full now.' : ''}`, { undo: true });
     ref.current?.close();
   };
@@ -1006,7 +1006,7 @@ function EditBedDialog({ store, garden, bedId, plantOf, close }: { store: Store;
                     const box = e.currentTarget as HTMLInputElement;
                     const n = Math.round(Number(box.value));
                     // Left blank, it's an ordinary pot. A number that can't be right changes nothing, and the box goes back.
-                    if (!box.value.trim()) set({ pockets: undefined });
+                    if (!box.value.trim() && !box.validity.badInput) set({ pockets: undefined });
                     else if (n >= 1 && n <= 100) set({ pockets: n });
                     else box.value = String(bed.pockets ?? '');
                   }}

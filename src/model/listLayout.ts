@@ -12,6 +12,9 @@ import type { Feature, FeatureKind, Garden, Point } from './types';
 export const LIST_KINDS = ['bed', 'pot', 'planter', 'greenhouse', 'cold-frame', 'fruit-cage', 'ground', 'cardboard'] as const;
 export type ListKind = (typeof LIST_KINDS)[number];
 
+/** The most a name can be: enough for any bed or garden, and short enough to fit a card. */
+export const NAME_LENGTH = 60;
+
 export const LIST_KIND_LABEL: Record<ListKind, string> = {
   bed: 'A bed',
   pot: 'A pot',
@@ -243,8 +246,12 @@ export function nameListBeds(g: Garden, isListed: (f: Feature) => boolean, label
  */
 export function namesFor(g: Garden, name: string, n: number, labelOf: (f: Feature) => string): string[] {
   const used = new Set(g.features.map(labelOf));
-  if (n === 1 && !used.has(name)) return [name];
-  let from = used.has(name) ? name : `${name} 0`;
+  // "Pot" beside "Pot 1" and "Pot 2" is the next of them.
+  const numbered = [...used].some((u) => u.startsWith(`${name} `) && /^\d+$/.test(u.slice(name.length + 1)));
+  if (n === 1 && !used.has(name) && !numbered) return [name];
+  // Room for the number, in a name at the longest a name can be.
+  const stem = name.slice(0, NAME_LENGTH - 4).trimEnd();
+  let from = used.has(name) && stem === name ? name : `${stem} 0`;
   return Array.from({ length: n }, () => {
     from = nextName(from, used);
     used.add(from);

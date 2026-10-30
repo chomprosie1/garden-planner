@@ -310,10 +310,14 @@ export function potOnChoices(g: Garden, plantingId: string, plantOf: (id: string
   const need = potNeeds(plantOf(pl.plantId));
   // A size up: what it wants, or a good step bigger than now if it's already there.
   const suggested = Math.max(need, Math.ceil((now.across * 1.4) / 50) * 50);
-  // A pot with something in it isn't a bigger pot for this one, unless it has pockets to spare.
-  const inIt = (f: Feature) => g.plantings.filter((p) => p.featureId === f.id && isActive(p)).reduce((n, p) => n + plantCount(p, plantOf(p.plantId)), 0);
+  // A pot with something in it isn't a bigger pot for this one, but a tower of the same plant with pockets to spare is.
+  const hasRoom = (f: Feature) => {
+    const here = g.plantings.filter((p) => p.featureId === f.id && isActive(p) && plantOf(p.plantId).category !== 'weed');
+    if (!here.length) return true;
+    return !!f.pockets && here.every((p) => p.plantId === pl.plantId) && here.reduce((n, p) => n + plantCount(p, plantOf(p.plantId)), 0) < f.pockets;
+  };
   const pots = g.features
-    .filter((f) => f.id !== from.id && isPot(f) && inIt(f) < (f.pockets ?? 1))
+    .filter((f) => f.id !== from.id && isPot(f) && hasRoom(f))
     .filter((f) => {
       const s = potSize(f)!;
       return s.across > now.across && s.across >= need * 0.95;

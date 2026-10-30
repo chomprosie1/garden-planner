@@ -13,7 +13,7 @@ import { inGroundStages } from '../src/lifecycle/stages';
 import { withVarieties, type VarietyEntry } from '../src/library/library';
 import { newGarden } from '../src/model/defaults';
 import { addFeature, featureLabel, makeFeature, rectPoints } from '../src/model/features';
-import { addListBed, namesFor } from '../src/model/listLayout';
+import { addListBed, NAME_LENGTH, namesFor } from '../src/model/listLayout';
 import type { Feature, Garden, Plant, Planting, Stage } from '../src/model/types';
 import { defaultFill } from '../src/planting/fill';
 import { fullText, howFull, placeInList } from '../src/planting/listPlant';
@@ -66,6 +66,19 @@ describe('plants go where you asked', () => {
     expect(namesFor(g, 'Back door pot', 3, featureLabel)).toEqual(['Back door pot 1', 'Back door pot 3', 'Back door pot 4']);
   });
 
+  it('one more beside a numbered set is the next of them, not the bare name', () => {
+    const g = ['Pot 1', 'Pot 2'].reduce((x, name) => addListBed(x, 'pot', name)[0], newGarden());
+    expect(namesFor(g, 'Pot', 1, featureLabel)).toEqual(['Pot 3']);
+    expect(namesFor(g, 'Pottery', 1, featureLabel)).toEqual(['Pottery']);
+  });
+
+  it('a number doesn’t take a name past the limit', () => {
+    const long = 'x'.repeat(NAME_LENGTH);
+    const names = namesFor(newGarden(), long, 12, featureLabel);
+    expect(new Set(names).size).toBe(12);
+    expect(Math.max(...names.map((n) => n.length))).toBeLessThanOrEqual(NAME_LENGTH);
+  });
+
   it('one thyme, not a bedful: herbs that come back start on One (Ruth)', () => {
     for (const id of ['thyme', 'rosemary', 'chives', 'sage', 'oregano', 'mint']) expect(defaultFill(plantOf(id), bed), id).toBe('one');
     expect(defaultFill(plantOf('lettuce'), bed)).toBe('fill');
@@ -93,12 +106,19 @@ describe('plants go where you asked', () => {
     const g = addFeature(addFeature(addFeature(newGarden(), small), full), free);
     const c = potOnChoices(addPlanting(addPlanting(g, bay), apple), bay.id, plantOf)!;
     expect(c.pots.map((p) => p.name)).toEqual(['Spare pot']);
-    // A tower with pockets to spare is a place to go; one that's full isn't.
+    // A tower of something else is no place for a bay, however many pockets it has.
     const tower: Feature = { ...full, pockets: 8 };
-    const towers = addPlanting(addPlanting(addFeature(addFeature(newGarden(), small), tower), bay), apple);
-    expect(potOnChoices(towers, bay.id, plantOf)!.pots.map((p) => p.name)).toEqual(['Apple pot']);
-    expect(potOnChoices(addPlanting(addFeature(addFeature(newGarden(), small), { ...full, pockets: 1 }), bay), bay.id, plantOf)!.pots).toHaveLength(1);
-    expect(potOnChoices(addPlanting(addPlanting(addFeature(addFeature(newGarden(), small), { ...full, pockets: 1 }), bay), apple), bay.id, plantOf)!.pots).toEqual([]);
+    const berries = makePlanting(plantOf('strawberry'), tower.id, 'single', [900, 200]);
+    const mixed = addPlanting(addPlanting(addFeature(addFeature(newGarden(), small), tower), bay), berries);
+    expect(potOnChoices(mixed, bay.id, plantOf)!.pots).toEqual([]);
+    // One more of the same, with pockets to spare, is; and a weed doesn't take up a pot.
+    const pot: Feature = { ...small, name: 'Small pot' };
+    const berry = makePlanting(plantOf('strawberry'), pot.id, 'single', [200, 200]);
+    const same = addPlanting(addPlanting(addFeature(addFeature(newGarden(), pot), tower), berry), berries);
+    expect(potOnChoices(same, berry.id, plantOf)!.pots.map((p) => p.name)).toEqual(['Apple pot']);
+    const weed = makePlanting(plantOf('hairy-bittercress'), free.id, 'single', [1600, 200]);
+    const weedy = addPlanting(addPlanting(addFeature(addFeature(newGarden(), small), free), bay), weed);
+    expect(potOnChoices(weedy, bay.id, plantOf)!.pots.map((p) => p.name)).toEqual(['Spare pot']);
   });
 
   it('ticking a bed as made doesn’t add a job: no weeding a bed made today (Jordan)', () => {
