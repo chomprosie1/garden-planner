@@ -3056,7 +3056,7 @@ Not changed:
 - **Your own plants** are shared by all gardens and go in every backup.
 
 ### Interim testing (planned 30 Oct 2026)
-The six testers, and a seventh who's there to break it, will test the build now Phase 2's fixes are in, before the review proper. Brief: [interim-test-brief.md](interim-test-brief.md). Nadia went first, on 0.57.0: [her report](feedback-2026-10-30-nadia.md). The other six wait for the word to go.
+The six testers, and a seventh who's there to break it, will test the build now Phase 2's fixes are in, before the review proper. Brief: [interim-test-brief.md](interim-test-brief.md). Nadia went first, on 0.57.0: [her report](feedback-2026-10-30-nadia.md). The other six followed on 0.57.1. The summary, and what to fix in order, is in [review-2026-10-30-interim.md](review-2026-10-30-interim.md). It found two live problems: the page collapses on phones while an Undo message shows, since release 53, and crops added as already Harvesting are told to go on the compost heap, from 57a.
 
 ### Release 57a — What Nadia found (as built)
 Built 30 Oct 2026, on a branch. No schema change. Version 0.57.1. Seven of her eight "before anyone pays" flaws; the eighth, checking the plants, is the data track.

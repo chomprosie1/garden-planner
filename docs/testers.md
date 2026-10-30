@@ -1,6 +1,6 @@
 # Testers
 
-The people who test the app each round. They're personas: Claude plays each one against the running app, at that person's screen size. Each writes a feedback file in `docs/feedback-<date>-<name>.md`. The first three have tested since 11 Oct 2026. Three more joined on 29 Oct 2026, to check whether the first three's scores hold up with different gardens, bodies and climates, and to find what they miss. Nadia joined on 30 Oct 2026 to find every flaw she can, and hasn't tested yet. The current brief is [interim-test-brief.md](interim-test-brief.md).
+The people who test the app each round. They're personas: Claude plays each one against the running app, at that person's screen size. Each writes a feedback file in `docs/feedback-<date>-<name>.md`. The first three have tested since 11 Oct 2026. Three more joined on 29 Oct 2026, to check whether the first three's scores hold up with different gardens, bodies and climates, and to find what they miss. Nadia joined on 30 Oct 2026 to find every flaw she can. All seven tested in the interim round of 30 Oct 2026: [the summary](review-2026-10-30-interim.md), and [the brief](interim-test-brief.md).
 
 Every tester gets the same four core scores, so rounds and people can be compared:
 - usability;

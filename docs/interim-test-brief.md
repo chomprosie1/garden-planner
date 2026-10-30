@@ -1,5 +1,5 @@
 # Interim testing: brief for testers
-**Status: not started. Please don't begin until you're told to go.** No date is set yet.
+**Status: done, 30 Oct 2026.** All seven have tested. The summary is [review-2026-10-30-interim.md](review-2026-10-30-interim.md).
 
 To: Priya, Margaret, Jordan, Sam, Ruth and Callum, and Nadia, who's joining the panel.
 
