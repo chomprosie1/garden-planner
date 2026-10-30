@@ -3056,7 +3056,29 @@ Not changed:
 - **Your own plants** are shared by all gardens and go in every backup.
 
 ### Interim testing (planned 30 Oct 2026)
-The six testers, and a seventh who's there to break it, will test the build now Phase 2's fixes are in, before the review proper. Brief: [interim-test-brief.md](interim-test-brief.md). Not started: it waits for the word to go.
+The six testers, and a seventh who's there to break it, will test the build now Phase 2's fixes are in, before the review proper. Brief: [interim-test-brief.md](interim-test-brief.md). Nadia went first, on 0.57.0: [her report](feedback-2026-10-30-nadia.md). The other six wait for the word to go.
+
+### Release 57a — What Nadia found (as built)
+Built 30 Oct 2026, on a branch. No schema change. Version 0.57.1. Seven of her eight "before anyone pays" flaws; the eighth, checking the plants, is the data track.
+
+- **A file can't freeze the app.** A planting of a billion plants, or one 10 km away, passed every check, then froze Today for good. `gardenOutOfBounds` refuses them in files only: over 5,000 plants in a planting (the app's own limit) or more than 1 km out. A garden already kept is never refused, as that would lose it, so `plantPositions` also sets out 5,000 at most, thinning a huge block evenly, which a block drawn by hand could reach too. Browser check: the frozen files are refused on both restore screens; those values put straight into storage open all six main screens.
+- **Established plants keep their year.** Added as already growing, a planting has the day it went in and no date for Growing. The timeline took that as today, so the harvest was always just ahead, and on a month's last days a week ahead fell out of the month. It now counts from the last date it has. That was also why leeks and parsnips went at a month's end.
+- **Old perennials.** Steps ran out before reaching today for anything planted about five years back. Perennials now work from about 13 months ago (`PERENNIAL_BACK_DAYS`), and `MAX_STEPS` is 20.
+- **Reverses release 48's rule.** That took away "Ready to pick" from an apple whose card says Growing, because the two disagreed (Priya), and said it would come back with the next harvest. It never did. The job stays, and the card now says "Probably ready to pick now".
+- **Too late to crop:** sown after the last usable day of its months, a crop was ready the day it was sown. It now goes by the warmth.
+- **The last day of a month:** overdue clearing always lands tomorrow, so on a month's last day it fell in the next month and the crop looked as if it was still cropping (`picking`).
+- **A crop's season ends.** Gone before this month began (`seasonOver`), an annual gets one job, Clear and compost, and no feeding, picking, protecting or planting out. Ticking it clears the planting (`Job.clears`), and unticking brings it back. Its sheet says the season's over, with no date.
+- **Two tabs follow each other** (`storage` event, `readOpen`, `changesOpen`). When a tab saves, the other takes that version, and undo starts afresh there. Moving away from a tab saves it at once. It also closes a worse case nobody had reported: a tab left open could write its garden over another that had been opened elsewhere.
+- **Replace keeps the old garden** for 30 days (`keepReplaced`), under Bring back a garden, with its trace photo. The first screen's restore has nothing to keep. The gardens list now updates whenever the garden changes, which also shows a same-named garden straight away (her flaw 5).
+- **A phone on its side** (`max-height: 500px`): one row of tools, the dock's tabs on one line, no year slider. At 844 × 390 the plan went from 122 to 294 px tall at standard text, and from 0 to 256 px at Extra large. At 667 × 375 Extra large it's 201 px.
+- **Dates half a year off show their year**, so "1 May" in July can't read as a day gone (`yearDate`, was ten months).
+
+Not changed:
+- **A chilli in a pot** is left out of `seasonOver`, as it may be on a windowsill, so one left on the plan is still fed each year. Its sheet does say its season's over.
+- **The other 21 flaws**, including the frost dates, the search, the safety line's contrast and the small-phone plan.
+- **Files can still hold rubbish** that isn't too big, such as `sownOn: "banana"` (her flaw 4).
+- **A garden frozen before this release** opens again, but nothing tells its owner why it looks odd.
+- **Blackcurrant's flowering** (her flaw 9) is data: 13 fruit have no flowering months.
 
 ## Repo layout
 ```

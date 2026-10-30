@@ -28,10 +28,10 @@ function openedText(iso: string, now = new Date()): string {
   return `Opened on ${new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}`;
 }
 
-/** The gardens kept, read again whenever the open garden or its name changes. */
+/** The gardens kept, read again whenever the open garden changes: a restore can add one under the same name. */
 function useGardens(garden: Garden) {
   const [tick, setTick] = useState(0);
-  const list = useMemo(() => listGardens(), [garden.name, tick]);
+  const list = useMemo(() => listGardens(), [garden, tick]);
   return { ...list, refresh: () => setTick((n) => n + 1) };
 }
 

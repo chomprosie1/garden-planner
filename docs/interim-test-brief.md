@@ -4,7 +4,7 @@
 To: Priya, Margaret, Jordan, Sam, Ruth and Callum, and Nadia, who's joining the panel.
 
 ## Where we are
-We're part way through the road to charging. Eleven releases have gone out since your testing on 29 Oct, up to version 0.57.0, and the releases planned from that testing are now all out, including keeping your garden safe. Each has its own list of what it didn't change, so don't assume everything you raised is fixed. Next comes the full review, where your scores decide whether we move on to charging.
+We're part way through the road to charging. Twelve releases have gone out since your testing on 29 Oct, up to version 0.57.1, and the releases planned from that testing are now all out, including keeping your garden safe. Each has its own list of what it didn't change, so don't assume everything you raised is fixed. Next comes the full review, where your scores decide whether we move on to charging.
 
 This interim round comes before that. It's a check on the work so far, not the final verdict. We'd rather hear now about anything that's wrong, or that we've made worse.
 

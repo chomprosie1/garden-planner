@@ -373,6 +373,34 @@ export function validatePlant(p: unknown): string[] {
   return errors;
 }
 
+/** More than this in one planting is almost always a mistake, and slow to draw. */
+export const MAX_PLANTS = 5000;
+
+/** How far anything can be from the middle of the plan, in mm: a kilometre is far beyond any garden. */
+export const PLAN_LIMIT_MM = 1_000_000;
+
+/**
+ * What a file can't be allowed to bring in, though every value is the right kind: sizes no garden could have, which
+ * only a damaged or edited file holds, and which would stop the app drawing. Asked of files, not of what's already kept.
+ */
+export function gardenOutOfBounds(g: Garden): string[] {
+  const far = (points: readonly (readonly number[])[]) => points.some((p) => Math.abs(p[0]!) > PLAN_LIMIT_MM || Math.abs(p[1]!) > PLAN_LIMIT_MM);
+  const errors: string[] = [];
+  if (far(g.boundary)) errors.push('boundary reaches further than a kilometre.');
+  g.features.forEach((f, i) => {
+    const points = [...f.footprint, ...(f.line ?? []), ...(f.controls ?? []), ...(f.circle ? [f.circle.centre] : [])];
+    if (far(points) || (f.circle?.radiusMm ?? 0) > PLAN_LIMIT_MM || (f.widthMm ?? 0) > PLAN_LIMIT_MM) errors.push(`features[${i}] reaches further than a kilometre.`);
+  });
+  g.plantings.forEach((p, i) => {
+    if (far([[p.x, p.y], ...(p.endPoint ? [p.endPoint] : [])])) errors.push(`plantings[${i}] reaches further than a kilometre.`);
+    if ((p.count ?? 0) > MAX_PLANTS) errors.push(`plantings[${i}] has more plants than one planting can hold (${MAX_PLANTS}).`);
+  });
+  (g.sketches ?? []).forEach((k, i) => {
+    if (far(k.points)) errors.push(`sketches[${i}] reaches further than a kilometre.`);
+  });
+  return errors;
+}
+
 // Type guards for callers that have just validated.
 export const isValidGarden = (g: unknown): g is Garden => validateGarden(g).length === 0;
 export const isValidPlant = (p: unknown): p is Plant => validatePlant(p).length === 0;

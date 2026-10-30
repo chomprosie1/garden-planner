@@ -28,6 +28,8 @@ export interface Step {
   guessed: boolean;
   /** Guessed for today or earlier, so due now: shown tomorrow, the soonest a guess goes. */
   due?: true;
+  /** For a step that's due: the day it was expected. */
+  was?: string;
 }
 
 export interface Projected {
@@ -82,8 +84,11 @@ function marked(pl: Planting): Step[] {
   return out;
 }
 
-/** Stops a projection running on for ever: a perennial goes round about twice in two years. */
-const MAX_STEPS = 16;
+/** Stops a projection running on for ever: it has about three years to cover, and a perennial with two crops takes five steps a year. */
+const MAX_STEPS = 20;
+
+/** How far back a perennial's year is worked from: any further and it's the same years going round. */
+const PERENNIAL_BACK_DAYS = 400;
 
 const later = (a: string, b: string) => (a > b ? a : b);
 const sooner = (a: string, b: string) => (a < b ? a : b);
@@ -194,7 +199,8 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
     const open = nextInSeason(c.start, cropMonths, shift);
     if (!open) return d;
     const close = addDays(afterSeason(open, cropMonths, shift), -14);
-    if (d > close) return later(close, open);
+    // Sown after that, it's too late for this run of its months: it goes by the warmth.
+    if (d > close) return c.start > close ? d : later(close, open);
     return forFlowers ? later(d, open) : d;
   };
   // A tender annual that hasn't got there by the first frost is finished.
@@ -301,11 +307,14 @@ export function timeline(asListed: Plant, pl: Planting, g: Garden, today: string
   let last: Step | null;
   if (now === 'planned') last = firstStep(plant, pl, today, g);
   else {
-    // Carry on from the latest stage, measured from when it was reached (or today, if that's not known).
+    // Carry on from the latest stage, measured from when it was reached. With no date for that (added as already
+    // growing, with only the day it went in), from the last date it has, or today if it has none: it isn't new today.
     const latest = steps[steps.length - 1]!;
+    const known = latest.date ?? [...steps].reverse().find((s) => s.date)?.date ?? today;
     // Growing, with no date for when it went in: count the warmth from when it reached this stage, or today.
-    if (!c.start && isGrowingStage(latest.stage)) c.start = latest.date ?? today;
-    last = after(c, latest.stage, latest.date ?? today);
+    if (!c.start && isGrowingStage(latest.stage)) c.start = known;
+    // A perennial planted years ago is somewhere in this year's round, however long ago that was.
+    last = after(c, latest.stage, perennial(plant) && isGrowingStage(latest.stage) ? later(known, addDays(today, -PERENNIAL_BACK_DAYS)) : known);
   }
   const horizon = addDays(today, 800);
   const tomorrow = addDays(today, 1);
@@ -322,7 +331,7 @@ export function timeline(asListed: Plant, pl: Planting, g: Garden, today: string
       // Something you do or see (sowing, up, planting out, clearing) isn't guessed to have happened: steps that are
       // overdue all land tomorrow, so it's shown at the latest of them.
       overdue = true;
-      steps.push({ ...last, date: tomorrow, due: true });
+      steps.push({ ...last, date: tomorrow, due: true, was: last.date! });
     }
     last = next;
   }
@@ -386,11 +395,14 @@ export function probableStage(plant: Plant, pl: Planting, g: Garden, today: stri
 
 /** "Ready to harvest from about 12 Aug": the next milestone a growing planting is heading for, after today. Null when there's none. */
 export function expectedText(steps: Step[], plant: Plant, today: string): string | null {
+  // Already there by itself, though it's still marked as growing: what the card says, the jobs say too.
+  const at = stageIn(steps, today);
+  if (at.guessed && at.stage === 'harvesting') return plant.art?.crop?.kind === 'root' ? 'Probably ready to lift now' : 'Probably ready to pick now';
   for (const s of steps) {
     if (!s.guessed || s.date === null || s.date <= today) continue;
     if (s.stage === 'flowering') return `In flower from about ${yearDate(s.date, today)}`;
     if (s.stage === 'harvesting') return `Ready to harvest from about ${yearDate(s.date, today)}`;
-    if (s.stage === 'cleared') return perennial(plant) ? null : `Finished by about ${yearDate(s.date, today)}`;
+    if (s.stage === 'cleared') return perennial(plant) ? null : s.due ? 'Its season’s over: time to clear it' : `Finished by about ${yearDate(s.date, today)}`;
   }
   return null;
 }
@@ -585,5 +597,5 @@ export function gapText(gap: Gap, plantOf: (id: string) => Plant, today: string)
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 /** "12 Aug". */
 export const shortDate = (iso: string) => `${Number(iso.slice(8, 10))} ${MONTHS[monthOf(iso) - 1]}`;
-/** "12 Aug", with its year when that's ten months or more from today: "23 Apr 2028". */
-export const yearDate = (iso: string, today: string) => (Math.abs(daysBetween(today, iso)) >= 300 ? `${shortDate(iso)} ${iso.slice(0, 4)}` : shortDate(iso));
+/** "12 Aug", with its year when that's six months or more from today, so it can't read as a day already gone: "23 Apr 2028". */
+export const yearDate = (iso: string, today: string) => (Math.abs(daysBetween(today, iso)) >= 180 ? `${shortDate(iso)} ${iso.slice(0, 4)}` : shortDate(iso));

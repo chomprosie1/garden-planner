@@ -1162,7 +1162,12 @@ function PlantingPanel(props: Props & { pl: Planting }) {
         </span>
         {step && <span class="muted small">{step}</span>}
       </p>
-      {expected && <p class="expect-line">{expected}<span class="muted small">, {weather ? 'by this year’s weather and the forecast' : 'by the usual warmth here'}</span></p>}
+      {expected && (
+        <p class="expect-line">
+          {expected}
+          {!steps.some((s) => s.due && s.stage === 'cleared') && <span class="muted small">, {weather ? 'by this year’s weather and the forecast' : 'by the usual warmth here'}</span>}
+        </p>
+      )}
       {behind && (
         <div class="behind-line">
           <p>
@@ -1187,7 +1192,7 @@ function PlantingPanel(props: Props & { pl: Planting }) {
             label: mine.length ? `Care (${mine.length})` : 'Care',
             body: (
               <>
-                <StageAdvice pl={pl} plant={plant} covered={!!cover} />
+                <StageAdvice pl={pl} plant={plant} covered={!!cover} over={steps.some((s) => s.due && s.stage === 'cleared')} />
                 {bed && isSoftGround(bed) && (bed.material ?? 'lawn') === 'lawn' && plant.art?.form === 'bulb' && (
                   <p class="muted small">In a lawn: leave the grass long round them until their leaves die back, about six weeks after flowering, so they flower again next year.</p>
                 )}

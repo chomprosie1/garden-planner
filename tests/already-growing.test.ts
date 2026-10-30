@@ -70,8 +70,10 @@ describe('an established fruit plant catches up, not replays', () => {
     expect(apple.stageDates).toEqual({ transplanted: overAYearAgo });
     const g = garden(apple);
     expect(validateGarden(JSON.parse(JSON.stringify(g)))).toEqual([]);
-    const next = timeline(plantOf('apple'), apple, g, TODAY).find((s) => s.guessed)!;
-    expect(next.stage).toBe('flowering');
+    const steps = timeline(plantOf('apple'), apple, g, TODAY);
+    // In October it's cropping, and it flowers again next spring.
+    expect(stageOn(plantOf('apple'), apple, g, TODAY, TODAY).stage).toBe('harvesting');
+    const next = steps.find((s) => s.guessed && s.stage === 'flowering' && s.date! > TODAY)!;
     expect(next.date! >= '2027-04-01').toBe(true);
     expect(behindOf(plantOf('apple'), apple, g, TODAY)).toBeNull();
   });

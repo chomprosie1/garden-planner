@@ -130,7 +130,7 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
     // Nothing else on this screen while it's coming back: the steps of setting up would overwrite it.
     setMessage(null);
     setRestoring(true);
-    await restoreBackup(store, prefsStore, result, false);
+    await restoreBackup(store, prefsStore, result, false, false);
     // It's been set up already, on the old device.
     prefsStore.set({ onboarded: true, seenNews: latestNews().id, welcomedOn: todayIso(), setupHidden: true, northChecked: true });
     go('home');

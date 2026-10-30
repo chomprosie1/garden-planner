@@ -144,11 +144,11 @@ export function WhatsHappened({ store, garden, pl, plant, covered = false, toget
 }
 
 /** Advice for where it is now, and a line on what's next when that needs explaining. */
-export function StageAdvice({ pl, plant, covered = false }: Omit<Props, 'store' | 'garden'>) {
+export function StageAdvice({ pl, plant, covered = false, over = false }: Omit<Props, 'store' | 'garden'> & { over?: boolean }) {
   const now = currentStage(pl);
   const today = todayIso();
-  // Planted out weeks ago, it's growing: watering in is past.
-  const tips = stageTips(plant, settledIn(pl, today) ? 'vegetative' : now, pl, Number(today.slice(5, 7)), covered);
+  // Planted out weeks ago, it's growing: watering in is past. Past its season, there's only clearing left.
+  const tips = over ? ['Its season’s over. Pull it up for the compost heap, and the ground’s free for what’s next.'] : stageTips(plant, settledIn(pl, today) ? 'vegetative' : now, pl, Number(today.slice(5, 7)), covered);
   const next = pathFor(plant, pl, covered).find((s) => order(s) > order(now));
   const explain = next ? STAGE_EXPLAIN[next] : undefined;
   if (!tips.length && !explain) return null;

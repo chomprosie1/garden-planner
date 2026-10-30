@@ -139,9 +139,12 @@ describe('"ready to pick" means ready', () => {
     expect(harvest(jobsIn(g, 11))).toHaveLength(1);
   });
 
-  it('an old apple with nothing to pick now has no job beside a card saying Growing', () => {
+  it('an established apple is ready in its months, and its card says the same as Today (Priya, Nadia)', () => {
     const pl = { ...makePlanting(plantOf('apple'), bed.id, 'single', [600, 600], undefined, { date: '2025-10-01', stage: 'vegetative' }) };
-    expect(harvest(jobsIn(gardenWith(pl), 10))).toEqual([]);
+    const g = gardenWith(pl);
+    expect(harvest(jobsIn(g, 10))).toHaveLength(1);
+    expect(expectedText(timeline(plantOf('apple'), pl, g, TODAY), plantOf('apple'), TODAY)).toBe('Probably ready to pick now');
+    expect(harvest(jobsFor(g, plantOf, 3, 2027, { today: '2027-03-15' }))).toEqual([]);
   });
 
   it('a crop not ready has no lift or clear-up job either', () => {

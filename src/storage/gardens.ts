@@ -206,6 +206,29 @@ export function addGarden(garden: Garden, s: Kv | null = safe(), now = new Date(
   return id;
 }
 
+/**
+ * Keeps a copy of a garden that's about to be replaced, hidden for KEEP_DAYS to bring back, with its trace photo.
+ * The garden that's open stays open. Its id, or null if it couldn't be kept.
+ */
+export function keepReplaced(garden: Garden, s: Kv | null = safe(), now = new Date()): string | null {
+  const id = addGarden(garden, s, now);
+  const idx = readIndex(s);
+  if (!id || !idx) return null;
+  const was = idx.gardens.find((e) => e.id === idx.open);
+  writeIndex(s, { ...idx, gardens: idx.gardens.map((e) => (e.id === id ? { ...e, hiddenOn: todayIso(now), ...(was ? { traceKey: traceKeyOf(was) } : {}) } : e)) });
+  return id;
+}
+
+/** The open garden as it's kept, with your own plants: what another tab has saved. Null if it can't be read. */
+export function readOpen(s: Kv | null = safe()): AppState | null {
+  const idx = readIndex(s);
+  const garden = idx ? peekGarden(idx.open, s) : null;
+  return garden ? { garden, userPlants: loadPlants(s) } : null;
+}
+
+/** True for what another tab changes as it saves or opens a garden: which is open, the open garden, your own plants. */
+export const changesOpen = (key: string | null, s: Kv | null = safe()): boolean => key === INDEX || key === PLANTS || (key !== null && key === gardenKey(readIndex(s)?.open ?? ''));
+
 /** Opens a garden: the state to show, with your own plants, or null if it can't be read. */
 export function openGarden(id: string, s: Kv | null = safe(), now = new Date()): AppState | null {
   const idx = loadIndex(s, now);

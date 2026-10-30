@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-30-right-on-time',
+    date: '2026-10-30',
+    title: 'Fruit on time, and safer restores',
+    items: [
+      'Fruit and other plants you added as already growing now show Ready to pick in their own season, and their card says the same.',
+      'Today’s lists no longer change on the last day of a month.',
+      'A crop left on your plan after its season now asks to be cleared, rather than being fed and picked year after year. Ticking the job clears it.',
+      'Your garden open in two tabs? They now keep up with each other, so neither writes over the other.',
+      'Replacing a garden from a backup keeps the old one for 30 days, under Bring back a garden in Settings.',
+      'A damaged backup is now turned away with a reason, rather than freezing the app.',
+      'On a phone turned on its side, the plan has room at last. The year slider comes back when you turn it upright.',
+    ],
+  },
+  {
     id: '2026-10-30-garden-safe',
     date: '2026-10-30',
     title: 'Your garden is safe',

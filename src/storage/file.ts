@@ -3,7 +3,7 @@
 
 import { migrateGarden, migratePlant, SCHEMA_VERSION } from '../model/migrate';
 import type { AppState, Garden, Plant } from '../model/types';
-import { validateGarden, validatePlant } from '../model/validate';
+import { gardenOutOfBounds, validateGarden, validatePlant } from '../model/validate';
 
 export interface GardenFile {
   app: 'garden-planner';
@@ -56,9 +56,13 @@ export function parseFile(data: unknown): ParseResult {
   return { ok: true, state: { garden: garden as Garden, userPlants: userPlants as Plant[] }, ...(photos && Object.keys(photos).length ? { photos } : {}), ...(madeOn ? { madeOn } : {}) };
 }
 
+/** A file someone has chosen: everything parseFile checks, and that it holds nothing too big to draw. */
 export function parseFileText(text: string): ParseResult {
   try {
-    return parseFile(JSON.parse(text));
+    const result = parseFile(JSON.parse(text));
+    if (!result.ok) return result;
+    const errors = gardenOutOfBounds(result.state.garden);
+    return errors.length ? { ok: false, errors } : result;
   } catch {
     return { ok: false, errors: ['The file is not valid JSON.'] };
   }

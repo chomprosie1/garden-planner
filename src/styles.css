@@ -6977,3 +6977,53 @@ h2 {
 .rotation-switch p {
   margin: 0 0 0.4rem;
 }
+
+/* A phone on its side: not much height, so the plan keeps what there is. One row of tools, the dock's tabs on one line,
+   and the year slider waits for the phone to be turned back. */
+@media (max-height: 500px) {
+  .rail {
+    gap: 0;
+    padding: 0.2rem 0;
+    overflow-y: auto;
+  }
+  .nav-item {
+    flex: none;
+    min-height: var(--tap);
+    padding: 0.1rem 0;
+    font-size: 0.68rem;
+    gap: 0;
+  }
+  .nav-settings {
+    margin-top: 0;
+  }
+  .plan .toolbar {
+    flex-wrap: nowrap;
+    padding-block: 0.2rem;
+    overflow-x: auto;
+  }
+  .plan .toolbar-title {
+    flex: 0 1 7rem;
+    font-size: 1rem;
+  }
+  .plan .lens-bar,
+  .plan .toolbar-actions {
+    flex: none;
+    flex-wrap: nowrap;
+  }
+  .plan .year-scrubber {
+    display: none;
+  }
+  .plan-stage {
+    padding: 0.25rem;
+    gap: 0.25rem;
+  }
+  .dock-tabs {
+    padding: 0;
+  }
+  .dock-tab {
+    flex-direction: row;
+    gap: 0.35rem;
+    min-height: var(--tap);
+    padding-block: 0;
+  }
+}

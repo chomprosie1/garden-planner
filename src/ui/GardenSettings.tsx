@@ -17,7 +17,7 @@ import { useApp } from './appContext';
 import { gardenCount, lastCopy, noteCopy } from './gardenActions';
 import { safetyText } from './setup';
 import { usePlants } from './usePlants';
-import { addGarden } from '../storage/gardens';
+import { addGarden, keepReplaced } from '../storage/gardens';
 import { flushSave, saveStatus, type SaveStatus } from '../storage/local';
 import { fromDataUrl, loadPhoto, photoIds, putPhoto, toDataUrl } from '../storage/photos';
 import { Icon } from './icons';
@@ -91,15 +91,16 @@ export async function shareBackup(store: Store, prefsStore?: PrefsStore) {
 /**
  * Puts a checked backup into the app, as a new garden or in place of this one, with its photos back on this device.
  * The file is a copy of this garden as it now is, so its day is the last copy. How many photos came back.
+ * What it replaces is kept hidden for 30 days, unless there's nothing to keep (the very first screen).
  */
-export async function restoreBackup(store: Store, prefsStore: PrefsStore | undefined, result: Extract<ParseResult, { ok: true }>, asNew: boolean): Promise<number> {
+export async function restoreBackup(store: Store, prefsStore: PrefsStore | undefined, result: Extract<ParseResult, { ok: true }>, asNew: boolean, keepOld = true): Promise<number> {
   // Your own plants are shared by every garden: the file's are added to yours, and yours win where both have one.
   const mine = store.get().userPlants;
   const userPlants = [...mine, ...result.state.userPlants.filter((p) => !mine.some((m) => m.id === p.id))];
   if (asNew) {
     flushSave();
     addGarden(result.state.garden, undefined, new Date(), true);
-  }
+  } else if (keepOld) keepReplaced(store.get().garden);
   store.replace({ garden: result.state.garden, userPlants });
   let restored = 0;
   for (const [id, url] of Object.entries(result.photos ?? {})) {
@@ -225,7 +226,7 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
   const restore = async (result: Extract<ParseResult, { ok: true }>, asNew: boolean) => {
     setOpened(null);
     const restored = await restoreBackup(store, prefsStore, result, asNew);
-    setMessage({ kind: 'ok', lines: [`${asNew ? 'Added' : 'Restored'} "${result.state.garden.name}" from the backup${restored ? `, with ${restored} ${restored === 1 ? 'photo' : 'photos'}` : ''}.${asNew ? ` It’s open now; ${garden.name} is kept, to switch back to in Settings.` : ''}`] });
+    setMessage({ kind: 'ok', lines: [`${asNew ? 'Added' : 'Restored'} "${result.state.garden.name}" from the backup${restored ? `, with ${restored} ${restored === 1 ? 'photo' : 'photos'}` : ''}.${asNew ? ` It’s open now; ${garden.name} is kept, to switch back to in Settings.` : ` Your garden as it was is under Bring back a garden for 30 days.`}`] });
   };
 
   return (
@@ -377,7 +378,7 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
         {opened && (
           <div class="message ok restore-choice" role="status">
             <p>
-              “{opened.state.garden.name}” is ready to open. Add it as another garden, or replace {garden.name} with it? Replacing can’t be undone.
+              “{opened.state.garden.name}” is ready to open. Add it as another garden, or replace {garden.name} with it? Replaced, {garden.name} can be brought back for 30 days.
             </p>
             <div class="button-row">
               <button type="button" class="btn btn-primary" onClick={() => restore(opened, true)}>

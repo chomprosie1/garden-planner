@@ -10,7 +10,7 @@ import { feedDetail, feedingDue, feedsInUse, isOnce, plantingFeedText, potFeedDe
 import { plantHere } from '../lifecycle/growth';
 import { addDays, frostDates, isTender, plantOutMonthsUnder, safeOut } from '../lifecycle/shed';
 import { daysBetween } from '../model/dates';
-import { currentStage, isRoot, pathFor, setStage, sowingOf, stageLabel, stageTips, suggestedStage } from '../lifecycle/stages';
+import { currentStage, isRoot, pathFor, perennial, setStage, sowingOf, stageLabel, stageTips, suggestedStage } from '../lifecycle/stages';
 import { probableStage, shortDate, stageIn, timeline } from '../lifecycle/projection';
 import { behindOf } from '../lifecycle/behind';
 import type { Weather } from '../weather/weather';
@@ -73,6 +73,8 @@ export interface Job {
   handTools?: boolean;
   /** Pruning or tidying something settled in, not clearing it. */
   care?: boolean;
+  /** Clearing a crop whose season is over: ticking it takes the plantings off the plan. */
+  clears?: boolean;
 }
 
 /** One way to do a job: its kind, what it says, and its own advice. */
@@ -212,6 +214,7 @@ export interface JobOptions {
 /** What a job says for a tender crop in a pot, and its advice. RHS: overwinter somewhere warm and bright, pruned to a manageable size and watered sparingly; chillies usually cope with nights of about 12 °C. */
 export const BRING_IN_VERB = 'Bring indoors';
 const BRING_IN = 'Before nights drop to about 12 °C, cut it back to a manageable size and move it to a warm, bright windowsill. Fleece won’t keep it warm enough. Water it sparingly over winter.';
+const SEASON_OVER = 'Its season’s over. Pull it up for the compost heap, and the ground’s free for what’s next. Ticking this takes it off your plan.';
 
 /** Your jobs for a month, in the order of JOB_KINDS, then by plant name. */
 export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number, year: number, opts: JobOptions = {}): Job[] {
@@ -276,6 +279,12 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
     // Not sown yet, or sown this month by ticking its job (so the tick stays in this month's list). Sown any other way
     // (already in the ground, marked as sown), there's nothing left to do. Plants already growing skip sowing and planting out.
     const isGrowing = (p: Planting) => plantingStatus(p) === 'growing';
+    const stepsOf = (p: Planting) => timeline(plant, p, g, today!, weather);
+    // An annual left on the plan: gone by the time this month began, so there's nothing to feed, pick or protect, only
+    // clearing to do. Not a tender plant in a pot, which may well be on a windowsill for the winter.
+    const inPot = !!bed && isPot(bed);
+    const seasonOver = (p: Planting) =>
+      !!today && !perennial(plant) && !(inPot && plant.wintering?.type === 'protect') && stepsOf(p).some((s) => s.due && s.stage === 'cleared' && s.was! < `${ym(year, month)}-01`);
     const notGrowing = group.filter((p) => !isGrowing(p));
     const batchScope = (p: Planting) => `${featureId}~${p.batch?.n ?? p.id}`;
     const sowTicked = (p: Planting) => (['sow-direct', 'sow-indoors'] as const).some((k) => g.jobsDone.some((j) => j.key === keyOf(k, plant.id, p.sowBy ? batchScope(p) : featureId)));
@@ -283,7 +292,6 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
     // Batches are sown in the month you chose for each, one job each; the rest in the plant's sowing months.
     const plain = toSow.filter((p) => !p.sowBy);
     // In a pot, new compost has feed in it for about six weeks (RHS): nothing to dig in by the square metre.
-    const inPot = !!bed && isPot(bed);
     const before = opts.feeding && !inPot ? plantingFeedText(plant, g) : undefined;
     const withFeed = (detail?: string) => [detail, before].filter(Boolean).join(' ') || undefined;
     if (plain.length) {
@@ -337,7 +345,7 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
         const out = timeline(plant, p, g, today, weather).find((s) => s.guessed && s.stage === 'transplanted');
         return !out?.date || out.date <= monthEnd;
       };
-      const toPlant = (tickedNow ? group : notGrowing).filter((p) => sownFirst(p) && due(p));
+      const toPlant = (tickedNow ? group : notGrowing).filter((p) => sownFirst(p) && due(p) && !seasonOver(p));
       if (toPlant.length && !doneBefore(g, `plant-out:${plant.id}:${featureId}:`, year, month)) {
         // A tender plant outside waits for the play-safe date, not the 50:50 last frost: a frost kills it.
         const safe = safeOut(g, year);
@@ -348,14 +356,20 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
 
     // Sown outside and running behind to come up: nothing to pick or feed until it's up. Today asks about it instead.
     const notUp = (p: Planting) => !!today && currentStage(p) === 'sown' && sowingOf(plant, p) === 'direct' && behindOf(plant, p, g, today, weather)?.next === 'germinated';
-    const growing = group.filter((p) => (isGrowing(p) || afterSowing(p, year, month)) && !notUp(p));
+    const inPlace = group.filter((p) => (isGrowing(p) || afterSowing(p, year, month)) && !notUp(p));
+    const over = inPlace.filter(seasonOver);
+    const growing = inPlace.filter((p) => !over.includes(p));
+    if (over.length) {
+      add('tidy', plant, where, featureId, ids(over), SEASON_OVER, featureId);
+      jobs[jobs.length - 1]!.clears = true;
+    }
     if (!growing.length) continue;
     const harvest = plant.cropping?.harvestMonths ?? [];
     const harvesting = harvest.includes(month);
     // Ready means ready, by the same timeline as the planting's card: in its months and got there by the month's end,
-    // or already being picked and not over yet, even before its months (leeks).
-    const stepsOf = (p: Planting) => timeline(plant, p, g, today!, weather);
-    const picking = (p: Planting) => !!today && currentStage(p) === 'harvesting' && stageIn(stepsOf(p), monthEnd).stage === 'harvesting';
+    // or already being picked and not over yet, even before its months (leeks). Over means its clearing is due: that
+    // always lands tomorrow, so it isn't measured against the month's end, or the last day of a month would say otherwise.
+    const picking = (p: Planting) => !!today && currentStage(p) === 'harvesting' && stageIn(stepsOf(p), monthEnd).stage === 'harvesting' && !stepsOf(p).some((s) => s.due && s.stage === 'cleared');
     const ready = (p: Planting) => !today || currentStage(p) === 'harvesting' || !pathFor(plant, p).includes('harvesting') || stepsOf(p).some((s) => s.stage === 'harvesting' && s.date !== null && s.date <= monthEnd);
     const grown = growing.filter(ready);
     const toPick = growing.filter((p) => (harvesting && ready(p)) || picking(p));
@@ -405,7 +419,7 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
       jobs[jobs.length - 1]!.care = true;
     });
     if (winter?.type === 'lift-and-store' && grown.length && runEnds(harvest).includes(month)) add('lift', plant, where, featureId, ids(grown), winter.notes, featureId);
-    if (winter?.type === 'annual' && grown.length && runEnds(harvest).some((m) => m % 12 === month - 1 && month >= 9)) add('tidy', plant, where, featureId, ids(grown), 'Pull up finished plants and compost them, then mark the planting as harvested.', featureId);
+    if (winter?.type === 'annual' && !over.length && grown.length && runEnds(harvest).some((m) => m % 12 === month - 1 && month >= 9)) add('tidy', plant, where, featureId, ids(grown), 'Pull up finished plants and compost them, then mark the planting as harvested.', featureId);
   }
 
   // The season's weeding: one job for every bed with something growing in it.
@@ -539,8 +553,8 @@ export function toggleJob(g: Garden, job: Job, date: string, plantOf?: (id: stri
   if (done) {
     const unticked = { ...g, jobsDone: g.jobsDone.filter((j) => j.key !== job.key) };
     if (making) return updateFeature(unticked, making, { toMake: true });
-    // A weed job unticked: the weeds it cleared are back.
-    if (job.kind === 'weed' && ids.size) return { ...unticked, plantings: unticked.plantings.map((p) => (ids.has(p.id) && p.removedOn === done.date ? withoutRemoved(p) : p)) };
+    // A weed or clearing job unticked: what it cleared is back.
+    if ((job.kind === 'weed' || job.clears) && ids.size) return { ...unticked, plantings: unticked.plantings.map((p) => (ids.has(p.id) && p.removedOn === done.date ? withoutRemoved(p) : p)) };
     // A sowing unticked: it wasn't sown after all, so the job's back to do. Not if it's moved on since: it's come up, so it was.
     if ((job.kind === 'sow-direct' || job.kind === 'sow-indoors') && ids.size) return { ...unticked, plantings: unticked.plantings.map((p) => (ids.has(p.id) && p.sownOn === done.date && currentStage(p) === 'sown' ? withoutSown(p) : p)) };
     return unticked;
@@ -548,8 +562,8 @@ export function toggleJob(g: Garden, job: Job, date: string, plantOf?: (id: stri
   const ticked = { ...g, jobsDone: [...g.jobsDone, { key: job.key, date }] };
   if (making) return updateFeature(ticked, making, { toMake: undefined });
   if (!ids.size) return ticked;
-  // A weed dug or pulled out is gone from the plan, kept in the bed's history.
-  if (job.kind === 'weed') return { ...ticked, plantings: ticked.plantings.map((p) => (ids.has(p.id) && !p.removedOn ? { ...p, removedOn: date } : p)) };
+  // A weed dug or pulled out, or a finished crop cleared, is gone from the plan, kept in the bed's history.
+  if (job.kind === 'weed' || job.clears) return { ...ticked, plantings: ticked.plantings.map((p) => (ids.has(p.id) && !p.removedOn ? { ...p, removedOn: date } : p)) };
   const mine = g.plantings.filter((p) => ids.has(p.id));
   // Only move plantings forward: never back past a stage they've already reached.
   const before = (target: Stage) =>

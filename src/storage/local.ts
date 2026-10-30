@@ -3,7 +3,7 @@
 // access is guarded and the app still works.
 
 import type { Store } from '../model/store';
-import { saveOpen } from './gardens';
+import { changesOpen, readOpen, saveOpen } from './gardens';
 
 export type SaveStatus = 'saved' | 'saving' | 'failed';
 
@@ -39,6 +39,7 @@ export function stopSaving(): void {
 
 export function autosave(store: Store, delayMs = 400): void {
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let following = false;
   const save = () => {
     clearTimeout(timer);
     timer = undefined;
@@ -48,12 +49,27 @@ export function autosave(store: Store, delayMs = 400): void {
     saveStatus.set(saveOpen(store.get()) ? 'saved' : 'failed');
   };
   store.subscribe(() => {
-    if (stopped) return;
+    if (stopped || following) return;
     clearTimeout(timer);
     saveStatus.set('saving');
     timer = setTimeout(save, delayMs);
     pending = save;
   });
-  // Don't lose the last edit if the tab closes inside the delay.
+  // Don't lose the last edit if the tab closes inside the delay, or you move to another tab with it unsaved.
   addEventListener('pagehide', () => pending?.());
+  addEventListener('visibilitychange', () => document.hidden && pending?.());
+  // The same garden open in another tab: that tab has just saved, so this one follows it. Otherwise the next save here
+  // would write over what it did. Undo starts afresh, as it does after any change of garden.
+  addEventListener('storage', (e) => {
+    if (stopped || !e.newValue || !changesOpen(e.key)) return;
+    const next = readOpen();
+    const now = store.get();
+    if (!next || (JSON.stringify(next.garden) === JSON.stringify(now.garden) && JSON.stringify(next.userPlants) === JSON.stringify(now.userPlants))) return;
+    clearTimeout(timer);
+    pending = null;
+    following = true;
+    store.replace(next);
+    following = false;
+    saveStatus.set('saved');
+  });
 }

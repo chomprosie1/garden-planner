@@ -1562,7 +1562,7 @@ function drawFrost(ctx: CanvasRenderingContext2D, s: Scene) {
   ctx.fillRect(0, 0, s.width, s.height);
   // Crystals on a grid in garden mm, so they don't shimmer when the plan moves.
   const b = bounds(g.boundary)!;
-  const step = Math.max(150, 9 / s.view.scale);
+  const step = Math.max(150, 9 / s.view.scale, (b.maxX - b.minX) / 400, (b.maxY - b.minY) / 400);
   ctx.fillStyle = s.style.mode === 'dark' ? 'rgba(230,240,255,0.55)' : 'rgba(255,255,255,0.9)';
   for (let x = Math.floor(b.minX / step) * step; x <= b.maxX; x += step)
     for (let y = Math.floor(b.minY / step) * step; y <= b.maxY; y += step) {

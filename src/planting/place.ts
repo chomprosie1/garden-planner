@@ -6,6 +6,7 @@ import { distance, EDGE_MM, onEdgeOf, pointInPolygon } from '../geometry/polygon
 import { currentStage, inGroundDefault, inGroundStages, isGrowingStage, setStage, sowingOf } from '../lifecycle/stages';
 import { newId } from '../model/ids';
 import type { Feature, FeatureKind, Garden, Material, Plant, PlantSize, Planting, Point, SpacingStyle, Stage } from '../model/types';
+import { MAX_PLANTS } from '../model/validate';
 import { alongSupport, climbs, holdsOne, holdsPoint, isSupport, supportAt, trainsUp } from './supports';
 
 export type Layout = NonNullable<Planting['layout']>;
@@ -16,8 +17,7 @@ export const CONTAINER_KINDS: FeatureKind[] = ['bed', 'greenhouse', 'cold-frame'
 /** Ground soft enough to plant in, as bulbs go in a lawn. Paving, decking and paths aren't. */
 export const SOFT_GROUND: Material[] = ['lawn', 'meadow', 'soil', 'bark', 'gravel', 'cardboard'];
 
-/** More than this in one planting is almost always a mistake, and slow to draw. */
-export const MAX_PLANTS = 5000;
+export { MAX_PLANTS };
 
 /** Beds, greenhouses, cold frames and planters hold plants, and so do pots, which are round. */
 export const isContainer = (f: Feature) => CONTAINER_KINDS.includes(f.kind) && !f.line && (!f.circle || f.kind === 'pot');
@@ -214,8 +214,9 @@ function evenlyIn(a: Point, b: Point, n: number): Point[] {
 export function plantPositions(pl: Planting, plant: Plant): Point[] {
   const start: Point = [pl.x, pl.y];
   const end = pl.endPoint ?? start;
+  // However big it's been drawn or saved, no more than MAX_PLANTS are set out: a million would stop the app.
   if (pl.layout === 'row') {
-    const n = Math.max(1, plantCount(pl, plant));
+    const n = Math.min(MAX_PLANTS, Math.max(1, plantCount(pl, plant)));
     if (n === 1) return [start];
     const out: Point[] = [];
     for (let i = 0; i < n; i++) {
@@ -226,14 +227,16 @@ export function plantPositions(pl: Planting, plant: Plant): Point[] {
   }
   if (pl.layout === 'block') {
     // A block with its own count (bulbs in a round pot): that many, spread evenly over the pot.
-    if (pl.count) return evenlyIn(start, end, pl.count);
+    if (pl.count) return evenlyIn(start, end, Math.min(MAX_PLANTS, pl.count));
     // A grid centred in the rectangle, so plants sit half a spacing in from its edges.
     const [sx, sy] = blockSpacing(start, end, plant.size.spacingMm, rowSpacingOf(plant));
     const { cols, rows } = gridOf(pl, plant);
     const x0 = Math.min(start[0], end[0]) + (Math.abs(end[0] - start[0]) - (cols - 1) * sx) / 2;
     const y0 = Math.min(start[1], end[1]) + (Math.abs(end[1] - start[1]) - (rows - 1) * sy) / 2;
     const out: Point[] = [];
-    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) out.push([Math.round(x0 + c * sx), Math.round(y0 + r * sy)]);
+    // Thinned evenly if it's too big to set out plant by plant.
+    const every = cols * rows > MAX_PLANTS ? Math.ceil(Math.sqrt((cols * rows) / MAX_PLANTS)) + 1 : 1;
+    for (let r = 0; r < rows; r += every) for (let c = 0; c < cols; c += every) out.push([Math.round(x0 + c * sx), Math.round(y0 + r * sy)]);
     return out;
   }
   return [start];
