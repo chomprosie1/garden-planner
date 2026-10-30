@@ -41,7 +41,7 @@ export const SEASONS: Season[] = [
       'Clean pots and seed trays ready for spring',
       'Prune blackcurrants: cut out up to a third of the oldest stems at the base',
     ],
-    about: { 1: { ids: ['apple', 'pear'] }, 4: { ids: ['blackcurrant'] } },
+    about: { 1: { ids: ['apple', 'pear'], own: true }, 4: { ids: ['blackcurrant'], own: true } },
   },
   {
     month: 2,
@@ -236,7 +236,7 @@ export const SEASONS: Season[] = [
       'Check stored fruit and vegetables',
       'Plan next year’s crops and where they will go',
     ],
-    about: { 0: { ids: ['apple', 'pear'] }, 1: { ids: ['leek', 'parsnip', 'brussels-sprout'], own: true }, 3: { ground: true } },
+    about: { 0: { ids: ['apple', 'pear'], own: true }, 1: { ids: ['leek', 'parsnip', 'brussels-sprout'], own: true }, 3: { ground: true } },
   },
 ];
 

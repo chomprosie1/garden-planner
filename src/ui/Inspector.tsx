@@ -62,7 +62,7 @@ import { formatHours, sunNeeded, type Finding } from '../planting/rules';
 import { cmText, isPot, litresText, potNeeds, potOn, potOnChoices, potSize, sizeText, type PotOnTo } from '../planting/pots';
 import { expectedText, nextInMonths, shortDate, timeline } from '../lifecycle/projection';
 import { batchDates, batchesOf, batchLabel, canSowInBatches, maxBatches, MIN_BATCHES, setSowBy, splitIntoBatches } from '../planting/batches';
-import { currentStage, sowingOf, stageDate, stageLabel } from '../lifecycle/stages';
+import { currentStage, restingNow, sowingOf, stageDate, stageLabel, stageNow } from '../lifecycle/stages';
 import { deleteBlob, saveBlob } from '../storage/idb';
 import { Straighten } from './Straighten';
 import { openTraceKey } from '../storage/gardens';
@@ -1157,8 +1157,8 @@ function PlantingPanel(props: Props & { pl: Planting }) {
       <Heading eyebrow={`${LAYOUT_LABEL[layout]}${bed ? ` in ${placeLabel(bed)}` : ''}`} title={plant.commonName} plant={plant} />
       <p class="status-line">
         <span class={`status-chip status-${status}`}>
-          {stageLabel(plant, stage, pl)}
-          {stageDate(pl, stage) ? ` ${formatDate(stageDate(pl, stage)!)}` : ''}
+          {stageNow(plant, stage, pl, todayIso())}
+          {stageDate(pl, stage) && !restingNow(plant, stage, Number(todayIso().slice(5, 7))) ? ` ${formatDate(stageDate(pl, stage)!)}` : ''}
         </span>
         {step && <span class="muted small">{step}</span>}
       </p>

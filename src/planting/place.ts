@@ -517,6 +517,7 @@ export function inGroundOptions(today: string): { label: string; date: string }[
     const yy = m - back < 1 ? y - 1 : y;
     out.push({ label: `${MONTH_NAMES[mm - 1]}${yy === y ? '' : ` ${yy}`}`, date: `${yy}-${String(mm).padStart(2, '0')}-15` });
   }
-  out.push({ label: 'Over a year ago', date: `${y - 1}-${String(m).padStart(2, '0')}-01` });
+  const back = (years: number) => `${y - years}-${String(m).padStart(2, '0')}-01`;
+  out.push({ label: 'Over a year ago', date: back(1) }, { label: 'Two years ago', date: back(2) }, { label: 'Three years ago or more', date: back(3) });
   return out;
 }

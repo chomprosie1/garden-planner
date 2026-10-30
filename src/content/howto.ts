@@ -280,6 +280,25 @@ export function howTo(job: Job, from: StartsAs, bulb = false, at?: HowToFor): Ho
   return spaced ? { ...how, spacing: spacingText(at.plant, at.style) } : how;
 }
 
+/** Pruning or tidying something settled in: what to do is the job's own advice, underneath. */
+const CARE_FOR: HowTo = {
+  need: ['Clean, sharp secateurs', 'Gloves, for anything thorny', 'A bucket or trug'],
+  steps: ['Choose a dry day.', 'Do what it says below, a little at a time, stepping back to look.', 'Cut just above a bud or a joint, with a clean cut.', 'Compost what comes off, or bin anything that looks diseased.'],
+  time: 'About 15 minutes',
+};
+
+/** A tree's fruit, picked. RHS: cup it, lift gently and give a slight twist; store only sound fruit, not touching, somewhere cool, dark and frost-free. */
+const PICK_TREE_FRUIT: HowTo = {
+  need: ['A bucket lined with something soft', 'Trays or slatted crates, for storing'],
+  steps: [
+    'Pick when it’s a good size, has started to colour and tastes sweet. Fruit on the ground is a sign they’re ripening.',
+    'Cup it in your hand, lift gently and give a slight twist: a ripe one comes away with its stalk.',
+    'Keep only unmarked fruit for storing, laid out so they don’t touch, somewhere cool, dark and frost-free.',
+    'Check them often, and take out any that start to rot.',
+  ],
+  time: 'About 20 minutes',
+};
+
 /** Weeding a bed worked sitting down, or at waist height. */
 const WEED_BY_HAND: HowTo = {
   need: ['A hand fork', 'A bucket or trug within reach'],
@@ -335,6 +354,7 @@ function chosen(job: Job, from: StartsAs, bulb: boolean, at?: HowToFor): HowTo {
       if (plant.category === 'herb') return SNIP_HERBS;
       if (kind === 'pod') return PICK_PODS;
       if (kind === 'head') return CUT_HEADS;
+      if (plant.category === 'fruit' && plant.art?.form === 'tree') return PICK_TREE_FRUIT;
       if (kind === 'fruit' || plant.category === 'fruit') return PICK_FRUIT;
       return BY_KIND.harvest;
     }
@@ -342,6 +362,8 @@ function chosen(job: Job, from: StartsAs, bulb: boolean, at?: HowToFor): HowTo {
       return job.verb ? BRING_IN : BY_KIND.protect;
     case 'weed':
       return job.handTools ? WEED_BY_HAND : BY_KIND.weed;
+    case 'tidy':
+      return job.care ? CARE_FOR : BY_KIND.tidy;
     default:
       return BY_KIND[job.kind];
   }

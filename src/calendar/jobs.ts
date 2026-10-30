@@ -9,10 +9,12 @@ import { microclimateOf } from '../climate/microclimate';
 import { feedDetail, feedingDue, feedsInUse, isOnce, plantingFeedText, potFeedDetail, potFeedSteps } from '../feeding/schedule';
 import { plantHere } from '../lifecycle/growth';
 import { addDays, frostDates, isTender, plantOutMonthsUnder, safeOut } from '../lifecycle/shed';
+import { daysBetween } from '../model/dates';
 import { currentStage, isRoot, pathFor, setStage, sowingOf, stageLabel, stageTips, suggestedStage } from '../lifecycle/stages';
 import { probableStage, shortDate, stageIn, timeline } from '../lifecycle/projection';
 import { behindOf } from '../lifecycle/behind';
 import type { Weather } from '../weather/weather';
+import { careFor, SETTLED_DAYS } from './care';
 import { potWaterJobs, waterJob } from './watering';
 import { featureLabel, placeLabel, updateFeature } from '../model/features';
 import { runEnds, runStarts } from '../library/library';
@@ -69,6 +71,8 @@ export interface Job {
   ways?: JobWay[];
   /** For weeding: every bed's worked sitting down. */
   handTools?: boolean;
+  /** Pruning or tidying something settled in, not clearing it. */
+  care?: boolean;
 }
 
 /** One way to do a job: its kind, what it says, and its own advice. */
@@ -383,6 +387,17 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
     // A chilli or pepper in a pot comes in: fleece won't keep it warm enough.
     if (winter?.type === 'protect' && month === protectMonth && !cover && inPot && plant.family === 'Solanaceae') add('protect', plant, where, featureId, ids(growing), BRING_IN, featureId, BRING_IN_VERB);
     else if (winter?.type === 'protect' && month === protectMonth && !cover) add('protect', plant, where, featureId, ids(growing), winter.notes ?? 'Bring pots under cover or fleece the plants before the first frosts.', featureId);
+    // Looking after what's settled in. Once a season, whichever month it's done in.
+    const settled = growing.filter((p) => {
+      const went = p.stageDates?.transplanted ?? p.sownOn;
+      return isGrowing(p) && (!went || daysBetween(went, today ?? monthEnd) >= SETTLED_DAYS);
+    });
+    careFor(plant, month).forEach((c) => {
+      const scope = `${featureId}:care-${c.verb}-${c.months?.[0] ?? 'flowers'}`;
+      if (!settled.length || doneBefore(g, `tidy:${plant.id}:${scope}:`, year, month)) return;
+      add('tidy', plant, where, scope, ids(settled), c.text, featureId, c.verb);
+      jobs[jobs.length - 1]!.care = true;
+    });
     if (winter?.type === 'lift-and-store' && grown.length && runEnds(harvest).includes(month)) add('lift', plant, where, featureId, ids(grown), winter.notes, featureId);
     if (winter?.type === 'annual' && grown.length && runEnds(harvest).some((m) => m % 12 === month - 1 && month >= 9)) add('tidy', plant, where, featureId, ids(grown), 'Pull up finished plants and compost them, then mark the planting as harvested.', featureId);
   }

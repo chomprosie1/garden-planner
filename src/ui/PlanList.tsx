@@ -5,7 +5,8 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { featureLabel, type Target } from '../model/features';
 import type { Garden, Plant } from '../model/types';
-import { currentStage, stageLabel } from '../lifecycle/stages';
+import { currentStage, stageNow } from '../lifecycle/stages';
+import { todayIso } from '../model/ids';
 import { listBeds } from '../planting/listPlant';
 import { isActive, plantCount } from '../planting/place';
 
@@ -50,7 +51,7 @@ export function PlanList({ garden, plantOf, select, close }: Props) {
                       <li key={p.id}>
                         <button type="button" class="link-btn" onClick={() => pick({ type: 'planting', id: p.id })}>
                           {plant.commonName}
-                          {n > 1 ? ` × ${n}` : ''}, {stageLabel(plant, currentStage(p), p).toLowerCase()}
+                          {n > 1 ? ` × ${n}` : ''}, {stageNow(plant, currentStage(p), p, todayIso()).toLowerCase()}
                         </button>
                       </li>
                     );

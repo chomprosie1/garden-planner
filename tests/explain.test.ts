@@ -127,7 +127,7 @@ describe('not now, out of season', () => {
   it('says when a plant can start, when nothing can be done this month', () => {
     expect(notNow(plantOf('tomato'), 10)).toBe('Not now: sow under cover from February, then plant out from May.');
     expect(notNow(plantOf('carrot'), 10)).toBe('Not now: sow outside from March.');
-    expect(notNow(plantOf('tulip'), 8)).toBe('Not now: plant from November.');
+    expect(notNow(plantOf('tulip'), 8)).toBe('Not now: plant from October.');
     expect(notNow(plantOf('lavender'), 10)).toBe('Not now: plant from April.');
     // Every window, the next first: strawberries in spring, or late summer.
     expect(notNow(plantOf('strawberry'), 10)).toBe('Not now: plant from March, or in July to September.');

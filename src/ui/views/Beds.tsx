@@ -13,7 +13,7 @@ import { bounds } from '../../geometry/polygon';
 import { stageIn, timeline, type Step } from '../../lifecycle/projection';
 import { trayFrom } from '../../lifecycle/shed';
 import { bookedText, bookedUntil } from '../../planting/booked';
-import { currentStage, stageLabel, type LifeStage } from '../../lifecycle/stages';
+import { currentStage, stageNow, type LifeStage } from '../../lifecycle/stages';
 import { deleteFeatures, featureLabel, KINDS, rectInfo, resizeRectAny, updateFeature, type Target } from '../../model/features';
 import { todayIso } from '../../model/ids';
 import { addListBed, copyListBed, LIST_KIND_LABEL, LIST_KINDS, LIST_SIZE, moveInList, nameListBeds, outsideBoundary, planFromList, spreadOut, type ListKind } from '../../model/listLayout';
@@ -462,7 +462,7 @@ function PlantingRow({ pl, plant, count, garden, today, weather, which, open }: 
           {which && <span class="muted small"> · {which}</span>}
         </span>
         <span class="small">
-          <span class={`status-chip status-${marked === 'planned' ? 'planned' : marked === 'sown' ? 'sown' : 'growing'}`}>{stageLabel(plant, marked, pl)}</span>
+          <span class={`status-chip status-${marked === 'planned' ? 'planned' : marked === 'sown' ? 'sown' : 'growing'}`}>{stageNow(plant, marked, pl, today)}</span>
           {next && <span class="muted"> {next}</span>}
         </span>
         <SeasonBar steps={steps} today={today} />

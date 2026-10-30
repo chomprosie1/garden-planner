@@ -48,7 +48,8 @@ describe('a planting’s next step agrees with the jobs', () => {
     expect(step('onion', 1)).toBe('Sow under cover now, until Feb');
     expect(step('sweet-pea', 10)).toBe('Sow under cover now, until Nov');
     // Bulbs are planted in their months.
-    expect(step('tulip', 10)).toBe('Next: plant Nov–Dec');
+    expect(step('tulip', 10)).toBe('Plant now, until Dec');
+    expect(step('tulip', 9)).toBe('Next: plant Oct–Dec');
     expect(step('daffodil', 9)).toBe('Plant now, until Oct');
   });
 
@@ -147,8 +148,9 @@ describe('already in the ground, with a date', () => {
     expect(options[0]).toEqual({ label: 'This month', date: TODAY });
     expect(options[1]).toEqual({ label: 'September', date: '2026-09-15' });
     expect(options[10]).toEqual({ label: 'December 2025', date: '2025-12-15' });
-    expect(options[options.length - 1]!.label).toBe('Over a year ago');
-    expect(options).toHaveLength(13);
+    expect(options[options.length - 3]!.label).toBe('Over a year ago');
+    expect(options[options.length - 1]!.label).toBe('Three years ago or more');
+    expect(options).toHaveLength(15);
   });
 
   it('records the day it went in, so next year’s draft sees it', () => {

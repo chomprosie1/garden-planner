@@ -3,7 +3,7 @@
 // there rather than from today, and an apple planted years ago isn't treated
 // as planted this week.
 
-import { inGroundDefault, inGroundStages, stageLabel } from '../lifecycle/stages';
+import { inGroundDefault, inGroundStages, stageLabel, stageNow } from '../lifecycle/stages';
 import { todayIso } from '../model/ids';
 import type { Plant, Stage } from '../model/types';
 import { inGroundOptions, type InGroundAt } from '../planting/place';
@@ -43,7 +43,7 @@ export function InGround({ plant, value, set, label = 'Already in the ground', s
               <select value={stages.includes(value.stage) ? value.stage : stages[0]} onChange={(e) => set(at(plant, value.date, today, (e.currentTarget as HTMLSelectElement).value as Stage))}>
                 {stages.map((s) => (
                   <option key={s} value={s}>
-                    {stageLabel(plant, s)}
+                    {s === 'vegetative' ? stageNow(plant, s, undefined, today) : stageLabel(plant, s)}
                   </option>
                 ))}
               </select>

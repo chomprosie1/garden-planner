@@ -106,9 +106,10 @@ export function NextYearDialog({ garden, store, plantOf, close }: { garden: Gard
     }
     if (!grew.has(b.from)) return <p class="small next-groups muted">No crops move here, so it’s free for whatever you like.</p>;
     if (!b.was && !b.next) return null;
+    const words = (all: DraftBed['wasAll']) => listed(all.map((g, i) => (i ? GROUP_LABEL[g].toLowerCase() : GROUP_LABEL[g])));
     return (
       <p class="small next-groups">
-        {b.was ? GROUP_LABEL[b.was] : 'Other crops'} → <strong>{b.next ? GROUP_LABEL[b.next] : 'other crops'}</strong>
+        {b.wasAll.length ? words(b.wasAll) : 'Other crops'} → <strong>{b.nextAll.length ? words(b.nextAll) : 'other crops'}</strong>
         {b.was && b.next && b.was === b.next ? <span class="muted"> (the same again: there’s no other bed for them)</span> : null}
       </p>
     );

@@ -18,6 +18,8 @@ export function canSowInBatches(plant: Plant, pl: Planting): boolean {
   if (pl.layout !== 'row' && pl.layout !== 'block') return false;
   // Cloves, sets and tubers go in all at once: they're planted, not sown little and often.
   if (!plant.sowing?.length || perennial(plant) || plantedNotSown(plant, pl) || pl.batch || pl.removedOn) return false;
+  // Sown once in autumn, to stand the winter: batches are for spring and summer sowings.
+  if (plant.sowing.every((s) => s.months.every((m) => m >= 9))) return false;
   return currentStage(pl) === 'planned';
 }
 

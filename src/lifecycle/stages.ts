@@ -75,6 +75,16 @@ export function stageLabel(plant: Plant, stage: LifeStage, pl?: Planting): strin
   return STAGE_LABEL[stage];
 }
 
+/** A plant that comes back each year and isn't evergreen rests through these months, whatever stage it was last marked at. */
+export const REST_MONTHS = [11, 12, 1, 2];
+
+/** Resting for the winter: settled, past planting, and bare or dormant. */
+export const restingNow = (plant: Plant, stage: LifeStage, month: number): boolean =>
+  perennial(plant) && plant.lifePath?.winter !== 'evergreen' && REST_MONTHS.includes(month) && (stage === 'vegetative' || stage === 'flowering' || stage === 'harvesting');
+
+/** A stage as it stands today: "Resting" for a blackcurrant in December, otherwise as stageLabel says. */
+export const stageNow = (plant: Plant, stage: LifeStage, pl: Planting | undefined, today: string): string => (restingNow(plant, stage, Number(today.slice(5, 7))) ? 'Resting' : stageLabel(plant, stage, pl));
+
 /** What "move on" says in this plant's words: "Mark as planted" for garlic, "Start lifting" for parsnips. */
 export function stageAction(plant: Plant, stage: Stage, pl?: Planting): string {
   if (stage === 'sown' && plantedNotSown(plant, pl)) return 'Mark as planted';
@@ -262,6 +272,9 @@ function generalTips(plant: Plant, stage: Stage, pl: Planting | undefined, fed: 
       // Fleece is for spring's cold nights: something planted out in summer or autumn doesn't need it.
       return month && (month < 3 || month > 6) ? ['Water in well to settle the soil round the roots.'] : ['Water in well to settle the soil round the roots. Keep a fleece handy for a cold night.'];
     case 'vegetative':
+      // RHS: a light trim after flowering; old wood may not grow back.
+      if ((plant.varietyOf ?? plant.id) === 'rosemary' || (plant.varietyOf ?? plant.id) === 'thyme')
+        if (month && (month >= 9 || month <= 2)) return ['Leave it be through the winter: it’s trimmed lightly after it flowers, and never into old wood.'];
       // A shrub or fruit bush that loses its leaves rests over winter.
       if (perennial(plant) && plant.lifePath?.winter !== 'evergreen' && month && (month >= 11 || month <= 2))
         return ['Resting for the winter. Nothing to do but keep the weeds down; the new growth comes in spring.'];

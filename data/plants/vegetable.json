@@ -206,7 +206,7 @@
     "cropping": { "harvestMonths": [6, 7, 8], "notes": "Lift when the leaves yellow and flop over." },
     "lookOutFor": ["Birds pull up newly planted sets; cover with fleece until rooted."],
     "pests": [
-      { "name": "Onion white rot", "signs": "Yellowing leaves and white fluffy mould at the base", "control": "Remove affected plants and don't grow onions there again for many years." },
+      { "name": "Onion white rot", "signs": "Yellowing leaves and white fluffy mould at the base", "control": "Remove affected plants, and don't grow onions, garlic or leeks there again: it lasts in the soil for 15 years or more. Rotating crops doesn't clear it." },
       { "name": "Onion fly", "signs": "Wilting, yellow leaves and maggots in the bulb", "control": "Cover with fine insect mesh; grow from sets rather than seed." }
     ],
     "germinationDays": [10, 14],
@@ -235,7 +235,7 @@
     "sowing": [{ "method": "direct", "from": "sets", "months": [12, 1, 2, 3], "depthMm": 10, "notes": "Plant sets with the tip just showing." }],
     "cropping": { "harvestMonths": [6, 7], "notes": "Lift the clumps when the leaves turn yellow." },
     "lookOutFor": ["Birds pull up newly planted sets; cover with fleece until rooted."],
-    "pests": [{ "name": "Onion white rot", "signs": "Yellowing leaves and white mould at the base", "control": "Remove affected plants; avoid growing alliums there again for many years." }],
+    "pests": [{ "name": "Onion white rot", "signs": "Yellowing leaves and white mould at the base", "control": "Remove affected plants, and don't grow onions, garlic or leeks there again: it lasts in the soil for 15 years or more. Rotating crops doesn't clear it." }],
     "companions": { "good": ["carrot", "beetroot"], "avoid": ["broad-bean", "pea"] },
     "wintering": { "type": "lift-and-store", "notes": "Dry well, separate the bulbs and store somewhere cool and airy." },
     "feeding": { "need": "moderate", "steps": [{ "when": "planting", "feed": "blood-fish-bone", "note": "Rake it in a week or two before planting." }], "avoid": ["Fresh manure: the bulbs rot."] },
@@ -258,7 +258,7 @@
     "lookOutFor": ["Needs a cold spell to form good bulbs."],
     "pests": [
       { "name": "Rust", "signs": "Orange spots on the leaves", "control": "Space plants well for airflow; mild attacks rarely harm the bulbs." },
-      { "name": "Onion white rot", "signs": "Yellowing leaves and white mould at the base", "control": "Remove affected plants and rotate crops." }
+      { "name": "Onion white rot", "signs": "Yellowing leaves and white mould at the base", "control": "Remove affected plants, and don't grow onions, garlic or leeks there again: it lasts in the soil for 15 years or more. Rotating crops doesn't clear it." }
     ],
     "companions": { "good": ["carrot", "beetroot"], "avoid": ["broad-bean", "runner-bean", "french-bean", "pea"] },
     "wintering": { "type": "hardy", "notes": "Autumn-planted cloves overwinter in the ground. After harvest, dry and store somewhere cool." },
@@ -314,7 +314,7 @@
     "cropping": { "harvestMonths": [5, 6, 7, 8, 9, 10], "notes": "Pull when about pencil-thick." },
     "growth": { "days": [56, 70], "from": "sowing" },
     "lookOutFor": ["Easy to grow in a pot or between slower crops."],
-    "pests": [{ "name": "Onion white rot", "signs": "Yellowing leaves and white mould at the base", "control": "Rotate crops; avoid ground where white rot has been." }],
+    "pests": [{ "name": "Onion white rot", "signs": "Yellowing leaves and white mould at the base", "control": "Remove affected plants, and don't grow onions, garlic or leeks there again: it lasts in the soil for 15 years or more. Rotating crops doesn't clear it." }],
     "germinationDays": [7, 14],
     "companions": { "good": ["carrot", "lettuce"], "avoid": ["pea", "broad-bean"] },
     "wintering": { "type": "annual" },

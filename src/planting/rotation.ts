@@ -154,6 +154,9 @@ export interface DraftBed {
   /** This year's main group, and the one that comes in next year. Null: no crop that rotates. */
   was: RotationGroup | null;
   next: RotationGroup | null;
+  /** Every group that grew here this year, and every one coming: a bed of leeks and kale is both. */
+  wasAll: RotationGroup[];
+  nextAll: RotationGroup[];
   /** The bed whose crops come here. It may have had none. */
   from: string;
   /** Next year's crop already in the ground (garlic planted this autumn), and when it's likely out. Nothing new goes in. */
@@ -188,11 +191,17 @@ function mainGroup(list: Planting[], plantOf: (id: string) => Plant): RotationGr
   return best;
 }
 
-/** How well a bed that grew `was` takes crops of `next`: the right one next is best; the same again is worst. */
-function fitScore(was: RotationGroup | null, next: RotationGroup | null): number {
-  if (!was || !next) return 0;
-  if (SLOT[was] === SLOT[next]) return -10;
-  return follows(was, next) ? 3 : 0;
+/** Every group in a bed's crops, not just the main one: kale's a brassica even beside leeks. */
+function groupsIn(list: Planting[], plantOf: (id: string) => Plant): RotationGroup[] {
+  return [...new Set(list.map((pl) => rotationGroup(plantOf(pl.plantId))).filter((g): g is RotationGroup => !!g))];
+}
+
+/** Whether a crop would follow itself in a bed that grew these: the same again is what a rotation's there to stop. */
+const repeats = (grew: RotationGroup[], next: RotationGroup) => grew.some((was) => SLOT[was] === SLOT[next]);
+
+/** How well a bed that grew these takes crops of these, crop by crop: the right one next is best; the same again is worst. */
+function fitScore(grew: RotationGroup[], coming: RotationGroup[]): number {
+  return coming.reduce((n, next) => n + (repeats(grew, next) ? -10 : grew.some((was) => follows(was, next)) ? 3 : 0), 0);
 }
 
 /**
@@ -290,7 +299,8 @@ export function draftNextYear(g: Garden, plantOf: (id: string) => Plant, today: 
   const order = [...beds].sort((x, y) => slot(x) - slot(y) || (x.name ?? '').localeCompare(y.name ?? '', undefined, { numeric: true }) || x.id.localeCompare(y.id));
   const n = order.length;
   // A bed that's taken loses whatever would have come to it.
-  const fit = (to: string, src: string) => (taken.has(to) ? -20 * crops.get(src)!.length : fitScore(groupOf.get(to)!, groupOf.get(src)!));
+  const grewIn = (id: string) => groupsIn(crops.get(id)!, plantOf);
+  const fit = (to: string, src: string) => (taken.has(to) ? -20 * crops.get(src)!.length : fitScore(grewIn(to), grewIn(src)));
   let best = 0;
   let bestScore = -Infinity;
   for (let k = 0; k < n; k++) {
@@ -337,6 +347,8 @@ export function draftNextYear(g: Garden, plantOf: (id: string) => Plant, today: 
       bed,
       was: groupOf.get(bed.id) ?? null,
       next: busy ? mainGroup(busy, plantOf) : (groupOf.get(src) ?? null),
+      wasAll: grewIn(bed.id),
+      nextAll: busy ? groupsIn(busy, plantOf) : grewIn(src),
       from: src,
       ...(busy ? { taken: { plantings: busy, until } } : {}),
       stays: stays.get(bed.id)!,
@@ -356,7 +368,39 @@ export function draftNextYear(g: Garden, plantOf: (id: string) => Plant, today: 
     const after = followOn(busy ?? here.filter((i) => !i.leftOut).map((i) => i.next), plantOf, year, (pl) => goneBy(pl, plantOf(pl.plantId), expected.get(pl.id) ?? pl.sowBy));
     if (after) draftBeds[draftBeds.length - 1]!.after = after;
   }
+  // A bed's crops move together, but not a crop that would follow itself there: it goes on its own to a bed it can have.
+  for (const item of items) {
+    const plant = plantOf(item.was.plantId);
+    const group = rotationGroup(plant);
+    if (!group || item.leftOut || !repeats(grewIn(item.next.featureId), group)) continue;
+    const others = beds.filter((b) => b.id !== item.next.featureId && !taken.has(b.id) && !repeats(grewIn(b.id), group));
+    // The bed it should follow on in first.
+    others.sort((a, b) => Number(grewIn(b.id).some((w) => follows(w, group))) - Number(grewIn(a.id).some((w) => follows(w, group))));
+    for (const to of others) {
+      const moved = nextOf(g, plant, item.was, to, mover(byId.get(item.was.featureId)!, to), today, weather, year);
+      const clear = !moved.leftOut && !items.some((o) => o !== item && o.next.featureId === to.id && !o.leftOut && plantingsMeet(o.next, moved.next, plantOf));
+      if (!clear) continue;
+      item.next = moved.next;
+      break;
+    }
+  }
+  // What each bed takes, once that's done.
+  for (const b of draftBeds) {
+    if (b.taken) continue;
+    const coming = items.filter((i) => i.next.featureId === b.bed.id && !i.leftOut).map((i) => i.next);
+    if (!coming.length) continue;
+    b.next = mainGroup(coming, plantOf);
+    b.nextAll = groupsIn(coming, plantOf);
+  }
   return { year, beds: draftBeds, items, already, replaces };
+}
+
+/** Two plantings too close: any of their plants nearer than the wider of their spacings. */
+function plantingsMeet(a: Planting, b: Planting, plantOf: (id: string) => Plant): boolean {
+  const [pa, pb] = [plantOf(a.plantId), plantOf(b.plantId)];
+  const gap = Math.max(pa.size.spacingMm, pb.size.spacingMm);
+  const there = plantPositions(b, pb);
+  return plantPositions(a, pa).some((p) => there.some((q) => Math.hypot(p[0] - q[0], p[1] - q[1]) < gap));
 }
 
 /** One of this year's plantings as next year's, in its new bed, and whether it's left out and why. */

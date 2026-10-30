@@ -116,10 +116,14 @@ describe('Margaret’s corrections', () => {
     expect(shoppingList(gardenWith(row('onion', { sowBy: '2027-03-15' })), plantOf, '2027-03-01').find((i) => i.key === 'bulb:onion')!.name).toBe('Onion sets');
   });
 
-  it('overwintering onions: sets 2 cm deep, and fed only in late winter on poor soil', () => {
+  it('overwintering onions: pushed in to the tip, and fed only in late winter on poor soil', () => {
     const o = plantOf('onion-overwintering');
-    expect(o.sowing![0]!.depthMm).toBe(20);
-    expect(o.sowing![0]!.notes).toMatch(/late summer/);
+    // One story since release 56, as Margaret corrected it: no depth beside "the tip showing".
+    expect(o.sowing![0]!.depthMm).toBeUndefined();
+    expect(o.sowing![0]!.notes).toMatch(/just the tip shows/);
+    expect(o.sowing![0]!.months).toEqual([9, 10, 11]);
+    expect(o.wintering?.type).toBe('hardy');
+    expect(o.plantOutMonths).toEqual([]);
     const late = o.feeding!.steps.find((s) => s.when === 'spring')!;
     expect(late.months).toEqual([2, 3]);
   });

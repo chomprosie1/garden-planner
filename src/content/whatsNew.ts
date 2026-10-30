@@ -17,6 +17,21 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-10-31-plants-that-stay',
+    date: '2026-10-31',
+    title: 'Plants that stay',
+    items: [
+      'Fruit and other plants that come back each year now show as Resting through the winter.',
+      'New jobs for what’s already growing: pruning blackcurrants, gooseberries, currants, apples and pears in winter, tidying strawberries after they crop, and trimming herbs after they flower.',
+      'Say a plant went in two or three years ago, under Already in the ground.',
+      'Tulips can be planted from October.',
+      'Next year’s draft now looks at each crop, not just each bed: kale counts as a brassica even beside leeks, and a crop won’t follow itself if another bed can take it.',
+      'Apples and other tree fruit have their own how-to for picking and storing.',
+      'The overwintering onion page now tells one story, white rot says the same for every onion crop, and autumn broad beans no longer offer sowing in batches.',
+    ],
+    tryIt: { label: 'See your garden', view: 'plan' },
+  },
+  {
     id: '2026-10-30-only-what-you-have',
     date: '2026-10-30',
     title: 'Only what you have',
