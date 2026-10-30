@@ -134,6 +134,7 @@ describe('Margaret’s corrections', () => {
     expect(oct).toContain('Cut summer raspberry canes that have fruited down to the ground, and tie in the new ones');
     expect(oct).toContain('Clean the greenhouse glass and gutters, and put up bubble wrap for the winter');
     expect(oct).not.toContain('Keep the cold frame lid open by day, closing it only when a hard frost is due');
-    expect(generalJobs(1, gardenWith(row('blackcurrant', { stage: 'vegetative' })), plantOf).map((j) => j.text)).toContain('Prune blackcurrants: cut out up to a third of the oldest stems at the base');
+    // Since release 56 the blackcurrant's own job says it, so the general list doesn't say it twice.
+    expect(generalJobs(1, gardenWith(row('blackcurrant', { stage: 'vegetative' })), plantOf).map((j) => j.text)).not.toContain('Prune blackcurrants: cut out up to a third of the oldest stems at the base');
   });
 });

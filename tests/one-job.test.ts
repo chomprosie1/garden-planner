@@ -170,8 +170,8 @@ describe('fewer pointless jobs', () => {
     expect(mine.map((j) => j.text)).not.toContain('Plant garlic cloves');
     // Each keeps its place in the month's list, which its tick is saved under.
     expect(mine.find((j) => j.text.startsWith('Gather fallen leaves'))!.i).toBe(3);
-    // A pruning job the app doesn't do itself shows only for a garden with the tree.
+    // Since release 56 the tree's own job says it: the general list has it only for a garden with nothing planted.
     expect(generalJobs(1, g, plantOf).map((j) => j.text)).not.toContain('Prune apple and pear trees while they are dormant');
-    expect(generalJobs(1, gardenWith(row('apple', {}, pot)), plantOf).map((j) => j.text)).toContain('Prune apple and pear trees while they are dormant');
+    expect(generalJobs(1, gardenWith(row('apple', {}, pot)), plantOf).map((j) => j.text)).not.toContain('Prune apple and pear trees while they are dormant');
   });
 });
