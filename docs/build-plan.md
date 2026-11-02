@@ -3254,13 +3254,13 @@ Built 2 Nov 2026, pulled forward from 12 Nov at your request. No schema change. 
 - **Watering says why, and when.** Each pot's job now has a line from the warmth it's had, or the time of year without the weather: hot, warm, cool or cold. The thresholds are a design call, as they were.
 - **Quiet in winter.** Days under 10 °C (`WINTER_C`) are looked at once a month, in the first week, and go at least three weeks between waterings. A mild spell with the weather on isn't winter.
 - **Brought indoors:** a chilli or pepper in a pot (`comesIndoors`) comes off the watering once you tick its job, and from the first frost to the last either way. What shares its pot stays on.
-- **The last garden words:** on a balcony with no glass, sentences about a greenhouse or cold frame leave its jobs (`withoutGlass`), and fleece leaves the general jobs, the frost card and the first frost's line.
-- **Sown in the trough** (`sowsInPot`): on a balcony, anything hardy that can be sown outside is sown in the pot in its sowing months, and isn't planted out if that's missed. The Shopping list drops seed compost for it.
+- **The last garden words:** on a balcony with no glass, sentences about a greenhouse or cold frame leave its jobs (`withoutGlass`), and fleece leaves the general jobs, the protect jobs, the frost card and the first frost's line.
+- **Sown in the trough** (`sowsInPot`): on a balcony, anything hardy that can be sown outside is sown in the pot in its outside months and in autumn, batches too, and isn't planted out if that's missed. A spring sowing under cover stays one: lettuce in February isn't sent outside. Words about raising it to move later go from those jobs, and the shopping list drops seed compost for it.
 - **Food for food** (`isFood`): a pot with something to eat in it gets swaps you can eat. Sam's basil gets garlic, onion and broad beans in the same light.
 - **Ferns under Shade.** They were there, but outside the core 150, under More plants. Hart's tongue and male fern are in the core, and tayberry and loganberry are out, so it stays at 150. Those two are still found by search.
-- **Bags add up:** the bags come from the rounded litres, as the words do.
-- **Pots on the shopping list,** by size, "if you haven't got them": the same pots whose compost is there.
-- **Heavy pots are a warning.** On a balcony, all the pots at 100 litres or more get a warning on the compost line, in adults, with what to do. It's a design call, not a load limit: only the building can say.
+- **Bags add up:** litres round up to the next 5 and the bags come from that, so "80 litres (3 bags)" is "85 litres (3 bags)" and you're never short.
+- **Pots on the shopping list,** by size, "if you haven't got them": the same pots whose compost is there. A second pot of a size you've ticked comes back on the list.
+- **Heavy pots are a warning.** On a balcony, all the pots at 100 litres or more get a warning on the compost line, in adults, with what to do, on the shared list too. It's a design call, not a load limit: only the building can say.
 - **Found on the way:** a balcony with nothing to do read "0 of 0 done", and "until you add plants" with plants in. Today now says nothing needs doing.
 - **Browser check:** a balcony through setup with the Shady balcony kit at 390 px: Today, the shopping list and the Shade list.
 

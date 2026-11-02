@@ -21,7 +21,7 @@ import { runEnds, runStarts } from '../library/library';
 import { STAGES, type Garden, type PickSize, type Plant, type Planting, type Stage } from '../model/types';
 import { addPick } from '../planting/harvest';
 import { isActive, isContainer, plantingStatus, stillWanted } from '../planting/place';
-import { sowsInPot, withoutGlass } from '../planting/balcony';
+import { frostCareOnBalcony, onBalcony, sownWhereItGrows, sowsInPot, withoutGlass } from '../planting/balcony';
 import { comesIndoors, isPot, mayOverwinter } from '../planting/pots';
 import { bedHowTo, bedSize, firstBedHowTo, MAKE_BED, needsFirstBed } from '../planting/firstBed';
 import { wherePhrase } from '../planting/supports';
@@ -212,6 +212,9 @@ export interface JobOptions {
   watering?: boolean;
 }
 
+/** From this month, a hardy crop's under-cover sowing can go straight in a balcony's pot: the cold that keeps it under cover in spring isn't coming until it's up. */
+const AUTUMN_MONTH = 8;
+
 /** What a job says for a tender crop in a pot, and its advice. RHS: overwinter somewhere warm and bright, pruned to a manageable size and watered sparingly; chillies usually cope with nights of about 12 °C. */
 export const BRING_IN_VERB = 'Bring indoors';
 const BRING_IN = 'Before nights drop to about 12 °C, cut it back to a manageable size and move it to a warm, bright windowsill. Fleece won’t keep it warm enough. Water it sparingly over winter.';
@@ -290,6 +293,15 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
     // says. For an earlier month, when you look back, it counts only if it was already over by then.
     const inPot = !!bed && isPot(bed);
     const sownInPot = !!bed && sowsInPot(g, plant, bed);
+    // In its months for sowing outside, or autumn's: a spring sowing under cover stays there until it's warm enough outside.
+    const allKinds = sowingKinds(plant, month);
+    const direct = allKinds.filter((k) => k.kind === 'sow-direct');
+    const inPotNow = sownInPot && (direct.length > 0 || month >= AUTUMN_MONTH) && allKinds.length > 0;
+    const asSownInPot = (k: SowingKind): SowingKind => {
+      const detail = k.detail && sownWhereItGrows(k.detail);
+      const { detail: _was, ...rest } = k;
+      return { ...rest, kind: 'sow-direct', ...(detail ? { detail } : {}) };
+    };
     const seasonOver = (p: Planting) =>
       !!today && !perennial(plant) && !mayOverwinter(plant, bed) && clearingDue(stepsOf(p)) && (ym(year, month) >= today.slice(0, 7) || stepsOf(p).some((s) => s.due && s.stage === 'cleared' && s.was! < `${ym(year, month)}-01`));
     const notGrowing = group.filter((p) => !isGrowing(p));
@@ -304,9 +316,7 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
     if (plain.length) {
       // One job however many ways it can be sown, done once whichever way. Once you've said how (by ticking it), it's
       // that way only. The key is the first way's, so a tick stays put.
-      const every = sowingKinds(plant, month);
-      const inThePot = every.filter((k) => k.kind === 'sow-direct');
-      const kinds: SowingKind[] = !sownInPot ? every : inThePot.length ? inThePot : every.slice(0, 1).map((k) => ({ ...k, kind: 'sow-direct' }));
+      const kinds: SowingKind[] = inPotNow ? (direct.length ? direct : allKinds.slice(0, 1)).map(asSownInPot) : allKinds;
       const chosen = chosenSowing(plain);
       const mine = chosen ? kinds.filter((k) => (k.kind === 'sow-direct') === (chosen === 'direct')) : [];
       const ways = mine.length ? mine : kinds;
@@ -328,9 +338,10 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
     for (const p of toSow.filter((x) => x.sowBy && ((x.sownOn ?? x.sowBy).slice(0, 7) === ym(year, month) || (!x.sownOn && x.sowBy.slice(0, 7) === lastMonth)))) {
       const how = sowingOf(plant, p);
       if (how === 'none') continue;
-      const kind: JobKind = how === 'direct' ? 'sow-direct' : 'sow-indoors';
+      const kind: JobKind = how === 'direct' || inPotNow ? 'sow-direct' : 'sow-indoors';
       const bed = `${bedName}${p.batch ? ` (batch ${p.batch.n} of ${p.batch.of})` : ''}`;
-      const sk = sowingKinds(plant, month).find((s) => s.kind === kind);
+      const found = allKinds.find((s) => s.kind === kind) ?? (inPotNow ? allKinds[0] : undefined);
+      const sk = found && inPotNow ? asSownInPot(found) : found;
       const tip = sk?.detail;
       add(kind, plant, kind === 'sow-indoors' ? `for ${bed}` : `in ${bed}`, batchScope(p), [p.id], [p.sowBy!.slice(0, 7) === lastMonth ? `Running late: it was due about ${shortDate(p.sowBy!)}.` : `${sk?.verb ? 'Plant' : 'Sow'} about ${shortDate(p.sowBy!)}.`, tip].filter(Boolean).join(' '), featureId, sk?.verb);
     }
@@ -349,7 +360,7 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
         const how = sowingOf(plant, p);
         if (how === 'none') return true;
         if (!p.sownOn) return !canSow && !sownInPot;
-        if (how === 'direct' || p.sownOn.slice(0, 7) > ym(year, month)) return false;
+        if (how === 'direct' || (sownInPot && !p.sowing) || p.sownOn.slice(0, 7) > ym(year, month)) return false;
         if (!today || tickedNow) return true;
         const out = timeline(plant, p, g, today, weather).find((s) => s.guessed && s.stage === 'transplanted');
         return !out?.date || out.date <= monthEnd;
@@ -412,7 +423,7 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
     }
     const winter = plant.wintering;
     if (month === protectMonth && !cover && bed && comesIndoors(plant, bed)) add('protect', plant, where, featureId, ids(growing), BRING_IN, featureId, BRING_IN_VERB);
-    else if (winter?.type === 'protect' && month === protectMonth && !cover) add('protect', plant, where, featureId, ids(growing), winter.notes ?? 'Bring pots under cover or fleece the plants before the first frosts.', featureId);
+    else if (winter?.type === 'protect' && month === protectMonth && !cover) add('protect', plant, where, featureId, ids(growing), onBalcony(g) ? frostCareOnBalcony(winter.notes) : (winter.notes ?? 'Bring pots under cover or fleece the plants before the first frosts.'), featureId);
     // Looking after what's settled in. Once a season, whichever month it's done in.
     // Measured to the month in question, from the first date it has.
     const settled = growing.filter((p) => {

@@ -9,6 +9,7 @@
 
 import { beginnerOrder } from '../library/order';
 import { canSowIn } from '../library/library';
+import { isTender } from '../lifecycle/shed';
 import { facingBearing } from '../lifecycle/shedSun';
 import type { Balcony, BalconySun, Facing, Feature, Garden, Light, Plant } from '../model/types';
 import { isActive } from './place';
@@ -32,14 +33,24 @@ export const LIGHT_RANK: Record<Light, number> = { shade: 0, 'part-shade': 1, 'f
 /** Just a balcony: nothing but pots, up where glass and fleece don't come into it. */
 export const onBalcony = (g: Garden): boolean => !!g.balcony && potsOnly(g);
 
-/** On a balcony there's nowhere to raise it first: what can be sown outside goes straight in the pot, and isn't planted out. */
-export const sowsInPot = (g: Garden, plant: Plant, f: Feature): boolean => isPot(f) && onBalcony(g) && !/^\s*(tender|half-hardy)/i.test(plant.conditions.hardiness ?? '') && !!plant.sowing?.some((s) => s.method === 'direct' && !s.from);
+/** On a balcony there's nowhere to raise it first: what can be sown outside goes straight in its pot, and isn't planted out. */
+export const sowsOnBalcony = (g: Garden, plant: Plant): boolean => onBalcony(g) && !isTender(plant) && !!plant.sowing?.some((s) => s.method === 'direct' && !s.from);
+export const sowsInPot = (g: Garden, plant: Plant, f: Feature): boolean => isPot(f) && sowsOnBalcony(g, plant);
 
-/** Advice that takes a greenhouse or cold frame, without it for a balcony that hasn't one, a sentence at a time. */
+/** A text without the sentences that match. */
+const without = (text: string, words: RegExp) => text.split(/(?<=[.!?])\s+/).filter((s) => !words.test(s)).join(' ');
+
+/** Advice that takes a greenhouse or cold frame, without it for a balcony that hasn't one. */
 export function withoutGlass(g: Garden, text: string): string {
   if (!onBalcony(g) || g.features.some((f) => f.kind === 'greenhouse' || f.kind === 'cold-frame')) return text;
-  return text.split(/(?<=[.!?])\s+/).filter((s) => !/greenhouse|cold frame|polytunnel/i.test(s)).join(' ');
+  return without(text, /greenhouse|cold frame|polytunnel/i);
 }
+
+/** A sowing's advice, for sowing where it's to grow: nothing about raising it to move later. */
+export const sownWhereItGrows = (text: string) => without(text, /modules|seedbed|root trainers|\bmove\b|transplant|plant(ing)? (them )?out/i);
+
+/** What to do about a frost on a balcony, where fleece blows away: a plant's own advice without it, or this. */
+export const frostCareOnBalcony = (notes = '') => without(notes, /fleece/i) || 'Move it to the most sheltered spot, against the wall, before the first frosts.';
 
 /** Grown to eat. */
 export const isFood = (p: Plant): boolean => !!p.cropping?.harvestMonths.length && ['vegetable', 'herb', 'fruit'].includes(p.category);

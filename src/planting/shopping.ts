@@ -13,7 +13,7 @@ import { currentStage } from '../lifecycle/stages';
 import { daysBetween } from '../model/dates';
 import { placeLabel } from '../model/features';
 import type { Garden, Plant, Planting } from '../model/types';
-import { sowsInPot } from './balcony';
+import { sowsInPot, sowsOnBalcony } from './balcony';
 import { isActive, plantCount, stillWanted } from './place';
 import { bagsText, isPot, potsOnly, potSize, sizeText, WET_KG_PER_LITRE, wetWeightText } from './pots';
 import { firstBedCompost, makingBeds, needsFirstBed } from './firstBed';
@@ -100,8 +100,8 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
 /** "Onion sets, overwintering", "Broad bean seed, autumn-sown": the word after the plant, before its kind. */
 const named = (plant: Plant, word: string) => plant.commonName.replace(/^([^,]+)/, `$1 ${word}`);
 const listOf = (names: string[]) => (names.length > 3 ? `${names.slice(0, 3).join(', ')} and ${names.length - 3} more` : names.join(names.length === 2 ? ' and ' : ', '));
-/** Litres rounded to a sensible amount, the same for what's said and the bags that make it up. */
-const roundLitres = (l: number) => (l < 10 ? Math.max(1, Math.round(l)) : Math.round(l / 5) * 5);
+/** Litres rounded up to a sensible amount, so the bags that make up what's said are enough. */
+const roundLitres = (l: number) => (l < 10 ? Math.max(1, Math.ceil(l)) : Math.ceil(l / 5) * 5);
 /** "about 45 litres". */
 const litres = (l: number) => `about ${roundLitres(l)} litres`;
 
@@ -206,7 +206,7 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
       continue;
     }
     const bed = list[0] && byId.get(list[0].featureId);
-    if (sowingNow(plant, Number(sowOn.slice(5, 7)), list[0])?.method !== 'direct' && !(bed && sowsInPot(g, plant, bed))) sowUnderCover = true;
+    if (sowingNow(plant, Number(sowOn.slice(5, 7)), list[0])?.method !== 'direct' && !(bed ? sowsInPot(g, plant, bed) : sowsOnBalcony(g, plant))) sowUnderCover = true;
     // Seed in date when it's sown, and enough of it: a packet with no count is taken to be enough.
     const good = packetsFor(g, plant, plantOf).filter((p) => seedState(p, sowOn) !== 'old');
     const have = good.some((p) => p.count === undefined) ? Infinity : good.reduce((t, p) => t + (p.count ?? 0), 0);
@@ -236,7 +236,8 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
     const key = `${what[0]}:${sizeText(size)}`;
     toGet.set(key, { what, size: sizeText(size), names: [...(toGet.get(key)?.names ?? []), placeLabel(f)] });
   }
-  for (const [key, { what, size, names }] of toGet) items.push({ key: `pot:${key}`, kind: 'pot', name: `${plural(names.length, what[0], what[1])}, ${size}`, note: `If you haven’t got them: for ${listOf(names)}` });
+  // The count's in the key: a tick for one pot doesn't cover a second added later.
+  for (const [key, { what, size, names }] of toGet) items.push({ key: `pot:${key}:${names.length}`, kind: 'pot', name: `${plural(names.length, what[0], what[1])}, ${size}`, note: `If you haven’t got them: for ${listOf(names)}` });
   const toFill = (l: number, names: string[]) => ({ amount: `${litres(l)} (${bagsText(roundLitres(l))})`, note: `To fill ${listOf(names)}: ${wetWeightText(l)}` });
   const ordinary: Omit<ShopItem, 'bought'> | null = fill.ordinary.l > 0 ? { key: 'compost:pots', kind: 'compost', name: 'Multi-purpose compost', ...toFill(fill.ordinary.l, fill.ordinary.names) } : null;
   const ericaceous: Omit<ShopItem, 'bought'> | null = fill.ericaceous.l > 0 ? { key: 'compost:ericaceous', kind: 'compost', name: 'Ericaceous compost', ...toFill(fill.ericaceous.l, fill.ericaceous.names) } : null;
@@ -313,7 +314,7 @@ export function shoppingText(items: ShopItem[], gardenName: string): string {
   for (const { label, list } of shopGroups(items)) {
     if (label === 'Bought') continue;
     lines.push('', label);
-    for (const i of list) lines.push(`- ${i.name}${i.amount ? `, ${i.amount}` : ''}`);
+    for (const i of list) lines.push(`- ${i.name}${i.amount ? `, ${i.amount}` : ''}${i.warn ? `. ${i.warn}` : ''}`);
   }
   return lines.length > 1 ? lines.join('\n') : `${lines[0]}\n\nNothing to buy.`;
 }

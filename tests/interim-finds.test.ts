@@ -12,7 +12,7 @@ import { generalJobs } from '../src/content/seasons';
 import { emptyFilter, filterPlants } from '../src/library/library';
 import { splitCore } from '../src/library/order';
 import { isFood, plantsFor } from '../src/planting/balcony';
-import { shoppingList } from '../src/planting/shopping';
+import { shoppingList, shoppingText } from '../src/planting/shopping';
 import { makeWeather, type Weather } from '../src/weather/weather';
 import { clearingDue, expectedText, isFinished, stageOn, timeline } from '../src/lifecycle/projection';
 import { plantHere } from '../src/lifecycle/growth';
@@ -538,6 +538,39 @@ describe('pots that follow the weather (Sam)', () => {
     const tender = addPlanting(balcony(chilliPot), inPot('chilli', chilliPot));
     expect(generalJobs(11, tender, (id) => plantOf(id)).map((j) => j.text).join()).not.toMatch(/fleece/i);
     expect(generalJobs(11, gardenWith(added('tomato', '2026-05-20', 'vegetative')), (id) => plantOf(id)).map((j) => j.text).join()).toMatch(/fleece/i);
+  });
+
+  it('a spring sowing under cover isn’t sent outside on a balcony, and raising words go', () => {
+    const trough = { ...makeFeature('planter', { area: rectPoints({ x: 0, y: 0, w: 600, h: 200 }) }), name: 'Salad trough' };
+    const job = (id: string, month: number, today: string, patch: Partial<Planting> = {}) => {
+      const g = addPlanting(balcony(trough), { ...makePlanting(plantOf(id), trough.id, 'single', [300, 100]), ...patch });
+      return jobsFor(g, plantOf, month, 2027, { today }).filter((j) => j.plantId === id);
+    };
+    expect(job('lettuce', 2, '2027-02-10')[0]?.kind).toBe('sow-indoors');
+    const redCabbage = job('red-cabbage', 4, '2027-04-10')[0];
+    if (redCabbage?.kind === 'sow-direct') expect(redCabbage.detail ?? '').not.toMatch(/seedbed|move/i);
+    // Batches go the same way.
+    expect(job('winter-purslane', 10, '2027-10-10', { sowBy: '2027-10-10' })[0]?.kind).toBe('sow-direct');
+    // Sown by date, with no way said: it's in its pot, so nothing's planted out.
+    expect(job('calabrese', 6, '2027-06-10', { sownOn: '2027-04-10', stage: 'sown' }).some((j) => j.kind === 'plant-out')).toBe(false);
+  });
+
+  it('a protect job on a balcony doesn’t say fleece', () => {
+    const olive = pot('Olive pot', 500);
+    const g = addPlanting(balcony(olive), inPot('olive', olive, '2024-05-20'));
+    const months = [8, 9, 10, 11];
+    const detail = months.flatMap((m) => jobsFor(g, plantOf, m, 2026, { today: `2026-${String(m).padStart(2, '0')}-10` })).filter((j) => j.kind === 'protect').map((j) => j.detail).join(' ');
+    expect(detail).not.toMatch(/fleece/i);
+    expect(detail.length).toBeGreaterThan(0);
+  });
+
+  it('a want-to-grow seed on a balcony wants no seed compost, and the warning goes with a shared list', () => {
+    const big = pot('Big', 500);
+    const g = { ...addPlanting(balcony(big), makePlanting(plantOf('mint'), big.id, 'single', [500, 500])), wishlist: ['radish'] };
+    expect(shoppingList(g, plantOf, '2027-01-10').some((i) => i.key === 'compost:seed')).toBe(false);
+    const nine = [...Array(9).keys()].map((i) => pot(`P${i}`, 500));
+    const heavy = nine.map((f) => makePlanting(plantOf('mint'), f.id, 'single', [500, 500])).reduce(addPlanting, balcony(...nine));
+    expect(shoppingText(shoppingList(heavy, plantOf, '2026-11-02'), 'Balcony')).toMatch(/Heavy for a balcony/);
   });
 
   it('swaps for something you eat are something you eat', () => {

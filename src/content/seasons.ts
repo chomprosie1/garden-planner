@@ -4,6 +4,7 @@
 import { monthsLater } from '../lifecycle/growth';
 import { isTender } from '../lifecycle/shed';
 import type { FeatureKind, Garden, Plant } from '../model/types';
+import { onBalcony } from '../planting/balcony';
 import { potsOnly } from '../planting/pots';
 
 export interface Season {
@@ -277,7 +278,7 @@ export function generalJobs(month: number, g: Garden, plantOf: (id: string) => P
     .filter(({ text, i }) => {
       const about = season.about?.[i];
       if (late && about?.mild) return false;
-      if (pots && g.balcony && /fleece/i.test(text)) return false;
+      if (onBalcony(g) && /fleece/i.test(text)) return false;
       if (about?.kinds) return about.kinds.some((k) => has.has(k));
       return !(about?.ground && pots);
     });
