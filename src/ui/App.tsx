@@ -93,7 +93,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   // The welcome, on the day's first launch: not the very first (setting up runs then), nor a link or reminder to a particular screen.
   const [welcoming, setWelcoming] = useState(() => prefs.onboarded && welcomesAt(location.hash) && welcomeDue(prefs.welcomedOn, todayIso(), unseenNews(prefs.seenNews).length > 0 && prefs.welcomedNews !== latestNews().id));
   const weather = useWeatherFeed(garden, prefs.weather && prefs.onboarded);
-  const screenEl = useRef<HTMLDivElement>(null);
+  const screenEl = useRef<HTMLElement>(null);
   // Each screen opens at its top, not where the last one was scrolled to. Before the screens' own effects, which may scroll to something.
   useLayoutEffect(() => {
     screenEl.current?.scrollTo(0, 0);
@@ -379,9 +379,9 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
     <AppContext.Provider value={actions}>
       <WeatherContext.Provider value={weather}>
       <div class="app" data-view={view} {...(garden.view === 'list' ? { 'data-list': '' } : {})}>
-        <div class="screen" ref={screenEl}>
+        <main class="screen" ref={screenEl}>
           {screen}
-        </div>
+        </main>
         {toast && (
           <div class="toast" role="status">
             <span>{toast.text}</span>

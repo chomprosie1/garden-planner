@@ -111,28 +111,36 @@ export function JobList({ store, garden, month, year, limit, plantOf }: Props) {
     .sort((a, b) => Number(done.has(jobKey(year, month, a.i))) - Number(done.has(jobKey(year, month, b.i))))
     .slice(0, limit);
 
-  const toggle = (key: string) =>
+  const [said, setSaid] = useState('');
+  const toggle = (key: string, job: string) => {
+    setSaid(`${done.has(key) ? 'Not done' : 'Done'}: ${job}.`);
     store.apply(
       updateGarden((g) => ({
         ...g,
         jobsDone: done.has(key) ? g.jobsDone.filter((j) => j.key !== key) : [...g.jobsDone, { key, date: todayIso() }],
       })),
     );
+  };
 
   return (
-    <ul class="jobs">
-      {jobs.map(({ text: job, i }) => {
-        const key = jobKey(year, month, i);
-        return (
-          <SwipeRow key={key} onTick={() => toggle(key)}>
-            <label class="job">
-              <input type="checkbox" checked={done.has(key)} onChange={() => (buzz(), toggle(key))} />
-              <span>{job}</span>
-            </label>
-          </SwipeRow>
-        );
-      })}
-    </ul>
+    <>
+      <p class="visually-hidden" role="status">
+        {said}
+      </p>
+      <ul class="jobs">
+        {jobs.map(({ text: job, i }) => {
+          const key = jobKey(year, month, i);
+          return (
+            <SwipeRow key={key} onTick={() => toggle(key, job)}>
+              <label class="job">
+                <input type="checkbox" checked={done.has(key)} onChange={() => (buzz(), toggle(key, job))} />
+                <span>{job}</span>
+              </label>
+            </SwipeRow>
+          );
+        })}
+      </ul>
+    </>
   );
 }
 
@@ -254,11 +262,20 @@ export function PlantJobs({ jobs, garden, store, limit, plantOf, startHere, fold
   const app = useApp();
   const done = new Set(garden.jobsDone.map((j) => j.key));
   const all = limit ? jobs.slice(0, limit) : jobs;
+  // A ticked job folds away, so a screen reader can't hear it change: this says so.
+  const [said, setSaid] = useState('');
+  const tick = (job: Job, way?: JobKind) => {
+    setSaid(`${done.has(job.key) ? 'Not done' : 'Done'}: ${jobLabel(job).toLowerCase()}, ${job.plant}.`);
+    store!.apply(updateGarden((g) => toggleJob(g, job, todayIso(), plantOf, way)));
+  };
   // Done jobs fold away under a line of their own, still there to untick.
   const folded = fold && store ? all.filter((j) => done.has(j.key)) : [];
   const shown = folded.length ? all.filter((j) => !done.has(j.key)) : all;
   return (
     <div class="job-groups">
+      <p class="visually-hidden" role="status">
+        {said}
+      </p>
       {groupJobs(shown).map(([label, list]) => (
         <section key={label} class="job-group">
           <h3 class="job-kind">
@@ -266,14 +283,14 @@ export function PlantJobs({ jobs, garden, store, limit, plantOf, startHere, fold
           </h3>
           <ul class="jobs">
             {list.map((job) => (
-              <SwipeRow key={job.key} {...(job.key === startHere ? { class: 'job-start' } : {})} {...(store ? { onTick: () => store.apply(updateGarden((g) => toggleJob(g, job, todayIso(), plantOf))) } : {})}>
+              <SwipeRow key={job.key} {...(job.key === startHere ? { class: 'job-start' } : {})} {...(store ? { onTick: () => tick(job) } : {})}>
                 <PlantJob
                   job={job}
                   garden={garden}
                   startHere={job.key === startHere}
                   {...(plantOf ? { plantOf } : {})}
                   done={done.has(job.key)}
-                  {...(store ? { onToggle: (way?: JobKind) => store.apply(updateGarden((g) => toggleJob(g, job, todayIso(), plantOf, way))) } : {})}
+                  {...(store ? { onToggle: (way?: JobKind) => tick(job, way) } : {})}
                   {...(store && job.kind === 'harvest' && job.plantingIds.length
                     ? {
                         onPick: (size: PickSize) => {

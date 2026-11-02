@@ -7039,3 +7039,115 @@ h2 {
     padding-block: 0;
   }
 }
+
+/* ---------- Every screen, every size ---------- */
+/* A greyed button is still readable: faded words on a faded button aren't, and it sits beside a box people are about to use. */
+.btn:disabled {
+  opacity: 1;
+  border-color: var(--border);
+  background: transparent;
+  color: var(--muted);
+}
+/* What's tapped reaches 44 px. */
+.mode-tab,
+.filters select,
+.inspector-section li > button,
+.inspector-section .bed-tree-bed,
+.inspector-section > summary,
+.shed-place-menu summary,
+.form-more summary,
+summary {
+  min-height: var(--tap);
+}
+summary {
+  align-content: center;
+}
+/* A link in a line of text keeps its size, and takes a tap across a full 44 px. */
+.app a:not([class]),
+.link-btn,
+.gloss {
+  position: relative;
+}
+.app a:not([class])::after,
+.link-btn::after,
+.gloss::after {
+  content: '';
+  position: absolute;
+  inset: calc((100% - var(--tap)) / 2) 0;
+}
+/* On a touch screen, a tap on a job's words ticks it: a dotted word is too small a target inside a big one. */
+@media (pointer: coarse) {
+  .job .gloss {
+    pointer-events: none;
+    text-decoration: none;
+  }
+}
+/* First-visit tips, above the plan rather than over it. */
+.plan-tips {
+  position: static;
+  flex: none;
+  width: auto;
+  margin: 0.4rem var(--gutter);
+  transform: none;
+  box-shadow: none;
+}
+/* A small phone: the tools fit, or slide. */
+@media (max-width: 360px) {
+  .plan .settings-word {
+    display: none;
+  }
+  .plan .toolbar-actions {
+    gap: 0.2rem;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+}
+/* A small phone upright: not much height, so the plan keeps what there is. The menus lose their icons, and the dock's tabs slide. */
+@media (max-height: 640px) and (max-width: 420px) {
+  .plan .toolbar {
+    gap: 0.2rem 0.5rem;
+    padding-block: 0.25rem;
+  }
+  .plan .toolbar-title {
+    flex-basis: 100%;
+  }
+  .app[data-view='plan'] .nav-icon {
+    display: none;
+  }
+  .app[data-view='plan'] .nav-item {
+    justify-content: center;
+    min-height: var(--tap);
+    padding-block: 0;
+  }
+  .app[data-view='plan'] .nav-item[aria-current='page'] .nav-label {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  .dock-phone .dock-tabs {
+    justify-content: flex-start;
+    padding: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .dock-phone .dock-tab {
+    flex: none;
+    justify-content: center;
+    min-height: var(--tap);
+    padding-block: 0;
+    white-space: nowrap;
+  }
+  .dock-phone .dock-tab svg {
+    display: none;
+  }
+}
+/* 200% zoom on a phone: under 260 px, the dock's tabs make two rows. */
+@media (max-width: 260px) {
+  .dock-tabs {
+    flex-wrap: wrap;
+  }
+  .dock-tab {
+    flex: 1 1 40%;
+    min-width: 0;
+  }
+}

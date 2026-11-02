@@ -24,7 +24,7 @@ import { NextYearDialog } from '../NextYear';
 import { ShoppingDialog } from '../Shopping';
 import { Dock, ToolsHandle, type Drawer } from '../Dock';
 import { FillPopover, type Placed } from '../FillPopover';
-import { useIsPhone } from '../hooks';
+import { touchScreen, useIsPhone } from '../hooks';
 import { Icon, type IconName } from '../icons';
 import { Garden3D } from '../Garden3D';
 import { GardenName } from '../HomeCards';
@@ -697,8 +697,9 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
         />
       )}
       {!phone && tool === 'sketch' && sketchBar}
+      {!empty && tapped && tool === 'select' && !prefs.seenTips && plants && <PlanTips phone={phone} simple={simple} done={() => prefsStore.set({ seenTips: true })} />}
       <div class="plan-body">
-        <main class="plan-stage" onPointerDownCapture={(e) => !tapped && !(e.target as Element).closest('.plan-list-skip') && setTapped(true)}>
+        <div class="plan-stage" onPointerDownCapture={(e) => !tapped && !(e.target as Element).closest('.plan-list-skip') && setTapped(true)}>
           {showPhoto && <SeasonPhoto month={photoMonth} sizes="100vw" class="plan-margin-photo" credit={false} />}
           <div class="sheet">
             <PlanCanvas
@@ -806,7 +807,6 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
                 <LensLegend kind={focus.kind} count={focus.ids.size} guessed={focusGuessed} live={!!weather} rain={focus.kind === 'water' ? (wetness(weather, when)?.rain3 ?? null) : null} />
               </div>
             )}
-            {!empty && tapped && tool === 'select' && !prefs.seenTips && plants && <PlanTips phone={phone} simple={simple} done={() => prefsStore.set({ seenTips: true })} />}
             {/* The two places people most often give up: nothing drawn, or beds and no plants, a minute on. */}
             <StuckNote
               class="plan-stuck"
@@ -851,7 +851,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
                       ? `Shadows at ${clockText(shownMinutes)}. Drag the slider or press play to watch them move.`
                       : lens === 'sun'
                         ? 'Point at the plan to see how many hours of sun each spot gets.'
-                        : hintFor(tool, phone, byHand, sketchPen))}
+                        : hintFor(tool, phone || touchScreen(), byHand, sketchPen))}
                 {/* While planting, the planting bar below offers it instead. */}
                 {tool !== 'plant' && helpForMessage(message) && (
                   <>
@@ -876,7 +876,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
             />
           )}
           {!phone && bottom}
-        </main>
+        </div>
         {!phone && (
           <aside class="inspector" tabIndex={-1} aria-label="Details">
             {inspector}

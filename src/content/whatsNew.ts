@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-11-02-every-screen',
+    date: '2026-11-02',
+    title: 'Every screen, every size',
+    items: [
+      'On a small phone the plan has far more room, even at Extra large text.',
+      'Nothing runs off the side at 200% zoom.',
+      'Small links are easier to hit, and on a touch screen a tap on a job’s words ticks it.',
+      'Screen readers can jump straight to the main part of a page, and hear when a job is ticked.',
+      'Tablets no longer get tips about the keyboard, and the year slider’s labels don’t run together.',
+      'The first tips sit above the plan, not over it.',
+      'Greyed-out buttons can be read.',
+    ],
+  },
+  {
     id: '2026-11-02-pots-and-weather',
     date: '2026-11-02',
     title: 'Pots that follow the weather',

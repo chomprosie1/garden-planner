@@ -2690,7 +2690,7 @@ Decided:
 | Wed 11 Nov | Testing day | | | |
 | Thu 12 Nov | **57f. Pots that follow the weather** | M | Sam, Jordan | Built 2 Nov |
 | Fri 13 Nov | Testing day | | | |
-| Mon 16 Nov | **57g. Every screen, every size** | M | Ruth, Nadia | Planned |
+| Mon 16 Nov | **57g. Every screen, every size** | M | Ruth, Nadia | Built 2 Nov |
 | Tue 17 Nov | Testing day | | | |
 | Wed 18 Nov | **57h. True at the edges** | M | Nadia, Margaret, Priya, Jordan | Planned |
 | Thu 19 Nov | Testing day | | | |
@@ -3268,6 +3268,28 @@ Not changed:
 - **The plant card** still shows a greenhouse note, and its next date can differ from a job sown in the trough: the card goes by the months for sowing outside.
 - **Watering in the plan's view** has its own wording, and wasn't re-checked.
 - **"Add a place" on Seedlings** and the swaps not knowing a pot's size stay as they are.
+
+### Release 57g — Every screen, every size (as built)
+Built 2 Nov 2026, pulled forward from 16 Nov at your request. No schema change. Version 0.57.7.
+
+Measured, not judged by eye: a scan of Today, the plan, Shed, Plants, Settings and the month at 320, 390, 412, 820, 844 × 390 and 195 px (200% zoom), at Standard and Extra large, for anything off the side and any control under 44 px. Then 320 and 360 px at Extra large in the other looks. Before: the plan's toolbar and dock ran off, with about 20 kinds of small control. After: nothing runs off anywhere, and nothing's under 44 px bar a few word links under 44 px wide.
+
+- **The plan on a small phone (14):** 212 px tall at 320 × 568 Extra large, now 355. The menus drop their icons, the dock's tabs slide on one line, and Settings loses its word so the tools fit.
+- **200% zoom (16):** the dock's tabs make two rows under 260 px.
+- **Small links:** tabs, drop-downs, section headers and the plan's lists reach 44 px. A link inside a sentence keeps its size and takes a 44 px tap, without moving the text.
+- **Dotted words in a job (Ruth):** on a touch screen a tap on them ticks the job. Their meaning is still there with a keyboard, and on the plant's card.
+- **A main landmark,** one on every page, and a tick is announced, on both job lists.
+- **The Find button (25):** greyed by fading the whole button. A disabled button now keeps full strength, in the muted colour.
+- **Touch wording:** a tablet gets the phone's hints. The year slider shows seasons up to 1100 px wide.
+- **Tips (Jordan)** sit above the plan, not over it, so the plan makes room while they're up.
+- **Already fixed when measured:** the safety line (17) is 7.04:1 or better in all 12 looks and modes, with its link 4.91:1 or better. Settings on its side (23) is inside its width: the look cards are in their own scroller. Nadia's buttons at Extra large (15) don't run off in any look.
+- **Browser check:** the scan, then touch emulation for the landmark, the announcement, the tips and the tablet wording, and screenshots with an Undo message.
+
+Not changed:
+- **Real TalkBack:** the announcement is in the page, and it's for you to hear it on a real phone.
+- **The plan at 200% and Extra large** is 168 px tall, less than before, as the dock takes two rows. The whole page is 195 px wide there, so something has to give.
+- **Word links such as a variety's name** can be under 44 px wide: words in a sentence are exempt, and they do reach 44 px tall.
+- **No new tests:** these are layout. The scanner is in the session's notes, not the repo.
 
 ## Repo layout
 ```
