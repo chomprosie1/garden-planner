@@ -88,10 +88,10 @@ interface Props {
 
 function hintFor(tool: Tool, phone: boolean, byHand = false, pen?: SketchPen): string {
   if (tool === 'sketch') {
-    if (pen?.kind === 'eraser') return 'Click or drag over sketches to rub them out. Sketches are for ideas: they are never measured or checked.';
-    if (pen?.kind === 'text') return 'Type the words above, then click where they go.';
+    if (pen?.kind === 'eraser') return `${phone ? 'Tap' : 'Click'} or drag over sketches to rub them out. Sketches are for ideas: they are never measured or checked.`;
+    if (pen?.kind === 'text') return `Type the words above, then ${phone ? 'tap' : 'click'} where they go.`;
     if (pen?.kind === 'arrow') return 'Drag from the tail to the head of the arrow.';
-    return 'Draw on the plan. Sketches are for ideas: they are never measured or checked. Esc when done.';
+    return `Draw on the plan. Sketches are for ideas: they are never measured or checked.${phone ? '' : ' Esc when done.'}`;
   }
   if (byHand && canDrawByHand(tool))
     return `Draw the ${KINDS[tool as FeatureKind].label.toLowerCase()} by hand: hold and drag${geometryForTool(tool) === 'area' ? ' all the way round its edge' : ' along its centre line'}. It becomes a smooth curve you can reshape by its handles.`;
@@ -101,7 +101,7 @@ function hintFor(tool: Tool, phone: boolean, byHand = false, pen?: SketchPen): s
       : 'Scroll to zoom, and 0 fits the garden. Pull a corner to resize. Press ? for all the shortcuts.';
   const click = phone ? 'Tap' : 'Click';
   if (tool === 'calibrate') return `${click} two points on the photo that you know the real distance between, such as the ends of a fence.`;
-  if (tool === 'trace') return 'Drag to move the photo under the plan. Press Esc when done.';
+  if (tool === 'trace') return `Drag to move the photo under the plan.${phone ? '' : ' Press Esc when done.'}`;
   if (tool === 'plant') return `${click} a bed, pot or planter to plant it.${phone ? '' : ' Esc when done.'}`;
   const g = geometryForTool(tool);
   const exact = 'Type a length and press Enter for an exact edge (3450, or 3.45m).';
@@ -119,6 +119,8 @@ const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'Ju
 
 export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = null, clearIntent, now = new Date() }: Props) {
   const phone = useIsPhone();
+  // What a finger does, on a phone or a tablet.
+  const touchWords = phone || touchScreen();
   const [tool, setToolState] = useState<Tool>('select');
   const [selected, setSelected] = useState<Target | null>(null);
   const [selectedVertex, setSelectedVertex] = useState<number | null>(null);
@@ -338,7 +340,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       const t = garden.trays?.find((x) => x.id === intent.trayId);
       if (t) {
         startPlanting(t.plantId, t.id);
-        setMessage(`Planting out ${t.count} ${plantOf(t.plantId).commonName.toLowerCase()} ${t.count === 1 ? 'plant' : 'plants'} ${trayFrom(garden, t.id)}: ${phone ? 'tap' : 'click'} the bed they go in.`);
+        setMessage(`Planting out ${t.count} ${plantOf(t.plantId).commonName.toLowerCase()} ${t.count === 1 ? 'plant' : 'plants'} ${trayFrom(garden, t.id)}: ${touchWords ? 'tap' : 'click'} the bed they go in.`);
       }
     } else {
       const t = intent.target;
@@ -697,10 +699,10 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
         />
       )}
       {!phone && tool === 'sketch' && sketchBar}
-      {!empty && tapped && tool === 'select' && !prefs.seenTips && plants && <PlanTips phone={phone} simple={simple} done={() => prefsStore.set({ seenTips: true })} />}
       <div class="plan-body">
         <div class="plan-stage" onPointerDownCapture={(e) => !tapped && !(e.target as Element).closest('.plan-list-skip') && setTapped(true)}>
           {showPhoto && <SeasonPhoto month={photoMonth} sizes="100vw" class="plan-margin-photo" credit={false} />}
+          {!empty && tapped && tool === 'select' && !prefs.seenTips && plants && <PlanTips phone={touchWords} simple={simple} done={() => prefsStore.set({ seenTips: true })} />}
           <div class="sheet">
             <PlanCanvas
               store={store}
@@ -776,14 +778,14 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
                     {measured.length === 2 ? (
                       <strong>{formatLength(distance(measured[0]!, measured[1]!))}</strong>
                     ) : measured.length === 1 ? (
-                      phone ? 'Now tap where it ends.' : 'Now click where it ends.'
-                    ) : phone ? (
+                      touchWords ? 'Now tap where it ends.' : 'Now click where it ends.'
+                    ) : touchWords ? (
                       'Tap where to measure from.'
                     ) : (
                       'Click where to measure from.'
                     )}
                   </span>
-                  {measured.length === 2 && <span class="muted small">{phone ? 'Tap again to start a new one.' : 'Click again to start a new one.'}</span>}
+                  {measured.length === 2 && <span class="muted small">{touchWords ? 'Tap again to start a new one.' : 'Click again to start a new one.'}</span>}
                   <button type="button" class="btn btn-quiet" onClick={() => setMeasuring(false)}>
                     Done
                   </button>
@@ -850,8 +852,8 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
                     : lens === 'shade'
                       ? `Shadows at ${clockText(shownMinutes)}. Drag the slider or press play to watch them move.`
                       : lens === 'sun'
-                        ? 'Point at the plan to see how many hours of sun each spot gets.'
-                        : hintFor(tool, phone || touchScreen(), byHand, sketchPen))}
+                        ? `${touchWords ? 'Tap' : 'Point at'} the plan to see how many hours of sun each spot gets.`
+                        : hintFor(tool, touchWords, byHand, sketchPen))}
                 {/* While planting, the planting bar below offers it instead. */}
                 {tool !== 'plant' && helpForMessage(message) && (
                   <>

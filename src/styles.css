@@ -4797,13 +4797,15 @@ button.plan-chip:hover {
 }
 
 /* ---------- First-visit tips on the plan ---------- */
+/* In the corner, clear of the middle of the plan. Over it, not in the page: a tip that moved the plan would move it under the finger. */
 .plan-tips {
   position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 12px;
+  left: 12px;
   z-index: 25;
-  width: min(22rem, calc(100% - 24px));
+  width: min(20rem, calc(100% - 24px));
+  max-height: calc(100% - 24px);
+  overflow-y: auto;
   padding: 0.8rem 0.9rem;
   border-radius: var(--radius-card);
   border: 1px solid var(--accent);
@@ -7064,32 +7066,25 @@ summary {
 }
 /* A link in a line of text keeps its size, and takes a tap across a full 44 px. */
 .app a:not([class]),
-.link-btn,
 .gloss {
   position: relative;
 }
 .app a:not([class])::after,
-.link-btn::after,
 .gloss::after {
   content: '';
   position: absolute;
   inset: calc((100% - var(--tap)) / 2) 0;
 }
+/* Not in a job's words: the row around them is the target. */
+.job .gloss::after {
+  content: none;
+}
 /* On a touch screen, a tap on a job's words ticks it: a dotted word is too small a target inside a big one. */
 @media (pointer: coarse) {
-  .job .gloss {
+  label.job .gloss {
     pointer-events: none;
     text-decoration: none;
   }
-}
-/* First-visit tips, above the plan rather than over it. */
-.plan-tips {
-  position: static;
-  flex: none;
-  width: auto;
-  margin: 0.4rem var(--gutter);
-  transform: none;
-  box-shadow: none;
 }
 /* A small phone: the tools fit, or slide. */
 @media (max-width: 360px) {
@@ -7143,11 +7138,19 @@ summary {
 }
 /* 200% zoom on a phone: under 260 px, the dock's tabs make two rows. */
 @media (max-width: 260px) {
-  .dock-tabs {
+  .dock-tabs,
+  .dock-phone .dock-tabs {
     flex-wrap: wrap;
+    overflow-x: visible;
   }
-  .dock-tab {
+  .dock-tab,
+  .dock-phone .dock-tab {
     flex: 1 1 40%;
     min-width: 0;
+    white-space: normal;
   }
+}
+/* Around a screen with nothing else on it: the landmark without a box of its own. */
+.main-only {
+  display: contents;
 }

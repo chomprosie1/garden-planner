@@ -5,10 +5,11 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { addDays, daysBetween } from '../lifecycle/shed';
 import { shortDate } from '../lifecycle/projection';
+import { useMedia } from './hooks';
 import { Icon } from './icons';
 
-/** Two years of months need a screen this wide, px. */
-const MONTHS_FIT_PX = 1100;
+/** Two years of months need a screen this wide, px, with room for the plan's details beside them. */
+const MONTHS_FIT_PX = 1400;
 
 export const WEEKS = 52;
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -54,7 +55,7 @@ export function YearScrubber({ today, date, setDate, playing, setPlaying, phone,
 
   // Where each month starts along the track. On a phone or a tablet, two years of month letters run together, so it's
   // the seasons instead: winter (with its year) from January, summer from July.
-  const seasonsOnly = phone || matchMedia(`(max-width: ${MONTHS_FIT_PX}px)`).matches;
+  const seasonsOnly = useMedia(`(max-width: ${MONTHS_FIT_PX}px)`) || phone;
   const ticks: { pos: number; label: string; year?: number }[] = [];
   for (let w = -WEEKS; w <= WEEKS; w++) {
     const d = addDays(today, w * 7);

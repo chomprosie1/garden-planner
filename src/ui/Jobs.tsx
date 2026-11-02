@@ -258,14 +258,16 @@ function PlantJob({ job, done, onToggle, onPick, plantOf, garden, startHere = fa
 }
 
 /** Your jobs, grouped by what kind of job they are. Without a store they're a preview, with no ticks. startHere: a job to pick out, by key. */
-export function PlantJobs({ jobs, garden, store, limit, plantOf, startHere, fold = true }: { jobs: Job[]; garden: Garden; store?: Store; limit?: number; plantOf?: (id: string) => Plant; startHere?: string | null; fold?: boolean }) {
+export function PlantJobs({ jobs, garden, store, limit, plantOf, startHere, fold = true, say }: { jobs: Job[]; garden: Garden; store?: Store; limit?: number; plantOf?: (id: string) => Plant; startHere?: string | null; fold?: boolean; say?: (text: string) => void }) {
   const app = useApp();
   const done = new Set(garden.jobsDone.map((j) => j.key));
   const all = limit ? jobs.slice(0, limit) : jobs;
-  // A ticked job folds away, so a screen reader can't hear it change: this says so.
+  // A ticked job folds away, so a screen reader can't hear it change: this says so. It's the outer list that says it, as
+  // the folded list goes when its last job's unticked.
   const [said, setSaid] = useState('');
+  const tell = say ?? setSaid;
   const tick = (job: Job, way?: JobKind) => {
-    setSaid(`${done.has(job.key) ? 'Not done' : 'Done'}: ${jobLabel(job).toLowerCase()}, ${job.plant}.`);
+    tell(`${done.has(job.key) ? 'Not done' : 'Done'}: ${jobLabel(way ? { ...job, kind: way } : job).toLowerCase()}, ${job.plant}.`);
     store!.apply(updateGarden((g) => toggleJob(g, job, todayIso(), plantOf, way)));
   };
   // Done jobs fold away under a line of their own, still there to untick.
@@ -273,9 +275,11 @@ export function PlantJobs({ jobs, garden, store, limit, plantOf, startHere, fold
   const shown = folded.length ? all.filter((j) => !done.has(j.key)) : all;
   return (
     <div class="job-groups">
-      <p class="visually-hidden" role="status">
-        {said}
-      </p>
+      {!say && (
+        <p class="visually-hidden" role="status">
+          {said}
+        </p>
+      )}
       {groupJobs(shown).map(([label, list]) => (
         <section key={label} class="job-group">
           <h3 class="job-kind">
@@ -308,7 +312,7 @@ export function PlantJobs({ jobs, garden, store, limit, plantOf, startHere, fold
       {folded.length > 0 && (
         <details class="jobs-done">
           <summary>Done ({folded.length})</summary>
-          <PlantJobs jobs={folded} garden={garden} {...(store ? { store } : {})} {...(plantOf ? { plantOf } : {})} fold={false} />
+          <PlantJobs jobs={folded} garden={garden} {...(store ? { store } : {})} {...(plantOf ? { plantOf } : {})} fold={false} say={tell} />
         </details>
       )}
     </div>

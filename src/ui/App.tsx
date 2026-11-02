@@ -225,31 +225,35 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   // A second garden, or starting again, skips the welcome.
   if (!prefs.onboarded)
     return (
-      <Onboarding
-        store={store}
-        garden={garden}
-        prefs={prefs}
-        prefsStore={prefsStore}
-        go={navigate}
-        again={gardenCount() > 1}
-        showFirst={() => {
-          // A calm first landing: Today, with the first job picked out. Nothing selected on the plan, no toast.
-          setStartHere(true);
-          navigate('home');
-        }}
-      />
+      <main class="main-only">
+        <Onboarding
+          store={store}
+          garden={garden}
+          prefs={prefs}
+          prefsStore={prefsStore}
+          go={navigate}
+          again={gardenCount() > 1}
+          showFirst={() => {
+            // A calm first landing: Today, with the first job picked out. Nothing selected on the plan, no toast.
+            setStartHere(true);
+            navigate('home');
+          }}
+        />
+      </main>
     );
   if (welcoming)
     return (
-      <Welcome
-        gardenName={garden.name}
-        prefs={prefs}
-        prefsStore={prefsStore}
-        done={(v) => {
-          setWelcoming(false);
-          navigate(v);
-        }}
-      />
+      <main class="main-only">
+        <Welcome
+          gardenName={garden.name}
+          prefs={prefs}
+          prefsStore={prefsStore}
+          done={(v) => {
+            setWelcoming(false);
+            navigate(v);
+          }}
+        />
+      </main>
     );
 
   // Back along the trail, without adding to it; Today if there is none.

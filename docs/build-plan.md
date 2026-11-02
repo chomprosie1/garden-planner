@@ -2690,7 +2690,7 @@ Decided:
 | Wed 11 Nov | Testing day | | | |
 | Thu 12 Nov | **57f. Pots that follow the weather** | M | Sam, Jordan | Built 2 Nov |
 | Fri 13 Nov | Testing day | | | |
-| Mon 16 Nov | **57g. Every screen, every size** | M | Ruth, Nadia | Built 2 Nov |
+| Mon 16 Nov | **57g. Every screen, every size** | M | Ruth, Nadia | Built 2 Nov, with 57e and 57f, all pushed that day at your request |
 | Tue 17 Nov | Testing day | | | |
 | Wed 18 Nov | **57h. True at the edges** | M | Nadia, Margaret, Priya, Jordan | Planned |
 | Thu 19 Nov | Testing day | | | |
@@ -3276,18 +3276,20 @@ Measured, not judged by eye: a scan of Today, the plan, Shed, Plants, Settings a
 
 - **The plan on a small phone (14):** 212 px tall at 320 × 568 Extra large, now 355. The menus drop their icons, the dock's tabs slide on one line, and Settings loses its word so the tools fit.
 - **200% zoom (16):** the dock's tabs make two rows under 260 px.
-- **Small links:** tabs, drop-downs, section headers and the plan's lists reach 44 px. A link inside a sentence keeps its size and takes a 44 px tap, without moving the text.
-- **Dotted words in a job (Ruth):** on a touch screen a tap on them ticks the job. Their meaning is still there with a keyboard, and on the plant's card.
-- **A main landmark,** one on every page, and a tick is announced, on both job lists.
+- **Small links:** tabs, drop-downs, section headers and the plan's lists reach 44 px. A plain link or dotted word in a sentence keeps its size and takes a 44 px tap, without moving the text.
+- **Dotted words in a job (Ruth):** on a touch screen a tap on them ticks the job. Their meaning is still there with a keyboard, and on the plant's card. Coming-up jobs have no tick, so their dotted words still open.
+- **A main landmark,** one on every page, setup too, and a tick is announced, on both job lists, in the words of how it was done.
 - **The Find button (25):** greyed by fading the whole button. A disabled button now keeps full strength, in the muted colour.
-- **Touch wording:** a tablet gets the phone's hints. The year slider shows seasons up to 1100 px wide.
-- **Tips (Jordan)** sit above the plan, not over it, so the plan makes room while they're up.
+- **Touch wording:** a tablet gets the phone's words throughout the plan: hints, tips, measuring and sun. The year slider shows seasons up to 1400 px wide, and changes as the screen turns.
+- **Tips (Jordan)** moved to the corner, clear of the middle of the plan, and scroll if they're tall. Above the plan, in the page, moved the plan under the finger on the first tap, which could shift a bed, so they stay over it.
 - **Already fixed when measured:** the safety line (17) is 7.04:1 or better in all 12 looks and modes, with its link 4.91:1 or better. Settings on its side (23) is inside its width: the look cards are in their own scroller. Nadia's buttons at Extra large (15) don't run off in any look.
 - **Browser check:** the scan, then touch emulation for the landmark, the announcement, the tips and the tablet wording, and screenshots with an Undo message.
 
 Not changed:
 - **Real TalkBack:** the announcement is in the page, and it's for you to hear it on a real phone.
-- **The plan at 200% and Extra large** is 168 px tall, less than before, as the dock takes two rows. The whole page is 195 px wide there, so something has to give.
+- **Tips on a phone** still cover the bottom of the plan until they're closed. There's no room beside it, and nothing should move under a finger.
+- **A link across two lines** takes a tap over the space between them.
+- **The plan at 200% and Extra large** is 210 px tall, a little less than the 225 before, as the dock takes two rows. The whole page is 195 px wide there, so something has to give.
 - **Word links such as a variety's name** can be under 44 px wide: words in a sentence are exempt, and they do reach 44 px tall.
 - **No new tests:** these are layout. The scanner is in the session's notes, not the repo.
 

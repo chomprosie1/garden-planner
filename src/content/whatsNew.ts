@@ -26,7 +26,7 @@ export const WHATS_NEW: NewsEntry[] = [
       'Small links are easier to hit, and on a touch screen a tap on a job’s words ticks it.',
       'Screen readers can jump straight to the main part of a page, and hear when a job is ticked.',
       'Tablets no longer get tips about the keyboard, and the year slider’s labels don’t run together.',
-      'The first tips sit above the plan, not over it.',
+      'The first tips sit in the corner, clear of the middle of the plan.',
       'Greyed-out buttons can be read.',
     ],
   },

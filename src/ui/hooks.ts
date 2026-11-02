@@ -18,16 +18,19 @@ const PHONE = '(max-width: 700px)';
 /** A finger, not a mouse: no double-click and no arrow keys. */
 export const touchScreen = (): boolean => typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
 
-export function useIsPhone(): boolean {
-  const [phone, setPhone] = useState(() => matchMedia(PHONE).matches);
+/** Whether a media query matches, kept up to date as the screen turns or the window changes. */
+export function useMedia(query: string): boolean {
+  const [on, setOn] = useState(() => matchMedia(query).matches);
   useEffect(() => {
-    const mq = matchMedia(PHONE);
-    const on = () => setPhone(mq.matches);
-    mq.addEventListener('change', on);
-    return () => mq.removeEventListener('change', on);
-  }, []);
-  return phone;
+    const mq = matchMedia(query);
+    const change = () => setOn(mq.matches);
+    mq.addEventListener('change', change);
+    return () => mq.removeEventListener('change', change);
+  }, [query]);
+  return on;
 }
+
+export const useIsPhone = (): boolean => useMedia(PHONE);
 
 /** The address after "#/", split at its slashes: "help/adding-plants" is the Help page at that topic. */
 const hashParts = () => location.hash.replace(/^#\/?/, '').split('/');
