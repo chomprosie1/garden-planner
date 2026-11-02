@@ -219,8 +219,26 @@ describe('dates for a short season', () => {
 
   it('a quick crop sown late in winter months still crops in them', () => {
     // Land cress, picked September to June, sown in spring: ready in about eight weeks, not next autumn.
-    const pl: Planting = { ...planned('land-cress'), sownOn: '2027-03-15', sowing: 'direct', stage: 'sown' };
-    expect(when(steps('land-cress', pl, gardenWith(), '2027-03-16'), 'harvesting') <= '2027-06-15').toBe(true);
+    for (const sown of ['2027-03-15', '2027-04-05', '2027-04-10', '2027-04-20']) {
+      const pl: Planting = { ...planned('land-cress'), sownOn: sown, sowing: 'direct', stage: 'sown' };
+      expect(when(steps('land-cress', pl, gardenWith(), addDays(sown, 1)), 'harvesting') <= '2027-07-01', sown).toBe(true);
+    }
+    // Winter purslane, sown late in January, is still picked in spring.
+    const purslane: Planting = { ...planned('winter-purslane'), sownOn: '2027-01-20', sowing: 'direct', stage: 'sown' };
+    expect(when(steps('winter-purslane', purslane, gardenWith(), '2027-01-21'), 'harvesting') <= '2027-05-31').toBe(true);
+  });
+
+  it('a standing crop has its shortest time in the ground, however early its months open', () => {
+    const pl: Planting = { ...planned('swede'), sownOn: '2027-06-20', sowing: 'direct', stage: 'sown' };
+    const g = { ...gardenWith(), lastFrost: '03-01' };
+    expect(when(steps('swede', pl, g, '2027-06-21'), 'harvesting') >= addDays('2027-06-20', plantOf('swede').growth!.days![0])).toBe(true);
+  });
+
+  it('a winter crop you say is growing, with no date, isn’t told to wait for next autumn', () => {
+    for (const id of ['leek', 'kale', 'parsnip']) {
+      const pl: Planting = { ...planned(id), stage: 'vegetative' };
+      expect(when(steps(id, pl, gardenWith(), '2027-02-01'), 'harvesting') <= '2027-04-30', id).toBe(true);
+    }
   });
 
   it('where the season’s early, what goes in as winter months end still waits for the next', () => {

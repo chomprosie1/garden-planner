@@ -20,8 +20,6 @@ import { afterSeason, earliestOut, firstOf, monthsShift, nextInSeason, nextMonth
 import { addDays, frostDatesUnder, germination, hardenOn, inYear, isTender, plantInFrom, plantOutFrom, safeOut } from './shed';
 import { currentStage, flowerMonthsOf, isCropping, isGrowingStage, pathFor, perennial, sowingOf, type LifeStage } from './stages';
 
-export { afterRun, afterSeason, nextInSeason } from './growth';
-
 export interface Step {
   stage: LifeStage;
   /** When it's reached, ISO; null when it was marked without a date (it's been at that stage as long as we know). */
@@ -104,6 +102,8 @@ interface Context {
   cover: Cover | null;
   /** When it was sown outside or planted out, the day its growing degree days count from; null before that. */
   start: string | null;
+  /** Added as already growing, with no day it went in, so `start` is only when we first knew of it. */
+  startUnknown?: true;
   /** This year's weather, if you've turned it on: the days it covers count as they were. */
   weather: Weather | null;
 }
@@ -121,7 +121,11 @@ function frostsFor(g: Garden, cover: Cover | null) {
 
 const fromTubers = (p: Plant) => !!p.sowing?.some((s) => s.from === 'tubers');
 
-/** Months that open in late summer or after and run on over the new year: what stands through the winter, as leeks and kale do. A summer cabbage's don't. */
+/**
+ * Months that open in late summer or after and run on over the new year: what stands through the winter, as leeks and
+ * kale do, so it goes by its months. A cabbage's open in June, so it goes by the warmth, though one that's ready in
+ * autumn then stays in until they end (the `harvesting` step).
+ */
 const standsWinter = (months: number[]) => runsOf(months).some((r) => r[0]! >= 8 && r.includes(12) && r.includes(1));
 
 /** Tender annuals outside, or under unheated glass, die at the first autumn frost after they went in. Null when that's not a worry. */
@@ -167,9 +171,11 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
     const closes = (from: string) => addDays(afterSeason(from, cropMonths, shift), -14);
     const nextRun = (from: string) => nextInSeason(afterSeason(from, cropMonths, shift), cropMonths, shift);
     let open = later(run[0], start);
-    // Gone in during the last of months that run over the new year, and not ready before they close: those are last
-    // autumn's crop. Parsnips sown in March are lifted the next October, not in April. Land cress is quick enough.
-    if (d > closes(open) && yearOf(run[0]) < yearOf(start)) open = nextRun(open) ?? open;
+    // Gone in during the last of months that run over the new year, and not ready before they end: those are last
+    // autumn's crop. Parsnips sown in March are lifted the next October, not in April. Land cress is quick enough, and
+    // leeks you say are already growing may have been in since last spring.
+    const lastYears = runsOf(cropMonths).some((r) => r[0] !== 1 && r.includes(12) && r.includes(1) && addDays(firstOf(yearOf(start) - 1, r[0]!), shift) === run[0]);
+    if (lastYears && !c.startUnknown && d >= afterSeason(open, cropMonths, shift)) open = nextRun(open) ?? open;
     const close = closes(open);
     if (forFlowers) {
       if (d <= close) return later(d, open);
@@ -181,9 +187,9 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
     // Sown after the two weeks before its months end, it's too late for this run, and goes by the warmth.
     const warmth = d > close && start <= close ? later(close, open) : d;
     // What stands through the winter goes by its months, not the warmth: it's picked at whatever size it's reached, and
-    // in a cold autumn the warmth would say next year. So not before its months, nor long after they open. Gone in once
-    // they've opened, it has only the warmth to go by.
-    if (standsWinter(cropMonths)) return open > start ? sooner(later(warmth, open), addDays(open, STANDS_BY_DAYS)) : warmth;
+    // in a cold autumn the warmth would say next year. So not before its months, nor long after they open, unless it's
+    // had less than its shortest time in the ground. Gone in once they've opened, it has only the warmth to go by.
+    if (standsWinter(cropMonths)) return open > start ? sooner(later(warmth, open), later(addDays(open, STANDS_BY_DAYS), addDays(start, plant.growth?.days?.[0] ?? 0))) : warmth;
     // Potatoes: a frost takes the tops, and the tubers stop growing. What's there is lifted by then (RHS: second earlies
     // in July and August, maincrops by October), though not so soon after going in that there's nothing to lift.
     const frost = fromTubers(plant) ? frostsFor(g, cover)?.firstFrost : null;
@@ -322,7 +328,10 @@ export function timeline(asListed: Plant, pl: Planting, g: Garden, today: string
     const doingNow = isCropping(latest.stage) && !perennial(plant) && !!lastDated && lastDated >= addDays(today, -YEAR_BACK_DAYS);
     const known = latest.date ?? (doingNow ? today : (lastDated ?? today));
     // Growing, with no date for when it went in: count the warmth from when it reached this stage, or today.
-    if (!c.start && isGrowingStage(latest.stage)) c.start = known;
+    if (!c.start && isGrowingStage(latest.stage)) {
+      c.start = known;
+      c.startUnknown = true;
+    }
     // A perennial planted years ago is somewhere in this year's round, however long ago that was.
     last = after(c, latest.stage, perennial(plant) && isGrowingStage(latest.stage) ? later(known, addDays(today, -YEAR_BACK_DAYS)) : known);
   }

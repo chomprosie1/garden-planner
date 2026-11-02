@@ -22,8 +22,8 @@ import {
   underCover,
   yearDegreeDays,
 } from '../src/climate/warmth';
-import { baseOf, growthText, middleOf, readyFrom, runsOf, seasonShift } from '../src/lifecycle/growth';
-import { afterSeason, expectedText, nextInSeason, probableStage, timeline, type Step } from '../src/lifecycle/projection';
+import { afterSeason, baseOf, growthText, middleOf, nextInSeason, readyFrom, runsOf, seasonShift } from '../src/lifecycle/growth';
+import { expectedText, probableStage, timeline, type Step } from '../src/lifecycle/projection';
 import { addDays, dayNumber, daysBetween, fromDayNumber, frostDates, frostDatesUnder } from '../src/lifecycle/shed';
 import { perennial } from '../src/lifecycle/stages';
 import { newGarden } from '../src/model/defaults';

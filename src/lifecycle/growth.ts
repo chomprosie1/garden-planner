@@ -269,13 +269,13 @@ export function afterRun(from: string, months: number[]): string {
   return firstOf(y, m);
 }
 
+const seasonCache = new Map<string, [string, string][]>();
+
 /**
  * The runs of these months around a day, as [first day, day after], moved with the season: a run starts `shift` days
  * later (sooner, if negative). A month or two of flowers or fruit ends the same amount later; a longer season ends that
  * much sooner, since where spring comes late, autumn comes early (and the other way round under glass).
  */
-const seasonCache = new Map<string, [string, string][]>();
-
 export function seasons(around: string, months: number[], shift: number): [string, string][] {
   const year = yearOf(around);
   const key = `${months.join(',')}|${shift}|${year}`;

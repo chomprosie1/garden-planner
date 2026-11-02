@@ -15,7 +15,8 @@
 // year's, and its bed is taken until it's lifted.
 
 import { behindOf } from '../lifecycle/behind';
-import { afterRun, nextInMonths, timeline } from '../lifecycle/projection';
+import { afterRun } from '../lifecycle/growth';
+import { nextInMonths, timeline } from '../lifecycle/projection';
 import { canSowIn } from '../library/library';
 import { currentStage, flowerMonthsOf, perennial, sowingOf } from '../lifecycle/stages';
 import { microclimateAt, microclimateOf } from '../climate/microclimate';
