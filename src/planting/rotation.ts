@@ -322,6 +322,7 @@ export function draftNextYear(g: Garden, plantOf: (id: string) => Plant, today: 
       }
   }
   const source = new Map(order.map((f, i) => [f.id, srcs[i]!]));
+  const worked = new Map(source);
   // Your changes: a bed taking another's crops, and the bed that was to take them taking its crops instead, so no bed's
   // crops go twice or not at all. Only to beds in the draft, from beds in it.
   for (const [to, src] of Object.entries(from)) {
@@ -340,10 +341,8 @@ export function draftNextYear(g: Garden, plantOf: (id: string) => Plant, today: 
   for (const bed of order) {
     const src = source.get(bed.id)!;
     const busy = taken.get(bed.id);
-    // Taken until the last of them is likely out; no telling if any of them can't say. By the crops that rotate, as what
-    // follows on goes by them: salads fill a gap, so spinach sown after the garlic doesn't keep the bed for another year.
-    const lasting = busy?.some((pl) => rotationGroup(plantOf(pl.plantId))) ? busy.filter((pl) => rotationGroup(plantOf(pl.plantId))) : busy;
-    const ends = lasting?.map((pl) => goneBy(pl, plantOf(pl.plantId), expected.get(pl.id)));
+    // Taken until the last of them is likely out; no telling if any of them can't say.
+    const ends = busy && keepsBed(busy, plantOf).map((pl) => goneBy(pl, plantOf(pl.plantId), expected.get(pl.id)));
     const until = ends?.every(Boolean) ? (ends as string[]).sort().at(-1)! : null;
     // This year's crops still in the ground into next year: the bed's busy until they're out.
     const still = crops.get(bed.id)!.filter((pl) => !pl.removedOn && (goneBy(pl, plantOf(pl.plantId)) ?? '') > `${year}-01-01`);
@@ -373,29 +372,37 @@ export function draftNextYear(g: Garden, plantOf: (id: string) => Plant, today: 
   // A bed's crops go together, but each crop is its own: one that would follow itself goes to a bed it can have. So does
   // a crop from a mixed bed, where a bed suits it better (leeks after potatoes, kale after beans), and all but the bed's
   // main crop can take a bed with nothing coming, so they're apart from then on. Not where you've chosen which crops a
-  // bed takes: that stands, and says so if it's the same again.
+  // bed takes: that stands, and says so if it's the same again. A family from one bed keeps together.
   const moved = new Set<string>();
+  const yours = (id: string) => !!from[id] && from[id] !== worked.get(id);
+  /** Where each family from a mixed bed went, by bed and group. */
+  const sent = new Map<string, string>();
   for (const item of items) {
     const plant = plantOf(item.was.plantId);
     const group = rotationGroup(plant);
     const here = item.next.featureId;
-    if (!group || item.leftOut || from[here]) continue;
+    if (!group || item.leftOut || yours(here)) continue;
     const suits = (id: string) => grewIn(id).some((w) => follows(w, group));
     const same = repeats(grewIn(here), group);
     const mixed = grewIn(item.was.featureId).length > 1;
-    if (!same && (!mixed || suits(here))) continue;
+    const family = `${item.was.featureId}|${group}`;
+    if (!same && (!mixed || (suits(here) && !sent.has(family)))) continue;
     const spare = mixed && group !== groupOf.get(item.was.featureId);
     const unused = (id: string) => !items.some((o) => o.next.featureId === id && !o.leftOut);
-    const others = draftBeds.filter(({ bed: b }) => b.id !== here && !taken.has(b.id) && !from[b.id] && !planned.has(`${plant.id}|${b.id}`) && !repeats(grewIn(b.id), group) && (same || suits(b.id) || (spare && unused(b.id))));
-    // The bed it should follow on in first.
-    others.sort((a, b) => Number(suits(b.bed.id)) - Number(suits(a.bed.id)));
+    const others = draftBeds.filter(({ bed: b }) => b.id !== here && !taken.has(b.id) && !yours(b.id) && !planned.has(`${plant.id}|${b.id}`) && !repeats(grewIn(b.id), group) && (same || suits(b.id) || (spare && unused(b.id)) || sent.get(family) === b.id));
+    // Where its family went, then the bed it should follow on in.
+    const rank = (id: string) => (sent.get(family) === id ? 2 : suits(id) ? 1 : 0);
+    others.sort((a, b) => rank(b.bed.id) - rank(a.bed.id));
     for (const { bed: to, standing } of others) {
       const go = nextOf(g, plant, item.was, to, mover(byId.get(item.was.featureId)!, to), today, weather, year);
-      if (go.leftOut || items.some((o) => o !== item && o.next.featureId === to.id && !o.leftOut && plantingsMeet(o.next, go.next, plantOf))) continue;
+      // Clear of what's coming there, and of what's staying: a rhubarb crown, or something you've planned for that year.
+      const staying = g.plantings.filter((pl) => pl.featureId === to.id && !pl.removedOn && (perennial(plantOf(pl.plantId)) || mine(pl)));
+      if (go.leftOut || staying.some((pl) => plantingsMeet(pl, go.next, plantOf)) || items.some((o) => o !== item && o.next.featureId === to.id && !o.leftOut && plantingsMeet(o.next, go.next, plantOf))) continue;
       // As for what was going there anyway: not before what's standing is out.
       if (standing && go.next.sowBy && sowingOf(plant, item.was) !== 'indoors' && standing.until > go.next.sowBy) go.next.sowBy = standing.until;
       item.next = go.next;
       moved.add(here).add(to.id);
+      if (mixed) sent.set(family, to.id);
       break;
     }
   }
@@ -476,6 +483,12 @@ const FOLLOW_ON: Record<RotationGroup, string[]> = {
 /** Salads and leaves go anywhere: they fill a gap whatever came before. */
 const ANYWHERE = ['lettuce', 'chard', 'spinach', 'winter-purslane', 'corn-salad'];
 
+/** What decides when a bed is free: its crops, leaving out salads, which fill a gap, unless that's all there is. */
+function keepsBed(list: Planting[], plantOf: (id: string) => Plant): Planting[] {
+  const kept = list.filter((pl) => !ANYWHERE.includes(plantOf(pl.plantId).varietyOf ?? pl.plantId));
+  return kept.length ? kept : list;
+}
+
 /**
  * When a bed's crops for the year are out by the end of August (free from September): from when, and two or three crops that can follow on
  * then, from the group next in the rotation (with leeks after early crops), or salads. Null if it isn't free by then.
@@ -483,7 +496,7 @@ const ANYWHERE = ['lettuce', 'chard', 'spinach', 'winter-purslane', 'corn-salad'
 function followOn(list: Planting[], plantOf: (id: string) => Plant, year: number, out: (pl: Planting) => string | null): DraftBed['after'] | null {
   const crops = list.filter((pl) => rotationGroup(plantOf(pl.plantId)) !== null);
   if (!crops.length) return null;
-  const ends = crops.map(out);
+  const ends = keepsBed(list, plantOf).map(out);
   if (!ends.every(Boolean)) return null;
   const from = (ends as string[]).sort().at(-1)!;
   const month = Number(from.slice(5, 7));

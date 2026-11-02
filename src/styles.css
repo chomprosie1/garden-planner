@@ -6309,15 +6309,14 @@ h2 {
 }
 .next-from select {
   max-width: 100%;
-  min-height: 44px;
   padding: 0.5rem 0.7rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--bg);
   font-size: 1rem;
 }
 .next-add {
   margin: 0 0 0.35rem;
+}
+.next-said {
+  margin: 0;
 }
 .next-badge {
   margin-left: 0.4rem;

@@ -79,10 +79,11 @@ export function NextYearDialog({ garden, store, plantOf, close }: { garden: Gard
     const name = plantOf(past[bedId]!).commonName.toLowerCase();
     const pl = pastCrop(plantOf(past[bedId]!), garden.features.find((f) => f.id === bedId)!, year - 1, today);
     store.apply(updateGarden((g) => ({ ...g, plantings: [...g.plantings, pl] })));
-    app.notify(`Added to ${year - 1}: ${name} in ${nameOf(bedId)}. The draft moves it on.`, { undo: true });
+    app.notify(`Added to ${year - 1}: ${name} in ${nameOf(bedId)}.`, { undo: true });
     setPast(({ [bedId]: _done, ...rest }) => rest);
-    // The message sits behind this dialog: this says so where you're looking.
-    setAdded((a) => ({ ...a, [bedId]: `Added ${name} to ${year - 1}. The draft has moved it on.` }));
+    // The message sits behind this dialog: this says so where you're looking, and the button that had the focus has gone.
+    setAdded((a) => ({ ...a, [bedId]: `Added ${name} to ${year - 1}.` }));
+    requestAnimationFrame(() => ref.current?.querySelector<HTMLElement>(`[data-bed="${bedId}"]`)?.focus());
   };
 
   const row = (i: DraftItem) => (
@@ -140,7 +141,7 @@ export function NextYearDialog({ garden, store, plantOf, close }: { garden: Gard
               const items = draft.items.filter((i) => i.next.featureId === b.bed.id);
               const ask = !grew.has(b.bed.id);
               return (
-                <fieldset key={b.bed.id} class={`clear-group next-bed${(focus ?? byName[0]?.bed.id) === b.bed.id ? ' next-bed-on' : ''}`} onFocusIn={() => setFocus(b.bed.id)} onPointerEnter={() => setFocus(b.bed.id)}>
+                <fieldset key={b.bed.id} data-bed={b.bed.id} tabIndex={-1} class={`clear-group next-bed${(focus ?? byName[0]?.bed.id) === b.bed.id ? ' next-bed-on' : ''}`} onFocusIn={() => setFocus(b.bed.id)} onPointerEnter={() => setFocus(b.bed.id)}>
                   <legend>{featureLabel(b.bed)}</legend>
                   {(draft.items.length > 0 || b.taken) && groups(b)}
                   {draft.items.length > 0 && draft.beds.length > 1 && !b.taken && (
@@ -193,11 +194,10 @@ export function NextYearDialog({ garden, store, plantOf, close }: { garden: Gard
                       Add {plantOf(past[b.bed.id]!).commonName.toLowerCase()} to {year - 1}
                     </button>
                   )}
-                  {added[b.bed.id] && (
-                    <p class="small next-after" role="status">
-                      {added[b.bed.id]}
-                    </p>
-                  )}
+                  {/* Always there, so a screen reader hears it change. */}
+                  <p class="small next-said" role="status">
+                    {added[b.bed.id]}
+                  </p>
                 </fieldset>
               );
             })}
