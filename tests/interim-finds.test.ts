@@ -14,12 +14,14 @@ import { inGroundStages, perennial, sowingOf } from '../src/lifecycle/stages';
 import { withVarieties, type VarietyEntry } from '../src/library/library';
 import { newGarden } from '../src/model/defaults';
 import { addFeature, featureLabel, makeFeature, rectPoints } from '../src/model/features';
-import { addListBed, NAME_LENGTH, namesFor } from '../src/model/listLayout';
+import { addListBed, NAME_LENGTH, namesFor, outsideBoundary, planFromList } from '../src/model/listLayout';
 import type { Feature, Garden, Plant, Planting, Stage } from '../src/model/types';
 import { defaultFill } from '../src/planting/fill';
-import { fullText, howFull, placeInList } from '../src/planting/listPlant';
+import { fullText, howFull, isListed, placeInList } from '../src/planting/listPlant';
 import { addPlanting, countWord, inGroundChoice, makePlanting, plantCount, unknownPlant } from '../src/planting/place';
 import { potOnChoices } from '../src/planting/pots';
+import { draftNextYear, pastCrop } from '../src/planting/rotation';
+import { checkGarden } from '../src/planting/rules';
 import { addGarden, freeGardenName, type Kv } from '../src/storage/gardens';
 import { asOneLine } from '../src/ui/oneLine';
 
@@ -377,6 +379,66 @@ describe('dates for a short season', () => {
     expect(oddFrosts('08-01', '08-01')).toBe(true);
     expect(oddFrosts('05-03', '10-28')).toBe(false);
     expect(oddFrosts('06-21', '09-09')).toBe(false);
+  });
+});
+
+describe('from a list to a plan, and into next year', () => {
+  const TODAY = '2026-10-30';
+  const bedAt = (x: number, name: string): Feature => ({ ...makeFeature('bed', { area: rectPoints({ x, y: 0, w: 1200, h: 3000 }) }), name });
+  const row = (b: Feature, id: string, off: number, patch: Partial<Planting>): Planting => ({ ...makePlanting(plantOf(id), b.id, 'row', [b.footprint[0]![0] + off, 300], [b.footprint[0]![0] + off, 2700]), ...patch });
+  const [roots, garlic, c, d] = [bedAt(0, 'Roots'), bedAt(2000, 'Garlic'), bedAt(4000, 'Bed C'), bedAt(6000, 'Bed D')];
+  const beds = (...fs: Feature[]) => fs.reduce(addFeature, newGarden());
+  const leek = row(roots, 'leek', 300, { sownOn: '2026-04-05', sowing: 'indoors', stage: 'transplanted', stageDates: { transplanted: '2026-06-26' } });
+  const kale = row(roots, 'kale', 800, { sownOn: '2026-05-10', sowing: 'indoors', stage: 'transplanted', stageDates: { transplanted: '2026-06-25' } });
+  const lifted = row(garlic, 'garlic', 600, { sownOn: '2025-10-15', stage: 'harvesting', removedOn: '2026-08-10' });
+  const whereGoes = (draft: ReturnType<typeof draftNextYear>, id: string) => draft.items.find((i) => i.next.plantId === id)!.next.featureId;
+
+  it('a mixed bed’s crops each go where they follow on (Callum)', () => {
+    const potato = pastCrop(plantOf('potato'), c, 2026, TODAY);
+    const beans = row(d, 'broad-bean', 600, { sownOn: '2026-04-10', removedOn: '2026-08-01' });
+    const g = [leek, kale, lifted, potato, beans].reduce(addPlanting, beds(roots, garlic, c, d));
+    const draft = draftNextYear(g, plantOf, TODAY);
+    expect(whereGoes(draft, 'leek')).toBe(c.id);
+    expect(whereGoes(draft, 'kale')).toBe(d.id);
+  });
+
+  it('with beds to spare, leeks and kale part company', () => {
+    const g = [leek, kale, lifted].reduce(addPlanting, beds(roots, garlic, c, d));
+    const draft = draftNextYear(g, plantOf, TODAY);
+    expect(whereGoes(draft, 'leek')).not.toBe(whereGoes(draft, 'kale'));
+    expect(draft.items.every((i) => !i.leftOut)).toBe(true);
+  });
+
+  it('crops of one family still go together, and your own choice of bed stands', () => {
+    const carrot = row(roots, 'carrot', 300, { sownOn: '2026-04-05', removedOn: '2026-09-01' });
+    const parsnip = row(roots, 'parsnip', 800, { sownOn: '2026-04-05', removedOn: '2026-09-01' });
+    const same = draftNextYear([carrot, parsnip].reduce(addPlanting, beds(roots, garlic, c)), plantOf, TODAY);
+    expect(whereGoes(same, 'carrot')).toBe(whereGoes(same, 'parsnip'));
+    const g = [leek, kale, lifted].reduce(addPlanting, beds(roots, garlic, c, d));
+    const mine = draftNextYear(g, plantOf, TODAY, null, { [c.id]: roots.id });
+    expect(whereGoes(mine, 'leek')).toBe(c.id);
+    expect(whereGoes(mine, 'kale')).toBe(c.id);
+  });
+
+  it('a bed gives one answer for when it’s free (Priya)', () => {
+    const r1: Feature = { ...makeFeature('bed', { area: rectPoints({ x: 0, y: 0, w: 2400, h: 1200 }) }), name: 'Raised bed 1' };
+    const m = (id: string, y: number) => makePlanting(plantOf(id), r1.id, 'row', [300, y], [2100, y]);
+    const g = [m('garlic', 200), m('onion-overwintering', 500), m('corn-salad', 800), m('spinach', 1000)].reduce(addPlanting, beds(r1));
+    const b = draftNextYear(g, plantOf, TODAY).beds[0]!;
+    expect(b.taken!.until).toBe(b.after!.from);
+  });
+
+  it('a list of beds and pots becomes a plan with nothing left outside, and no new checks (Priya)', () => {
+    const edge = rectPoints({ x: 0, y: 0, w: 5000, h: 4000 });
+    const patio: Feature = { ...makeFeature('surface', { area: rectPoints({ x: 0, y: 0, w: 5000, h: 4000 }) }), material: 'paving', name: 'Patio' };
+    let g: Garden = addFeature({ ...newGarden(), view: 'list', boundary: edge }, patio);
+    for (const name of ['Raised bed 1', 'Raised bed 2']) [g] = addListBed(g, 'bed', name, [2400, 1200]);
+    for (let i = 1; i <= 8; i++) [g] = addListBed(g, 'pot', `Pot ${i}`);
+    const listed = isListed(g);
+    const { view: _v, ...plan } = planFromList(g, listed);
+    expect(outsideBoundary(plan, listed)).toEqual([]);
+    const said = (x: Garden) => checkGarden(x, plantOf).filter((f) => f.level === 'warn').map((f) => f.message);
+    expect(said(plan)).toEqual(said(g));
   });
 });
 

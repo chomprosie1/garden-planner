@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { updateGarden, type Store } from '../model/store';
 import { featureLabel } from '../model/features';
-import { nameListBeds, spreadOut } from '../model/listLayout';
+import { nameListBeds } from '../model/listLayout';
+import { showAsPlan } from './showAsPlan';
 import { setBalcony } from '../planting/balcony';
 import { isListed } from '../planting/listPlant';
 import { potsOnly } from '../planting/pots';
@@ -269,11 +270,7 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
                   type="radio"
                   name="garden-view"
                   checked={(garden.view === 'list' ? 'list' : 'plan') === value}
-                  onChange={() =>
-                    store.apply(
-                      updateGarden(({ view: _v, ...g }) => (value === 'list' ? nameListBeds({ ...g, view: 'list' }, isListed(g), featureLabel) : spreadOut(g, isListed(g)))),
-                    )
-                  }
+                  onChange={() => (value === 'plan' ? showAsPlan(store, app.notify) : store.apply(updateGarden((g) => nameListBeds({ ...g, view: 'list' }, isListed(g), featureLabel))))}
                 />
                 <span>{label}</span>
               </label>

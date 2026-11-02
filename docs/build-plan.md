@@ -2686,7 +2686,7 @@ Decided:
 | Thu 5 Nov | Testing day | | | |
 | Fri 6 Nov | **57d. Dates for a short season** | L | Callum, Margaret, Priya | Built 30 Oct, reviewed and pushed 2 Nov |
 | Mon 9 Nov | Testing day | | | |
-| Tue 10 Nov | **57e. From a list to a plan, and into next year** | M | Priya, Callum, Margaret | Planned |
+| Tue 10 Nov | **57e. From a list to a plan, and into next year** | M | Priya, Callum, Margaret | Built 2 Nov |
 | Wed 11 Nov | Testing day | | | |
 | Thu 12 Nov | **57f. Pots that follow the weather** | M | Sam, Jordan | Planned |
 | Fri 13 Nov | Testing day | | | |
@@ -3231,6 +3231,21 @@ Not changed:
 - **A card's months are the usual ones,** so a date can fall a few days outside them. Apple "about 28 Jul" beside "Aug–Oct" in Bristol is the season moved.
 - **The frost figures are rough:** monthly records, not nightly, and few cold sites. They're better than the plan's two weeks, and with height and a hollow Aviemore is about 11 Jun against early June.
 - **The other 11 fruits' flowering months:** no named source was to hand, so the app still guesses.
+
+### Release 57e — From a list to a plan, and into next year (as built)
+Built 2 Nov 2026, pulled forward from 10 Nov at your request. No schema change. Version 0.57.5.
+
+- **Switching in Settings makes a garden that fits.** Release 51's `planFromList` was only on the list's own menu. The radio buttons in Settings, where the list's link sends you, used the older `spreadOut`, so Priya never got it. Both now use `showAsPlan`.
+- **Each crop goes its own way.** Release 56 only moved a crop that would follow itself. Now a crop from a mixed bed also moves if another bed suits it better, and all but the bed's main crop can take a bed with nothing coming. Callum's leeks follow his potatoes and his kale follows his beans. A bed you've chosen stands, and crops of one family stay together.
+- **One answer per bed.** "Taken until" counted the salads and "Free again" didn't, so a bed said March 2028 and September 2027 together. Both now go by the crops that rotate, as salads fill a gap. A date past the draft's year says its year.
+- **What grew here:** the button is under the drop-down, by the bed, and a line there says it's done, as the Undo message sits behind the dialog. It doesn't act on choosing: on Windows, arrowing through a closed list fires the choice, so a keyboard would record a crop by accident.
+- **Drop-downs** were held at 36 px. They're 44 px at Standard and grow with the text.
+- **Tests and browser check:** Callum's beds and Priya's list, as tests. In the browser, at 390 px: Priya's patio, a second bed and eight pots through setup, the draft, then the Settings switch, with screenshots looked at.
+
+Not changed:
+- **Priya's Add a plant dialog** can still say a month later than the draft: it reads the timeline's clearing day, and the draft the end of the harvest months.
+- **"Takes the crops from"** still names the bed the crops came from when one has gone elsewhere.
+- **Callum's exact block** into the Garlic bed wasn't reproduced. With two beds both growing onions, there's no better bed, and it says so.
 
 ## Repo layout
 ```

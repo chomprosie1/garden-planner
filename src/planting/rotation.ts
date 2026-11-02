@@ -237,8 +237,9 @@ const fromDraft = (pl: Planting, year: number) => pl.draft === year && !pl.remov
 /**
  * Next year, drafted from this year's crops in the beds and patches of ground (not pots, planters or anything under
  * glass, which keep what they have, nor anything that comes back each year). Every bed is in it, with or without crops.
- * Each bed's crops move together to another bed, chosen so that as many beds as can get the group that follows theirs,
- * none gets the same group again, and none that's still taken by next year's crop gets more; with one bed, they stay.
+ * Each bed's crops go to another bed, chosen so that as many beds as can get the group that follows theirs, none gets
+ * the same group again, and none that's still taken by next year's crop gets more; with one bed, they stay. Then a crop
+ * goes on its own where that does better.
  * `from` changes where a bed's crops come from: bed id → the bed whose crops it takes.
  */
 export function draftNextYear(g: Garden, plantOf: (id: string) => Plant, today: string, weather: Weather | null = null, from: Record<string, string> = {}): Draft {
@@ -339,8 +340,10 @@ export function draftNextYear(g: Garden, plantOf: (id: string) => Plant, today: 
   for (const bed of order) {
     const src = source.get(bed.id)!;
     const busy = taken.get(bed.id);
-    // Taken until the last of them is likely out; no telling if any of them can't say.
-    const ends = busy?.map((pl) => goneBy(pl, plantOf(pl.plantId), expected.get(pl.id)));
+    // Taken until the last of them is likely out; no telling if any of them can't say. By the crops that rotate, as what
+    // follows on goes by them: salads fill a gap, so spinach sown after the garlic doesn't keep the bed for another year.
+    const lasting = busy?.some((pl) => rotationGroup(plantOf(pl.plantId))) ? busy.filter((pl) => rotationGroup(plantOf(pl.plantId))) : busy;
+    const ends = lasting?.map((pl) => goneBy(pl, plantOf(pl.plantId), expected.get(pl.id)));
     const until = ends?.every(Boolean) ? (ends as string[]).sort().at(-1)! : null;
     // This year's crops still in the ground into next year: the bed's busy until they're out.
     const still = crops.get(bed.id)!.filter((pl) => !pl.removedOn && (goneBy(pl, plantOf(pl.plantId)) ?? '') > `${year}-01-01`);
@@ -367,17 +370,25 @@ export function draftNextYear(g: Garden, plantOf: (id: string) => Plant, today: 
     }
     items.push(...here);
   }
-  // A bed's crops move together, but not a crop that would follow itself there: it goes on its own to a bed it can have.
-  // Not where you've chosen which crops a bed takes: that stands, and says so if it's the same again.
+  // A bed's crops go together, but each crop is its own: one that would follow itself goes to a bed it can have. So does
+  // a crop from a mixed bed, where a bed suits it better (leeks after potatoes, kale after beans), and all but the bed's
+  // main crop can take a bed with nothing coming, so they're apart from then on. Not where you've chosen which crops a
+  // bed takes: that stands, and says so if it's the same again.
   const moved = new Set<string>();
   for (const item of items) {
     const plant = plantOf(item.was.plantId);
     const group = rotationGroup(plant);
     const here = item.next.featureId;
-    if (!group || item.leftOut || from[here] || !repeats(grewIn(here), group)) continue;
-    const others = draftBeds.filter(({ bed: b }) => b.id !== here && !taken.has(b.id) && !from[b.id] && !planned.has(`${plant.id}|${b.id}`) && !repeats(grewIn(b.id), group));
+    if (!group || item.leftOut || from[here]) continue;
+    const suits = (id: string) => grewIn(id).some((w) => follows(w, group));
+    const same = repeats(grewIn(here), group);
+    const mixed = grewIn(item.was.featureId).length > 1;
+    if (!same && (!mixed || suits(here))) continue;
+    const spare = mixed && group !== groupOf.get(item.was.featureId);
+    const unused = (id: string) => !items.some((o) => o.next.featureId === id && !o.leftOut);
+    const others = draftBeds.filter(({ bed: b }) => b.id !== here && !taken.has(b.id) && !from[b.id] && !planned.has(`${plant.id}|${b.id}`) && !repeats(grewIn(b.id), group) && (same || suits(b.id) || (spare && unused(b.id))));
     // The bed it should follow on in first.
-    others.sort((a, b) => Number(grewIn(b.bed.id).some((w) => follows(w, group))) - Number(grewIn(a.bed.id).some((w) => follows(w, group))));
+    others.sort((a, b) => Number(suits(b.bed.id)) - Number(suits(a.bed.id)));
     for (const { bed: to, standing } of others) {
       const go = nextOf(g, plant, item.was, to, mover(byId.get(item.was.featureId)!, to), today, weather, year);
       if (go.leftOut || items.some((o) => o !== item && o.next.featureId === to.id && !o.leftOut && plantingsMeet(o.next, go.next, plantOf))) continue;

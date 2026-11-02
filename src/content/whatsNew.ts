@@ -17,6 +17,19 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-11-02-into-next-year',
+    date: '2026-11-02',
+    title: 'From a list to a plan, and into next year',
+    items: [
+      'Switching to a plan in Settings now makes a garden that fits: the boundary grows to hold your beds, and pots stand on the paving.',
+      'Next year’s draft moves each crop, not each bed. Leeks and kale in one bed can go their separate ways, so each follows the right crop.',
+      'Telling the draft what grew in a bed is easier: the button to add it is right under your choice, and it says when it’s done.',
+      'A bed in the draft gives one answer for when it’s free again.',
+      'The drop-downs in next year’s draft grow with your text size.',
+    ],
+    tryIt: { label: 'See your garden', view: 'plan' },
+  },
+  {
     id: '2026-10-30-short-season',
     date: '2026-10-30',
     title: 'Better dates for a short season',

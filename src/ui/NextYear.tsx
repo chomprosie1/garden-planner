@@ -32,6 +32,8 @@ export function NextYearDialog({ garden, store, plantOf, close }: { garden: Gard
   const [chosen, setChosen] = useState<Record<string, boolean>>({});
   /** What grew this year in beds with nothing recorded, by bed: a plant id. */
   const [past, setPast] = useState<Record<string, string>>({});
+  /** What's just been added, by bed: said there, as the choice has gone. */
+  const [added, setAdded] = useState<Record<string, string>>({});
   /** The bed picked out on the small plan. */
   const [focus, setFocus] = useState<string | null>(null);
   useEffect(() => {
@@ -73,12 +75,14 @@ export function NextYearDialog({ garden, store, plantOf, close }: { garden: Gard
     ref.current?.close();
   };
 
-  const told = Object.entries(past).filter(([, id]) => id);
-  const addPast = () => {
-    const pls = told.map(([bedId, id]) => pastCrop(plantOf(id), garden.features.find((f) => f.id === bedId)!, year - 1, today));
-    store.apply(updateGarden((g) => ({ ...g, plantings: [...g.plantings, ...pls] })));
-    app.notify(`Added to ${year - 1}: ${told.map(([bedId, id]) => `${plantOf(id).commonName.toLowerCase()} in ${nameOf(bedId)}`).join(', ')}. The draft moves them on.`, { undo: true });
-    setPast({});
+  const addPast = (bedId: string) => {
+    const name = plantOf(past[bedId]!).commonName.toLowerCase();
+    const pl = pastCrop(plantOf(past[bedId]!), garden.features.find((f) => f.id === bedId)!, year - 1, today);
+    store.apply(updateGarden((g) => ({ ...g, plantings: [...g.plantings, pl] })));
+    app.notify(`Added to ${year - 1}: ${name} in ${nameOf(bedId)}. The draft moves it on.`, { undo: true });
+    setPast(({ [bedId]: _done, ...rest }) => rest);
+    // The message sits behind this dialog: this says so where you're looking.
+    setAdded((a) => ({ ...a, [bedId]: `Added ${name} to ${year - 1}. The draft has moved it on.` }));
   };
 
   const row = (i: DraftItem) => (
@@ -97,7 +101,8 @@ export function NextYearDialog({ garden, store, plantOf, close }: { garden: Gard
   const groups = (b: DraftBed) => {
     if (b.taken) {
       // Out by the start of a month: taken until the end of the one before.
-      const until = b.taken.until ? `until about ${MONTH_NAMES[Number(addDays(b.taken.until, -1).slice(5, 7)) - 1]}` : 'for now';
+      const last = b.taken.until && addDays(b.taken.until, -1);
+      const until = last ? `until about ${MONTH_NAMES[Number(last.slice(5, 7)) - 1]}${Number(last.slice(0, 4)) > year ? ` ${last.slice(0, 4)}` : ''}` : 'for now';
       return (
         <p class="small next-groups">
           <strong>Taken {until}</strong> by {lowerNames(b.taken.plantings)}, already in for {year}. Nothing new goes in until it’s out.
@@ -183,16 +188,19 @@ export function NextYearDialog({ garden, store, plantOf, close }: { garden: Gard
                       </select>
                     </label>
                   )}
+                  {ask && past[b.bed.id] && (
+                    <button type="button" class="btn next-add" onClick={() => addPast(b.bed.id)}>
+                      Add {plantOf(past[b.bed.id]!).commonName.toLowerCase()} to {year - 1}
+                    </button>
+                  )}
+                  {added[b.bed.id] && (
+                    <p class="small next-after" role="status">
+                      {added[b.bed.id]}
+                    </p>
+                  )}
                 </fieldset>
               );
             })}
-            {told.length > 0 && (
-              <div class="button-row">
-                <button type="button" class="btn" onClick={addPast}>
-                  Add {told.length === 1 ? 'it' : 'them'} to {year - 1}
-                </button>
-              </div>
-            )}
             {left.length > 0 && (
               <p class="muted small">
                 {plural(left.length, 'planting is', 'plantings are')} left out: {left.map((i) => `${plantOf(i.next.plantId).commonName.toLowerCase()} (${LEFT_OUT_TEXT[i.leftOut!]}, from ${nameOf(i.was.featureId)})`).join(', ')}. Tick to put one back.
