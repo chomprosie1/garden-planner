@@ -12,7 +12,8 @@ import { featureLabel } from '../model/features';
 import { newId } from '../model/ids';
 import { addNote, makeNote } from '../model/notes';
 import type { Climate, Container, Garden, Plant, Planting, ShedPlace, ShedPlaceKind, Tray, TrayStage } from '../model/types';
-import { plantHere } from './growth';
+import { listedPlant, plantHere, seasonMonth, seasonShift } from './growth';
+import { nextInSeason } from './projection';
 import { currentStage, setStage } from './stages';
 
 // ---------- Dates ----------
@@ -66,8 +67,8 @@ export function frostEstimate(g: Pick<Garden, 'latitude' | 'longitude' | 'height
   return { lastFrost: addDays(`2027-${est.lastFrost}`, Math.round(cooler * LAST_FROST_DAYS_PER_C)).slice(5), firstFrost: addDays(`2027-${est.firstFrost}`, -Math.round(cooler * FROST_DAYS_PER_C)).slice(5) };
 }
 
-/** Frost dates that can't both be right: a last frost in spring after the first in autumn, or either in the wrong half of the year. */
-export const oddFrosts = (lastFrost: string, firstFrost: string): boolean => lastFrost >= firstFrost || lastFrost > '08-01' || firstFrost < '08-01';
+/** Frost dates that can't be right: either in the wrong half of the year. */
+export const oddFrosts = (lastFrost: string, firstFrost: string): boolean => lastFrost >= '08-01' || firstFrost < '08-01';
 
 /** The garden's frost dates: your own, or estimated. */
 export function frostDates(g: Garden): { lastFrost: string; firstFrost: string; estimated: boolean } {
@@ -305,13 +306,30 @@ export function hardenFrom(p: Plant, g: Garden, year: number): string {
   return addDays(`${year}-${String(first).padStart(2, '0')}-01`, -14);
 }
 
+/** How far off a hardy seedling's planting-out months can be for it to wait for them. */
+const HARDEN_WAIT_DAYS = 60;
+
 /**
- * The day seedlings up on a day start hardening off: at the usual time in spring, once they've had a month to grow. A
- * late sowing hardens off as soon as it's ready, as does one for planting out in autumn; any other autumn sowing waits
- * for next spring. Over six months' wait is a sowing for now, not for next year: winter salads sown in October go out
- * this winter, not next September.
+ * The day seedlings up on a day start hardening off: `readyToHarden`, and for hardy seedlings a week before their
+ * planting-out months open, moved with the season here. From the months as listed, as a late garden's have moved by
+ * whole months already. Not for months still to come round later: an autumn sowing goes out when it's ready.
  */
 export function hardenOn(p: Plant, g: Garden, upOn: string): string {
+  const usual = readyToHarden(p, g, upOn);
+  const months = isTender(p) ? [] : (listedPlant(p).plantOutMonths ?? []);
+  const month = seasonMonth(months);
+  const open = months.length ? nextInSeason(usual, months, month ? seasonShift(g, null, month) : 0) : null;
+  if (!open || open > addDays(usual, HARDEN_WAIT_DAYS)) return usual;
+  const week = addDays(open, -7);
+  return week > usual ? week : usual;
+}
+
+/**
+ * The usual time in spring, once they've had a month to grow. A late sowing hardens off as soon as it's ready, as does
+ * one for planting out in autumn; any other autumn sowing waits for next spring. Over six months' wait is a sowing for
+ * now, not for next year: winter salads sown in October go out this winter, not next September.
+ */
+function readyToHarden(p: Plant, g: Garden, upOn: string): string {
   const grown = addDays(upOn, 28);
   const year = Number(grown.slice(0, 4));
   const month = Number(grown.slice(5, 7));

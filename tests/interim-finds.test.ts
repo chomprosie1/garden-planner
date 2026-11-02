@@ -9,8 +9,8 @@ import { sensibleSize } from '../src/canvas/snap';
 import { jobsFor, toggleJob } from '../src/calendar/jobs';
 import { clearingDue, expectedText, isFinished, stageOn, timeline } from '../src/lifecycle/projection';
 import { plantHere } from '../src/lifecycle/growth';
-import { addDays, frostEstimate, oddFrosts } from '../src/lifecycle/shed';
-import { inGroundStages } from '../src/lifecycle/stages';
+import { addDays, daysBetween, frostEstimate, nextFor, oddFrosts, short } from '../src/lifecycle/shed';
+import { inGroundStages, perennial, sowingOf } from '../src/lifecycle/stages';
 import { withVarieties, type VarietyEntry } from '../src/library/library';
 import { newGarden } from '../src/model/defaults';
 import { addFeature, featureLabel, makeFeature, rectPoints } from '../src/model/features';
@@ -194,6 +194,94 @@ describe('dates for a short season', () => {
     const late: Planting = { ...planned('leek-late'), sownOn: '2026-03-01', sowing: 'indoors', stage: 'vegetative', stageDates: { transplanted: '2026-06-15' } };
     const g = gardenWith();
     expect(when(steps('leek-late', late, g), 'harvesting') >= '2026-12-01').toBe(true);
+  });
+
+  it('a summer cabbage isn’t ready weeks after planting, though its months run on over winter', () => {
+    const cabbage = (out: string, g: Garden, today = '2027-04-01') => {
+      const pl: Planting = { ...planned('cabbage'), sownOn: '2027-03-01', sowing: 'indoors', stage: 'vegetative', stageDates: { transplanted: out } };
+      return when(steps('cabbage', pl, g, today), 'harvesting');
+    };
+    for (const out of ['2027-05-15', '2027-07-01']) {
+      expect(cabbage(out, gardenWith(), addDays(out, 1)) >= addDays(out, 70)).toBe(true);
+      expect(cabbage(out, callum(), addDays(out, 1)) >= addDays(out, 70)).toBe(true);
+    }
+  });
+
+  it('crops gone in during the last of their winter months wait for the next ones', () => {
+    for (const id of ['parsnip', 'chicory-witloof']) {
+      const first = when(steps(id, planned(id), gardenWith(), '2027-01-10'), 'sown');
+      expect(when(steps(id, planned(id), gardenWith(), '2027-01-10'), 'harvesting') >= addDays(first, 90), id).toBe(true);
+      const pl: Planting = { ...planned(id), sownOn: '2027-03-15', sowing: 'direct', stage: 'sown' };
+      expect(when(steps(id, pl, gardenWith(), '2027-03-16'), 'harvesting') >= '2027-06-15', id).toBe(true);
+    }
+    expect(when(steps('parsnip', { ...planned('parsnip'), sownOn: '2027-03-15', sowing: 'direct', stage: 'sown' }, gardenWith(), '2027-03-16'), 'harvesting') >= '2027-10-01').toBe(true);
+  });
+
+  it('hardy seedlings wait for their months once, not twice', () => {
+    // Brussels sprouts, May and June as listed: a little after 1 May plus Callum's season, not a month on from that.
+    const pl: Planting = { ...planned('brussels-sprout'), sownOn: '2027-04-05', sowing: 'indoors', stage: 'sown' };
+    const out = when(steps('brussels-sprout', pl, callum(), '2027-04-06'), 'transplanted');
+    expect(out >= '2027-05-25').toBe(true);
+    expect(out <= '2027-06-15').toBe(true);
+  });
+
+  it('a tray and its timeline give the same day to harden off', () => {
+    for (const g of [gardenWith(), callum()])
+      for (const id of ['leek', 'kale', 'lettuce', 'cabbage', 'sweet-pea']) {
+        const pl: Planting = { ...planned(id), sownOn: '2027-03-01', sowing: 'indoors', stage: 'sown' };
+        const s = steps(id, pl, g, '2027-03-02');
+        const up = when(s, 'germinated');
+        const said = nextFor(plantOf(id), g, 'germinated', '2027-03-01', { germinated: up }, up).text;
+        expect(said, id).toContain(`hardening off from ${short(when(s, 'hardening'))}`);
+      }
+  });
+
+  it('a tender sowing stays in its sowing months', () => {
+    for (const id of ['chilli', 'aubergine', 'petunia', 'lobelia']) {
+      for (const g of [gardenWith(), callum(), { ...gardenWith(), latitude: 57.1, longitude: -2.1 }]) {
+        const here = plantHere(plantOf(id), addPlanting(g, planned(id)));
+        const sown = when(steps(id, planned(id), g, '2026-12-01'), 'sown');
+        expect(here.sowing!.flatMap((s) => s.months), `${id} ${sown}`).toContain(Number(sown.slice(5, 7)));
+      }
+    }
+  });
+
+  it('a potato going in just before the frost still gets time to grow', () => {
+    const late = (date: string, firstFrost: string) => {
+      const pl: Planting = { ...planned('potato-second-early'), stage: 'vegetative', stageDates: { transplanted: date } };
+      return when(steps('potato-second-early', pl, callum({ firstFrost }), addDays(date, 1)), 'harvesting');
+    };
+    // Three weeks in the ground by the frost isn't a crop: the frost doesn't pull its date back to then.
+    expect(late('2027-08-10', '09-01') >= '2027-09-15').toBe(true);
+    // In good time, the frost is still the last day.
+    expect(late('2027-05-22', '09-05') <= '2027-09-05').toBe(true);
+  });
+
+  it('every annual, in four gardens: sown in its months, not cropping too soon, and a tray agrees', () => {
+    const gardens = [gardenWith(), callum(), { ...gardenWith(), latitude: 57.1, longitude: -2.1 }, { ...gardenWith(), latitude: 50.2, longitude: -5.1 }];
+    const wrong: string[] = [];
+    for (const g0 of gardens)
+      for (const p of byId.values()) {
+        if (perennial(p) || !p.sowing?.length) continue;
+        const pl = makePlanting(p, bed.id, 'single', [600, 600]);
+        const g = addPlanting(g0, pl);
+        const s = timeline(p, pl, g, '2026-12-01');
+        const how = sowingOf(p, pl);
+        const sown = when(s, 'sown');
+        const start = how === 'direct' ? sown : when(s, 'transplanted');
+        const crop = when(s, 'harvesting');
+        const least = p.growth?.days?.[0];
+        if (start && crop && least && daysBetween(start, crop) < least * 0.6) wrong.push(`${p.id}: in ${start}, cropping ${crop}`);
+        const months = (plantHere(p, g).sowing ?? []).filter((x) => (how === 'direct') === (x.method === 'direct')).flatMap((x) => x.months);
+        if (sown && months.length && !months.includes(Number(sown.slice(5, 7)))) wrong.push(`${p.id}: sown ${sown}, months ${months.join()}`);
+        const up = when(s, 'germinated');
+        const harden = when(s, 'hardening');
+        if (up && harden) {
+          const said = nextFor(p, g, 'germinated', sown, { germinated: up }, up).text;
+          if (said.includes('hardening off from') && !said.includes(`from ${short(harden)}`)) wrong.push(`${p.id}: tray “${said}”, timeline ${harden}`);
+        }
+      }
+    expect(wrong).toEqual([]);
   });
 
   it('kale stays ready through the winter', () => {

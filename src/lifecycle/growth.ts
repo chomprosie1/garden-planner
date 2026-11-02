@@ -71,7 +71,7 @@ function runFor(months: number[], start: string): number[] | null {
 
 /** The months a crop's days are counted from: sowing outside, or planting out. Its usual months, which the days describe, wherever it's grown. */
 function startMonths(here: Plant, from: 'sowing' | 'planting'): number[] {
-  const p = listedAs.get(here) ?? here;
+  const p = listedPlant(here);
   const sowing = p.sowing ?? [];
   if (from === 'planting' && p.plantOutMonths?.length) return p.plantOutMonths;
   const direct = sowing.filter((s) => s.method === 'direct').flatMap((s) => s.months);
@@ -215,6 +215,9 @@ function monthsHere(months: number[], k: number, from: number | null): number[] 
 
 /** Each plant moved for a garden, and the plant as listed. */
 const listedAs = new WeakMap<Plant, Plant>();
+
+/** The plant as listed, from one moved for a garden. */
+export const listedPlant = (here: Plant): Plant => listedAs.get(here) ?? here;
 const local = new WeakMap<Garden, Map<Plant, Plant>>();
 
 /** A plant as it's grown in this garden: its sowing and planting months moved for the season. The same plant where the months will do. */

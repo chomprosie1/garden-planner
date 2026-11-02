@@ -476,13 +476,19 @@ const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'Ju
 function MonthDayField({ label, value, onChange }: { label: string; value: string; onChange: (md: string) => void }) {
   const [m, d] = value.split('-').map(Number) as [number, number];
   const days = new Date(Date.UTC(2027, m, 0)).getUTCDate();
-  // A day that doesn't exist is put right, and it says so.
-  const [note, setNote] = useState('');
+  // A day that doesn't exist is put right, and it says so, for as long as that's the date.
+  const [fixed, setFixed] = useState<{ value: string; note: string } | null>(null);
   const set = (month: number, typed: number) => {
     const most = new Date(Date.UTC(2027, month, 0)).getUTCDate();
     const day = Math.max(1, Math.min(typed, most));
-    setNote(day === typed ? '' : `${MONTH_NAMES[month - 1]} has no day ${typed}, so it’s set to ${day} ${MONTH_NAMES[month - 1]}.`);
-    onChange(`${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+    const next = `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    setFixed(day === typed ? null : { value: next, note: `${MONTH_NAMES[month - 1]} has no day ${typed}, so it’s set to ${day} ${MONTH_NAMES[month - 1]}.` });
+    if (next !== value) onChange(next);
+    return day;
+  };
+  const dayTyped = (box: HTMLInputElement) => {
+    // An emptied box goes back to the day it had. The box is set here, as an unchanged date doesn't redraw it.
+    box.value = String(set(m, Math.round(Number(box.value)) || d));
   };
   return (
     <fieldset class="month-day">
@@ -490,7 +496,7 @@ function MonthDayField({ label, value, onChange }: { label: string; value: strin
       <div class="field-row">
         <label class="field">
           <span class="visually-hidden">{label}: day</span>
-          <input type="number" min={1} max={days} value={d} onChange={(e) => set(m, Math.round(Number((e.currentTarget as HTMLInputElement).value)) || 0)} />
+          <input type="number" min={1} max={days} value={d} onChange={(e) => dayTyped(e.currentTarget as HTMLInputElement)} />
         </label>
         <label class="field">
           <span class="visually-hidden">{label}: month</span>
@@ -503,9 +509,9 @@ function MonthDayField({ label, value, onChange }: { label: string; value: strin
           </select>
         </label>
       </div>
-      {note && (
+      {fixed?.value === value && (
         <p class="muted small" role="status">
-          {note}
+          {fixed.note}
         </p>
       )}
     </fieldset>
@@ -536,7 +542,7 @@ function FrostDates({ store, garden }: { store: Store; garden: Garden }) {
         <MonthDayField label="Last frost in spring" value={f.lastFrost} onChange={(lastFrost) => set({ lastFrost })} />
         <MonthDayField label="First frost in autumn" value={f.firstFrost} onChange={(firstFrost) => set({ firstFrost })} />
       </div>
-      {oddFrosts(f.lastFrost, f.firstFrost) && <p class="bed-warn small">These two dates don’t look right: the last frost usually comes in spring, and the first in autumn. Every sowing date follows them, so please check them.</p>}
+      {!f.estimated && oddFrosts(f.lastFrost, f.firstFrost) && <p class="bed-warn small">These two dates don’t look right: the last frost usually comes in spring, and the first in autumn. Every sowing date follows them, so please check them.</p>}
       <div class="field-row">
         <label class="field">
           Height above sea level, in metres

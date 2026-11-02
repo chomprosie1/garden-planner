@@ -93,11 +93,11 @@ const STILL_GOING_DAYS = 14;
 /** What stands through the winter is reckoned ready by this long after its months open, however cold the autumn. */
 const STANDS_BY_DAYS = 42;
 
-/** How far off a hardy seedling's planting-out months can be for it to wait for them. */
-const HARDEN_WAIT_DAYS = 60;
-
 /** How long something tender is grown on under cover before it goes out: eight weeks, a rule of thumb from the RHS's tomato dates. */
 const INDOORS_DAYS = 56;
+
+/** The share of its usual days a potato needs in the ground for there to be anything to lift. A rule of thumb, not from a named source. */
+const LEAST_TO_LIFT = 0.5;
 
 /** A year and a bit: how far back a perennial's year is worked from, and how long an annual can have been in and still be cropping. */
 const YEAR_BACK_DAYS = 400;
@@ -168,12 +168,17 @@ function frostsFor(g: Garden, cover: Cover | null) {
   return mine.get(key)!;
 }
 
+const fromTubers = (p: Plant) => !!p.sowing?.some((s) => s.from === 'tubers');
+
+/** Months that open in late summer or after and run on over the new year: what stands through the winter, as leeks and kale do. A summer cabbage's don't. */
+const standsWinter = (months: number[]) => runsOf(months).some((r) => r[0]! >= 8 && r.includes(12) && r.includes(1));
+
 /** Tender annuals outside, or under unheated glass, die at the first autumn frost after they went in. Null when that's not a worry. */
 function frostEnd(c: Context, from: string): string | null {
   const { plant, g, cover } = c;
   if (!isTender(plant) || perennial(plant)) return null;
   // A frost takes potatoes' tops, not the tubers in the ground.
-  if (plant.sowing?.some((s) => s.from === 'tubers')) return null;
+  if (fromTubers(plant)) return null;
   const frost = frostsFor(g, cover);
   if (!frost) return null;
   const sameYear = inYear(frost.firstFrost, yearOf(from));
@@ -204,11 +209,19 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
   // the end of its months. A plant grown for its flowers waits for its flower months, however warm it's been: sweet
   // peas sown in October flower the next June, not in the winter.
   const forFlowers = !path.includes('harvesting');
+  // When its months next open for it. Gone in during the last of months that run over the new year, those are last
+  // autumn's crop: parsnips sown in March are lifted the next October, not in April.
+  const opensFor = (start: string, shift: number): string | null => {
+    const open = nextInSeason(start, cropMonths, shift);
+    const m = monthOf(start);
+    const tail = open === start && runsOf(cropMonths).some((r) => r.includes(m) && r.includes(12) && r.includes(1) && m < r[0]!);
+    return tail ? nextInSeason(afterSeason(start, cropMonths, shift), cropMonths, shift) : open;
+  };
   const warmthReady = (): string | null => {
     const d = ready();
     if (!d || !c.start || !cropMonths.length) return d;
     const shift = shiftFor(cropMonths);
-    const open = nextInSeason(c.start, cropMonths, shift);
+    const open = opensFor(c.start, shift);
     if (!open) return d;
     const close = addDays(afterSeason(open, cropMonths, shift), -14);
     if (d > close) {
@@ -223,16 +236,19 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
   const cropBy = (): string | null => {
     const d = warmthReady();
     if (!d || !c.start || forFlowers) return d;
-    const shift = shiftFor(cropMonths);
-    const open = nextInSeason(c.start, cropMonths, shift);
-    // What stands through the winter (leeks, kale) goes by its months, not the warmth: it's picked at whatever size it's
-    // reached, and in a cold autumn the warmth would say next year. So not before its months, nor long after they open.
-    if (open && cropMonths.includes(12) && cropMonths.includes(1)) return sooner(later(d, open), addDays(open, STANDS_BY_DAYS));
+    if (standsWinter(cropMonths)) {
+      // What stands through the winter goes by its months, not the warmth: it's picked at whatever size it's reached,
+      // and in a cold autumn the warmth would say next year. So not before its months, nor long after they open. Gone
+      // in once they've opened, it has only the warmth to go by.
+      const open = opensFor(c.start, shiftFor(cropMonths));
+      return open && open > c.start ? sooner(later(d, open), addDays(open, STANDS_BY_DAYS)) : d;
+    }
     // Potatoes: a frost takes the tops, and the tubers stop growing. What's there is lifted by then (RHS: second earlies
-    // in July and August, maincrops by October).
-    const frost = plant.sowing?.some((s) => s.from === 'tubers') ? frostsFor(g, cover)?.firstFrost : null;
+    // in July and August, maincrops by October), though not so soon after going in that there's nothing to lift.
+    const frost = fromTubers(plant) ? frostsFor(g, cover)?.firstFrost : null;
     const lastLift = frost ? inYear(frost, yearOf(c.start)) : null;
-    return lastLift && lastLift > c.start ? sooner(d, lastLift) : d;
+    if (!lastLift || lastLift <= c.start) return d;
+    return sooner(d, later(lastLift, addDays(c.start, Math.round((plant.growth?.days?.[0] ?? 0) * LEAST_TO_LIFT))));
   };
   // When a tender annual ends, from its usual end: at the first frost, or if that had been and gone by the day it
   // reached this stage, it's plainly come through, and is given a little longer.
@@ -253,13 +269,7 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
       return step('germinated', sowingOf(plant, pl) === 'direct' ? upFrom(plant, g, date, climate, usual, c.weather) : addDays(date, usual));
     }
     case 'germinated': {
-      if (ahead('hardening')) {
-        const usual = hardenOn(plant, g, date);
-        // Hardy seedlings go out in their months, moved with the season here: a week's hardening off before they open.
-        // Not one for the months to come round to later: an autumn sowing goes out when it's ready.
-        const out = !isTender(plant) && plant.plantOutMonths?.length ? nextInSeason(usual, plant.plantOutMonths, shiftFor(plant.plantOutMonths)) : null;
-        return step('hardening', out && out <= addDays(usual, HARDEN_WAIT_DAYS) ? later(usual, addDays(out, -7)) : usual);
-      }
+      if (ahead('hardening')) return step('hardening', hardenOn(plant, g, date));
       // Going under glass: straight in once grown on, with no hardening off.
       if (cover && ahead('transplanted')) return step('transplanted', plantInFrom(plant, g, date, cover.climate));
       return step('vegetative', addDays(date, 21));
@@ -322,26 +332,30 @@ function firstStep(plant: Plant, pl: Planting, today: string, g: Garden): Step |
     const d = plant.plantOutMonths?.length ? nextInMonths(today, plant.plantOutMonths) : today;
     return d ? { stage: 'transplanted', date: d, guessed: true } : null;
   }
-  const months = (plant.sowing ?? []).filter((s) => (how === 'direct' ? s.method === 'direct' : s.method !== 'direct')).flatMap((s) => s.months);
-  const d = nextInMonths(today, months.length ? months : (plant.sowing ?? []).flatMap((s) => s.months));
+  const own = (plant.sowing ?? []).filter((s) => (how === 'direct' ? s.method === 'direct' : s.method !== 'direct')).flatMap((s) => s.months);
+  const months = own.length ? own : (plant.sowing ?? []).flatMap((s) => s.months);
+  const d = nextInMonths(today, months);
   if (!d) return null;
   // Outside in a late garden: its month, and no sooner than its frosts allow. Under glass, the frosts don't reach it.
   const cover = microclimateOf(g, pl);
   const out = how === 'direct' && !cover ? earliestOut(plant, g) : null;
   const first = out ? inYear(out.slice(5), yearOf(d)) : null;
-  const sowFrom = how === 'indoors' && isTender(plant) ? sownForOut(g, cover, yearOf(d)) : null;
+  const sowFrom = how === 'indoors' && isTender(plant) ? sownForOut(g, cover, d, months) : null;
   return { stage: 'sown', date: monthOf(d) <= 7 ? later(d, later(first ?? d, sowFrom ?? d)) : d, guessed: true };
 }
 
 /**
  * The first day to sow something tender under cover, so it isn't left in a pot for months: this far before it can go out.
- * The RHS has tomatoes sown from late March for planting out in early summer, and from late February under glass. Null
- * with heat, where it goes in when it's ready.
+ * The RHS has tomatoes sown from late March for planting out in early summer, and from late February under glass. It
+ * stays in its sowing months, as a slow chilli has no time to lose: by the start of the last of them. Null with heat,
+ * where it goes in when it's ready.
  */
-function sownForOut(g: Garden, cover: Cover | null, year: number): string | null {
-  const frost = frostDatesUnder(g, cover?.climate ?? null);
+function sownForOut(g: Garden, cover: Cover | null, first: string, months: number[]): string | null {
+  const frost = frostsFor(g, cover);
   if (!frost) return null;
-  return addDays(cover ? inYear(frost.lastFrost, year) : safeOut(g, year), -INDOORS_DAYS);
+  const year = yearOf(first);
+  const run = runsOf(months).find((r) => r.includes(monthOf(first)))!;
+  return sooner(addDays(cover ? inYear(frost.lastFrost, year) : safeOut(g, year), -INDOORS_DAYS), firstOf(year, run[run.length - 1]!));
 }
 
 /**
