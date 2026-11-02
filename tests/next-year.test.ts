@@ -244,7 +244,7 @@ describe('the shopping list', () => {
   it('lists seed, plants and compost for what’s planned and wanted', () => {
     const { g } = setup();
     const list = shoppingList(g, plantOf, today);
-    expect(list.map((i) => i.key)).toEqual(['seed:carrot', 'seed:lettuce', 'seed:tomato', 'plant:elephant-garlic', 'compost:pots', 'compost:seed']);
+    expect(list.map((i) => i.key)).toEqual(['seed:carrot', 'seed:lettuce', 'seed:tomato', 'plant:elephant-garlic', 'pot:pot:40 cm across', 'compost:pots', 'compost:seed']);
     expect(list.find((i) => i.key === 'seed:carrot')!.amount).toMatch(/^for about \d+ plants$/);
     expect(list.find((i) => i.key === 'seed:tomato')!.note).toBe('On your Want to grow list');
     expect(list.find((i) => i.key === 'plant:elephant-garlic')!.amount).toBe('1 plant');

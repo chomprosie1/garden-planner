@@ -17,6 +17,20 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-11-02-pots-and-weather',
+    date: '2026-11-02',
+    title: 'Pots that follow the weather',
+    items: [
+      'Watering a pot now changes with the weather and the season. Hot spells say so, and in winter it’s a look once a month.',
+      'A chilli or pepper you’ve brought indoors comes off the balcony’s watering.',
+      'No more greenhouse lines or fleece on a balcony. A trough crop is sown in the trough, not raised somewhere else and planted out.',
+      'Suggested swaps for something you eat are things you eat.',
+      'Ferns now come up under Light: Shade.',
+      'The shopping list has the pots you’ll need, with sizes, and its bags of compost add up.',
+      'On a balcony, the list warns you if your pots add up to a lot of weight, and what to do about it.',
+    ],
+  },
+  {
     id: '2026-11-02-into-next-year',
     date: '2026-11-02',
     title: 'From a list to a plan, and into next year',

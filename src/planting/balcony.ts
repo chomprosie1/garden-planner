@@ -12,7 +12,7 @@ import { canSowIn } from '../library/library';
 import { facingBearing } from '../lifecycle/shedSun';
 import type { Balcony, BalconySun, Facing, Feature, Garden, Light, Plant } from '../model/types';
 import { isActive } from './place';
-import { isPot, potNeeds, potSize } from './pots';
+import { isPot, potNeeds, potsOnly, potSize } from './pots';
 
 const FROM_SUN: Record<BalconySun, Light> = { most: 'full-sun', half: 'part-shade', little: 'shade' };
 const FROM_FACING: Record<Facing, Light> = {
@@ -28,6 +28,21 @@ const FROM_FACING: Record<Facing, Light> = {
 
 export const LIGHT_WORDS: Record<Light, string> = { 'full-sun': 'full sun', 'part-shade': 'part shade', shade: 'shade' };
 export const LIGHT_RANK: Record<Light, number> = { shade: 0, 'part-shade': 1, 'full-sun': 2 };
+
+/** Just a balcony: nothing but pots, up where glass and fleece don't come into it. */
+export const onBalcony = (g: Garden): boolean => !!g.balcony && potsOnly(g);
+
+/** On a balcony there's nowhere to raise it first: what can be sown outside goes straight in the pot, and isn't planted out. */
+export const sowsInPot = (g: Garden, plant: Plant, f: Feature): boolean => isPot(f) && onBalcony(g) && !/^\s*(tender|half-hardy)/i.test(plant.conditions.hardiness ?? '') && !!plant.sowing?.some((s) => s.method === 'direct' && !s.from);
+
+/** Advice that takes a greenhouse or cold frame, without it for a balcony that hasn't one, a sentence at a time. */
+export function withoutGlass(g: Garden, text: string): string {
+  if (!onBalcony(g) || g.features.some((f) => f.kind === 'greenhouse' || f.kind === 'cold-frame')) return text;
+  return text.split(/(?<=[.!?])\s+/).filter((s) => !/greenhouse|cold frame|polytunnel/i.test(s)).join(' ');
+}
+
+/** Grown to eat. */
+export const isFood = (p: Plant): boolean => !!p.cropping?.harvestMonths.length && ['vegetable', 'herb', 'fruit'].includes(p.category);
 
 /** A balcony's light: from the sun you've said it gets, or the way it faces. Null if you've said neither. */
 export function balconyLight(b: Balcony | undefined): Light | null {
@@ -76,7 +91,10 @@ export function suitsPot(p: Plant, g: Garden, f: Feature): boolean {
 /** A few plants that would suit a pot, what can go in soonest first, leaving out what's in it already. */
 export function plantsFor(plants: Plant[], g: Garden, f: Feature, month: number, n = 3): Plant[] {
   const here = new Set(g.plantings.filter((pl) => pl.featureId === f.id && isActive(pl)).map((pl) => pl.plantId));
-  const fit = plants.filter((p) => p.category !== 'weed' && !p.varietyOf && !p.userAdded && !here.has(p.id) && suitsPot(p, g, f));
+  const suits = plants.filter((p) => p.category !== 'weed' && !p.varietyOf && !p.userAdded && !here.has(p.id) && suitsPot(p, g, f));
+  // Food for food: someone growing basil wants something to eat, not a daffodil.
+  const food = plants.some((p) => here.has(p.id) && isFood(p)) ? suits.filter(isFood) : [];
+  const fit = food.length ? food : suits;
   const soon = (p: Plant) => (canSowIn(p, month) ? 0 : canSowIn(p, (month % 12) + 1) ? 1 : 2);
   const order = new Map(beginnerOrder(fit).map((p, i) => [p.id, i]));
   return [...fit].sort((a, b) => soon(a) - soon(b) || order.get(a.id)! - order.get(b.id)!).slice(0, n);

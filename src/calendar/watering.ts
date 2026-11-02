@@ -12,8 +12,9 @@ import { placeLabel } from '../model/features';
 import type { Feature, Garden, Plant, Planting } from '../model/types';
 import { isCovered, lightHere } from '../planting/balcony';
 import { isActive } from '../planting/place';
-import { isPot, litresText, potSize, sizeText } from '../planting/pots';
+import { comesIndoors, isPot, litresText, potSize, sizeText } from '../planting/pots';
 import { inGround } from '../lifecycle/projection';
+import { frostDates } from '../lifecycle/shed';
 import { currentStage, sowingOf } from '../lifecycle/stages';
 import { rainOver, weatherOn, windOn, type Weather } from '../weather/weather';
 
@@ -56,6 +57,19 @@ function inGroundOn(plant: Plant, pl: Planting): string | undefined {
 }
 
 /**
+ * Indoors for the winter, off the balcony's watering: a plant told to come in, once you've ticked that, or anyway from
+ * the first frost until the last, as it couldn't be out there.
+ */
+function broughtIn(g: Garden, plant: Plant, pl: Planting, f: Feature, today: string): boolean {
+  if (!comesIndoors(plant, f)) return false;
+  const { firstFrost, lastFrost } = frostDates(g);
+  const day = today.slice(5);
+  if (day >= firstFrost || day < lastFrost) return true;
+  const ticked = `protect:${pl.plantId}:${pl.featureId}:${today.slice(0, 4)}-`;
+  return day >= '08-01' && g.jobsDone.some((j) => j.key.startsWith(ticked));
+}
+
+/**
  * What wants water in a dry spell: plants in pots and planters, and anything planted out or sown outside in the last
  * six weeks. Only what's in the ground outside (under glass no rain falls, so it's always watered), and no weeds.
  */
@@ -66,6 +80,7 @@ export function thirsty(g: Garden, plantOf: (id: string) => Plant, today: string
     const plant = plantOf(pl.plantId);
     if (plant.category === 'weed' || !inGround(currentStage(pl), plant, pl) || microclimateOf(g, pl)) return false;
     const f = byId.get(pl.featureId);
+    if (f && broughtIn(g, plant, pl, f, today)) return false;
     if (f && isPot(f)) return true;
     if (potsOnly) return false;
     const went = inGroundOn(plant, pl);
@@ -118,6 +133,21 @@ export function potLasts(litres: number, warmest: number, opts: { windy?: boolea
   return Math.max(1, Math.floor(days));
 }
 
+/** Days this cool, little grows and little dries: the warmest of a day under this, °C, about December to February. */
+export const WINTER_C = 10;
+/** How long a pot goes in the cold, days: it's looked at once a month, in the month's first week. */
+export const WINTER_DAYS = 21;
+const WINTER_WEEK = 7;
+
+/** A line on why it's due now, from the warmth it's had, or the time of year without the weather. */
+function howDry(warmest: number, known: boolean): string {
+  const about = `about ${Math.round(warmest)} °C`;
+  if (warmest < WINTER_C) return 'Little grows or dries in the cold, so a look once a month will do. Water only if it’s dry well below the surface, and not with a frost due.';
+  if (warmest >= 24) return known ? `It’s been hot, ${about}: a pot can dry out in a day, so look morning and evening.` : 'A pot can dry out in a day at this time of year, so look morning and evening.';
+  if (warmest >= 18) return known ? `It’s been warm, ${about}, so it’ll dry faster.` : 'It dries faster at this time of year.';
+  return known && warmest < 12 ? `It’s been cool, ${about}, so it’ll need less.` : '';
+}
+
 /** The day a pot was last watered by ticking its job, before today. */
 function lastTicked(g: Garden, f: Feature, today: string): string | null {
   // One job for many pots names them in its key, so it only counts for those.
@@ -146,6 +176,9 @@ export function potWaterJobs(g: Garden, plantOf: (id: string) => Plant, w: Weath
   const warmest = recent.length ? recent.reduce((a, b) => a + b, 0) / recent.length : TYPICAL_MAX[Number(today.slice(5, 7)) - 1]!;
   const windy = (windOn(w, today) ?? 0) >= WINDY_KMH || (windOn(w, addDays(today, -1)) ?? 0) >= WINDY_KMH;
   const rained = lastRained(w, today);
+  const winter = warmest < WINTER_C;
+  if (winter && Number(today.slice(8, 10)) > WINTER_WEEK) return [];
+  const why = howDry(warmest, known && recent.length > 0);
   const due = g.features
     .filter((f) => isPot(f) && (known || isCovered(g, f)))
     .flatMap((f) => {
@@ -155,7 +188,8 @@ export function potWaterJobs(g: Garden, plantOf: (id: string) => Plant, w: Weath
       const covered = isCovered(g, f);
       const light = lightHere(g, f);
       const windyHere = windy || !!g.balcony?.windy;
-      const days = potLasts(size.litres, warmest, { windy: windyHere, sunny: light === 'full-sun', shady: light === 'shade' });
+      const lasts = potLasts(size.litres, warmest, { windy: windyHere, sunny: light === 'full-sun', shady: light === 'shade' });
+      const days = winter ? Math.max(lasts, WINTER_DAYS) : lasts;
       const wetted = [lastTicked(g, f, today), covered ? null : rained].filter((d): d is string => !!d).sort().pop() ?? null;
       if (wetted && daysBetween(wetted, today) < days) return [];
       return [{ f, ids, size, covered, windy: windyHere }];
@@ -163,12 +197,12 @@ export function potWaterJobs(g: Garden, plantOf: (id: string) => Plant, w: Weath
     .sort((a, b) => a.size.litres - b.size.litres);
   const feel = 'Push a finger into the compost first: if it’s moist below the surface, leave it for now. Otherwise water until it runs out of the bottom.';
   if (due.length > POT_JOBS)
-    return [{ key: `water:pots:${due.map((d) => d.f.id).join(',')}:${today}`, title: 'Pots', where: `(${listed(due.map((d) => placeLabel(d.f)))})`, detail: `${due.some((d) => d.covered) ? 'Rain doesn’t reach those under cover. ' : ''}${feel}`, plantingIds: due.flatMap((d) => d.ids) }];
+    return [{ key: `water:pots:${due.map((d) => d.f.id).join(',')}:${today}`, title: 'Pots', where: `(${listed(due.map((d) => placeLabel(d.f)))})`, detail: [due.some((d) => d.covered) ? 'Rain doesn’t reach those under cover.' : '', why, feel].filter(Boolean).join(' '), plantingIds: due.flatMap((d) => d.ids) }];
   return due.map((d, i) => ({
     key: `water:${d.f.id}:${today}`,
     title: placeLabel(d.f),
     where: `(${sizeText(d.size)}, ${litresText(d.size.litres)})`,
-    detail: [d.covered ? 'Rain doesn’t reach it here.' : '', d.windy ? 'Wind dries a pot fast.' : '', i === 0 && due.length > 1 ? 'The smallest dries fastest.' : '', feel].filter(Boolean).join(' '),
+    detail: [d.covered ? 'Rain doesn’t reach it here.' : '', d.windy && !winter ? 'Wind dries a pot fast.' : '', i === 0 && due.length > 1 ? 'The smallest dries fastest.' : '', why, feel].filter(Boolean).join(' '),
     plantingIds: d.ids,
     featureId: d.f.id,
   }));

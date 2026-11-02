@@ -7,6 +7,13 @@ import { describe, expect, it } from 'vitest';
 import varieties from '../data/varieties.json';
 import { sensibleSize } from '../src/canvas/snap';
 import { jobsFor, toggleJob } from '../src/calendar/jobs';
+import { potWaterJobs } from '../src/calendar/watering';
+import { generalJobs } from '../src/content/seasons';
+import { emptyFilter, filterPlants } from '../src/library/library';
+import { splitCore } from '../src/library/order';
+import { isFood, plantsFor } from '../src/planting/balcony';
+import { shoppingList } from '../src/planting/shopping';
+import { makeWeather, type Weather } from '../src/weather/weather';
 import { clearingDue, expectedText, isFinished, stageOn, timeline } from '../src/lifecycle/projection';
 import { plantHere } from '../src/lifecycle/growth';
 import { addDays, daysBetween, frostEstimate, nextFor, oddFrosts, short } from '../src/lifecycle/shed';
@@ -477,6 +484,93 @@ describe('from a list to a plan, and into next year', () => {
     expect(outsideBoundary(plan, listed)).toEqual([]);
     const said = (x: Garden) => checkGarden(x, plantOf).filter((f) => f.level === 'warn').map((f) => f.message);
     expect(said(plan)).toEqual(said(g));
+  });
+});
+
+describe('pots that follow the weather (Sam)', () => {
+  const pot = (name: string, across = 300): Feature => ({ ...makeFeature('pot', { circle: { centre: [500, 500], radiusMm: across / 2 } }), name });
+  const chilliPot = pot('Chilli pot', 250);
+  const balcony = (...fs: Feature[]): Garden => fs.reduce(addFeature, { ...newGarden(), balcony: { facing: 'north-east', sun: 'half', roof: true, windy: true } });
+  const inPot = (id: string, f: Feature, date = '2026-05-20', stage: Stage = 'vegetative') => makePlanting(plantOf(id), f.id, 'single', [500, 500], undefined, { date, stage });
+  const water = (g: Garden, today: string, w: Weather | null = null) => potWaterJobs(g, (id) => plantHere(plantOf(id), g), w, today);
+  const herbs = addPlanting(balcony(chilliPot), inPot('mint', chilliPot));
+  const weatherAt = (today: string, max: number): Weather => makeWeather([new Map(Array.from({ length: 21 }, (_, i) => [addDays(today, i - 15), { max, min: max - 8, rain: 0 }]))], today, `${today}T09:00:00.000Z`, 51.5, 0)!;
+
+  it('says different things in June, in January and in a heatwave', () => {
+    const june = water(herbs, '2027-06-15')[0]!.detail;
+    const hot = water(herbs, '2027-06-15', weatherAt('2027-06-15', 30))[0]!.detail;
+    expect(june).not.toBe(hot);
+    expect(hot).toMatch(/30 °C/);
+    expect(water(herbs, '2027-01-03')[0]!.detail).toMatch(/once a month/);
+    expect(water(herbs, '2027-01-03')[0]!.detail).not.toMatch(/Wind dries/);
+  });
+
+  it('goes quiet in winter: once a month, in the first week', () => {
+    expect(water(herbs, '2027-01-03')).toHaveLength(1);
+    expect(water(herbs, '2027-01-15')).toHaveLength(0);
+    expect(water(herbs, '2027-02-20')).toHaveLength(0);
+    // A mild spell isn't winter.
+    expect(water(herbs, '2027-01-15', weatherAt('2027-01-15', 14))).toHaveLength(1);
+  });
+
+  it('a chilli told to come in comes off the watering, and goes back on in spring', () => {
+    const g = addPlanting(balcony(chilliPot), inPot('chilli', chilliPot));
+    expect(water(g, '2026-09-20')).toHaveLength(1);
+    expect(water({ ...g, jobsDone: [{ key: `protect:chilli:${chilliPot.id}:2026-09`, date: '2026-09-20' }] } as Garden, '2026-09-25')).toHaveLength(0);
+    expect(water(g, '2027-01-03')).toHaveLength(0);
+    expect(water(g, '2027-06-15')).toHaveLength(1);
+    // Whatever shares its pot still wants water.
+    const both = addPlanting(g, inPot('mint', chilliPot));
+    expect(water(both, '2027-01-03')[0]!.plantingIds).toEqual([both.plantings[1]!.id]);
+  });
+
+  it('no greenhouse or fleece on a balcony, and they stay for a garden that has them', () => {
+    const trough = { ...makeFeature('planter', { area: rectPoints({ x: 0, y: 0, w: 600, h: 200 }) }), name: 'Salad trough' };
+    const pl = makePlanting(plantOf('winter-purslane'), trough.id, 'single', [300, 100]);
+    const g = addPlanting(balcony(trough), pl);
+    const sow = jobsFor(g, plantOf, 10, 2026, { today: '2026-10-20' }).find((j) => j.plantId === 'winter-purslane')!;
+    expect(sow.kind).toBe('sow-direct');
+    expect(sow.detail).not.toMatch(/greenhouse|cold frame|modules/);
+    expect(jobsFor(g, plantOf, 11, 2026, { today: '2026-11-10' }).some((j) => j.kind === 'plant-out')).toBe(false);
+    const greenhouse = makeFeature('greenhouse', { area: rectPoints({ x: 2000, y: 0, w: 1800, h: 2400 }) });
+    const glass = addFeature(gardenWith(pl), trough);
+    expect(jobsFor({ ...addFeature(glass, greenhouse), balcony: undefined } as Garden, plantOf, 10, 2026, { today: '2026-10-20' }).find((j) => j.plantId === 'winter-purslane')?.detail).toMatch(/greenhouse/);
+    const tender = addPlanting(balcony(chilliPot), inPot('chilli', chilliPot));
+    expect(generalJobs(11, tender, (id) => plantOf(id)).map((j) => j.text).join()).not.toMatch(/fleece/i);
+    expect(generalJobs(11, gardenWith(added('tomato', '2026-05-20', 'vegetative')), (id) => plantOf(id)).map((j) => j.text).join()).toMatch(/fleece/i);
+  });
+
+  it('swaps for something you eat are something you eat', () => {
+    const basil = addPlanting(balcony(chilliPot), inPot('basil', chilliPot));
+    const all = [...byId.values()];
+    expect(plantsFor(all, basil, chilliPot, 5).every((p) => isFood(p))).toBe(true);
+    const tulips = addPlanting(balcony(chilliPot), inPot('tulip', chilliPot));
+    expect(plantsFor(all, tulips, chilliPot, 5).length).toBeGreaterThan(0);
+  });
+
+  it('ferns are under Shade', () => {
+    const shade = splitCore(filterPlants([...byId.values()], { ...emptyFilter, light: 'shade' })).core.map((p) => p.id);
+    expect(shade).toEqual(expect.arrayContaining(['harts-tongue-fern', 'male-fern']));
+  });
+
+  it('bags add up, pots are on the list, and heavy pots are a warning', () => {
+    const big = pot('Big', 500);
+    const small = pot('Small');
+    const small2 = pot('Small 2');
+    const planned = (f: Feature) => makePlanting(plantOf('mint'), f.id, 'single', [500, 500]);
+    const g = [big, small, small2].map(planned).reduce(addPlanting, balcony(big, small, small2));
+    const shop = shoppingList(g, plantOf, '2026-11-02');
+    const pots = shop.filter((i) => i.kind === 'pot').map((i) => i.name);
+    expect(pots).toEqual(expect.arrayContaining(['1 pot, 50 cm across', '2 pots, 30 cm across']));
+    const compost = shop.find((i) => i.key === 'compost:pots')!;
+    const [l, bags] = [Number(compost.amount!.match(/about (\d+) litres/)![1]), Number(compost.amount!.match(/\((\d+) bag/)![1])];
+    expect(bags).toBe(Math.ceil(l / 40));
+    expect(compost.warn ?? '').toMatch(compost.warn ? /Heavy/ : /^$/);
+    const nine = [...Array(9).keys()].map((i) => pot(`P${i}`, 500));
+    const heavy = nine.map(planned).reduce(addPlanting, balcony(...nine));
+    expect(shoppingList(heavy, plantOf, '2026-11-02').find((i) => i.key === 'compost:pots')!.warn).toMatch(/Heavy for a balcony/);
+    const patio = nine.map(planned).reduce(addPlanting, nine.reduce(addFeature, newGarden()));
+    expect(shoppingList(patio, plantOf, '2026-11-02').find((i) => i.key === 'compost:pots')!.warn).toBeUndefined();
   });
 });
 

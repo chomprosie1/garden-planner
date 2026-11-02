@@ -78,12 +78,14 @@ const MORE_CORE = [
   // Herbs.
   'sage', 'dill', 'oregano', 'fennel', 'bay', 'tarragon', 'lemon-balm', 'sorrel', 'borage', 'chamomile',
   // Fruit.
-  'blackberry', 'redcurrant', 'plum', 'pear', 'cherry', 'fig', 'grape-vine', 'damson', 'greengage', 'tayberry', 'alpine-strawberry',
-  'whitecurrant', 'quince', 'loganberry',
+  'blackberry', 'redcurrant', 'plum', 'pear', 'cherry', 'fig', 'grape-vine', 'damson', 'greengage', 'alpine-strawberry',
+  'whitecurrant', 'quince',
   // Flowers.
   'rose', 'hollyhock', 'lupin', 'delphinium', 'hardy-geranium', 'hellebore', 'peony', 'echinacea', 'rudbeckia', 'verbena-bonariensis',
   'nigella', 'sweet-william', 'snapdragon', 'ornamental-allium', 'wallflower', 'forget-me-not', 'viola', 'primrose', 'hyacinth',
   'grape-hyacinth', 'bluebell', 'lily', 'salvia-nemorosa', 'catmint', 'penstemon', 'aquilegia', 'hosta', 'sedum',
+  // For shade: the first thing anyone looks for there.
+  'harts-tongue-fern', 'male-fern',
   // Shrubs and climbers.
   'buddleja', 'hydrangea', 'hardy-fuchsia', 'hebe', 'camellia', 'forsythia', 'lilac', 'clematis', 'honeysuckle', 'wisteria',
   'star-jasmine', 'climbing-rose', 'box', 'pyracantha', 'ceanothus', 'japanese-maple', 'mock-orange', 'choisya',

@@ -13,16 +13,17 @@ import { currentStage } from '../lifecycle/stages';
 import { daysBetween } from '../model/dates';
 import { placeLabel } from '../model/features';
 import type { Garden, Plant, Planting } from '../model/types';
+import { sowsInPot } from './balcony';
 import { isActive, plantCount, stillWanted } from './place';
-import { bagsText, isPot, potsOnly, potSize, wetWeightText } from './pots';
+import { bagsText, isPot, potsOnly, potSize, sizeText, WET_KG_PER_LITRE, wetWeightText } from './pots';
 import { firstBedCompost, makingBeds, needsFirstBed } from './firstBed';
 import { packetsFor, seedState } from './seeds';
 import { sowingNow, startsAs } from './windows';
 
-export const SHOP_KINDS = ['seed', 'bulb', 'plant', 'compost', 'feed'] as const;
+export const SHOP_KINDS = ['seed', 'bulb', 'plant', 'pot', 'compost', 'feed'] as const;
 export type ShopKind = (typeof SHOP_KINDS)[number];
 
-export const SHOP_LABEL: Record<ShopKind, string> = { seed: 'Seed', bulb: 'Bulbs, sets and seed potatoes', plant: 'Plants', compost: 'Compost', feed: 'Feed' };
+export const SHOP_LABEL: Record<ShopKind, string> = { seed: 'Seed', bulb: 'Bulbs, sets and seed potatoes', plant: 'Plants', pot: 'Pots and planters', compost: 'Compost', feed: 'Feed' };
 
 export interface ShopItem {
   /** Stable, so a tick finds it again: "seed:carrot", "bulb:garlic", "compost:pots", "feed:tomato-feed". */
@@ -34,6 +35,8 @@ export interface ShopItem {
   amount?: string;
   /** Anything else worth knowing: what it's for, or that the seed you have is old. */
   note?: string;
+  /** Something to act on before buying it. */
+  warn?: string;
   plantId?: string;
   /** Ticked as bought this season. */
   bought: boolean;
@@ -97,8 +100,21 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
 /** "Onion sets, overwintering", "Broad bean seed, autumn-sown": the word after the plant, before its kind. */
 const named = (plant: Plant, word: string) => plant.commonName.replace(/^([^,]+)/, `$1 ${word}`);
 const listOf = (names: string[]) => (names.length > 3 ? `${names.slice(0, 3).join(', ')} and ${names.length - 3} more` : names.join(names.length === 2 ? ' and ' : ', '));
-/** Litres in words, rounded to a sensible amount: "about 45 litres". */
-const litres = (l: number) => `about ${l < 10 ? Math.max(1, Math.round(l)) : Math.round(l / 5) * 5} litres`;
+/** Litres rounded to a sensible amount, the same for what's said and the bags that make it up. */
+const roundLitres = (l: number) => (l < 10 ? Math.max(1, Math.round(l)) : Math.round(l / 5) * 5);
+/** "about 45 litres". */
+const litres = (l: number) => `about ${roundLitres(l)} litres`;
+
+/** All a balcony's pots at this many litres of compost: about 100 kg wet. A design call, not a load limit, which only the building can say. */
+const HEAVY_LITRES = 100;
+/** A rough adult, to say what that weighs. */
+const ADULT_KG = 75;
+
+/** A balcony's pots, as something to do about. */
+function heavyText(l: number): string {
+  const people = Math.max(1, Math.round((l * WET_KG_PER_LITRE) / ADULT_KG));
+  return `Heavy for a balcony. All your pots come to ${wetWeightText(l)}, about ${people === 1 ? 'an adult' : `${people} adults`} standing there. Ask your landlord or building manager what it can take, stand them by the wall rather than the rail, or use fewer or smaller pots.`;
+}
 
 export interface ShopOptions {
   /** Feeds too. The app asks for them unless feeding is turned off in Settings. */
@@ -189,7 +205,8 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
       items.push({ key: `bulb:${plant.id}`, kind: 'bulb', ...item, amount: item.amount ?? perMetre, plantId: plant.id, note: forWhat, ...when });
       continue;
     }
-    if (sowingNow(plant, Number(sowOn.slice(5, 7)), list[0])?.method !== 'direct') sowUnderCover = true;
+    const bed = list[0] && byId.get(list[0].featureId);
+    if (sowingNow(plant, Number(sowOn.slice(5, 7)), list[0])?.method !== 'direct' && !(bed && sowsInPot(g, plant, bed))) sowUnderCover = true;
     // Seed in date when it's sown, and enough of it: a packet with no count is taken to be enough.
     const good = packetsFor(g, plant, plantOf).filter((p) => seedState(p, sowOn) !== 'old');
     const have = good.some((p) => p.count === undefined) ? Infinity : good.reduce((t, p) => t + (p.count ?? 0), 0);
@@ -204,6 +221,8 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
 
   // Pots and planters to fill: something planned in them, and nothing growing there yet.
   const fill = { ordinary: { l: 0, names: [] as string[] }, ericaceous: { l: 0, names: [] as string[] } };
+  /** The same pots to get, by what they're called and how big. */
+  const toGet = new Map<string, { what: [string, string]; size: string; names: string[] }>();
   for (const f of g.features) {
     if (!isPot(f)) continue;
     const here = g.plantings.filter((pl) => isActive(pl) && pl.featureId === f.id);
@@ -213,10 +232,18 @@ export function shoppingList(g: Garden, plantOf: (id: string) => Plant, today: s
     const which = f.soil === 'ericaceous' ? fill.ericaceous : fill.ordinary;
     which.l += size.litres;
     which.names.push(placeLabel(f));
+    const what: [string, string] = f.kind === 'planter' ? ['planter', 'planters'] : ['pot', 'pots'];
+    const key = `${what[0]}:${sizeText(size)}`;
+    toGet.set(key, { what, size: sizeText(size), names: [...(toGet.get(key)?.names ?? []), placeLabel(f)] });
   }
-  const toFill = (l: number, names: string[]) => ({ amount: `${litres(l)} (${bagsText(l)})`, note: `To fill ${listOf(names)}: ${wetWeightText(l)}` });
-  if (fill.ordinary.l > 0) items.push({ key: 'compost:pots', kind: 'compost', name: 'Multi-purpose compost', ...toFill(fill.ordinary.l, fill.ordinary.names) });
-  if (fill.ericaceous.l > 0) items.push({ key: 'compost:ericaceous', kind: 'compost', name: 'Ericaceous compost', ...toFill(fill.ericaceous.l, fill.ericaceous.names) });
+  for (const [key, { what, size, names }] of toGet) items.push({ key: `pot:${key}`, kind: 'pot', name: `${plural(names.length, what[0], what[1])}, ${size}`, note: `If you haven’t got them: for ${listOf(names)}` });
+  const toFill = (l: number, names: string[]) => ({ amount: `${litres(l)} (${bagsText(roundLitres(l))})`, note: `To fill ${listOf(names)}: ${wetWeightText(l)}` });
+  const ordinary: Omit<ShopItem, 'bought'> | null = fill.ordinary.l > 0 ? { key: 'compost:pots', kind: 'compost', name: 'Multi-purpose compost', ...toFill(fill.ordinary.l, fill.ordinary.names) } : null;
+  const ericaceous: Omit<ShopItem, 'bought'> | null = fill.ericaceous.l > 0 ? { key: 'compost:ericaceous', kind: 'compost', name: 'Ericaceous compost', ...toFill(fill.ericaceous.l, fill.ericaceous.names) } : null;
+  const compost = [ordinary, ericaceous].filter((i): i is Omit<ShopItem, 'bought'> => !!i);
+  const load = g.balcony ? g.features.filter(isPot).reduce((t, f) => t + (potSize(f)?.litres ?? 0), 0) : 0;
+  if (compost.length && load >= HEAVY_LITRES) compost[0]!.warn = heavyText(load);
+  items.push(...compost);
 
   if (opts.feeding) {
     const forFeed = new Map<string, string[]>();

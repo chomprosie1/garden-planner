@@ -22,6 +22,9 @@ export function potsOnly(g: Garden): boolean {
   return !ground.length && (!!g.balcony || g.features.some(isPot));
 }
 
+/** A chilli or pepper in a pot comes indoors for the winter: fleece won't keep it warm enough. */
+export const comesIndoors = (plant: Plant, f: Feature): boolean => isPot(f) && plant.wintering?.type === 'protect' && plant.family === 'Solanaceae';
+
 /** What the Shed's called: someone with nothing but pots hasn't got one, but has seedlings. */
 export const shedName = (g: Garden): string => (potsOnly(g) ? 'Seedlings' : 'Shed');
 

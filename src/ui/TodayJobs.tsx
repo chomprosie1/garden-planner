@@ -60,22 +60,27 @@ export function TodayJobs({ store, garden, plantOf, jobs, month, year, startHere
     </a>
   );
 
-  if (!jobs.length)
+  if (!jobs.length) {
+    const general = generalJobs(month, garden, plantOf ?? undefined).length;
+    const planted = garden.plantings.some((p) => !p.removedOn);
     return (
       <section class="card today-jobs" aria-labelledby="now-title">
         <div class="card-head">
           <h2 id="now-title">This month</h2>
-          <span class="muted small">
-            {jobsDoneCount(garden, month, year)} of {generalJobs(month, garden, plantOf ?? undefined).length} done
-          </span>
+          {general > 0 && (
+            <span class="muted small">
+              {jobsDoneCount(garden, month, year)} of {general} done
+            </span>
+          )}
         </div>
-        <JobList store={store} garden={garden} month={month} year={year} limit={4} {...(plantOf ? { plantOf } : {})} />
+        {general > 0 ? <JobList store={store} garden={garden} month={month} year={year} limit={4} {...(plantOf ? { plantOf } : {})} /> : <p>Nothing needs doing this month.</p>}
         <p class="card-foot">
           {allLink}
-          <span class="muted small"> · general UK jobs until you add plants</span>
+          {!planted && <span class="muted small"> · general UK jobs until you add plants</span>}
         </p>
       </section>
     );
+  }
 
   return (
     <section class="card today-jobs" aria-labelledby="now-title">

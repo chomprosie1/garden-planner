@@ -85,12 +85,12 @@ export function frostHeadline(f: FrostWarning, today: string): string {
 }
 
 /** What to do, for what's at risk. */
-export function frostAdvice(f: FrostWarning): string {
+export function frostAdvice(f: FrostWarning, balcony = false): string {
   const outside = f.atRisk.some((a) => a.where.startsWith('in '));
   const hardening = f.atRisk.some((a) => a.where === 'hardening off');
   const glass = f.atRisk.some((a) => a.where.startsWith('on the '));
   return [
-    outside && 'Cover tender plants with fleece, or bring pots under cover.',
+    outside && (balcony ? 'Bring tender pots indoors for the night: fleece won’t stay on up there.' : 'Cover tender plants with fleece, or bring pots under cover.'),
     hardening && 'Bring seedlings that are hardening off indoors for the night.',
     glass && 'Fleece seedlings in the greenhouse or cold frame, or bring them in.',
   ]

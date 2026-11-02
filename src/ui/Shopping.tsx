@@ -62,6 +62,7 @@ export function ShoppingDialog({ garden, store, plantOf, feeding, close }: { gar
                           <strong>{i.name}</strong>
                           {i.amount && <span>, {i.amount}</span>}
                           {i.note && <span class="muted small shop-note">{i.note}</span>}
+                          {i.warn && <span class="small bed-warn shop-note">{i.warn}</span>}
                         </span>
                       </label>
                     </li>

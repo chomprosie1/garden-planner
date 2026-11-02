@@ -168,8 +168,8 @@ describe('watering each pot', () => {
     const jobs = potWaterJobs(g, plantOf, null, today);
     expect(jobs).toHaveLength(1);
     expect(jobs[0]!.key).toMatch(/^water:pots:.*:2027-07-10$/);
-    // The one tick does for them all: in January, these pots go days between waterings.
-    const january = '2027-01-10';
+    // The one tick does for them all: in January, these pots go weeks between waterings.
+    const january = '2027-01-03';
     const [key] = potWaterJobs(g, plantOf, null, january).map((j) => j.key);
     expect(potWaterJobs({ ...g, jobsDone: [{ key: key!, date: january }] }, plantOf, null, addDays(january, 1))).toEqual([]);
   });
@@ -177,7 +177,7 @@ describe('watering each pot', () => {
   it('counts a tick on one job for many only for the pots in it', () => {
     const pots = Array.from({ length: POT_JOBS + 2 }, (_, i) => pot(i * 1000, 30, { name: `Pot ${i + 1}` }));
     const g = garden(pots, pots.map((f) => growing('parsley', f)), { balcony: { roof: true } });
-    const january = '2027-01-10';
+    const january = '2027-01-03';
     // The last pot wasn't in the job that was ticked.
     const key = `water:pots:${pots.slice(0, -1).map((f) => f.id).join(',')}:${january}`;
     const next = potWaterJobs({ ...g, jobsDone: [{ key, date: january }] }, plantOf, null, addDays(january, 1));

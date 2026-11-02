@@ -2688,7 +2688,7 @@ Decided:
 | Mon 9 Nov | Testing day | | | |
 | Tue 10 Nov | **57e. From a list to a plan, and into next year** | M | Priya, Callum, Margaret | Built 2 Nov |
 | Wed 11 Nov | Testing day | | | |
-| Thu 12 Nov | **57f. Pots that follow the weather** | M | Sam, Jordan | Planned |
+| Thu 12 Nov | **57f. Pots that follow the weather** | M | Sam, Jordan | Built 2 Nov |
 | Fri 13 Nov | Testing day | | | |
 | Mon 16 Nov | **57g. Every screen, every size** | M | Ruth, Nadia | Planned |
 | Tue 17 Nov | Testing day | | | |
@@ -3247,6 +3247,27 @@ Not changed:
 - **Priya's Add a plant dialog** can still say a month later than the draft: it reads the timeline's clearing day, and the draft the end of the harvest months.
 - **"Takes the crops from"** still names the bed the crops came from when one has gone elsewhere.
 - **Callum's exact block** into the Garlic bed wasn't reproduced. With two beds both growing onions, there's no better bed, and it says so.
+
+### Release 57f — Pots that follow the weather (as built)
+Built 2 Nov 2026, pulled forward from 12 Nov at your request. No schema change. Version 0.57.6.
+
+- **Watering says why, and when.** Each pot's job now has a line from the warmth it's had, or the time of year without the weather: hot, warm, cool or cold. The thresholds are a design call, as they were.
+- **Quiet in winter.** Days under 10 °C (`WINTER_C`) are looked at once a month, in the first week, and go at least three weeks between waterings. A mild spell with the weather on isn't winter.
+- **Brought indoors:** a chilli or pepper in a pot (`comesIndoors`) comes off the watering once you tick its job, and from the first frost to the last either way. What shares its pot stays on.
+- **The last garden words:** on a balcony with no glass, sentences about a greenhouse or cold frame leave its jobs (`withoutGlass`), and fleece leaves the general jobs, the frost card and the first frost's line.
+- **Sown in the trough** (`sowsInPot`): on a balcony, anything hardy that can be sown outside is sown in the pot in its sowing months, and isn't planted out if that's missed. The Shopping list drops seed compost for it.
+- **Food for food** (`isFood`): a pot with something to eat in it gets swaps you can eat. Sam's basil gets garlic, onion and broad beans in the same light.
+- **Ferns under Shade.** They were there, but outside the core 150, under More plants. Hart's tongue and male fern are in the core, and tayberry and loganberry are out, so it stays at 150. Those two are still found by search.
+- **Bags add up:** the bags come from the rounded litres, as the words do.
+- **Pots on the shopping list,** by size, "if you haven't got them": the same pots whose compost is there.
+- **Heavy pots are a warning.** On a balcony, all the pots at 100 litres or more get a warning on the compost line, in adults, with what to do. It's a design call, not a load limit: only the building can say.
+- **Found on the way:** a balcony with nothing to do read "0 of 0 done", and "until you add plants" with plants in. Today now says nothing needs doing.
+- **Browser check:** a balcony through setup with the Shady balcony kit at 390 px: Today, the shopping list and the Shade list.
+
+Not changed:
+- **The plant card** still shows a greenhouse note, and its next date can differ from a job sown in the trough: the card goes by the months for sowing outside.
+- **Watering in the plan's view** has its own wording, and wasn't re-checked.
+- **"Add a place" on Seedlings** and the swaps not knowing a pot's size stay as they are.
 
 ## Repo layout
 ```

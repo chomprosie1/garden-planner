@@ -7,6 +7,7 @@ import { dayWords } from './week';
 import { frostDates, inYear } from '../lifecycle/shed';
 import { addDays, dayNumber } from '../model/dates';
 import type { Garden, Plant } from '../model/types';
+import { onBalcony } from '../planting/balcony';
 import { coldNights, FROST_C, weatherOn, type Weather } from '../weather/weather';
 
 export type MomentKind = 'first-frost' | 'first-pick' | 'last-frost' | 'midsummer' | 'midwinter';
@@ -23,7 +24,7 @@ export interface Moment {
 const FRESH_DAYS = 3;
 
 /** The first frost of autumn, when the forecast has one in the next few days and there's been none since August. */
-function firstFrost(w: Weather | null, today: string): Moment | null {
+function firstFrost(w: Weather | null, today: string, g: Garden): Moment | null {
   const month = Number(today.slice(5, 7));
   if (!w || month < 9 || month > 12) return null;
   const coming = coldNights(w, today, FRESH_DAYS + 1).find((n) => n.level === 'frost');
@@ -35,7 +36,7 @@ function firstFrost(w: Weather | null, today: string): Moment | null {
   return {
     kind: 'first-frost',
     title: 'The first frost of autumn',
-    line: `Likely early ${dayWords(coming.date, today)}. Bring in anything tender, and fleece what has to stay out.`,
+    line: `Likely early ${dayWords(coming.date, today)}. Bring in anything tender${onBalcony(g) ? '' : ', and fleece what has to stay out'}.`,
   };
 }
 
@@ -78,5 +79,5 @@ function solstice(today: string): Moment | null {
 
 /** The one moment worth a line on Today, if any. */
 export function momentFor(g: Garden, plantOf: (id: string) => Plant, today: string, weather: Weather | null = null): Moment | null {
-  return firstFrost(weather, today) ?? firstPick(g, plantOf, today) ?? lastFrost(g, today) ?? solstice(today);
+  return firstFrost(weather, today, g) ?? firstPick(g, plantOf, today) ?? lastFrost(g, today) ?? solstice(today);
 }

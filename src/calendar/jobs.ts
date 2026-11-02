@@ -21,7 +21,8 @@ import { runEnds, runStarts } from '../library/library';
 import { STAGES, type Garden, type PickSize, type Plant, type Planting, type Stage } from '../model/types';
 import { addPick } from '../planting/harvest';
 import { isActive, isContainer, plantingStatus, stillWanted } from '../planting/place';
-import { isPot, mayOverwinter } from '../planting/pots';
+import { sowsInPot, withoutGlass } from '../planting/balcony';
+import { comesIndoors, isPot, mayOverwinter } from '../planting/pots';
 import { bedHowTo, bedSize, firstBedHowTo, MAKE_BED, needsFirstBed } from '../planting/firstBed';
 import { wherePhrase } from '../planting/supports';
 
@@ -224,7 +225,8 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
   const keyOf = (kind: JobKind, plantId: string, scope: string) => `${kind}:${plantId}:${scope ? `${scope}:` : ''}${ym(year, month)}`;
   const add = (kind: JobKind, plant: Plant, where: string, scope: string, plantingIds: string[], detail?: string, featureId?: string, verb?: string) => {
     const job: Job = { key: keyOf(kind, plant.id, scope), kind, plantId: plant.id, plant: plant.commonName, where, plantingIds };
-    if (detail) job.detail = detail;
+    const said = detail && withoutGlass(g, detail);
+    if (said) job.detail = said;
     if (featureId) job.featureId = featureId;
     // Bulbs and bought plants are planted; only seedlings are planted out.
     const v = verb ?? (kind === 'plant-out' && !plant.sowing?.length ? 'Plant' : undefined);
@@ -287,6 +289,7 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
     // An annual left on the plan, past its clearing: nothing to feed, pick or protect, only clearing to do, as its card
     // says. For an earlier month, when you look back, it counts only if it was already over by then.
     const inPot = !!bed && isPot(bed);
+    const sownInPot = !!bed && sowsInPot(g, plant, bed);
     const seasonOver = (p: Planting) =>
       !!today && !perennial(plant) && !mayOverwinter(plant, bed) && clearingDue(stepsOf(p)) && (ym(year, month) >= today.slice(0, 7) || stepsOf(p).some((s) => s.due && s.stage === 'cleared' && s.was! < `${ym(year, month)}-01`));
     const notGrowing = group.filter((p) => !isGrowing(p));
@@ -301,7 +304,9 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
     if (plain.length) {
       // One job however many ways it can be sown, done once whichever way. Once you've said how (by ticking it), it's
       // that way only. The key is the first way's, so a tick stays put.
-      const kinds = sowingKinds(plant, month);
+      const every = sowingKinds(plant, month);
+      const inThePot = every.filter((k) => k.kind === 'sow-direct');
+      const kinds: SowingKind[] = !sownInPot ? every : inThePot.length ? inThePot : every.slice(0, 1).map((k) => ({ ...k, kind: 'sow-direct' }));
       const chosen = chosenSowing(plain);
       const mine = chosen ? kinds.filter((k) => (k.kind === 'sow-direct') === (chosen === 'direct')) : [];
       const ways = mine.length ? mine : kinds;
@@ -313,7 +318,7 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
         job.key = keyOf(kinds[0]!.kind, plant.id, featureId);
         if (ways.length > 1)
           job.ways = ways.map((w) => {
-            const detail = detailOf(w);
+            const detail = detailOf(w) && withoutGlass(g, detailOf(w)!);
             return { kind: w.kind, label: sayWay(w), ...(detail ? { detail } : {}) };
           });
       }
@@ -343,7 +348,7 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
       const sownFirst = (p: Planting) => {
         const how = sowingOf(plant, p);
         if (how === 'none') return true;
-        if (!p.sownOn) return !canSow;
+        if (!p.sownOn) return !canSow && !sownInPot;
         if (how === 'direct' || p.sownOn.slice(0, 7) > ym(year, month)) return false;
         if (!today || tickedNow) return true;
         const out = timeline(plant, p, g, today, weather).find((s) => s.guessed && s.stage === 'transplanted');
@@ -406,8 +411,7 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
       }
     }
     const winter = plant.wintering;
-    // A chilli or pepper in a pot comes in: fleece won't keep it warm enough.
-    if (winter?.type === 'protect' && month === protectMonth && !cover && inPot && plant.family === 'Solanaceae') add('protect', plant, where, featureId, ids(growing), BRING_IN, featureId, BRING_IN_VERB);
+    if (month === protectMonth && !cover && bed && comesIndoors(plant, bed)) add('protect', plant, where, featureId, ids(growing), BRING_IN, featureId, BRING_IN_VERB);
     else if (winter?.type === 'protect' && month === protectMonth && !cover) add('protect', plant, where, featureId, ids(growing), winter.notes ?? 'Bring pots under cover or fleece the plants before the first frosts.', featureId);
     // Looking after what's settled in. Once a season, whichever month it's done in.
     // Measured to the month in question, from the first date it has.

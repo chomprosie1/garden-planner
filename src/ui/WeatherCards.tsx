@@ -4,6 +4,7 @@
 import { frostAdvice, frostHeadline, frostWarning } from '../lifecycle/frostWatch';
 import { todayIso } from '../model/ids';
 import type { Garden, Plant } from '../model/types';
+import { onBalcony } from '../planting/balcony';
 import { ATTRIBUTION } from '../weather/openMeteo';
 import { showsUv, UV_ADVICE, UV_LABEL, uvOn } from '../weather/uv';
 import { useApp } from './appContext';
@@ -24,7 +25,7 @@ export function FrostCard({ garden, plantOf }: { garden: Garden; plantOf: (id: s
   return (
     <section class={`card panel frost-card frost-${warning.night.level}`} aria-labelledby="frost-title" role="status">
       <h2 id="frost-title">{frostHeadline(warning, today)}</h2>
-      <p>{frostAdvice(warning)}</p>
+      <p>{frostAdvice(warning, onBalcony(garden))}</p>
       <p class="muted small">
         At risk: {shown.slice(0, NAMED).join(', ')}
         {rest > 0 ? `, and ${rest} more` : ''}.

@@ -270,12 +270,14 @@ export function generalJobs(month: number, g: Garden, plantOf: (id: string) => P
   const late = monthsLater(g) > 0;
   const has = new Set(g.features.map((f) => f.kind));
   const pots = potsOnly(g);
-  // Only what you have, whether or not there's anything planted yet: no greenhouse jobs without a greenhouse.
+  // Only what you have, whether or not there's anything planted yet: no greenhouse jobs without a greenhouse, and no
+  // fleece on a balcony, where it blows away. What can't stay out has its own job to bring it in.
   const all = season.jobs
     .map((text, i) => ({ text, i }))
-    .filter(({ i }) => {
+    .filter(({ text, i }) => {
       const about = season.about?.[i];
       if (late && about?.mild) return false;
+      if (pots && g.balcony && /fleece/i.test(text)) return false;
       if (about?.kinds) return about.kinds.some((k) => has.has(k));
       return !(about?.ground && pots);
     });
