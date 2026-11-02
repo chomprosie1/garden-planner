@@ -12,8 +12,7 @@ import { featureLabel } from '../model/features';
 import { newId } from '../model/ids';
 import { addNote, makeNote } from '../model/notes';
 import type { Climate, Container, Garden, Plant, Planting, ShedPlace, ShedPlaceKind, Tray, TrayStage } from '../model/types';
-import { listedPlant, plantHere, seasonMonth, seasonShift } from './growth';
-import { nextInSeason } from './projection';
+import { listedPlant, monthsShift, nextInSeason, plantHere } from './growth';
 import { currentStage, setStage } from './stages';
 
 // ---------- Dates ----------
@@ -317,8 +316,7 @@ const HARDEN_WAIT_DAYS = 60;
 export function hardenOn(p: Plant, g: Garden, upOn: string): string {
   const usual = readyToHarden(p, g, upOn);
   const months = isTender(p) ? [] : (listedPlant(p).plantOutMonths ?? []);
-  const month = seasonMonth(months);
-  const open = months.length ? nextInSeason(usual, months, month ? seasonShift(g, null, month) : 0) : null;
+  const open = months.length ? nextInSeason(usual, months, monthsShift(g, null, months)) : null;
   if (!open || open > addDays(usual, HARDEN_WAIT_DAYS)) return usual;
   const week = addDays(open, -7);
   return week > usual ? week : usual;

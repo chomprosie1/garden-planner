@@ -215,10 +215,10 @@ function monthsHere(months: number[], k: number, from: number | null): number[] 
 
 /** Each plant moved for a garden, and the plant as listed. */
 const listedAs = new WeakMap<Plant, Plant>();
+const local = new WeakMap<Garden, Map<Plant, Plant>>();
 
 /** The plant as listed, from one moved for a garden. */
 export const listedPlant = (here: Plant): Plant => listedAs.get(here) ?? here;
-const local = new WeakMap<Garden, Map<Plant, Plant>>();
 
 /** A plant as it's grown in this garden: its sowing and planting months moved for the season. The same plant where the months will do. */
 export function plantHere(p: Plant, g: Garden): Plant {
@@ -249,6 +249,64 @@ export function plantHere(p: Plant, g: Garden): Plant {
 export function seasonMonth(months: number[]): number | null {
   const run = runsOf(months).find((r) => r[0]! >= 2 && r[0]! <= 9);
   return run ? run[0]! : null;
+}
+
+/** How much sooner or later a plant's months come here than in the middle of England, in days. */
+export function monthsShift(g: Garden, cover: Climate | null, months: number[]): number {
+  const m = seasonMonth(months);
+  return m ? seasonShift(g, cover, m) : 0;
+}
+
+export const yearOf = (isoDate: string) => Number(isoDate.slice(0, 4));
+export const firstOf = (year: number, month: number) => `${year}-${String(month).padStart(2, '0')}-01`;
+export const nextMonth = (year: number, month: number): [number, number] => (month === 12 ? [year + 1, 1] : [year, month + 1]);
+
+/** The first day after the run of these months that `from` is in: Jul in [6,7,8] → 1 Sep. */
+export function afterRun(from: string, months: number[]): string {
+  const set = new Set(months);
+  let [y, m] = [yearOf(from), Number(from.slice(5, 7))];
+  for (let i = 0; i < 12 && set.has(m); i++) [y, m] = nextMonth(y, m);
+  return firstOf(y, m);
+}
+
+/**
+ * The runs of these months around a day, as [first day, day after], moved with the season: a run starts `shift` days
+ * later (sooner, if negative). A month or two of flowers or fruit ends the same amount later; a longer season ends that
+ * much sooner, since where spring comes late, autumn comes early (and the other way round under glass).
+ */
+const seasonCache = new Map<string, [string, string][]>();
+
+export function seasons(around: string, months: number[], shift: number): [string, string][] {
+  const year = yearOf(around);
+  const key = `${months.join(',')}|${shift}|${year}`;
+  const hit = seasonCache.get(key);
+  if (hit) return hit;
+  const out: [string, string][] = [];
+  for (let y = year - 1; y <= year + 2; y++)
+    for (const run of runsOf(months)) {
+      const first = firstOf(y, run[0]!);
+      const from = addDays(first, shift);
+      const to = addDays(afterRun(first, run), run.length >= 3 ? -shift : shift);
+      if (from < to) out.push([from, to]);
+    }
+  out.sort((a, b) => (a[0] < b[0] ? -1 : 1));
+  seasonCache.set(key, out);
+  return out;
+}
+
+/** The next day in these months, with the season moved by `shift` days: a spring that comes two weeks sooner brings the months two weeks sooner. */
+export function nextInSeason(from: string, months: number[], shift: number): string | null {
+  const run = seasons(from, months, shift).find(([, to]) => to > from);
+  return run ? (run[0] > from ? run[0] : from) : null;
+}
+
+/**
+ * The end of the run of these months that `from` is in, or the next one if it's come early (sprouts ready before their
+ * months stand until the end of them), moved with the season. The day after `from` if there's none within three months.
+ */
+export function afterSeason(from: string, months: number[], shift: number): string {
+  const run = seasons(from, months, shift).find(([, to]) => to > from);
+  return run && run[0] <= addDays(from, 92) ? run[1] : addDays(from, 1);
 }
 
 const MONTH_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];

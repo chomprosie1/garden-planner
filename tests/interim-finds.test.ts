@@ -217,6 +217,22 @@ describe('dates for a short season', () => {
     expect(when(steps('parsnip', { ...planned('parsnip'), sownOn: '2027-03-15', sowing: 'direct', stage: 'sown' }, gardenWith(), '2027-03-16'), 'harvesting') >= '2027-10-01').toBe(true);
   });
 
+  it('a quick crop sown late in winter months still crops in them', () => {
+    // Land cress, picked September to June, sown in spring: ready in about eight weeks, not next autumn.
+    const pl: Planting = { ...planned('land-cress'), sownOn: '2027-03-15', sowing: 'direct', stage: 'sown' };
+    expect(when(steps('land-cress', pl, gardenWith(), '2027-03-16'), 'harvesting') <= '2027-06-15').toBe(true);
+  });
+
+  it('where the season’s early, what goes in as winter months end still waits for the next', () => {
+    // Your own early frost dates run the months on into spring, past their calendar end.
+    const early = gardenWith();
+    const g = { ...early, lastFrost: '03-01' };
+    for (const [id, out, least] of [['kale', '2027-05-10', 55], ['walking-stick-kale', '2027-04-10', 80]] as const) {
+      const pl: Planting = { ...planned(id), sownOn: addDays(out, -40), sowing: 'indoors', stage: 'vegetative', stageDates: { transplanted: out } };
+      expect(when(steps(id, pl, g, addDays(out, 1)), 'harvesting') >= addDays(out, least), id).toBe(true);
+    }
+  });
+
   it('hardy seedlings wait for their months once, not twice', () => {
     // Brussels sprouts, May and June as listed: a little after 1 May plus Callum's season, not a month on from that.
     const pl: Planting = { ...planned('brussels-sprout'), sownOn: '2027-04-05', sowing: 'indoors', stage: 'sown' };
@@ -340,6 +356,7 @@ describe('dates for a short season', () => {
     expect(oddFrosts('12-28', '01-29')).toBe(true);
     expect(oddFrosts('06-05', '05-01')).toBe(true);
     expect(oddFrosts('09-01', '10-01')).toBe(true);
+    expect(oddFrosts('08-01', '08-01')).toBe(true);
     expect(oddFrosts('05-03', '10-28')).toBe(false);
     expect(oddFrosts('06-21', '09-09')).toBe(false);
   });

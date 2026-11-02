@@ -25,6 +25,7 @@ export const WHATS_NEW: NewsEntry[] = [
       'Leeks and kale stand through the winter, so a cold autumn no longer puts their first picking off until the new year.',
       'Seedlings of hardy crops wait for their planting-out months, moved with your season.',
       'Tomatoes aren’t sown months before they can go out, so a late garden sows later.',
+      'Parsnips sown in spring are lifted the next autumn, not a few weeks later.',
       'High or cold gardens get a better last frost: the estimate was too late, and we’ve checked it against Met Office records.',
       'Blackcurrants now flower in spring.',
       'Settings says so if your two frost dates can’t both be right, or if a day doesn’t exist in that month.',

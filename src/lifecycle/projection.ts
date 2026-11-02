@@ -16,9 +16,11 @@ import { featureLabel } from '../model/features';
 import { STAGES, type Feature, type Garden, type Plant, type Planting, type Stage } from '../model/types';
 import { isCovered } from '../planting/balcony';
 import { isContainer } from '../planting/place';
-import { earliestOut, plantHere, readyFrom, runsOf, seasonMonth, seasonShift, upFrom } from './growth';
+import { afterSeason, earliestOut, firstOf, monthsShift, nextInSeason, nextMonth, plantHere, readyFrom, runsOf, seasons, upFrom, yearOf } from './growth';
 import { addDays, frostDatesUnder, germination, hardenOn, inYear, isTender, plantInFrom, plantOutFrom, safeOut } from './shed';
 import { currentStage, flowerMonthsOf, isCropping, isGrowingStage, pathFor, perennial, sowingOf, type LifeStage } from './stages';
+
+export { afterRun, afterSeason, nextInSeason } from './growth';
 
 export interface Step {
   stage: LifeStage;
@@ -39,9 +41,6 @@ export interface Projected {
 
 const order = (s: LifeStage) => (s === 'planned' ? -1 : s === 'cleared' ? 99 : STAGES.indexOf(s));
 const monthOf = (iso: string) => Number(iso.slice(5, 7));
-const yearOf = (iso: string) => Number(iso.slice(0, 4));
-const firstOf = (year: number, month: number) => `${year}-${String(month).padStart(2, '0')}-01`;
-const nextMonth = (year: number, month: number): [number, number] => (month === 12 ? [year + 1, 1] : [year, month + 1]);
 
 /** The first day on or after `from` that falls in one of these months, within two years; null if none. */
 export function nextInMonths(from: string, months: number[]): string | null {
@@ -53,14 +52,6 @@ export function nextInMonths(from: string, months: number[]): string | null {
     if (months.includes(m)) return firstOf(y, m);
   }
   return null;
-}
-
-/** The first day after the run of these months that `from` is in: Jul in [6,7,8] → 1 Sep. */
-export function afterRun(from: string, months: number[]): string {
-  const set = new Set(months);
-  let [y, m] = [yearOf(from), monthOf(from)];
-  for (let i = 0; i < 12 && set.has(m); i++) [y, m] = nextMonth(y, m);
-  return firstOf(y, m);
 }
 
 /** In the bed: planted out or growing, or sown straight into it. Indoor sowings are in the shed. */
@@ -117,46 +108,6 @@ interface Context {
   weather: Weather | null;
 }
 
-/**
- * The runs of these months around a day, as [first day, day after], moved with the season: a run starts `shift` days
- * later (sooner, if negative). A month or two of flowers or fruit ends the same amount later; a longer season ends that
- * much sooner, since where spring comes late, autumn comes early (and the other way round under glass).
- */
-const seasonCache = new Map<string, [string, string][]>();
-
-function seasons(around: string, months: number[], shift: number): [string, string][] {
-  const year = yearOf(around);
-  const key = `${months.join(',')}|${shift}|${year}`;
-  const hit = seasonCache.get(key);
-  if (hit) return hit;
-  const out: [string, string][] = [];
-  for (let y = year - 1; y <= year + 2; y++)
-    for (const run of runsOf(months)) {
-      const first = firstOf(y, run[0]!);
-      const from = addDays(first, shift);
-      const to = addDays(afterRun(first, run), run.length >= 3 ? -shift : shift);
-      if (from < to) out.push([from, to]);
-    }
-  out.sort((a, b) => (a[0] < b[0] ? -1 : 1));
-  seasonCache.set(key, out);
-  return out;
-}
-
-/** The next day in these months, with the season moved by `shift` days: a spring that comes two weeks sooner brings the months two weeks sooner. */
-export function nextInSeason(from: string, months: number[], shift: number): string | null {
-  const run = seasons(from, months, shift).find(([, to]) => to > from);
-  return run ? later(run[0], from) : null;
-}
-
-/**
- * The end of the run of these months that `from` is in, or the next one if it's come early (sprouts ready before their
- * months stand until the end of them), moved with the season. The day after `from` if there's none within three months.
- */
-export function afterSeason(from: string, months: number[], shift: number): string {
-  const run = seasons(from, months, shift).find(([, to]) => to > from);
-  return run && run[0] <= addDays(from, 92) ? run[1] : addDays(from, 1);
-}
-
 const frosts = new WeakMap<Garden, Map<string, ReturnType<typeof frostDatesUnder>>>();
 
 /** The garden's frost dates, outdoors or under a cover, kept with the garden while it's unchanged. */
@@ -197,10 +148,7 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
   const climate = cover?.climate ?? null;
   const flowerMonths = flowerMonthsOf(plant);
   // How much sooner or later its season comes here than in the middle of England.
-  const shiftFor = (months: number[]) => {
-    const m = seasonMonth(months);
-    return m ? seasonShift(g, climate, m) : 0;
-  };
+  const shiftFor = (months: number[]) => monthsShift(g, climate, months);
   // When the crop's had the warmth to be ready: the first harvest (or flowers, for a plant grown for them). A perennial
   // comes round with the seasons instead.
   const cropMonths = path.includes('harvesting') ? harvestMonths : flowerMonths;
@@ -209,46 +157,39 @@ function after(c: Context, stage: LifeStage, date: string): Step | null {
   // the end of its months. A plant grown for its flowers waits for its flower months, however warm it's been: sweet
   // peas sown in October flower the next June, not in the winter.
   const forFlowers = !path.includes('harvesting');
-  // When its months next open for it. Gone in during the last of months that run over the new year, those are last
-  // autumn's crop: parsnips sown in March are lifted the next October, not in April.
-  const opensFor = (start: string, shift: number): string | null => {
-    const open = nextInSeason(start, cropMonths, shift);
-    const m = monthOf(start);
-    const tail = open === start && runsOf(cropMonths).some((r) => r.includes(m) && r.includes(12) && r.includes(1) && m < r[0]!);
-    return tail ? nextInSeason(afterSeason(start, cropMonths, shift), cropMonths, shift) : open;
-  };
-  const warmthReady = (): string | null => {
+  const cropBy = (): string | null => {
     const d = ready();
-    if (!d || !c.start || !cropMonths.length) return d;
+    const start = c.start;
+    if (!d || !start || !cropMonths.length) return d;
     const shift = shiftFor(cropMonths);
-    const open = opensFor(c.start, shift);
-    if (!open) return d;
-    const close = addDays(afterSeason(open, cropMonths, shift), -14);
-    if (d > close) {
-      if (c.start <= close) return later(close, open);
-      // Sown after that, it's too late for this run of its months: a crop goes by the warmth, and a plant grown for its
-      // flowers waits for the next run of them.
-      const next = forFlowers ? nextInSeason(afterSeason(open, cropMonths, shift), cropMonths, shift) : null;
+    const run = seasons(start, cropMonths, shift).find(([, to]) => to > start);
+    if (!run) return d;
+    const closes = (from: string) => addDays(afterSeason(from, cropMonths, shift), -14);
+    const nextRun = (from: string) => nextInSeason(afterSeason(from, cropMonths, shift), cropMonths, shift);
+    let open = later(run[0], start);
+    // Gone in during the last of months that run over the new year, and not ready before they close: those are last
+    // autumn's crop. Parsnips sown in March are lifted the next October, not in April. Land cress is quick enough.
+    if (d > closes(open) && yearOf(run[0]) < yearOf(start)) open = nextRun(open) ?? open;
+    const close = closes(open);
+    if (forFlowers) {
+      if (d <= close) return later(d, open);
+      if (start <= close) return later(close, open);
+      // Sown after that, it's too late for this run: it waits for the next one.
+      const next = nextRun(open);
       return next ? later(d, next) : d;
     }
-    return forFlowers ? later(d, open) : d;
-  };
-  const cropBy = (): string | null => {
-    const d = warmthReady();
-    if (!d || !c.start || forFlowers) return d;
-    if (standsWinter(cropMonths)) {
-      // What stands through the winter goes by its months, not the warmth: it's picked at whatever size it's reached,
-      // and in a cold autumn the warmth would say next year. So not before its months, nor long after they open. Gone
-      // in once they've opened, it has only the warmth to go by.
-      const open = opensFor(c.start, shiftFor(cropMonths));
-      return open && open > c.start ? sooner(later(d, open), addDays(open, STANDS_BY_DAYS)) : d;
-    }
+    // Sown after the two weeks before its months end, it's too late for this run, and goes by the warmth.
+    const warmth = d > close && start <= close ? later(close, open) : d;
+    // What stands through the winter goes by its months, not the warmth: it's picked at whatever size it's reached, and
+    // in a cold autumn the warmth would say next year. So not before its months, nor long after they open. Gone in once
+    // they've opened, it has only the warmth to go by.
+    if (standsWinter(cropMonths)) return open > start ? sooner(later(warmth, open), addDays(open, STANDS_BY_DAYS)) : warmth;
     // Potatoes: a frost takes the tops, and the tubers stop growing. What's there is lifted by then (RHS: second earlies
     // in July and August, maincrops by October), though not so soon after going in that there's nothing to lift.
     const frost = fromTubers(plant) ? frostsFor(g, cover)?.firstFrost : null;
-    const lastLift = frost ? inYear(frost, yearOf(c.start)) : null;
-    if (!lastLift || lastLift <= c.start) return d;
-    return sooner(d, later(lastLift, addDays(c.start, Math.round((plant.growth?.days?.[0] ?? 0) * LEAST_TO_LIFT))));
+    const lastLift = frost ? inYear(frost, yearOf(start)) : null;
+    if (!lastLift || lastLift <= start) return warmth;
+    return sooner(warmth, later(lastLift, addDays(start, Math.round((plant.growth?.days?.[0] ?? 0) * LEAST_TO_LIFT))));
   };
   // When a tender annual ends, from its usual end: at the first frost, or if that had been and gone by the day it
   // reached this stage, it's plainly come through, and is given a little longer.
