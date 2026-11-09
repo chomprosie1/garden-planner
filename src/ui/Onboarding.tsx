@@ -101,7 +101,7 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
     }
     // Everything's new to someone just starting: no "What's new" until the next change. Someone setting up another garden has seen it.
     // Nor a welcome back on the next launch: you've just been here.
-    prefsStore.set({ onboarded: true, seenNews: again ? prefs.seenNews : latestNews().id, welcomedOn: todayIso() });
+    prefsStore.set({ onboarded: true, welcomeAgain: false, seenNews: again ? prefs.seenNews : latestNews().id, welcomedOn: todayIso() });
     // Today, with the first job picked out: what to do first. Skipped, or nothing to do yet: Today with Getting started.
     const first = skipped || !plants ? null : firstJob(store.get().garden, plantOf, new Date(), { weeding: prefs.weeding, feeding: prefs.feeding });
     if (first && showFirst) showFirst();
@@ -132,7 +132,7 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
     setRestoring(true);
     await restoreBackup(store, prefsStore, result, false, false);
     // It's been set up already, on the old device.
-    prefsStore.set({ onboarded: true, seenNews: latestNews().id, welcomedOn: todayIso(), setupHidden: true, northChecked: true });
+    prefsStore.set({ onboarded: true, welcomeAgain: false, seenNews: latestNews().id, welcomedOn: todayIso(), setupHidden: true, northChecked: true });
     go('home');
   };
 

@@ -64,6 +64,8 @@ export interface Prefs {
   plantEditor: boolean;
   /** You've chosen the Sun hours or Shade view at least once. */
   usedSun: boolean;
+  /** The welcome was asked for again from Settings: it shows even over a garden with things in it. */
+  welcomeAgain: boolean;
   /** The first-visit tips on the garden plan have been seen. */
   seenTips: boolean;
   /** "Stuck?" notes already offered, by id: shown once and never again. */
@@ -135,6 +137,7 @@ export function defaultPrefs(): Prefs {
     seenNews: null,
     plantEditor: false,
     usedSun: false,
+    welcomeAgain: false,
     seenTips: false,
     stuckSeen: [],
     walkFrom: {},
@@ -205,6 +208,7 @@ export function sanitisePrefs(raw: unknown): Prefs {
     seenNews: typeof r.seenNews === 'string' ? r.seenNews : null,
     plantEditor: r.plantEditor === true,
     usedSun: r.usedSun === true,
+    welcomeAgain: r.welcomeAgain === true,
     seenTips: r.seenTips === true,
     stuckSeen: Array.isArray(r.stuckSeen) ? r.stuckSeen.filter((x): x is string => typeof x === 'string') : [],
     walkFrom: walkFromOf(r.walkFrom),

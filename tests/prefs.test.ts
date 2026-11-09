@@ -75,3 +75,11 @@ describe('usedSun', () => {
     expect(sanitisePrefs({ usedSun: 'yes' }).usedSun).toBe(false);
   });
 });
+
+describe('welcomeAgain', () => {
+  it('defaults to false and sanitises', () => {
+    expect(defaultPrefs().welcomeAgain).toBe(false);
+    expect(sanitisePrefs({ welcomeAgain: true }).welcomeAgain).toBe(true);
+    expect(sanitisePrefs({ welcomeAgain: 'yes' }).welcomeAgain).toBe(false);
+  });
+});

@@ -7,7 +7,7 @@ import type { AppState } from '../model/types';
 import type { PrefsStore, View } from '../theme/prefs';
 import { AppContext, type AppActions } from './appContext';
 import { CommandSearch } from './CommandSearch';
-import { hashFor, usePrefs, useView } from './hooks';
+import { hashFor, needsWelcome, usePrefs, useView } from './hooks';
 import { Icon, type IconName } from './icons';
 import { Onboarding } from './Onboarding';
 import { gardenCount } from './gardenActions';
@@ -72,7 +72,11 @@ const TOAST_ON_PLAN = 12000;
 export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStore }) {
   const { garden, userPlants } = useAppState(store);
   const prefs = usePrefs(prefsStore);
-  const [view, go] = useView(prefsStore);
+  // An address that shows nothing: say so once. Deferred, as the first one is found before the toast exists.
+  const tell = useRef<(text: string) => void>(() => {});
+  const [view, go] = useView(prefsStore, (text) => {
+    setTimeout(() => tell.current(text), 0);
+  });
   const [trail, setTrail] = useState<View[]>([]);
   const [toast, setToast] = useState<Toast | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -91,6 +95,11 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   /** Just set up: Today picks out the first job, until you go elsewhere. */
   const [startHere, setStartHere] = useState(false);
   // The welcome, on the day's first launch: not the very first (setting up runs then), nor a link or reminder to a particular screen.
+  // A garden with things in it but no preferences (storage cleared while open) isn't a new user: no welcome, and remember that.
+  useEffect(() => {
+    const p = prefsStore.get();
+    if (!p.onboarded && !needsWelcome(false, p.welcomeAgain, garden)) prefsStore.set({ onboarded: true });
+  }, [prefs.onboarded, prefs.welcomeAgain]);
   const [welcoming, setWelcoming] = useState(() => prefs.onboarded && welcomesAt(location.hash) && welcomeDue(prefs.welcomedOn, todayIso(), unseenNews(prefs.seenNews).length > 0 && prefs.welcomedNews !== latestNews().id));
   const weather = useWeatherFeed(garden, prefs.weather && prefs.onboarded);
   const screenEl = useRef<HTMLElement>(null);
@@ -166,6 +175,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
     }),
     [store, view, prefs.draftPlants, prefs.dismissedChecks],
   );
+  tell.current = (text) => actions.notify(text);
 
   // Keyboard: Ctrl+K to search, undo/redo everywhere, H for photos on the plan, ? for the list of shortcuts.
   useEffect(() => {
@@ -223,7 +233,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
   }, [welcoming]);
 
   // A second garden, or starting again, skips the welcome.
-  if (!prefs.onboarded)
+  if (needsWelcome(prefs.onboarded, prefs.welcomeAgain, garden))
     return (
       <main class="main-only">
         <Onboarding

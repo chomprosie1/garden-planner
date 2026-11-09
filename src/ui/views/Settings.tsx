@@ -183,7 +183,7 @@ export function Settings({ store, garden, prefs, prefsStore, back, go, showShort
           <span>List the plants still being checked, below the rest. Search finds them either way.</span>
         </label>
         <p>
-          <button type="button" class="btn btn-quiet" onClick={() => prefsStore.set({ onboarded: false })}>
+          <button type="button" class="btn btn-quiet" onClick={() => prefsStore.set({ onboarded: false, welcomeAgain: true })}>
             Show the welcome again
           </button>
         </p>

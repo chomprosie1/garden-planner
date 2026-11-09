@@ -54,17 +54,43 @@ export function useHelpTopic(): string | null {
   return topic;
 }
 
-/** The current screen, kept in the URL hash so reloads and the back button work. */
-export function useView(prefs: PrefsStore): [View, (v: View, sub?: string) => void] {
+/** The welcome is for a first visit: not yet welcomed, and nothing in the garden. A garden with things in it means the preferences were lost, not that this is new. */
+export const needsWelcome = (onboarded: boolean, welcomeAgain: boolean, garden: { features: unknown[]; plantings: unknown[] }): boolean =>
+  !onboarded && (welcomeAgain || (garden.features.length === 0 && garden.plantings.length === 0));
+
+/** The plant check is for those with the plant editor on; for anyone else its address shows Plants. */
+export const gateView = (v: View, plantEditor: boolean): View => (v === 'check' && !plantEditor ? 'plants' : v);
+
+/** What an address shows: an empty one is Today, and one that names no screen is Today too, flagged as unknown. Case matters. */
+export function viewForAddress(hash: string): { view: View; unknown: boolean } {
+  const first = hash.replace(/^#\/?/, '').split('/')[0] ?? '';
+  if (first === '') return { view: 'home', unknown: false };
+  const v = viewForHash(first);
+  return v ? { view: v, unknown: false } : { view: 'home', unknown: true };
+}
+
+export const NO_SUCH_PAGE = "There's no page at that address, so here's Today.";
+
+/** The current screen, kept in the URL hash so reloads and the back button work. `onUnknown` hears of an address that shows nothing. */
+export function useView(prefs: PrefsStore, onUnknown?: (message: string) => void): [View, (v: View, sub?: string) => void] {
+  /** The screen an address shows, tidying the address bar when it isn't a true one. */
+  const resolve = (): View | null => {
+    const { view: v, unknown } = viewForAddress(location.hash);
+    if (!unknown && location.hash.replace(/^#\/?/, '') === '') return null;
+    const shown = unknown ? 'home' : gateView(v, prefs.get().plantEditor);
+    if (unknown || shown !== v) history.replaceState(null, '', hashFor(shown));
+    if (unknown) onUnknown?.(NO_SUCH_PAGE);
+    return shown;
+  };
   const [view, setView] = useState<View>(() => {
-    const fromHash = viewFromHash();
+    const fromHash = resolve();
     if (fromHash) return fromHash;
     // Phones open on Home; desktops go back to where you were.
     return matchMedia(PHONE).matches ? 'home' : prefs.get().lastView;
   });
   useEffect(() => {
     const on = () => {
-      const v = viewFromHash();
+      const v = resolve();
       if (v) setView(v);
     };
     addEventListener('hashchange', on);
