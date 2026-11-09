@@ -1,0 +1,97 @@
+{
+  "app": "garden-planner",
+  "schemaVersion": 27,
+  "exportedAt": "2026-10-06T12:00:00.000Z",
+  "garden": {
+    "schemaVersion": 27,
+    "name": "Fixture garden",
+    "latitude": 52.5,
+    "longitude": -1.5,
+    "northRotationDeg": 0,
+    "boundary": [
+      [
+        0,
+        0
+      ],
+      [
+        8000,
+        0
+      ],
+      [
+        8000,
+        8000
+      ],
+      [
+        0,
+        8000
+      ]
+    ],
+    "features": [
+      {
+        "id": "bed1",
+        "kind": "bed",
+        "footprint": [
+          [
+            0,
+            0
+          ],
+          [
+            1000,
+            0
+          ],
+          [
+            1000,
+            1000
+          ],
+          [
+            0,
+            1000
+          ]
+        ]
+      },
+      {
+        "id": "bed2",
+        "kind": "bed",
+        "footprint": [
+          [
+            2000,
+            0
+          ],
+          [
+            3000,
+            0
+          ],
+          [
+            3000,
+            1000
+          ],
+          [
+            2000,
+            1000
+          ]
+        ]
+      }
+    ],
+    "plantings": [
+      {
+        "id": "pl1",
+        "plantId": "carrot",
+        "featureId": "bed1",
+        "x": 500,
+        "y": 500,
+        "sownOn": "2026-04-10"
+      },
+      {
+        "id": "pl2",
+        "plantId": "carrot",
+        "featureId": "bed9",
+        "x": 2500,
+        "y": 500
+      }
+    ],
+    "wishlist": [],
+    "jobsDone": [],
+    "notes": []
+  },
+  "userPlants": []
+}

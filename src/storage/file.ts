@@ -3,7 +3,7 @@
 
 import { migrateGarden, migratePlant, SCHEMA_VERSION } from '../model/migrate';
 import type { AppState, Garden, Plant } from '../model/types';
-import { gardenOutOfBounds, validateGarden, validatePlant } from '../model/validate';
+import { gardenOutOfBounds, unusable, validateGarden, validatePlant } from '../model/validate';
 
 export interface GardenFile {
   app: 'garden-planner';
@@ -61,7 +61,7 @@ export function parseFileText(text: string): ParseResult {
   try {
     const result = parseFile(JSON.parse(text));
     if (!result.ok) return result;
-    const errors = gardenOutOfBounds(result.state.garden);
+    const errors = [...gardenOutOfBounds(result.state.garden), ...unusable(result.state)];
     return errors.length ? { ok: false, errors } : result;
   } catch {
     return { ok: false, errors: ['The file is not valid JSON.'] };
@@ -73,6 +73,12 @@ export function backupFile(state: AppState, photos?: Record<string, string>): Fi
   const file: GardenFile = photos ? { ...toFile(state), photos } : toFile(state);
   const slug = state.garden.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'garden';
   return new File([JSON.stringify(file, null, 2)], `${slug}-${file.exportedAt.slice(0, 10)}${photos ? '-with-photos' : ''}.json`, { type: 'application/json' });
+}
+
+/** What a restore would refuse in a backup of this garden, built just as a backup is: empty if it would restore. */
+export function backupProblems(state: AppState): string[] {
+  const r = parseFileText(JSON.stringify(toFile(state), null, 2));
+  return r.ok ? [] : r.errors;
 }
 
 /** Starts a browser download of the garden as a JSON file, with its photos if they're given. */

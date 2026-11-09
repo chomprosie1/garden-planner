@@ -5,6 +5,10 @@ import type { AppState, Plant } from '../src/model/types';
 import { validatePlant } from '../src/model/validate';
 import { parseFile, parseFileText, toFile } from '../src/storage/file';
 import v0 from './fixtures/garden-v0.json';
+import v3 from './fixtures/garden-v3.json';
+import badDates from './fixtures/attack-bad-dates.json';
+import dupIds from './fixtures/attack-duplicate-ids.json';
+import missingBed from './fixtures/attack-missing-bed.json';
 
 const userPlant: Plant = {
   id: 'user-abc12345',
@@ -110,6 +114,17 @@ describe('export and import', () => {
     }
   });
 
+  it('loads a schema 27 garden as 28 with its garden and own plants unchanged', () => {
+    const s = fullState();
+    const old = { ...toFile(s), schemaVersion: 27, garden: { ...s.garden, schemaVersion: 27 } };
+    const result = parseFile(old);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.state.garden.schemaVersion).toBe(28);
+    expect(result.state.garden).toEqual({ ...s.garden, schemaVersion: 28 });
+    expect(result.state.userPlants).toEqual(s.userPlants);
+  });
+
   it('refuses files from a newer version', () => {
     const file = { ...toFile(newAppState()), garden: { ...newAppState().garden, schemaVersion: SCHEMA_VERSION + 1 } };
     const result = parseFile(file);
@@ -125,6 +140,70 @@ describe('export and import', () => {
     const result = parseFile(bad);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.errors).toContain('latitude must be between -90 and 90.');
+  });
+});
+
+describe('a restore refuses data it can not use', () => {
+  const clone = <T,>(x: T): T => JSON.parse(JSON.stringify(x));
+  const text = (x: unknown) => JSON.stringify(x);
+  const errorsOf = (x: unknown) => {
+    const r = parseFileText(text(x));
+    return r.ok ? null : r.errors;
+  };
+
+  it('refuses dates that are not real days', () => {
+    expect(errorsOf(badDates)).toEqual(["This file has a date that isn't a real day (banana), so it can't be restored."]);
+    const fixed = clone(badDates);
+    fixed.garden.plantings[0]!.sownOn = '2026-04-10';
+    delete (fixed.garden.plantings[1] as Record<string, unknown>).removedOn;
+    expect(parseFileText(text(fixed)).ok).toBe(true);
+  });
+
+  it('refuses two beds or two plantings with one id', () => {
+    const errors = errorsOf(dupIds)!;
+    expect(errors).toContain("Two beds in this file share one id, so it can't be restored.");
+    expect(errors).toContain("Two plantings in this file share one id, so it can't be restored.");
+    const fixed = clone(dupIds);
+    fixed.garden.plantings[1]!.id = 'pl2';
+    fixed.garden.features[1]!.id = 'bed2';
+    fixed.garden.plantings[1]!.featureId = 'bed2';
+    expect(parseFileText(text(fixed)).ok).toBe(true);
+  });
+
+  it('refuses a planting in a bed that is not there', () => {
+    expect(errorsOf(missingBed)).toEqual(["A plant in this file sits in a bed that isn't there, so it can't be restored."]);
+    const fixed = clone(missingBed);
+    fixed.garden.plantings[1]!.featureId = 'bed2';
+    expect(parseFileText(text(fixed)).ok).toBe(true);
+  });
+
+  it('refuses duplicate ids among your own plants', () => {
+    const s = fullState();
+    s.userPlants = [userPlant, userPlant];
+    expect(errorsOf(toFile(s))).toContain("Two things in this file share one id, so it can't be restored.");
+  });
+
+  it('leaves the app loading its own garden unchanged', () => {
+    expect(parseFile(dupIds).ok).toBe(true);
+    expect(parseFile(badDates).ok).toBe(true);
+    expect(parseFile(missingBed).ok).toBe(true);
+  });
+
+  it('still accepts old files and a normal round trip', () => {
+    expect(parseFileText(text(v0)).ok).toBe(true);
+    expect(parseFileText(text(v3)).ok).toBe(true);
+    expect(parseFileText(text(toFile(fullState()))).ok).toBe(true);
+  });
+
+  it('knows leap days', () => {
+    const withDay = (d: string) => {
+      const f = clone(missingBed);
+      f.garden.plantings[1]!.featureId = 'bed2';
+      f.garden.plantings[0]!.sownOn = d;
+      return parseFileText(text(f)).ok;
+    };
+    expect(withDay('2028-02-29')).toBe(true);
+    expect(withDay('2027-02-29')).toBe(false);
   });
 });
 

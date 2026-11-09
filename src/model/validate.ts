@@ -401,6 +401,57 @@ export function gardenOutOfBounds(g: Garden): string[] {
   return errors;
 }
 
+/** A real calendar day, written YYYY-MM-DD. */
+const isRealDay = (v: string): boolean => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(v);
+  if (!m) return false;
+  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  const t = new Date(Date.UTC(y, mo - 1, d));
+  return t.getUTCFullYear() === y && t.getUTCMonth() === mo - 1 && t.getUTCDate() === d;
+};
+
+/**
+ * What a restore can't use though it is the right shape: dates that aren't real days, ids used twice, and plants in a
+ * bed that isn't there. Asked only of a file being restored, never of the garden the app keeps. Plain-English messages;
+ * empty when the data is usable.
+ */
+export function unusable(state: { garden: Garden; userPlants: Plant[] }): string[] {
+  const g = state.garden;
+  const errors: string[] = [];
+  const add = (m: string) => {
+    if (!errors.includes(m)) errors.push(m);
+  };
+
+  const dates: unknown[] = [];
+  const stageDates = (o: unknown) => (o && typeof o === 'object' ? dates.push(...Object.values(o)) : 0);
+  g.features.forEach((f) => dates.push(f.laidOn));
+  g.plantings.forEach((p) => {
+    dates.push(p.sownOn, p.removedOn, p.sowBy, p.snoozeUntil);
+    stageDates(p.stageDates);
+    (p.picks ?? []).forEach((k) => dates.push(k.date));
+  });
+  g.jobsDone.forEach((j) => dates.push(j.date));
+  (g.bought ?? []).forEach((b) => dates.push(b.date));
+  (g.seeds ?? []).forEach((k) => dates.push(k.addedOn));
+  (g.trays ?? []).forEach((t) => {
+    dates.push(t.sownOn);
+    stageDates(t.stageDates);
+  });
+  g.notes.forEach((n) => dates.push(n.date));
+  // An empty string is a date left blank by an older save: harmless, so it isn't a reason to refuse someone's own copy.
+  const bad = dates.find((d) => typeof d === 'string' && d !== '' && !isRealDay(d));
+  if (bad !== undefined) add(`This file has a date that isn't a real day (${bad as string}), so it can't be restored.`);
+
+  const dup = (list: readonly { id: string }[] | undefined) => new Set((list ?? []).map((x) => x.id)).size !== (list ?? []).length;
+  if (dup(g.features)) add("Two beds in this file share one id, so it can't be restored.");
+  if (dup(g.plantings)) add("Two plantings in this file share one id, so it can't be restored.");
+  if ([state.userPlants, g.seeds, g.trays, g.shedPlaces, g.sketches].some(dup)) add("Two things in this file share one id, so it can't be restored.");
+
+  const beds = new Set(g.features.map((f) => f.id));
+  if (g.plantings.some((p) => !beds.has(p.featureId))) add("A plant in this file sits in a bed that isn't there, so it can't be restored.");
+  return errors;
+}
+
 // Type guards for callers that have just validated.
 export const isValidGarden = (g: unknown): g is Garden => validateGarden(g).length === 0;
 export const isValidPlant = (p: unknown): p is Plant => validatePlant(p).length === 0;
