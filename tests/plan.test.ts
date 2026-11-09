@@ -253,3 +253,22 @@ describe('what a tap picks: set ground (release 22b)', () => {
     expect(tap([2500, 2600], null, true)).toEqual({ type: 'feature', id: bed.id });
   });
 });
+
+describe('static layer key', () => {
+  const base = () => ({ garden: garden(), look: 'cottage' as unknown, mode: 'light' as unknown, w: 800, h: 600, dpr: 2 });
+  it('is the same whatever the hover is, and takes no hover id', async () => {
+    const { groundKey, sameKey } = await import('../src/canvas/groundKey');
+    const inputs = base();
+    expect(groundKey.length).toBe(1);
+    expect(sameKey(groundKey(inputs), groundKey({ ...inputs }))).toBe(true);
+    expect(sameKey(groundKey({ ...inputs, hoverId: 'a' } as never), groundKey({ ...inputs, hoverId: 'b' } as never))).toBe(true);
+  });
+  it('differs when the garden, look, mode, size or dpr differs', async () => {
+    const { groundKey, sameKey } = await import('../src/canvas/groundKey');
+    const a = base();
+    const k = groundKey(a);
+    for (const change of [{ garden: garden() }, { look: 'modern' }, { mode: 'dark' }, { w: 801 }, { h: 601 }, { dpr: 1 }]) {
+      expect(sameKey(k, groundKey({ ...a, ...change }))).toBe(false);
+    }
+  });
+});

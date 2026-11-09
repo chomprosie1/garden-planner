@@ -410,6 +410,7 @@ export function renderStatic(ctx: CanvasRenderingContext2D, s: Scene) {
 
 /** What changes as you work: the selection, shapes and plants being drawn, the crosshair, scale bar and compass. */
 export function renderLive(ctx: CanvasRenderingContext2D, s: Scene) {
+  if (s.hoverId) drawHover(ctx, s, s.hoverId);
   if (s.selected) drawSelection(ctx, s, s.selected);
   if (s.guides?.length) drawGuides(ctx, s, s.guides);
   if (s.stroke) drawStroke(ctx, s, s.stroke);
@@ -421,6 +422,56 @@ export function renderLive(ctx: CanvasRenderingContext2D, s: Scene) {
   if (s.minimal) return;
   drawScaleBar(ctx, s);
   drawNorth(ctx, s);
+}
+
+/**
+ * The hover highlight: an outline of the thing under the mouse, drawn live so moving the mouse never redraws the ground.
+ * Beds, pots and trees keep the stroke they had when hovered (same colour, a heavier line); plants, which had no stroke, get the selection colour.
+ */
+function drawHover(ctx: CanvasRenderingContext2D, s: Scene, id: string) {
+  const v = s.view;
+  const f = s.garden.features.find((x) => x.id === id);
+  ctx.save();
+  if (f) {
+    const c = featureColours(f, s.style.plan);
+    if (f.kind === 'pot' && f.circle) {
+      const [cx, cy] = toScreen(v, f.circle.centre);
+      ctx.beginPath();
+      ctx.arc(cx, cy, Math.max(2, f.circle.radiusMm * v.scale), 0, Math.PI * 2);
+      ctx.strokeStyle = s.style.mode === 'dark' ? '#6e3f24' : '#8a5232';
+      ctx.lineWidth = 2.5;
+    } else if (f.kind === 'tree' && f.circle) {
+      const [cx, cy] = toScreen(v, f.circle.centre);
+      ctx.beginPath();
+      ctx.arc(cx, cy, f.circle.radiusMm * v.scale, 0, Math.PI * 2);
+      ctx.setLineDash([6, 5]);
+      ctx.strokeStyle = c.stroke;
+      ctx.globalAlpha = 0.6;
+      ctx.lineWidth = 2.5;
+    } else if (f.support) {
+      // Trellises, arches and obelisks drew a heavier line; here their footprint is outlined.
+      polyPath(ctx, f.footprint.map((p) => toScreen(v, p)), true);
+      ctx.strokeStyle = s.style.mode === 'dark' ? '#b89a72' : '#8a6a44';
+      ctx.lineWidth = 2;
+    } else {
+      const material = f.material ?? (f.kind === 'surface' ? 'lawn' : undefined);
+      polyPath(ctx, f.footprint.map((p) => toScreen(v, p)), true, f.kind === 'bed' && !f.smooth ? s.style.bedRadiusMm * v.scale : 0);
+      ctx.setLineDash(c.dash ?? []);
+      ctx.strokeStyle = f.kind === 'surface' && material ? mix(materialColour(material, s.style.plan, s.style.mode), '#000000', s.style.mode === 'dark' ? 0.35 : 0.22) : c.stroke;
+      ctx.lineWidth = 3;
+    }
+    ctx.stroke();
+  } else if (s.plantOf) {
+    const pl = s.garden.plantings.find((x) => x.id === id);
+    if (pl) {
+      const plant = plantFor(s, pl);
+      shapePath(ctx, s, plantingShape(pl, plant), (spreadOf(plant) / 2) * v.scale + 2);
+      ctx.strokeStyle = s.style.plan.selection;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
 }
 
 function drawGuides(ctx: CanvasRenderingContext2D, s: Scene, guides: Guide[]) {
@@ -626,12 +677,11 @@ function drawSupport(ctx: CanvasRenderingContext2D, s: Scene, f: Feature): boole
   ctx.strokeStyle = timber;
   ctx.fillStyle = timber;
   ctx.lineCap = 'round';
-  const hover = s.hoverId === f.id ? 1.5 : 1;
   if (f.support === 'trellis' && f.line) {
     const line = f.line.map((p) => toScreen(v, p));
     ctx.beginPath();
     line.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
-    ctx.lineWidth = px(f.widthMm ?? 40) * hover;
+    ctx.lineWidth = px(f.widthMm ?? 40);
     ctx.setLineDash([px(60), px(90)]);
     ctx.stroke();
     ctx.setLineDash([]);
@@ -640,7 +690,7 @@ function drawSupport(ctx: CanvasRenderingContext2D, s: Scene, f: Feature): boole
   } else if (f.support === 'obelisk' && f.circle) {
     const [cx, cy] = toScreen(v, f.circle.centre);
     const r = f.circle.radiusMm * v.scale;
-    ctx.lineWidth = Math.max(1, px(25)) * hover;
+    ctx.lineWidth = Math.max(1, px(25));
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
     ctx.stroke();
@@ -657,7 +707,7 @@ function drawSupport(ctx: CanvasRenderingContext2D, s: Scene, f: Feature): boole
     // The hoops run across the long sides; the legs stand at the short ends.
     const long = Math.hypot(b[0] - a[0], b[1] - a[1]) >= Math.hypot(d[0] - a[0], d[1] - a[1]);
     const [p0, p1, q0, q1] = long ? [a, b, d, c] : [a, d, b, c];
-    ctx.lineWidth = Math.max(1, px(30)) * hover;
+    ctx.lineWidth = Math.max(1, px(30));
     ctx.beginPath();
     ctx.moveTo(p0[0], p0[1]);
     ctx.lineTo(p1[0], p1[1]);
@@ -736,7 +786,7 @@ function drawFeatureBody(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, pa
   ctx.setLineDash(c.dash ?? []);
   // A surface's edge is just a little darker than the surface itself.
   ctx.strokeStyle = f.kind === 'surface' && material ? mix(materialColour(material, s.style.plan, s.style.mode), '#000000', s.style.mode === 'dark' ? 0.35 : 0.22) : c.stroke;
-  ctx.lineWidth = s.hoverId === f.id ? 3 : f.kind === 'tree' || f.kind === 'surface' ? 1.5 : 2;
+  ctx.lineWidth = f.kind === 'tree' || f.kind === 'surface' ? 1.5 : 2;
   ctx.stroke();
   ctx.setLineDash([]);
 
@@ -777,7 +827,7 @@ function drawPot(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, pats: Patt
   ctx.fillStyle = terracotta;
   ctx.fill();
   ctx.strokeStyle = s.style.mode === 'dark' ? '#6e3f24' : '#8a5232';
-  ctx.lineWidth = s.hoverId === f.id ? 2.5 : 1.2;
+  ctx.lineWidth = 1.2;
   ctx.stroke();
   ctx.beginPath();
   ctx.arc(cx, cy, Math.max(1, r - rim), 0, Math.PI * 2);
@@ -863,7 +913,7 @@ function drawTree(ctx: CanvasRenderingContext2D, s: Scene, f: Feature, stroke: s
   ctx.setLineDash([6, 5]);
   ctx.strokeStyle = stroke;
   ctx.globalAlpha = 0.6;
-  ctx.lineWidth = s.hoverId === f.id ? 2.5 : 1.2;
+  ctx.lineWidth = 1.2;
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.globalAlpha = 1;
@@ -1518,7 +1568,7 @@ function drawPlanting(ctx: CanvasRenderingContext2D, s: Scene, pl: Planting, pla
   const at = s.time?.stageOf(pl);
   const support = featuresById(s.garden).get(pl.featureId);
   const train = support && isLineSupport(support) ? (p: Point) => trainedAngle(support, p) : undefined;
-  drawPlants(ctx, s, pts, shape, spreadOf(plant), plant, lookOf(s, pl, plant), s.hoverId === pl.id ? 1 : 0.95, train);
+  drawPlants(ctx, s, pts, shape, spreadOf(plant), plant, lookOf(s, pl, plant), 0.95, train);
   // A stage from the plant's usual months, not one you've marked: a dotted edge says it's a guess.
   if (at?.guessed && at.stage !== 'planned') {
     shapePath(ctx, s, shape, (spreadOf(plant) / 2) * s.view.scale + 2);

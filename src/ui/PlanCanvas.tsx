@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { useApp } from './appContext';
 import { copiedPlanting, copyPlanting } from './clipboard';
 import { hitEdge, hitVertex, pickAt, plantingDrag } from '../canvas/hit';
+import { groundKey, sameKey } from '../canvas/groundKey';
 import { northCentre, NORTH_RADIUS, plantingHandles, planStyle, renderLive, renderStatic, rotateHandleAt, sketchTextPx, type Draft, type Focus, type Guide, type PlantDraft, type Scene, type Stroke, type TimeScene } from '../canvas/render';
 import { parseLength, snapPoint, snapStepFor, type SnapKind } from '../canvas/snap';
 import { fit, pan, toScreen, toWorld, zoomAt, type Viewport } from '../canvas/viewport';
@@ -377,9 +378,9 @@ export function PlanCanvas(props: PlanCanvasProps) {
     };
 
     // The ground: redrawn only when something on it changes, the zoom settles, or a pan runs past the margin.
-    const key = [scene.garden, p.look, p.mode, hover.current, p.findings, p.focusFinding, p.traceImage, p.plantOf, p.shadows, p.sunGrid, p.time, p.focus, p.month, scene.sketches, scene.depth, scene.drawing, w, h, dpr];
+    const key = groundKey({ garden: scene.garden, look: p.look, mode: p.mode, findings: p.findings, focusFinding: p.focusFinding, traceImage: p.traceImage, plantOf: p.plantOf, shadows: p.shadows, sunGrid: p.sunGrid, time: p.time, focus: p.focus, month: p.month, sketches: scene.sketches, depth: scene.depth, drawing: scene.drawing, w, h, dpr });
     let L = layer.current;
-    const stale = !L || key.some((k, i) => k !== L!.key[i]);
+    const stale = !L || !sameKey(L.key, key);
     const ym = yearMoved.current;
     if (p.time !== ym.time) yearMoved.current = { time: p.time, until: ym.time === undefined ? 0 : performance.now() + 350 };
     const scrubbing = performance.now() < yearMoved.current.until;
@@ -402,7 +403,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
       }
       const lctx = lc.getContext('2d')!;
       lctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      renderStatic(lctx, { ...scene, view: { ...v, ox: v.ox + margin, oy: v.oy + margin }, width: w + 2 * margin, height: h + 2 * margin });
+      renderStatic(lctx, { ...scene, hoverId: null, view: { ...v, ox: v.ox + margin, oy: v.oy + margin }, width: w + 2 * margin, height: h + 2 * margin });
       L = layer.current = { canvas: lc, key, view: { ...v }, margin };
     }
     const k = v.scale / L!.view.scale;
