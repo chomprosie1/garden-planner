@@ -186,6 +186,9 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   // Sun and shade use the whole screen: the dock tucks away into a handle, to pull back up.
   const [toolsUp, setToolsUp] = useState(false);
   useEffect(() => setToolsUp(false), [sunOn]);
+  useEffect(() => {
+    if (lens !== 'sun') setHoverPoint(null);
+  }, [lens]);
 
   // The plan gets the room: photos around it are something to ask for, in the ··· menu.
   const hidePhotos = prefs.focus ?? true;
@@ -749,7 +752,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               time={time}
               month={shownMonth}
               focus={focus}
-              onHoverPoint={setHoverPoint}
+              onHoverPoint={lens === 'sun' ? setHoverPoint : undefined}
               onTap={setTapPoint}
               measuring={measuring}
               onMeasure={setMeasured}

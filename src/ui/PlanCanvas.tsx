@@ -7,6 +7,7 @@ import { useApp } from './appContext';
 import { copiedPlanting, copyPlanting } from './clipboard';
 import { hitEdge, hitVertex, pickAt, plantingDrag } from '../canvas/hit';
 import { groundKey, sameKey } from '../canvas/groundKey';
+import { HIT_PX, isDrag, perFrame, pointerKind } from '../canvas/touch';
 import { northCentre, NORTH_RADIUS, plantingHandles, planStyle, renderLive, renderStatic, rotateHandleAt, sketchTextPx, type Draft, type Focus, type Guide, type PlantDraft, type Scene, type Stroke, type TimeScene } from '../canvas/render';
 import { parseLength, snapPoint, snapStepFor, type SnapKind } from '../canvas/snap';
 import { fit, pan, toScreen, toWorld, zoomAt, type Viewport } from '../canvas/viewport';
@@ -255,6 +256,13 @@ export function PlanCanvas(props: PlanCanvasProps) {
   const pointers = useRef(new Map<number, Point>());
   const pinch = useRef<{ dist: number; mid: Point } | null>(null);
   const hover = useRef<string | null>(null);
+  /** The pointer type of the press that began the current gesture. */
+  const downType = useRef('mouse');
+  /** The latest hover callback, and a once-per-frame sender for it. */
+  const hoverCb = useRef(props.onHoverPoint);
+  hoverCb.current = props.onHoverPoint;
+  const hoverSend = useRef<ReturnType<typeof perFrame<Point | null>> | null>(null);
+  if (!hoverSend.current) hoverSend.current = perFrame<Point | null>((v) => hoverCb.current?.(v));
   const space = useRef(false);
   const raf = useRef(0);
   const lastTap = useRef<{ t: number; s: Point } | null>(null);
@@ -538,6 +546,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
       ro.disconnect();
       document.fonts?.removeEventListener?.('loadingdone', onFonts);
       cancelAnimationFrame(raf.current);
+      hoverSend.current?.cancel();
       clearTimeout(settle.current);
       clearTimeout(yearSettle.current);
     };
@@ -882,6 +891,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
   // ---------- pointer ----------
 
   const onPointerDown = (e: PointerEvent) => {
+    downType.current = e.pointerType;
     const c = canvas.current!;
     try {
       c.setPointerCapture(e.pointerId);
@@ -1043,7 +1053,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
       return;
     }
     // What's selected keeps its taps, except set ground; then plants, then beds and the rest (canvas/hit.ts).
-    const picked = pickAt(g, p.plantOf, world, { planting: tolMm(touch ? 6 : 3), feature: tolMm(touch ? 6 : 9) }, p.selected, edit === 'layout');
+    const picked = pickAt(g, p.plantOf, world, { planting: tolMm(HIT_PX[pointerKind(e.pointerType)].planting), feature: tolMm(HIT_PX[pointerKind(e.pointerType)].feature) }, p.selected, edit === 'layout');
     if (picked?.type === 'planting') {
       const wasSelected = p.selected?.type === 'planting' && p.selected.id === picked.id;
       p.setSelected(picked);
@@ -1133,7 +1143,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
           break;
         }
         case 'move': {
-          if (!d.moved && distance(s, d.startScreen) < 3) return;
+          if (!d.moved && !isDrag(s[0] - d.startScreen[0], s[1] - d.startScreen[1], downType.current)) return;
           d.moved = true;
           const step = e.altKey ? 1 : snapStepFor(v.scale);
           let dx = Math.round((world[0] - d.start[0]) / step) * step;
@@ -1179,7 +1189,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
           break;
         }
         case 'movePlanting': {
-          if (!d.moved && distance(s, d.startScreen) < 3) return;
+          if (!d.moved && !isDrag(s[0] - d.startScreen[0], s[1] - d.startScreen[1], downType.current)) return;
           d.moved = true;
           const step = e.altKey ? 1 : snapStepFor(v.scale);
           const dx = Math.round((world[0] - d.start[0]) / step) * step;
@@ -1281,7 +1291,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
 
     if (e.pointerType === 'mouse') {
       pointerWorld.current = world;
-      p.onHoverPoint?.(world);
+      if (p.onHoverPoint) hoverSend.current?.push(world);
       const g = garden();
       // What a click here would pick, so the highlight never points at something else.
       const t = pickAt(g, p.plantOf, world, { planting: tolMm(3), feature: tolMm(6) }, p.selected, !p.readOnly && (p.edit ?? 'layout') === 'layout');
@@ -1772,7 +1782,10 @@ export function PlanCanvas(props: PlanCanvasProps) {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        onPointerLeave={() => props.onHoverPoint?.(null)}
+        onPointerLeave={() => {
+          hoverSend.current?.cancel();
+          props.onHoverPoint?.(null);
+        }}
         onDblClick={onDoubleClick}
         onWheel={onWheel}
         onDragOver={onDragOver}
