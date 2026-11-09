@@ -12,7 +12,7 @@ import { makeFeature, rectPoints } from '../src/model/features';
 import { SCHEMA_VERSION } from '../src/model/migrate';
 import type { Feature, Garden, Plant, Planting } from '../src/model/types';
 import { addPlanting, makePlanting } from '../src/planting/place';
-import { CSV_COLUMNS, csvCell, plantingsCsv, yearSheet } from '../src/share/export';
+import { CSV_COLUMNS, cropLines, csvCell, plantingsCsv, yearSheet, type YearRow } from '../src/share/export';
 import { backupFile, csvFile, parseFileText, toFile } from '../src/storage/file';
 import { safetyText } from '../src/ui/setup';
 
@@ -174,5 +174,22 @@ describe('the year on paper', () => {
 
   it('prints nothing for an empty garden', () => {
     expect(yearSheet(newGarden(), plantOf, '2026-10-30')).toEqual([]);
+  });
+});
+
+describe('the print-out, one line per crop', () => {
+  const row = (id: string, plantId: string, start: string, end: string): YearRow => ({ id, plant: 'Leek', plantId, count: 1, stage: 'Growing', dates: [`Sown ${start}`, `Harvesting ${end}`], span: { start, end } });
+  const today = '2026-11-09';
+  it('names a crop once with all its beds', () => {
+    const lines = cropLines([{ bed: 'Bed A', rows: [row('1', 'leek', '2026-11-01', '2027-02-01')] }, { bed: 'Bed C', rows: [row('2', 'leek', '2026-11-05', '2027-03-01')] }], today);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]!.beds).toEqual(['Bed A', 'Bed C']);
+  });
+  it('leaves out what ended and what is over a year off, keeps 11 months', () => {
+    const lines = cropLines(
+      [{ bed: 'A', rows: [row('1', 'old', '2026-08-01', '2026-10-09'), row('2', 'far', '2027-12-09', '2028-02-01'), row('3', 'near', '2027-10-09', '2027-12-01')] }],
+      today,
+    );
+    expect(lines.map((l) => l.plantId)).toEqual(['near']);
   });
 });

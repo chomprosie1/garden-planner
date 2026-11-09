@@ -215,3 +215,13 @@ describe('schema 6', () => {
     expect((migrateGarden({ ...garden(), schemaVersion: 5 }) as Garden).schemaVersion).toBe(SCHEMA_VERSION);
   });
 });
+
+import { nothingSown } from '../src/ui/views/Shed';
+
+describe('the empty Shed message', () => {
+  it('shows only when nothing is sown anywhere', () => {
+    expect(nothingSown([], [], [])).toBe(true);
+    expect(nothingSown([], [{ id: 't' }], [])).toBe(false);
+    expect(nothingSown([], [], [{ id: 'p' }])).toBe(false);
+  });
+});

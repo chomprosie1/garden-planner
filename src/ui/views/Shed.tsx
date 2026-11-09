@@ -77,6 +77,11 @@ interface Props {
   clearSow?: () => void;
 }
 
+/** The "Nothing sown yet" message: only when there are no places, trays or plantings growing on under cover. */
+export function nothingSown(places: unknown[], trays: unknown[], indoors: unknown[]): boolean {
+  return places.length === 0 && trays.length === 0 && indoors.length === 0;
+}
+
 type ShedPage = 'trays' | 'seeds' | 'feeds';
 const SHED_PAGES: [ShedPage, string][] = [
   ['trays', 'Trays'],
@@ -246,7 +251,7 @@ export function Shed({ store, garden, userPlants, sowPlantId = null, clearSow }:
 
           {tray && plants && <TrayPanel tray={tray} plant={plantOf(tray.plantId)} garden={garden} commit={commit} close={() => setSelected(null)} today={today} />}
 
-          {places.length === 0 ? (
+          {nothingSown(places, trays, indoors) ? (
             <section class="card shed-empty">
               <div class="shed-empty-art" aria-hidden="true" />
               <h2>Nothing sown yet</h2>

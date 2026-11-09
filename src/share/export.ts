@@ -45,6 +45,9 @@ export interface YearRow {
   stage: string;
   /** What's happened and what's expected, in order: "Sown 3 Mar", "Harvesting about 2 Jul". */
   dates: string[];
+  plantId: string;
+  /** First and last dates of any stage, recorded or expected (ISO), or null if it has none. */
+  span: { start: string; end: string } | null;
 }
 
 /** The year ahead by bed or pot, for printing: what's in each now, and when each thing happens. */
@@ -55,12 +58,49 @@ export function yearSheet(g: Garden, plantOf: (id: string) => Plant, today: stri
     if (!here.length) continue;
     const rows = here.map((pl) => {
       const plant = plantOf(pl.plantId);
-      const dates = timeline(plant, pl, g, today, weather)
-        .filter((s) => s.date && s.stage !== 'planned' && s.date <= addDays(today, 365))
+      const all = timeline(plant, pl, g, today, weather).filter((s) => s.date && s.stage !== 'planned');
+      const iso = all.map((s) => s.date!).sort();
+      const span = iso.length ? { start: iso[0]!, end: iso[iso.length - 1]! } : null;
+      const dates = all
+        .filter((s) => s.date! <= addDays(today, 365))
         .map((s) => `${s.stage === 'cleared' ? 'Finished' : stageLabel(plant, s.stage, pl)} ${s.guessed ? 'about ' : ''}${yearDate(s.date!, today)}`);
-      return { id: pl.id, plant: plant.commonName, count: plantCount(pl, plant), stage: stageLabel(plant, currentStage(pl), pl), dates };
+      return { id: pl.id, plant: plant.commonName, count: plantCount(pl, plant), stage: stageLabel(plant, currentStage(pl), pl), dates, plantId: pl.plantId, span };
     });
     out.push({ id: f.id, bed: featureLabel(f), rows });
   }
   return out;
+}
+
+export interface CropLine {
+  plantId: string;
+  plant: string;
+  /** The beds it's in, in the order first seen. */
+  beds: string[];
+  dates: string[];
+}
+
+/** One line per crop for the print-out: its beds listed once, rows that are over or more than a year off left out. */
+export function cropLines(sheet: { bed: string; rows: YearRow[] }[], today: string): CropLine[] {
+  const limit = addDays(today, 365);
+  const out: (CropLine & { rows: YearRow[] })[] = [];
+  for (const b of sheet) {
+    for (const r of b.rows) {
+      if (r.span && (r.span.end < today || r.span.start > limit)) continue;
+      let line = out.find((l) => l.plantId === r.plantId);
+      if (!line) out.push((line = { plantId: r.plantId, plant: r.plant, beds: [], dates: [], rows: [] }));
+      if (!line.beds.includes(b.bed)) line.beds.push(b.bed);
+      line.rows.push(r);
+    }
+  }
+  return out.map(({ rows, ...l }) => {
+    const same = rows.every((r) => r.dates.join('|') === rows[0]!.dates.join('|'));
+    if (same) return { ...l, dates: rows[0]!.dates };
+    const spans = rows.filter((r) => r.span && r.dates.length);
+    if (!spans.length) return { ...l, dates: [] };
+    const first = spans.reduce((a, r) => (r.span!.start < a.span!.start ? r : a));
+    const last = spans.reduce((a, r) => (r.span!.end > a.span!.end ? r : a));
+    const a = first.dates[0]!;
+    const z = last.dates[last.dates.length - 1]!;
+    return { ...l, dates: a === z ? [a] : [a, z] };
+  });
 }
