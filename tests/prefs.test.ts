@@ -67,3 +67,11 @@ describe('seasons', () => {
     expect(seasonFor(13).name).toBe('January');
   });
 });
+
+describe('usedSun', () => {
+  it('starts false and only keeps a real true', () => {
+    expect(defaultPrefs().usedSun).toBe(false);
+    expect(sanitisePrefs({ usedSun: true }).usedSun).toBe(true);
+    expect(sanitisePrefs({ usedSun: 'yes' }).usedSun).toBe(false);
+  });
+});

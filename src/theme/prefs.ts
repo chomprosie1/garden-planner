@@ -62,6 +62,8 @@ export interface Prefs {
   seenNews: string | null;
   /** Show the tools for checking the plant library against its sources. For whoever keeps the plant data. */
   plantEditor: boolean;
+  /** You've chosen the Sun hours or Shade view at least once. */
+  usedSun: boolean;
   /** The first-visit tips on the garden plan have been seen. */
   seenTips: boolean;
   /** "Stuck?" notes already offered, by id: shown once and never again. */
@@ -132,6 +134,7 @@ export function defaultPrefs(): Prefs {
     weather: false,
     seenNews: null,
     plantEditor: false,
+    usedSun: false,
     seenTips: false,
     stuckSeen: [],
     walkFrom: {},
@@ -201,6 +204,7 @@ export function sanitisePrefs(raw: unknown): Prefs {
     weather: r.weather === true,
     seenNews: typeof r.seenNews === 'string' ? r.seenNews : null,
     plantEditor: r.plantEditor === true,
+    usedSun: r.usedSun === true,
     seenTips: r.seenTips === true,
     stuckSeen: Array.isArray(r.stuckSeen) ? r.stuckSeen.filter((x): x is string => typeof x === 'string') : [],
     walkFrom: walkFromOf(r.walkFrom),

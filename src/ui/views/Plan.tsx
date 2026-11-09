@@ -211,6 +211,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
   /** Shows a way of looking at the plan; sun and shade switch to Advanced. */
   const chooseLens = (l: Lens) => {
     if (simple && isAdvancedLens(l)) prefsStore.set({ planMode: 'advanced' });
+    if ((l === 'sun' || l === 'shade') && !prefsStore.get().usedSun) prefsStore.set({ usedSun: true });
     setLens(l);
   };
 

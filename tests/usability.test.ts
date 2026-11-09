@@ -79,12 +79,19 @@ describe('planting status (U3)', () => {
 });
 
 describe('getting started (U4)', () => {
-  const prefs = { northChecked: false, lastBackup: null as string | null };
+  const prefs = { northChecked: false, usedSun: true, lastBackup: null as string | null };
 
   it('starts with everything to do, in order', () => {
     const steps = setupSteps(newAppState().garden, prefs);
     expect(steps.map((s) => s.id)).toEqual(['boundary', 'bed', 'location', 'north', 'plants']);
     expect(steps.every((s) => !s.done)).toBe(true);
+  });
+
+  it('keeps the north arrow step until you have used the sun', () => {
+    const g = newAppState().garden;
+    expect(setupSteps(g, { northChecked: false, usedSun: false }).map((s) => s.id)).not.toContain('north');
+    expect(setupSteps(g, { northChecked: false, usedSun: true }).map((s) => s.id)).toContain('north');
+    expect(setupSteps({ ...g, northRotationDeg: 15 }, { northChecked: false, usedSun: false }).map((s) => s.id)).toContain('north');
   });
 
   it('ticks steps off from the garden itself', () => {

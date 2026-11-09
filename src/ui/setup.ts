@@ -17,7 +17,7 @@ export interface Step {
 /** Where a new garden starts until you set your own. */
 export const isDefaultLocation = (g: Garden) => g.latitude === 52.5 && g.longitude === -1.5;
 
-export function setupSteps(g: Garden, prefs: Pick<Prefs, 'northChecked'>): Step[] {
+export function setupSteps(g: Garden, prefs: Pick<Prefs, 'northChecked'> & Partial<Pick<Prefs, 'usedSun'>>): Step[] {
   const steps: Step[] = [
     { id: 'boundary', title: 'Set up your space', why: 'A balcony, a patio, a garden or an allotment: the plan is drawn to scale.', done: g.boundary.length >= 3 || g.features.length > 0 },
     { id: 'bed', title: 'Add a bed or pot', why: 'Beds, pots and planters are where plants go. Drag one in from below the plan.', done: g.features.some(isContainer) },
@@ -25,9 +25,11 @@ export function setupSteps(g: Garden, prefs: Pick<Prefs, 'northChecked'>): Step[
     { id: 'north', title: 'Point the north arrow north', why: 'Shadows fall the wrong way if north is out. On a phone, the compass can work it out.', done: g.northRotationDeg !== 0 || prefs.northChecked },
     { id: 'plants', title: 'Put plants in a bed', why: 'Then you get spacing checks and a job list for each month.', done: g.plantings.length > 0 },
   ];
+  // The north arrow only matters for the sun: it waits until you've looked at sun or shade (or already turned it).
+  const shown = steps.filter((s) => s.id !== 'north' || s.done || prefs.usedSun === true);
   // Kept as a list: no plan to set up or turn north.
-  if (g.view !== 'list') return steps;
-  return steps.filter((s) => s.id !== 'boundary' && s.id !== 'north').map((s) => (s.id === 'bed' ? { ...s, why: 'Beds, pots and planters are where plants go. Add one on the Garden tab: a name is enough.' } : s.id === 'plants' ? { ...s, why: 'Then you get a job list for each month, and how full each bed is.' } : s));
+  if (g.view !== 'list') return shown;
+  return shown.filter((s) => s.id !== 'boundary' && s.id !== 'north').map((s) => (s.id === 'bed' ? { ...s, why: 'Beds, pots and planters are where plants go. Add one on the Garden tab: a name is enough.' } : s.id === 'plants' ? { ...s, why: 'Then you get a job list for each month, and how full each bed is.' } : s));
 }
 
 /** Days since the last backup, or null if there's never been one. */
@@ -53,7 +55,7 @@ export function backupDue(g: Garden, lastBackup: string | null, now = new Date()
 export const setupFolded = (setupFrom: string | null, today: string): boolean => !!setupFrom && today > setupFrom;
 
 /** Steps of Getting started are still to do, and it hasn't been put away: the ··· offers it. */
-export const setupLeft = (g: Garden, prefs: Pick<Prefs, 'northChecked' | 'setupHidden' | 'setupFrom'>, today: string): boolean => !prefs.setupHidden && setupFolded(prefs.setupFrom, today) && setupSteps(g, prefs).some((s) => !s.done);
+export const setupLeft = (g: Garden, prefs: Pick<Prefs, 'northChecked' | 'setupHidden' | 'setupFrom'> & Partial<Pick<Prefs, 'usedSun'>>, today: string): boolean => !prefs.setupHidden && setupFolded(prefs.setupFrom, today) && setupSteps(g, prefs).some((s) => !s.done);
 
 /** "today", "yesterday", "12 days ago". */
 const daysAgo = (days: number) => (days <= 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`);
