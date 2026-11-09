@@ -2750,6 +2750,25 @@ Not in this set, in the wishlist: a reward on Done, lasagne pots, a rough cost a
 
 The review's targets stand. Against the interim scores: Ruth's hands (8) and Sam's fit (7) already pass, and Callum's dates (7) pass with his own frost dates typed in. Keep-using and trust of 7 for the original three and Ruth are the ones to watch: Margaret's trust is 5, and Ruth's keep-using 6.
 
+### Phase 2c — What the owner hit, releases 57i to 57k (added 9 Nov 2026)
+Added 9 Nov 2026, from the owner's own use: the plan feels laggy and imprecise, their own plants are awkward, jobs are wrong or missing, and basic UX. Built on the branch `phase-2c` after 57h. Two parts start with a check and not a fix: a sweep of the jobs for all 521 plants, and a walk through the main journeys at phone and desktop size.
+
+- **57i. A plan that does what your finger means.**
+  - Hovering no longer redraws the whole background. Plants off the screen aren't drawn.
+  - On a touch screen a drag starts after 10 px, not 3, and a tap reaches 12 px around a plant.
+  - Snapping can be switched off without a keyboard, and arrows on the phone sheet move a thing 1 cm.
+  - Tests: plan, prefs, words.
+- **57j. Your own plants, first class.**
+  - A plant can start from one like it. The form takes pests, companions and winter notes.
+  - A copy keeps the care jobs of the plant it came from (schema 28). A plant with no months says it won't get jobs.
+  - Deleting a plant takes its plantings with it, in one Undo.
+  - Jobs fixes follow the sweep.
+  - Tests: file (migration), jobs, plants, store, words.
+- **57k. Basic UX.**
+  - "No room" says nothing was added and doesn't offer Undo.
+  - The rest comes from the walk-through: finding the month view, the list of beds and Notes, and a less crowded plan on a phone.
+- Flagged, not built: a magnifier or lifted drag, typed positions, feeding in the plant form, the sun grid off the main thread, a warning when two tabs are open.
+
 ### Phase 3 — Ready to charge (30 Nov to 18 Dec)
 Starts once the review's targets are met; if they aren't, the misses are fixed first. Releases 59 and 60 need your decisions, listed after the table.
 
