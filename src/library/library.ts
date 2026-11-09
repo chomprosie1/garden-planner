@@ -190,7 +190,7 @@ export function blankPlant(): Plant {
 /** A copy of a library plant you can change, e.g. your own variety. */
 export function copyAsUserPlant(p: Plant, name?: string): Plant {
   const copy = structuredClone(p);
-  return { ...copy, id: newUserPlantId(), commonName: name ?? `${p.commonName} (my variety)`, userAdded: true, verified: false };
+  return { ...copy, id: newUserPlantId(), commonName: name ?? `${p.commonName} (my variety)`, userAdded: true, verified: false, basedOn: p.basedOn ?? p.id };
 }
 
 export const saveUserPlant =

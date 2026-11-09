@@ -349,6 +349,7 @@ export function validatePlant(p: unknown): string[] {
     );
   }
   if (p.varietyOf !== undefined) need(isStr(p.varietyOf) && isStr(p.variety) && (p.variety as string).trim().length > 0, 'a variety needs the plant it is a variety of and its name.');
+  if (p.basedOn !== undefined) need(isStr(p.basedOn), 'basedOn must be the id of the plant it was copied from.');
   if (p.feeding !== undefined) {
     const f = p.feeding;
     need(

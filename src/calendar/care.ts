@@ -46,7 +46,7 @@ const CARE: Record<string, Care[]> = {
 
 /** What wants doing this month for a plant that's settled in, by its own name or the plant it's a kind of. */
 export function careFor(plant: Plant, month: number): Care[] {
-  const list = CARE[plant.id] ?? (plant.varietyOf ? CARE[plant.varietyOf] : undefined) ?? [];
+  const list = CARE[plant.id] ?? (plant.varietyOf ? CARE[plant.varietyOf] : undefined) ?? (plant.basedOn ? CARE[plant.basedOn] : undefined) ?? [];
   return list.filter((c) => (c.months ?? runEnds(plant.flowerMonths ?? [])).includes(month));
 }
 

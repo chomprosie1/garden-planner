@@ -415,6 +415,8 @@ export interface Plant {
   pollinators?: Pollinators;
   /** A variety of another plant, by its id: it has everything of that plant's except what it says otherwise. */
   varietyOf?: string;
+  /** The id of the library plant this one was copied from, so it keeps that plant's care, picture and photo. */
+  basedOn?: string;
   /** The variety's name: "Cherry", "First early". */
   variety?: string;
   image?: { url: string; credit: string; licence: string; sourceUrl: string }; // PD, CC0, CC BY or CC BY-SA only
