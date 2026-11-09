@@ -38,7 +38,9 @@ export function daysSinceBackup(lastBackup: string | null, now = new Date()): nu
   const [y, m, d] = lastBackup.split('-').map(Number);
   const then = new Date(y!, m! - 1, d!);
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  return Math.round((today.getTime() - then.getTime()) / 86_400_000);
+  const days = Math.round((today.getTime() - then.getTime()) / 86_400_000);
+  // A copy dated after today (a wrong clock) can't be said to be recent: it counts as no date known.
+  return days < 0 ? null : days;
 }
 
 /** Something worth keeping: a boundary, anything on the plan, or a note. */
@@ -63,5 +65,10 @@ const daysAgo = (days: number) => (days <= 0 ? 'today' : days === 1 ? 'yesterday
 /** The one line on where the garden is and how safe it is: the same on Today and in Settings. */
 export function safetyText(lastBackup: string | null, now = new Date()): string {
   const days = daysSinceBackup(lastBackup, now);
+  if (days === null && lastBackup && /^\d{4}-\d{2}-\d{2}$/.test(lastBackup)) {
+    const [y, m, d] = lastBackup.split('-').map(Number);
+    const full = new Date(y!, m! - 1, d!).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    return `Saved only in this browser on this device. Last copy ${full}.`;
+  }
   return `Saved only in this browser on this device. ${days === null ? 'No copy yet.' : `Last copy ${daysAgo(days)}.`}`;
 }

@@ -6,7 +6,7 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { KEEP_ALL, KEEP_DAYS, whatGoes, type Keep } from '../model/fresh';
 import type { Store } from '../model/store';
-import type { Garden } from '../model/types';
+import type { AppState, Garden } from '../model/types';
 import { downloadFile } from '../storage/file';
 import { daysLeft, listGardens, peekGarden, renameGarden, type GardenEntry } from '../storage/gardens';
 import { NAME_LENGTH, pasteOneLine } from './oneLine';
@@ -14,7 +14,7 @@ import { photoIds } from '../storage/photos';
 import type { PrefsStore } from '../theme/prefs';
 import { useApp } from './appContext';
 import { backUp } from './GardenSettings';
-import { bringBack, deleteEverything, deleteGardenFor30Days, makeNewGarden, startAgain, switchGarden } from './gardenActions';
+import { bringBack, copyWarning, deleteEverything, deleteGardenFor30Days, makeNewGarden, startAgain, switchGarden } from './gardenActions';
 import { MiniPlan } from './MiniPlan';
 import { HelpTitle } from './HelpLink';
 
@@ -282,16 +282,21 @@ export function CarefulDialog({ mode, entry = null, store, prefsStore, garden, c
   const shut = () => ref.current?.close();
 
   const title = mode === 'start' ? `Start ${name} again` : mode === 'delete' ? `Delete ${name}` : 'Delete everything';
+  const copyOf = (state: AppState) => {
+    downloadFile(state);
+    const warning = copyWarning(state);
+    if (warning) app.notify(warning);
+  };
   const saveCopies = async () => {
     if (mode === 'everything') {
       // Each garden as its own file.
       for (const e of [...gardens, ...hidden]) {
         const g = e.id === open ? garden : peekGarden(e.id);
-        if (g) downloadFile({ garden: g, userPlants: store.get().userPlants });
+        if (g) copyOf({ garden: g, userPlants: store.get().userPlants });
         await new Promise((r) => setTimeout(r, 400));
       }
-    } else if (target === garden) await backUp(store, prefsStore, photoIds(garden).size > 0);
-    else if (target) downloadFile({ garden: target, userPlants: store.get().userPlants });
+    } else if (target === garden) await backUp(store, prefsStore, photoIds(garden).size > 0, app.notify);
+    else if (target) copyOf({ garden: target, userPlants: store.get().userPlants });
     next();
   };
   const done = async () => {

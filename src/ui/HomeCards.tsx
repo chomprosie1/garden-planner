@@ -34,7 +34,8 @@ import { HelpTitle } from './HelpLink';
 export function SafetyLine({ store, garden, prefs, prefsStore, now = new Date() }: { store: Store; garden: Garden; prefs: Prefs; prefsStore: PrefsStore; now?: Date }) {
   const [status, setStatus] = useState<SaveStatus>(saveStatus.get());
   useEffect(() => saveStatus.subscribe(setStatus), []);
-  const copy = () => (canShareBackup() ? shareBackup(store, prefsStore) : backUp(store, prefsStore));
+  const app = useApp();
+  const copy = () => (canShareBackup() ? shareBackup(store, prefsStore, app.notify) : backUp(store, prefsStore, false, app.notify));
   const last = lastCopy(prefs);
   if (status === 'failed')
     return (

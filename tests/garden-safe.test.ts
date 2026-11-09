@@ -6,15 +6,15 @@ import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import * as storedGardens from '../src/storage/gardens';
 import { sanitisePrefs } from '../src/theme/prefs';
-import { lastCopy } from '../src/ui/gardenActions';
+import { copyWarning, lastCopy } from '../src/ui/gardenActions';
 import { newGarden } from '../src/model/defaults';
 import { makeFeature, rectPoints } from '../src/model/features';
 import { SCHEMA_VERSION } from '../src/model/migrate';
 import type { Feature, Garden, Plant, Planting } from '../src/model/types';
 import { addPlanting, makePlanting } from '../src/planting/place';
 import { CSV_COLUMNS, cropLines, csvCell, plantingsCsv, yearSheet, type YearRow } from '../src/share/export';
-import { backupFile, csvFile, parseFileText, toFile } from '../src/storage/file';
-import { safetyText } from '../src/ui/setup';
+import { backupFile, backupProblems, csvFile, parseFileText, toFile } from '../src/storage/file';
+import { backupDue, daysSinceBackup, safetyText } from '../src/ui/setup';
 
 const DIR = join(__dirname, '..', 'data', 'plants');
 const plants: Plant[] = readdirSync(DIR)
@@ -159,6 +159,32 @@ describe('where the garden is', () => {
     expect(safetyText('2026-10-30', now)).toMatch(/Last copy today/);
     expect(safetyText('2026-10-29', now)).toMatch(/Last copy yesterday/);
     expect(safetyText('2026-10-18', now)).toMatch(/Last copy 12 days ago/);
+  });
+
+  it('never calls a copy dated in the future today, and gives its date in full', () => {
+    const wrongClock = new Date(2019, 0, 1);
+    const text = safetyText('2026-10-30', wrongClock);
+    expect(text).toContain('2026');
+    expect(text).toContain('30 October 2026');
+    expect(text).not.toMatch(/today|yesterday|ago/);
+    expect(daysSinceBackup('2026-10-30', wrongClock)).toBeNull();
+    // A copy dated in the future doesn't keep the reminder away.
+    expect(backupDue({ ...newGarden(), notes: [{ id: 'n' }] } as never, '2026-10-30', wrongClock)).toBe(true);
+    expect(safetyText('2026-10-30', now)).toMatch(/Last copy today/);
+  });
+});
+
+describe('a backup that a restore would refuse', () => {
+  it('has no problems for a normal garden, and some for a duplicate id or a missing bed', () => {
+    const state = { garden: fullGarden(), userPlants: [] as Plant[] };
+    expect(backupProblems(state)).toEqual([]);
+    const first = state.garden.plantings[0]!;
+    const dup = { garden: { ...state.garden, plantings: [...state.garden.plantings, { ...first }] }, userPlants: [] as Plant[] };
+    expect(backupProblems(dup).length).toBeGreaterThan(0);
+    const lost = { garden: { ...state.garden, plantings: [{ ...first, featureId: 'no-such-bed' }] }, userPlants: [] as Plant[] };
+    expect(backupProblems(lost).length).toBeGreaterThan(0);
+    expect(copyWarning(state)).toBeNull();
+    expect(copyWarning(dup)).toBe("This copy saved, but a restore would refuse it: Two plantings in this file share one id, so it can't be restored. Keep your older copies.");
   });
 });
 

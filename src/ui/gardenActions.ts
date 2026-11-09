@@ -6,6 +6,8 @@
 import { KEEP_ALL, newGardenFrom, startAgainFrom, type Keep } from '../model/fresh';
 import { newGarden } from '../model/defaults';
 import type { Store } from '../model/store';
+import type { AppState } from '../model/types';
+import { backupProblems } from '../storage/file';
 import { defaultPrefs, type Prefs, type PrefsStore } from '../theme/prefs';
 import { addGarden, hideGarden, listGardens, openGarden, wipeAll } from '../storage/gardens';
 import { deleteAllBlobs } from '../storage/idb';
@@ -25,6 +27,12 @@ export const gardenCount = () => {
 export function lastCopy(p: Pick<Prefs, 'copies' | 'lastBackup'>): string | null {
   const l = listGardens();
   return (l.open ? p.copies[l.open] : undefined) ?? (l.gardens.length + l.hidden.length <= 1 ? p.lastBackup : null);
+}
+
+/** What to tell someone whose backup a restore would refuse, or null when it would restore. The file is saved either way. */
+export function copyWarning(state: AppState): string | null {
+  const [first] = backupProblems(state);
+  return first ? `This copy saved, but a restore would refuse it: ${first} Keep your older copies.` : null;
 }
 
 /** Notes a copy of the garden that's open. */
@@ -49,7 +57,7 @@ export function makeNewGarden(store: Store, prefsStore: PrefsStore, name: string
   // No room for it: shown anyway, it would be saved over the garden that's open.
   if (!addGarden(garden, undefined, new Date(), true) && listGardens().open) return;
   store.replace({ garden, userPlants: store.get().userPlants });
-  prefsStore.set({ onboarded: false });
+  prefsStore.set({ onboarded: false, welcomeAgain: true });
 }
 
 /**
@@ -64,7 +72,7 @@ export function startAgain(store: Store, prefsStore: PrefsStore, keep: Keep = KE
   if (!addGarden(garden, undefined, now, true) && open) return;
   if (open) hideGarden(open, undefined, now);
   store.replace({ garden, userPlants: keep.ownPlants ? store.get().userPlants : [] });
-  prefsStore.set({ onboarded: false, ...(keep.look ? {} : { look: defaultPrefs().look }) });
+  prefsStore.set({ onboarded: false, welcomeAgain: true, ...(keep.look ? {} : { look: defaultPrefs().look }) });
 }
 
 /**
@@ -81,7 +89,7 @@ export function deleteGardenFor30Days(store: Store, prefsStore: PrefsStore, id: 
   if (!addGarden(garden, undefined, new Date(), true)) return;
   hideGarden(id);
   store.replace({ garden, userPlants: store.get().userPlants });
-  prefsStore.set({ onboarded: false });
+  prefsStore.set({ onboarded: false, welcomeAgain: true });
 }
 
 /** Brings back a garden that was cleared or deleted, and opens it. */

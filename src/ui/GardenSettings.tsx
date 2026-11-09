@@ -7,7 +7,7 @@ import { setBalcony } from '../planting/balcony';
 import { isListed } from '../planting/listPlant';
 import { potsOnly } from '../planting/pots';
 import { BalconyFields } from './BalconyFields';
-import type { Garden } from '../model/types';
+import type { AppState, Garden } from '../model/types';
 import { todayIso } from '../model/ids';
 import type { PrefsStore } from '../theme/prefs';
 import { backupFile, csvFile, downloadFile, parseFileText, saveToDevice, type ParseResult } from '../storage/file';
@@ -15,7 +15,7 @@ import { askToKeep, asksOutLoud } from '../storage/persist';
 import { plantingsCsv } from '../share/export';
 import { spacingStyle } from '../planting/place';
 import { useApp } from './appContext';
-import { gardenCount, lastCopy, noteCopy } from './gardenActions';
+import { copyWarning, gardenCount, lastCopy, noteCopy } from './gardenActions';
 import { safetyText } from './setup';
 import { NAME_LENGTH, pasteOneLine } from './oneLine';
 import { usePlants } from './usePlants';
@@ -55,9 +55,16 @@ async function gatherPhotos(store: Store): Promise<Record<string, string>> {
 }
 
 /** Downloads a backup file and remembers when, for the reminder on Home. With photos, it carries every photo on a note too. */
-export async function backUp(store: Store, prefsStore?: PrefsStore, withPhotos = false) {
+export async function backUp(store: Store, prefsStore?: PrefsStore, withPhotos = false, notify?: (text: string) => void) {
   downloadFile(store.get(), withPhotos ? await gatherPhotos(store) : undefined);
   if (prefsStore) noteCopy(prefsStore, todayIso());
+  warnIfRefused(store.get(), notify);
+}
+
+/** Tells the person, in the toast, when a restore would refuse the copy just made. */
+function warnIfRefused(state: AppState, notify?: (text: string) => void) {
+  const warning = copyWarning(state);
+  if (warning) notify?.(warning);
 }
 
 let shareable: boolean | null = null;
@@ -78,16 +85,18 @@ export const canShareBackup = () => {
  * Hands a backup to the share sheet, to save to Files or send somewhere, and remembers it as a backup once shared.
  * Nothing waits before the share, so the tap still counts. If the share sheet refuses it, it downloads instead.
  */
-export async function shareBackup(store: Store, prefsStore?: PrefsStore) {
+export async function shareBackup(store: Store, prefsStore?: PrefsStore, notify?: (text: string) => void) {
   const file = backupFile(store.get());
   try {
     await navigator.share({ files: [file], title: store.get().garden.name });
     if (prefsStore) noteCopy(prefsStore, todayIso());
+    warnIfRefused(store.get(), notify);
   } catch (e) {
     // Cancelled: nothing was saved, so the reminder stays. Anything else: download it after all.
     if ((e as Error).name === 'AbortError') return;
     downloadFile(store.get());
     if (prefsStore) noteCopy(prefsStore, todayIso());
+    warnIfRefused(store.get(), notify);
   }
 }
 
@@ -182,13 +191,14 @@ function AskToKeep({ prefsStore, ask }: { prefsStore: PrefsStore; ask: () => voi
 
 /** Download, and on a phone that can, the share sheet too (Save to Files, Drive, email). */
 export function BackupButtons({ store, prefsStore, primary = true }: { store: Store; prefsStore?: PrefsStore; primary?: boolean }) {
+  const app = useApp();
   return (
     <>
-      <button type="button" class={`btn ${primary ? 'btn-primary' : ''}`} onClick={() => backUp(store, prefsStore)}>
+      <button type="button" class={`btn ${primary ? 'btn-primary' : ''}`} onClick={() => backUp(store, prefsStore, false, app.notify)}>
         Download a backup
       </button>
       {canShareBackup() && (
-        <button type="button" class="btn" title="Save it to Files, or send it to yourself" onClick={() => shareBackup(store, prefsStore)}>
+        <button type="button" class="btn" title="Save it to Files, or send it to yourself" onClick={() => shareBackup(store, prefsStore, app.notify)}>
           Save or share a copy
         </button>
       )}
@@ -374,7 +384,7 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
         <div class="button-row">
           <BackupButtons store={store} prefsStore={prefsStore} />
           {photoCount > 0 && (
-            <button type="button" class="btn" onClick={() => backUp(store, prefsStore, true)}>
+            <button type="button" class="btn" onClick={() => backUp(store, prefsStore, true, app.notify)}>
               With photos ({photoCount})
             </button>
           )}
