@@ -10,7 +10,8 @@ import { makeSpace, PLOTS, SPACES, type Space } from '../src/model/spaces';
 import type { Garden, Plant } from '../src/model/types';
 import { validateGarden } from '../src/model/validate';
 import { addPlanting, isContainer, makePlanting, unknownPlant } from '../src/planting/place';
-import { queryWords, scoreOf, search, type Result } from '../src/ui/search';
+import { emptyFilter } from '../src/library/library';
+import { plantCount, queryWords, scoreOf, search, searchPlants, type Result } from '../src/ui/search';
 
 const library = [...vegetables, ...herbs] as Plant[];
 const byId = new Map(library.map((p) => [p.id, p]));
@@ -138,5 +139,30 @@ describe('search everything', () => {
     const rs = search('p', ctx);
     expect(rs.filter((r) => r.group === 'Plants').length).toBeLessThanOrEqual(8);
     expect(search('xyzzy', ctx)).toEqual([]);
+  });
+});
+
+describe('plant search on the Plants view', () => {
+  const ids = (q: string) => searchPlants(library, { ...emptyFilter, query: q }).map((p) => p.id);
+  it('finds nothing for a query with no letter or digit, without throwing', () => {
+    for (const q of ['(', '[', '*', '\u{1F642}', '  (  ']) {
+      expect(ids(q)).toEqual([]);
+      expect(search(q, { garden: newGarden(), plants: library, plantOf, locked: false })).toEqual([]);
+    }
+  });
+  it('treats spaces only as no query', () => {
+    expect(ids('   ')).toEqual(ids(''));
+    expect(ids('').length).toBeGreaterThan(0);
+  });
+  it('drops a trailing e or s when nothing is found', () => {
+    expect(ids('tomato').length).toBeGreaterThan(0);
+    expect(ids('tomatoe')).toEqual(ids('tomato'));
+    expect(ids('tomatoes').length).toBeGreaterThan(0);
+    expect(ids('xyzzy')).toEqual([]);
+  });
+  it('has the same "of" figure for no query, spaces and a real query', () => {
+    const count = (q: string) => plantCount(library, searchPlants(library, { ...emptyFilter, query: q }), q, { draft: false, wantOnly: false });
+    expect(count('   ')).toEqual(count(''));
+    expect(count('tom').of).toBe(count('').of);
   });
 });

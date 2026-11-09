@@ -2,7 +2,8 @@
 // one box. "add tomato", "go to the shed" and "show sun" all work: every word
 // must start a word in the result, and the result's own name counts most.
 
-import { plantMatches, singular } from '../library/library';
+import { filterPlants, plantMatches, singular, type PlantFilter } from '../library/library';
+import { splitCore } from '../library/order';
 import { GLOSSARY } from '../content/glossary';
 import { HELP, WORDS_TOPIC } from '../content/help';
 import { featureLabel, KINDS, MATERIAL_LABEL, type Target } from '../model/features';
@@ -226,6 +227,8 @@ export interface SearchContext {
 /** Results for a query, best first in each group; groups in a fixed order, but plants first when one is named just what was typed. */
 export function search(query: string, ctx: SearchContext): Result[] {
   const words = queryWords(query);
+  // Something typed but no letter or digit in it ("(", an emoji): nothing matches.
+  if (query.trim() && !wordsOf(query).length) return [];
   const acts = actions(ctx.garden, ctx.locked);
   if (!words.length) return SUGGESTED.map((k) => acts.find((a) => a.key === k)).filter((a): a is Candidate => !!a).map(strip);
 
@@ -264,3 +267,28 @@ export function search(query: string, ctx: SearchContext): Result[] {
 }
 
 const strip = ({ words: _w, ...r }: Candidate): Result => r;
+
+/** The plants a query finds on the Plants view. Spaces only is no query; no letter or digit finds nothing; a word that finds nothing is tried without a trailing "es", "e" or "s". */
+export function searchPlants(plants: Plant[], filter: PlantFilter): Plant[] {
+  const typed = filter.query.trim();
+  if (!typed) return filterPlants(plants, { ...filter, query: '' });
+  const words = wordsOf(typed);
+  if (!words.length) return [];
+  const found = filterPlants(plants, filter);
+  if (found.length) return found;
+  const last = words[words.length - 1]!;
+  for (const end of ['es', 'e', 's']) {
+    if (!last.endsWith(end) || last.length - end.length < 3) continue;
+    const again = filterPlants(plants, { ...filter, query: [...words.slice(0, -1), last.slice(0, -end.length)].join(' ') });
+    if (again.length) return again;
+  }
+  return found;
+}
+
+/** "N of M plants": N is what's shown; M is what the list shows with no query, so it doesn't move as you type. */
+export function plantCount(plants: Plant[], results: Plant[], query: string, opts: { draft: boolean; wantOnly: boolean }): { shown: number; of: number } {
+  const searching = !!query.trim();
+  const shown = opts.draft || searching || opts.wantOnly ? results.length : splitCore(results).core.length;
+  const of = opts.draft || opts.wantOnly ? plants.length : splitCore(plants).core.length;
+  return { shown, of };
+}

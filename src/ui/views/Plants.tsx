@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Heart } from '../Heart';
-import { blankPlant, canSowIn, copyAsUserPlant, deleteUserPlant, emptyFilter, filterPlants, saveUserPlant, type PlantFilter } from '../../library/library';
+import { blankPlant, canSowIn, copyAsUserPlant, deleteUserPlant, emptyFilter, saveUserPlant, type PlantFilter } from '../../library/library';
 import { beginnerOrder, isEasy, splitCore } from '../../library/order';
 import { plantHere } from '../../lifecycle/growth';
+import { plantCount, searchPlants } from '../search';
 import { MorePlants } from '../MorePlants';
 import { featureLabel } from '../../model/features';
 import { currentStage, stageLabel } from '../../lifecycle/stages';
@@ -85,7 +86,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
     // With nothing typed, the plants most beginners grow come first; a search keeps its own order.
     // Your list is your list: all of it, easy or not.
     // Sow or plant this month goes by the months here, moved for your season.
-    const matched = filterPlants(plants.map((p) => plantHere(p, garden)), wantOnly ? { ...filter, easyOnly: false } : filter);
+    const matched = searchPlants(plants.map((p) => plantHere(p, garden)), wantOnly ? { ...filter, easyOnly: false } : filter);
     const found = filter.query.trim() ? matched : beginnerOrder(matched);
     return wantOnly ? found.filter((p) => wanted.includes(p.id)) : found;
   }, [plants, filter, wantOnly, wanted, garden.latitude, garden.longitude, garden.heightM, garden.frostHollow, garden.lastFrost]);
@@ -93,8 +94,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
   // Beyond the core 150, plants wait under More plants until they're checked; a search or your list shows everything.
   const { core, more } = filter.query.trim() || wantOnly ? { core: results, more: [] } : splitCore(results);
   // The count is of what's shown: plants waiting to be checked only count once they're on.
-  const shownCount = app.draftPlants ? results.length : core.length;
-  const allCount = app.draftPlants || filter.query.trim() || wantOnly ? plants.length : splitCore(plants).core.length;
+  const { shown: shownCount, of: allCount } = plantCount(plants, results, filter.query, { draft: !!app.draftPlants, wantOnly });
 
   // On a wide screen, show the first result in view rather than an empty pane.
   const firstShown = core[0] ?? results[0];
@@ -149,7 +149,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
       <label class="field search">
         <span class="visually-hidden">Search plants</span>
         {/* Searching looks through every plant, not just the easy ones it opens on. */}
-        <input type="search" placeholder="Search by name, e.g. bean or Allium" value={filter.query} onInput={(e) => setFilter({ ...filter, query: (e.currentTarget as HTMLInputElement).value, ...(filter.query ? {} : { easyOnly: false }) })} />
+        <input type="search" placeholder="Search by name, e.g. bean or Allium" value={filter.query} onInput={(e) => setFilter({ ...filter, query: (e.currentTarget as HTMLInputElement).value, ...(filter.query.trim() ? {} : { easyOnly: false }) })} />
       </label>
       <div class="filters">
         <select aria-label="Kind of plant" value={filter.category} onChange={(e) => setFilter({ ...filter, category: (e.currentTarget as HTMLSelectElement).value as PlantFilter['category'] })}>
