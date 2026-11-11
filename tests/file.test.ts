@@ -3,7 +3,7 @@ import { newAppState } from '../src/model/defaults';
 import { SCHEMA_VERSION } from '../src/model/migrate';
 import type { AppState, Plant } from '../src/model/types';
 import { validatePlant } from '../src/model/validate';
-import { parseFile, parseFileText, toFile } from '../src/storage/file';
+import { leftOutText, parseFile, parseFileText, toFile } from '../src/storage/file';
 import v0 from './fixtures/garden-v0.json';
 import v3 from './fixtures/garden-v3.json';
 import badDates from './fixtures/attack-bad-dates.json';
@@ -170,11 +170,19 @@ describe('a restore refuses data it can not use', () => {
     expect(parseFileText(text(fixed)).ok).toBe(true);
   });
 
-  it('refuses a planting in a bed that is not there', () => {
-    expect(errorsOf(missingBed)).toEqual(["A plant in this file sits in a bed that isn't there, so it can't be restored."]);
+  it('restores a garden with a planting in a bed that is not there, leaving that planting out and saying so', () => {
+    const r = parseFileText(text(missingBed));
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.leftOut).toBe(1);
+    expect(r.state.garden.plantings).toHaveLength(missingBed.garden.plantings.length - 1);
+    const beds = new Set(r.state.garden.features.map((f) => f.id));
+    expect(r.state.garden.plantings.every((p) => beds.has(p.featureId))).toBe(true);
+    expect(leftOutText(1)).toMatch(/One plant was left out/);
     const fixed = clone(missingBed);
     fixed.garden.plantings[1]!.featureId = 'bed2';
-    expect(parseFileText(text(fixed)).ok).toBe(true);
+    const whole = parseFileText(text(fixed));
+    expect(whole.ok && whole.leftOut).toBeFalsy();
   });
 
   it('refuses duplicate ids among your own plants', () => {

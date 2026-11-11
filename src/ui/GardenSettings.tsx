@@ -10,7 +10,7 @@ import { BalconyFields } from './BalconyFields';
 import type { AppState, Garden } from '../model/types';
 import { todayIso } from '../model/ids';
 import type { PrefsStore } from '../theme/prefs';
-import { backupFile, csvFile, downloadFile, parseFileText, saveToDevice, type ParseResult } from '../storage/file';
+import { backupFile, csvFile, downloadFile, leftOutText, parseFileText, saveToDevice, type ParseResult } from '../storage/file';
 import { askToKeep, asksOutLoud } from '../storage/persist';
 import { plantingsCsv } from '../share/export';
 import { spacingStyle } from '../planting/place';
@@ -258,7 +258,7 @@ export function GardenSettings({ store, garden, prefsStore }: Props) {
       setOpened(result);
       return setMessage({ kind: 'error', lines: [`This browser has no room left, so nothing has changed: ${garden.name} is as it was. Download a backup of it to keep it safe.`] });
     }
-    setMessage({ kind: 'ok', lines: [`${asNew ? 'Added' : 'Restored'} "${store.get().garden.name}" from the backup${restored ? `, with ${restored} ${restored === 1 ? 'photo' : 'photos'}` : ''}.${!listGardens().open ? '' : asNew ? ` It’s open now; ${garden.name} is kept, to switch back to in Settings.` : ` Your garden as it was is under Bring back a garden for 30 days.`}`] });
+    setMessage({ kind: 'ok', lines: [`${asNew ? 'Added' : 'Restored'} "${store.get().garden.name}" from the backup${restored ? `, with ${restored} ${restored === 1 ? 'photo' : 'photos'}` : ''}.${leftOutText(result.leftOut)}${!listGardens().open ? '' : asNew ? ` It’s open now; ${garden.name} is kept, to switch back to in Settings.` : ` Your garden as it was is under Bring back a garden for 30 days.`}`] });
   };
 
   return (

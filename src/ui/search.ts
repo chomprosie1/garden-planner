@@ -285,10 +285,9 @@ export function searchPlants(plants: Plant[], filter: PlantFilter): Plant[] {
   return found;
 }
 
-/** "N of M plants": N is what's shown; M is what the list shows with no query, so it doesn't move as you type. */
+/** "N of M plants": N is what's shown; M is every plant a search can find, so it doesn't move as you type and N never passes it. */
 export function plantCount(plants: Plant[], results: Plant[], query: string, opts: { draft: boolean; wantOnly: boolean }): { shown: number; of: number } {
   const searching = !!query.trim();
   const shown = opts.draft || searching || opts.wantOnly ? results.length : splitCore(results).core.length;
-  const of = opts.draft || opts.wantOnly ? plants.length : splitCore(plants).core.length;
-  return { shown, of };
+  return { shown, of: plants.length };
 }

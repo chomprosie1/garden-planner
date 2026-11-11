@@ -242,6 +242,7 @@ export function App({ store, prefsStore }: { store: Store; prefsStore: PrefsStor
           prefs={prefs}
           prefsStore={prefsStore}
           go={navigate}
+          notify={actions.notify}
           again={gardenCount() > 1}
           showFirst={() => {
             // A calm first landing: Today, with the first job picked out. Nothing selected on the plan, no toast.

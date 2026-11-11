@@ -15,7 +15,25 @@ export interface GardenFile {
   photos?: Record<string, string>;
 }
 
-export type ParseResult = { ok: true; state: AppState; photos?: Record<string, string>; /** The day the backup was made, if it says. */ madeOn?: string } | { ok: false; errors: string[] };
+export type ParseResult =
+  | { ok: true; state: AppState; photos?: Record<string, string>; /** The day the backup was made, if it says. */ madeOn?: string; /** Plantings left out, as their bed wasn't in the file. */ leftOut?: number }
+  | { ok: false; errors: string[] };
+
+/** What a restore says of plantings it left out: "" when there were none. */
+export const leftOutText = (n = 0) => (n ? ` ${n === 1 ? 'One plant was' : `${n} plantings were`} left out, as the bed ${n === 1 ? 'it was in' : 'they were in'} wasn’t in the file.` : '');
+
+/**
+ * A restore's one repair: plantings in a bed that isn't in the file (left by an old bug, say) are left out, with their
+ * notes, rather than the whole garden being refused. Anything else wrong is still refused.
+ */
+function withoutStrays(state: AppState): { state: AppState; leftOut: number } {
+  const g = state.garden;
+  const beds = new Set(g.features.map((f) => f.id));
+  const strays = new Set(g.plantings.filter((p) => !beds.has(p.featureId)).map((p) => p.id));
+  if (!strays.size) return { state, leftOut: 0 };
+  const garden = { ...g, plantings: g.plantings.filter((p) => !strays.has(p.id)), notes: g.notes.filter((n) => !n.plantingId || !strays.has(n.plantingId)) };
+  return { state: { ...state, garden }, leftOut: strays.size };
+}
 
 export function toFile(state: AppState, now = new Date()): GardenFile {
   return {
@@ -61,8 +79,9 @@ export function parseFileText(text: string): ParseResult {
   try {
     const result = parseFile(JSON.parse(text));
     if (!result.ok) return result;
-    const errors = [...gardenOutOfBounds(result.state.garden), ...unusable(result.state)];
-    return errors.length ? { ok: false, errors } : result;
+    const { state, leftOut } = withoutStrays(result.state);
+    const errors = [...gardenOutOfBounds(state.garden), ...unusable(state)];
+    return errors.length ? { ok: false, errors } : { ...result, state, ...(leftOut ? { leftOut } : {}) };
   } catch {
     return { ok: false, errors: ['The file is not valid JSON.'] };
   }

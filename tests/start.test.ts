@@ -164,5 +164,7 @@ describe('plant search on the Plants view', () => {
     const count = (q: string) => plantCount(library, searchPlants(library, { ...emptyFilter, query: q }), q, { draft: false, wantOnly: false });
     expect(count('   ')).toEqual(count(''));
     expect(count('tom').of).toBe(count('').of);
+    // A search reaches past the main list, so the total is every plant: never "210 of 150".
+    for (const q of ['', 'a', 'e', 'tom']) expect(count(q).shown).toBeLessThanOrEqual(count(q).of);
   });
 });

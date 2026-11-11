@@ -175,14 +175,14 @@ describe('where the garden is', () => {
 });
 
 describe('a backup that a restore would refuse', () => {
-  it('has no problems for a normal garden, and some for a duplicate id or a missing bed', () => {
+  it('has no problems for a normal garden, and some for a duplicate id; a missing bed is repaired, not refused', () => {
     const state = { garden: fullGarden(), userPlants: [] as Plant[] };
     expect(backupProblems(state)).toEqual([]);
     const first = state.garden.plantings[0]!;
     const dup = { garden: { ...state.garden, plantings: [...state.garden.plantings, { ...first }] }, userPlants: [] as Plant[] };
     expect(backupProblems(dup).length).toBeGreaterThan(0);
     const lost = { garden: { ...state.garden, plantings: [{ ...first, featureId: 'no-such-bed' }] }, userPlants: [] as Plant[] };
-    expect(backupProblems(lost).length).toBeGreaterThan(0);
+    expect(backupProblems(lost)).toEqual([]);
     expect(copyWarning(state)).toBeNull();
     expect(copyWarning(dup)).toBe("This copy saved, but a restore would refuse it: Two plantings in this file share one id, so it can't be restored. Keep your older copies.");
   });

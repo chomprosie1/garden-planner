@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { KEEP_ALL, KEEP_DAYS, whatGoes, type Keep } from '../model/fresh';
 import type { Store } from '../model/store';
 import type { AppState, Garden } from '../model/types';
-import { downloadFile } from '../storage/file';
+import { backupProblems, downloadFile } from '../storage/file';
 import { daysLeft, listGardens, peekGarden, renameGarden, type GardenEntry } from '../storage/gardens';
 import { NAME_LENGTH, pasteOneLine } from './oneLine';
 import { photoIds } from '../storage/photos';
@@ -289,12 +289,18 @@ export function CarefulDialog({ mode, entry = null, store, prefsStore, garden, c
   };
   const saveCopies = async () => {
     if (mode === 'everything') {
-      // Each garden as its own file.
+      // Each garden as its own file; any a restore would refuse are named together, once, at the end.
+      const refused: string[] = [];
       for (const e of [...gardens, ...hidden]) {
         const g = e.id === open ? garden : peekGarden(e.id);
-        if (g) copyOf({ garden: g, userPlants: store.get().userPlants });
+        if (g) {
+          const state = { garden: g, userPlants: store.get().userPlants };
+          downloadFile(state);
+          if (backupProblems(state).length) refused.push(g.name);
+        }
         await new Promise((r) => setTimeout(r, 400));
       }
+      if (refused.length) app.notify(`Copies saved, but a restore would refuse the copy of ${refused.join(' and ')}. Keep your older copies.`);
     } else if (target === garden) await backUp(store, prefsStore, photoIds(garden).size > 0, app.notify);
     else if (target) copyOf({ garden: target, userPlants: store.get().userPlants });
     next();

@@ -221,6 +221,9 @@ interface Drawing {
   down: { screen: Point; world: Point } | null;
 }
 
+/** Drags of a part of something, which wait for the press to move as far as a whole-thing move does. */
+const HANDLE_DRAGS = new Set<Drag['kind']>(['north', 'plantEnd', 'vertex', 'radius', 'rotate']);
+
 const emptyDrawing = (): Drawing => ({ points: [], cursor: null, snap: 'none', typed: '', mode: 'idle', down: null });
 
 /** "Veg bed deleted, with 3 plantings and 1 note." */
@@ -262,6 +265,9 @@ export function PlanCanvas(props: PlanCanvasProps) {
   const hover = useRef<string | null>(null);
   /** The pointer type of the press that began the current gesture. */
   const downType = useRef('mouse');
+  /** Where the press began on screen, and whether a handle drag has gone past the finger's threshold yet. */
+  const downAt = useRef<Point>([0, 0]);
+  const handleLive = useRef(false);
   /** The latest hover callback, and a once-per-frame sender for it. */
   const hoverCb = useRef(props.onHoverPoint);
   hoverCb.current = props.onHoverPoint;
@@ -917,6 +923,8 @@ export function PlanCanvas(props: PlanCanvasProps) {
 
   const onPointerDown = (e: PointerEvent) => {
     downType.current = e.pointerType;
+    downAt.current = screenOf(e);
+    handleLive.current = false;
     const c = canvas.current!;
     try {
       c.setPointerCapture(e.pointerId);
@@ -1154,6 +1162,11 @@ export function PlanCanvas(props: PlanCanvasProps) {
     }
     const d = drag.current;
     if (d) {
+      // A corner, handle, end or the north arrow moves only once the press has really moved: a finger's wobble on a tap doesn't nudge it.
+      if (HANDLE_DRAGS.has(d.kind) && !handleLive.current) {
+        if (!isDrag(s[0] - downAt.current[0], s[1] - downAt.current[1], downType.current)) return;
+        handleLive.current = true;
+      }
       switch (d.kind) {
         case 'pan':
           view.current = pan(v, s[0] - d.last[0], s[1] - d.last[1]);
@@ -1319,7 +1332,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
       if (p.onHoverPoint) hoverSend.current?.push(world);
       const g = garden();
       // What a click here would pick, so the highlight never points at something else.
-      const t = pickAt(g, p.plantOf, world, { planting: tolMm(3), feature: tolMm(6) }, p.selected, !p.readOnly && (p.edit ?? 'layout') === 'layout');
+      const t = pickAt(g, p.plantOf, world, { planting: tolMm(HIT_PX.mouse.planting), feature: tolMm(HIT_PX.mouse.feature) }, p.selected, !p.readOnly && (p.edit ?? 'layout') === 'layout');
       const h = t && t.type !== 'boundary' ? t.id : null;
       if (h !== hover.current) {
         hover.current = h;

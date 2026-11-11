@@ -34,7 +34,7 @@ export function PrintSheet({ garden, userPlants, close }: { garden: Garden; user
       <p class="muted small">Printed {today.split('-').reverse().join('/')}. Dates with “about” are expected, not recorded.</p>
       {garden.view !== 'list' && plants && <MiniPlan garden={garden} width={680} height={460} pad={0.04} plantOf={plantOf} class="print-plan" />}
       {!plants && <p class="muted">Loading your plants…</p>}
-      {plants && beds.length === 0 && <p>Nothing’s planted yet, so there’s no year to print.</p>}
+      {plants && beds.length === 0 && <p>{garden.plantings.some((p) => !p.removedOn) ? 'Nothing’s growing or planned for the year ahead, so there’s no year to print.' : 'Nothing’s planted yet, so there’s no year to print.'}</p>}
       {beds.length > 0 && (
         <section class="print-bed">
           <h2>The year ahead</h2>

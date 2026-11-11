@@ -11,7 +11,7 @@ import { markBedsToMake } from '../planting/firstBed';
 import { applyKit, kitsFor, type Kit } from '../planting/kits';
 import { spacingStyle } from '../planting/place';
 import type { Prefs, PrefsStore, View } from '../theme/prefs';
-import { parseFileText } from '../storage/file';
+import { leftOutText, parseFileText } from '../storage/file';
 import { GardenNameField, placeText, restoreBackup, UseLocationButton } from './GardenSettings';
 import { BalconyFields } from './BalconyFields';
 import { KitPicker } from './KitPicker';
@@ -32,6 +32,8 @@ interface Props {
   prefs: Prefs;
   prefsStore: PrefsStore;
   go: (v: View) => void;
+  /** A message once the app is showing, such as what a restore left out. */
+  notify?: (text: string) => void;
   /** Setting up another garden, or starting again: straight to the questions, with no welcome. */
   again?: boolean;
   /** At the end, with a job to do: Today, with the first job picked out. */
@@ -50,7 +52,7 @@ const BEDS_TO_MAKE = ['garden', 'allotment', 'bed'];
  * First run: where your garden is, what you're growing in, and what you'd like to grow (a starter kit, and
  * favourites for your sowing list). Then Today, with real jobs. Every step can be skipped; the look is in Settings.
  */
-export function Onboarding({ store, garden, prefs, prefsStore, go, again = false, showFirst }: Props) {
+export function Onboarding({ store, garden, prefs, prefsStore, go, notify, again = false, showFirst }: Props) {
   const [step, setStep] = useState(again ? 1 : 0);
   const backupInput = useRef<HTMLInputElement>(null);
   const [restoring, setRestoring] = useState(false);
@@ -134,6 +136,7 @@ export function Onboarding({ store, garden, prefs, prefsStore, go, again = false
     // It's been set up already, on the old device.
     prefsStore.set({ onboarded: true, welcomeAgain: false, seenNews: latestNews().id, welcomedOn: todayIso(), setupHidden: true, northChecked: true });
     go('home');
+    if (result.leftOut) notify?.(`Your garden is back.${leftOutText(result.leftOut)}`);
   };
 
   if (step === 0)
