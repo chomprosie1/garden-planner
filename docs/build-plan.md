@@ -2769,6 +2769,14 @@ Added 9 Nov 2026, from the owner's own use: the plan feels laggy and imprecise, 
   - The rest comes from the walk-through: finding the month view, the list of beds and Notes, and a less crowded plan on a phone.
 - Flagged, not built: a magnifier or lifted drag, typed positions, feeding in the plant form, the sun grid off the main thread, a warning when two tabs are open.
 
+**Progress, 11 Nov 2026** (on `phase-2c`, not yet merged or pushed; two `/code-review` passes, both sets of fixes in):
+- **57i built.** Plants more than a metre past the plan's drawn area are left out, shadows and labels too. Snapping is a switch in the ··· menu (a setting, on by default); off, things go where they're put, as with Alt. On a touch screen the sheet for a planting, bed or path has four 1 cm arrows, above its folded details; they ask first if a plant would leave its bed, as the arrow keys do.
+- **57j built, except the care jobs the sweep found missing.** Start from a plant like it (the app's plants only): it fills the form and keeps the name, and is refused with a message once anything else has been filled in. The form takes pests, neighbours (any plant, the app's first) and winter notes; a plant with no months to sow, plant out or pick says it won't get jobs. Deleting your own plant takes all its plantings in the open garden, past ones too, with their notes, its trays and its place on Want to grow, and comes off your other plants' neighbours; the notice says what went, and one Undo brings it back. Seed packets stay. Your own plants made from scratch, with no growth timing, are never judged late; copies of the app's plants are judged as those plants are.
+- **The sweep, followed up:** cape gooseberry and ground cherry get picking jobs in their own year (the sweep looked a year later, after an annual is gone). Hart's tongue and male fern, pittosporum and euonymus still have no jobs at all: their care needs sourced dates, so they go to the data track.
+- **57k:** "No room" says nothing was added (none of those notices offered Undo). The walk-through items are still to do.
+- **Open question:** deleting a plant with a history loses that history (Undo aside). The alternative is retiring it: hidden from lists but kept for past plantings. That needs a new field (a schema change), so it's your call.
+- **Fixed on the way:** a test from 57h had a type error that stopped `npm run build` (CI would have failed the push).
+
 ### Phase 3 — Ready to charge (30 Nov to 18 Dec)
 Starts once the review's targets are met; if they aren't, the misses are fixed first. Releases 59 and 60 need your decisions, listed after the table.
 
