@@ -207,12 +207,17 @@ export const saveUserPlant =
     return { ...s, userPlants: exists ? s.userPlants.map((x) => (x.id === p.id ? p : x)) : [...s.userPlants, p] };
   };
 
-/** How many plantings and trays of it the garden has, now or in the past: what deleting it takes with it. */
-export const usesOf = (s: AppState, id: string) => s.garden.plantings.filter((p) => p.plantId === id).length + (s.garden.trays ?? []).filter((t) => t.plantId === id).length;
+/** What deleting it takes from the open garden: its plantings on the plan now, and its trays in the Shed. */
+export const usesOf = (s: AppState, id: string) => ({
+  plantings: s.garden.plantings.filter((p) => p.plantId === id && !p.removedOn).length,
+  trays: (s.garden.trays ?? []).filter((t) => t.plantId === id).length,
+});
 
 /**
- * Deletes one of your own plants, and with it, in the open garden, its plantings (past ones too), trays and place on the
- * Want to grow list, so nothing is left as an unknown plant. One change, so one Undo brings it all back.
+ * Deletes one of your own plants, and with it, in the open garden, its plantings on the plan now (with their notes, as
+ * deleting a planting does), its trays and its place on the Want to grow list. One change, so one Undo brings it all
+ * back. Past plantings stay, with their harvests, as the bed's history for rotation; so do seed packets, which are
+ * things you have. Other saved gardens aren't open, so aren't changed.
  */
 export const deleteUserPlant =
   (id: string): Change =>
@@ -220,9 +225,11 @@ export const deleteUserPlant =
     const userPlants = s.userPlants.filter((x) => x.id !== id);
     if (userPlants.length === s.userPlants.length) return s;
     const g = s.garden;
+    const gone = new Set(g.plantings.filter((p) => p.plantId === id && !p.removedOn).map((p) => p.id));
     const garden = {
       ...g,
-      plantings: g.plantings.filter((p) => p.plantId !== id),
+      plantings: g.plantings.filter((p) => !gone.has(p.id)),
+      notes: g.notes.filter((n) => !n.plantingId || !gone.has(n.plantingId)),
       wishlist: g.wishlist.filter((w) => w !== id),
       ...(g.trays ? { trays: g.trays.filter((t) => t.plantId !== id) } : {}),
     };

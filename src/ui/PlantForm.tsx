@@ -113,9 +113,13 @@ interface Props {
 export function PlantForm({ initial, onSave, onCancel, others = [] }: Props) {
   const [p, setP] = useState<Plant>(initial);
   const [errors, setErrors] = useState<string[]>([]);
-  const [from, setFrom] = useState<{ typed: string; got?: Plant; miss?: boolean }>({ typed: '' });
+  const [from, setFrom] = useState<{ typed: string; got?: Plant; miss?: boolean; kept?: boolean }>({ typed: '' });
+  /** What the form held when it was opened or last started from a plant: picking one replaces it only if nothing but the name has changed since. */
+  const [base, setBase] = useState<Plant>(initial);
   const isNew = initial.commonName === '';
   const library = others.filter((x) => !x.userAdded);
+  /** Neighbours can be any plant, your own too, but not this one. */
+  const neighbours = others.filter((x) => x.id !== p.id);
   const set = (patch: Partial<Plant>) => setP((x) => ({ ...x, ...patch }));
   const setCond = (patch: Partial<Plant['conditions']>) => setP((x) => ({ ...x, conditions: { ...x.conditions, ...patch } }));
   const setSize = (patch: Partial<Plant['size']>) => setP((x) => ({ ...x, size: { ...x.size, ...patch } }));
@@ -132,8 +136,14 @@ export function PlantForm({ initial, onSave, onCancel, others = [] }: Props) {
   /** Starts the form from a plant like it: everything copied, the name you've typed kept, and its care jobs followed. */
   const startFrom = (typed: string) => {
     const got = byName(library, typed);
-    setFrom({ typed, got, miss: !!typed.trim() && !got });
-    if (got) setP((x) => ({ ...copyAsUserPlant(got, x.commonName.trim() || undefined), id: x.id }));
+    const asWas = (x: Plant) => JSON.stringify({ ...x, commonName: '' });
+    // Anything filled in besides the name is kept, not copied over without a word.
+    const kept = !!got && asWas(p) !== asWas(base);
+    setFrom({ typed, got, miss: !!typed.trim() && !got, kept });
+    if (!got || kept) return;
+    const copy = { ...copyAsUserPlant(got, p.commonName.trim() || undefined), id: p.id };
+    setP(copy);
+    setBase(copy);
   };
 
   const submit = (e: Event) => {
@@ -189,7 +199,9 @@ export function PlantForm({ initial, onSave, onCancel, others = [] }: Props) {
             }}
           />
           <p class="small" role="status">
-            {from.got
+            {from.got && from.kept
+              ? `You’ve filled things in already, so nothing was copied from ${from.got.commonName}. To start from it, cancel and add the plant again.`
+              : from.got
               ? `Filled in from ${from.got.commonName}, and it gets the same care jobs. Change anything that’s different about yours.`
               : from.miss
                 ? 'There’s no plant called that. Pick one from the list as you type.'
@@ -200,6 +212,13 @@ export function PlantForm({ initial, onSave, onCancel, others = [] }: Props) {
       {library.length > 0 && (
         <datalist id="plant-names">
           {library.map((x) => (
+            <option key={x.id} value={x.commonName} />
+          ))}
+        </datalist>
+      )}
+      {neighbours.length > 0 && (
+        <datalist id="neighbour-names">
+          {neighbours.map((x) => (
             <option key={x.id} value={x.commonName} />
           ))}
         </datalist>
@@ -373,10 +392,10 @@ export function PlantForm({ initial, onSave, onCancel, others = [] }: Props) {
             Add a pest or problem
           </button>
         </fieldset>
-        {library.length > 0 && (
+        {neighbours.length > 0 && (
           <>
-            <NeighbourList label="Grows well with" ids={companions.good} others={library} listId="plant-names" onChange={(good) => setCompanions({ good })} />
-            <NeighbourList label="Keep apart from" ids={companions.avoid} others={library} listId="plant-names" onChange={(avoid) => setCompanions({ avoid })} />
+            <NeighbourList label="Grows well with" ids={companions.good} others={neighbours} listId="neighbour-names" onChange={(good) => setCompanions({ good })} />
+            <NeighbourList label="Keep apart from" ids={companions.avoid} others={neighbours} listId="neighbour-names" onChange={(avoid) => setCompanions({ avoid })} />
           </>
         )}
         <label class="field">

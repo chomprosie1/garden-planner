@@ -1736,7 +1736,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
         if (!st || !v) return;
         const step = snapStepFor(v.scale);
         const [x, y] = toWorld(v, [size.current.w / 2, size.current.h / 2]);
-        const mid: Point = [Math.round(x / step) * step, Math.round(y / step) * step];
+        const mid: Point = P.current.snapOff ? [Math.round(x), Math.round(y)] : [Math.round(x / step) * step, Math.round(y / step) * step];
         // Tapped rather than dragged: in the middle of the view if it's clear, otherwise the nearest clear spot inside the garden.
         const at = clearSpot(garden(), stickerFeature(st, mid), mid, step) ?? mid;
         dropStickerAt(st, at, at[0] === mid[0] && at[1] === mid[1] ? [Math.round(x), Math.round(y)] : at);

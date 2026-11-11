@@ -70,19 +70,34 @@ describe('deleting one of your own plants', () => {
     g = addPlanting(g, makePlanting(mine, bed.id, 'single', [500, 500]));
     g = addPlanting(g, makePlanting(mine, bed.id, 'single', [1500, 500]));
     g = addPlanting(g, makePlanting(apple, bed.id, 'single', [2500, 500]));
-    g = { ...g, wishlist: [mine.id, 'apple'], trays: [{ id: 't1', plantId: mine.id, container: 'module', count: 6, sownOn: '2027-04-01' } as never] };
+    g = addPlanting(g, { ...makePlanting(mine, bed.id, 'single', [500, 900]), sownOn: '2026-05-01', removedOn: '2026-09-01', harvests: [{ date: '2026-08-01' }] } as never);
+    const growing = g.plantings[0]!.id;
+    g = {
+      ...g,
+      wishlist: [mine.id, 'apple'],
+      trays: [{ id: 't1', plantId: mine.id, container: 'module', count: 6, sownOn: '2027-04-01' } as never],
+      notes: [{ id: 'n1', date: '2027-05-01', text: 'Up at last', plantingId: growing } as never, { id: 'n2', date: '2027-05-01', text: 'The bed' } as never],
+    };
     return { garden: g, userPlants: [mine] };
   };
 
-  it('takes its plantings, trays and wish with it, and leaves everything else', () => {
+  it('takes its plantings on the plan, their notes, its trays and its wish, and leaves everything else', () => {
     const s = setup();
-    expect(usesOf(s, mine.id)).toBe(3);
+    expect(usesOf(s, mine.id)).toEqual({ plantings: 2, trays: 1 });
     const after = deleteUserPlant(mine.id)(s);
     expect(after.userPlants).toEqual([]);
-    expect(after.garden.plantings.map((p) => p.plantId)).toEqual(['apple']);
+    expect(after.garden.plantings.filter((p) => !p.removedOn).map((p) => p.plantId)).toEqual(['apple']);
+    expect(after.garden.notes.map((n) => n.id)).toEqual(['n2']);
     expect(after.garden.trays).toEqual([]);
     expect(after.garden.wishlist).toEqual(['apple']);
     expect(after.garden.features).toBe(s.garden.features);
+  });
+
+  it('keeps its past plantings, with their harvests, as the bed’s history', () => {
+    const s = setup();
+    const past = deleteUserPlant(mine.id)(s).garden.plantings.filter((p) => p.removedOn);
+    expect(past).toHaveLength(1);
+    expect(past[0]!.plantId).toBe(mine.id);
   });
 
   it('comes back whole with one Undo', () => {

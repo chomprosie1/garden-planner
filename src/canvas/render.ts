@@ -392,14 +392,14 @@ export function renderStatic(ctx: CanvasRenderingContext2D, s: Scene) {
   if (s.time?.gaps.size) for (const f of g.features) if (s.time.gaps.has(f.id)) drawGap(ctx, s, f);
   // On a day, plantings cleared since are back, and ones cleared by then are left out.
   const planted = s.plantOf ? byHeight(s.time ? g.plantings.filter((pl) => stageFor(s, pl) !== 'cleared') : g.plantings.filter(isActive), s.plantOf) : [];
-  // Plantings well off this canvas are left undrawn, shadow and label too; the picked one never is.
+  // Plantings well off this canvas are left undrawn, shadow and label too. The plan's ground layer is this canvas plus
+  // a margin, and is drawn again once a pan runs past it, so nothing on screen is ever left out.
   const view = viewBounds(v, s.width, s.height);
-  const pickedId = s.selected?.type === 'planting' ? s.selected.id : null;
   const plantBox: Bounds = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
   const shown: [Planting, Plant][] = [];
   for (const pl of planted) {
     const plant = plantFor(s, pl);
-    if (pl.id === pickedId || inView(plantingBounds(pl, plantBox), view, CULL_PAD_MM + spreadOf(plant) / 2)) shown.push([pl, plant]);
+    if (inView(plantingBounds(pl, plantBox), view, CULL_PAD_MM + spreadOf(plant) / 2)) shown.push([pl, plant]);
   }
   if (depth) for (const [pl, plant] of shown) drawPlantingShadow(ctx, s, pl, plant);
   for (const [pl, plant] of shown) drawPlanting(ctx, s, pl, plant);

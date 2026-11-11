@@ -77,7 +77,7 @@ const CAUSES: Partial<Record<LifeStage, string[]>> = {
 /** Likely reasons it's slow to reach a stage: the usual ones, then (once it's up) this plant's own pests. */
 export function causesFor(plant: Plant, next: LifeStage): string[] {
   if (!CAUSES[next]) return [];
-  const own = next === 'germinated' ? [] : (plant.pests ?? []).slice(0, 2).map((p) => `${p.name}: ${p.signs.charAt(0).toLowerCase()}${p.signs.slice(1)}`);
+  const own = next === 'germinated' ? [] : (plant.pests ?? []).slice(0, 2).map((p) => (p.signs ? `${p.name}: ${p.signs.charAt(0).toLowerCase()}${p.signs.slice(1)}` : p.name));
   // A hungry crop slow to grow away is most likely short of food.
   const hungry = next === 'vegetative' && plant.feeding?.need === 'hungry' ? [`Hungry: ${plant.commonName.toLowerCase()} is a hungry crop, and thin soil holds it back. ${feedTip(plant, 'vegetative') ?? 'A feed and a mulch of compost help.'}`] : [];
   return [...hungry, ...(CAUSES[next] ?? []), ...own];
@@ -107,6 +107,8 @@ export function runningBehind(g: Garden, plantOf: (id: string) => Plant, today: 
 
 /** One planting, if it's running behind. */
 export function behindOf(plant: Plant, pl: Planting, g: Garden, today: string, weather: Weather | null = null): Behind | null {
+  // A plant you added with no growth timing of its own isn't judged late: nothing says when it should be up.
+  if (plant.userAdded && !plant.growth?.days) return null;
   const exp = expectedNext(plant, pl, g, weather);
   if (!exp || !WATCHED.includes(exp.stage)) return null;
   const late = daysBetween(addDays(exp.date, slackDays(exp.stage, daysBetween(exp.from, exp.date))), today);

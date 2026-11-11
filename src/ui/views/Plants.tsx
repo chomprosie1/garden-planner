@@ -105,11 +105,14 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
     store.apply(saveUserPlant(p));
     setPanel({ kind: 'card', id: p.id });
   };
+  /** "planting" for one, "3 plantings" for more: after "with its". */
+  const its = (n: number, one: string) => (n === 1 ? one : `${n} ${one}s`);
   const remove = (p: Plant) => {
     const uses = usesOf(store.get(), p.id);
     store.apply(deleteUserPlant(p.id));
     setPanel(null);
-    app.notify(`"${p.commonName}" deleted${uses ? `, with ${uses === 1 ? 'the one planting' : `its ${uses} plantings`} in this garden` : ''}.`, { undo: true });
+    const went = [uses.plantings && its(uses.plantings, 'planting'), uses.trays && its(uses.trays, 'tray')].filter(Boolean).join(' and ');
+    app.notify(`"${p.commonName}" deleted${went ? `, with its ${went} in this garden` : ''}.`, { undo: true });
   };
   /** Where a plant is growing on the plan: "Veg bed", "Bed two". */
   const whereGrowing = (id: string) => {

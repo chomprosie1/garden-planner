@@ -176,3 +176,30 @@ describe('schema 13', () => {
     expect(valid(addPlanting(base(), { ...d, snoozeUntil: 'soon' }))).not.toEqual([]);
   });
 });
+
+describe('running behind, for plants with no growth timing (57j review)', () => {
+  it('an onion from the library, sown outside and not up, is still behind and gets no picking jobs', () => {
+    expect(plantOf('onion').growth?.days).toBeUndefined();
+    const onions = plant('onion', { sownOn: '2027-03-10', sowing: 'direct', stage: 'sown', stageDates: { sown: '2027-03-10' } });
+    const g = addPlanting(base(), onions);
+    expect(behindOf(plantOf('onion'), onions, g, '2027-07-15')?.next).toBe('germinated');
+    const july = jobsFor(g, plantOf, 7, 2027, { today: '2027-07-15', weather: null }).filter((j) => j.plantId === 'onion');
+    expect(july.some((j) => j.kind === 'harvest' || j.kind === 'feed')).toBe(false);
+  });
+
+  it('a plant you added with no timing is never judged late, so Today and the jobs agree', () => {
+    const mine: Plant = { ...plantOf('onion'), id: 'u-mine', commonName: 'Mine', userAdded: true, growth: undefined };
+    const of = (id: string) => (id === mine.id ? mine : plantOf(id));
+    const pl = { ...makePlanting(mine, bed.id, 'single', [500, 500]), sownOn: '2027-03-10', sowing: 'direct' as const, stage: 'sown' as const, stageDates: { sown: '2027-03-10' } };
+    const g = addPlanting(base(), pl);
+    expect(behindOf(mine, pl, g, '2027-07-15')).toBeNull();
+    expect(runningBehind(g, of, '2027-07-15')).toEqual([]);
+  });
+
+  it('a pest of your own with no signs is named on its own', () => {
+    const p: Plant = { ...plantOf('carrot'), pests: [{ name: 'Slugs', signs: '', control: '' }] };
+    const causes = causesFor(p, 'vegetative');
+    expect(causes).toContain('Slugs');
+    expect(causes.some((c) => c.startsWith('Slugs:'))).toBe(false);
+  });
+});
