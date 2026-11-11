@@ -99,7 +99,7 @@ describe('getting started (U4)', () => {
     const g = { ...addPlanting(g0, makePlanting(plantOf('carrot'), bed, 'single', [100, 100])), latitude: 53.8, longitude: -1.55 };
     const done = (p = prefs) => setupSteps(g, p).filter((s) => s.done).map((s) => s.id);
     expect(done()).toEqual(['boundary', 'bed', 'location', 'plants']);
-    expect(done({ northChecked: true, lastBackup: '2026-10-01' })).toEqual(['boundary', 'bed', 'location', 'north', 'plants']);
+    expect(done({ ...prefs, northChecked: true, lastBackup: '2026-10-01' })).toEqual(['boundary', 'bed', 'location', 'north', 'plants']);
     expect(setupSteps({ ...g, northRotationDeg: 15 }, prefs).find((s) => s.id === 'north')!.done).toBe(true);
   });
 
