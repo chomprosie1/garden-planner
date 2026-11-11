@@ -1,7 +1,8 @@
 // Draws the plan. Everything is drawn from the garden model and the current
 // look; nothing here changes state.
 
-import { bounds, centroid, distance } from '../geometry/polygon';
+import { bounds, centroid, distance, type Bounds } from '../geometry/polygon';
+import { CULL_PAD_MM, inView, viewBounds } from './cull';
 import { featureLabel, isClosed, pointsOf, resizesByHandles, type Target } from '../model/features';
 import { artFor, drawPlant, hashString, OVERHANG, seasonal, shadeHex, stageLook, type Look } from '../art/plants';
 import { bucketFor, paintFor, plantSprite, VARIANTS } from '../art/sprites';
@@ -391,8 +392,17 @@ export function renderStatic(ctx: CanvasRenderingContext2D, s: Scene) {
   if (s.time?.gaps.size) for (const f of g.features) if (s.time.gaps.has(f.id)) drawGap(ctx, s, f);
   // On a day, plantings cleared since are back, and ones cleared by then are left out.
   const planted = s.plantOf ? byHeight(s.time ? g.plantings.filter((pl) => stageFor(s, pl) !== 'cleared') : g.plantings.filter(isActive), s.plantOf) : [];
-  if (depth) for (const pl of planted) drawPlantingShadow(ctx, s, pl, plantFor(s, pl));
-  for (const pl of planted) drawPlanting(ctx, s, pl, plantFor(s, pl));
+  // Plantings well off this canvas are left undrawn, shadow and label too; the picked one never is.
+  const view = viewBounds(v, s.width, s.height);
+  const pickedId = s.selected?.type === 'planting' ? s.selected.id : null;
+  const plantBox: Bounds = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+  const shown: [Planting, Plant][] = [];
+  for (const pl of planted) {
+    const plant = plantFor(s, pl);
+    if (pl.id === pickedId || inView(plantingBounds(pl, plantBox), view, CULL_PAD_MM + spreadOf(plant) / 2)) shown.push([pl, plant]);
+  }
+  if (depth) for (const [pl, plant] of shown) drawPlantingShadow(ctx, s, pl, plant);
+  for (const [pl, plant] of shown) drawPlanting(ctx, s, pl, plant);
   if (s.focus) drawFocus(ctx, s, s.focus, planted);
   if (s.sunGrid) drawHeatMap(ctx, s, s.sunGrid);
   if (s.shadows) drawShadows(ctx, s, s.shadows);
@@ -402,8 +412,8 @@ export function renderStatic(ctx: CanvasRenderingContext2D, s: Scene) {
     // Beds and places first; then plants, the biggest first. One that would land on another is left off.
     const taken: LabelBox[] = [];
     for (const f of g.features) drawLabel(ctx, s, f, bedsInUse.has(f.id), taken);
-    const big = [...planted].sort((a, b) => plantCount(b, plantFor(s, b)) - plantCount(a, plantFor(s, a)));
-    for (const pl of big) drawPlantLabel(ctx, s, pl, plantFor(s, pl), taken);
+    const big = [...shown].sort(([a, pa], [b, pb]) => plantCount(b, pb) - plantCount(a, pa));
+    for (const [pl, plant] of big) drawPlantLabel(ctx, s, pl, plant, taken);
   }
   if (s.sketches !== false) for (const k of sketchesOf(g)) drawSketch(ctx, s, k);
 }
@@ -1550,6 +1560,18 @@ function drawPlants(ctx: CanvasRenderingContext2D, s: Scene, pts: Point[], shape
 
 /** How a planting is drawn: its stage then, in that month's season (bare, or died back, in winter). */
 const lookOf = (s: Scene, pl: Planting, plant: Plant): Look => seasonal(stageLook(stageFor(s, pl), plant, pl), plant, s.month ?? new Date().getMonth() + 1);
+
+/** Where a planting's plants lie, as a box in mm (not counting their size), written into `out`: no allocation. */
+function plantingBounds(pl: Planting, out: Bounds): Bounds {
+  const e = pl.layout && pl.layout !== 'single' ? pl.endPoint : undefined;
+  const ex = e ? e[0] : pl.x;
+  const ey = e ? e[1] : pl.y;
+  out.minX = Math.min(pl.x, ex);
+  out.maxX = Math.max(pl.x, ex);
+  out.minY = Math.min(pl.y, ey);
+  out.maxY = Math.max(pl.y, ey);
+  return out;
+}
 
 /** A planting's plant at the size it's been set to. */
 const plantFor = (s: Scene, pl: Planting): Plant => asDrawn(sizedPlant(s.plantOf!(pl.plantId), pl), featuresById(s.garden).get(pl.featureId));
