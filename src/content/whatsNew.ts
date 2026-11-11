@@ -17,6 +17,45 @@ export interface NewsEntry {
 
 export const WHATS_NEW: NewsEntry[] = [
   {
+    id: '2026-11-11-own-plants',
+    date: '2026-11-11',
+    title: 'Your own plants, properly',
+    items: [
+      'Adding your own plant? Start it from one like it: pick a runner bean and the spacing, months and care come with it. Change whatever’s different about yours.',
+      'Your own plants can have pests and problems, plants they grow well with or should be kept from, and what to do in winter.',
+      'A plant with no months to sow, plant out or pick says it won’t get any jobs, so you know why Today is quiet about it.',
+      'Your own version of an apple is picked and trained like an apple, and keeps the apple’s care jobs.',
+      'Deleting one of your own plants takes its plantings with it, and Undo brings it all back.',
+    ],
+    tryIt: { label: 'See Plants', view: 'plants' },
+  },
+  {
+    id: '2026-11-11-plan-finger',
+    date: '2026-11-11',
+    title: 'A plan that does what your finger means',
+    items: [
+      'The plan keeps up better in a big garden.',
+      'On a phone, a tap no longer nudges what you tapped, and plants are easier to tap.',
+      'Snapping can be turned off from the ··· menu, so things go exactly where you put them.',
+      'On a phone, the details of a plant, bed or path have arrows that move it 1 cm at a time.',
+      '“No room” now says that nothing was added.',
+    ],
+    tryIt: { label: 'See your garden', view: 'plan' },
+  },
+  {
+    id: '2026-11-11-edges',
+    date: '2026-11-11',
+    title: 'Steadier at the edges',
+    items: [
+      'A backup with something broken in it is refused with a reason, and a copy you save warns you if it would be. A plant whose bed is missing from a backup is left out, and you’re told, rather than losing the lot.',
+      '“Last copy” can’t claim a date that hasn’t happened.',
+      'If this browser loses its settings, a garden that’s there isn’t greeted as new.',
+      'Search gives honest answers, and the number of plants doesn’t jump as you type.',
+      'The Shed doesn’t say nothing’s sown above trays you’ve sown, and the print-out has one line per crop.',
+      'A link to a page that doesn’t exist says so.',
+    ],
+  },
+  {
     id: '2026-11-02-every-screen',
     date: '2026-11-02',
     title: 'Every screen, every size',

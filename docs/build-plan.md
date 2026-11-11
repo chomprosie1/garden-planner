@@ -2692,7 +2692,7 @@ Decided:
 | Fri 13 Nov | Testing day | | | |
 | Mon 16 Nov | **57g. Every screen, every size** | M | Ruth, Nadia | Built 2 Nov, with 57e and 57f, all pushed that day at your request |
 | Tue 17 Nov | Testing day | | | |
-| Wed 18 Nov | **57h. True at the edges** | M | Nadia, Margaret, Priya, Jordan | Planned |
+| Wed 18 Nov | **57h. True at the edges** | M | Nadia, Margaret, Priya, Jordan | Built 9 Nov, pushed 11 Nov with 57i and 57j |
 | Thu 19 Nov | Testing day | | | |
 | Fri 27 Nov | **The review again**, all seven, as above | | | Planned |
 | Alongside, from 57d | **The data track** | L | Margaret, Callum | Planned |
@@ -2769,7 +2769,7 @@ Added 9 Nov 2026, from the owner's own use: the plan feels laggy and imprecise, 
   - The rest comes from the walk-through: finding the month view, the list of beds and Notes, and a less crowded plan on a phone.
 - Flagged, not built: a magnifier or lifted drag, typed positions, feeding in the plant form, the sun grid off the main thread, a warning when two tabs are open.
 
-**Progress, 11 Nov 2026** (on `phase-2c`, not yet merged or pushed; two `/code-review` passes, both sets of fixes in):
+**Progress, 11 Nov 2026** (merged to main and pushed 11 Nov as version 0.57.10, with 57h; three `/code-review` passes, all fixes in; see the as-built sections below):
 - **57i built.** Plants more than a metre past the plan's drawn area are left out, shadows and labels too. Snapping is a switch in the ··· menu (a setting, on by default); off, things go where they're put, as with Alt. On a touch screen the sheet for a planting, bed or path has four 1 cm arrows, above its folded details; they ask first if a plant would leave its bed, as the arrow keys do.
 - **57j built, except the care jobs the sweep found missing.** Start from a plant like it (the app's plants only): it fills the form and keeps the name, and is refused with a message once anything else has been filled in. The form takes pests, neighbours (any plant, the app's first) and winter notes; a plant with no months to sow, plant out or pick says it won't get jobs. Deleting your own plant takes all its plantings in the open garden, past ones too, with their notes, its trays and its place on Want to grow, and comes off your other plants' neighbours; the notice says what went, and one Undo brings it back. Seed packets stay. Your own plants made from scratch, with no growth timing, are never judged late; copies of the app's plants are judged as those plants are.
 - **The sweep, followed up:** cape gooseberry and ground cherry get picking jobs in their own year (the sweep looked a year later, after an annual is gone). Hart's tongue and male fern, pittosporum and euonymus still have no jobs at all: their care needs sourced dates, so they go to the data track.
@@ -3319,6 +3319,44 @@ Not changed:
 - **The plan at 200% and Extra large** is 210 px tall, a little less than the 225 before, as the dock takes two rows. The whole page is 195 px wide there, so something has to give.
 - **Word links such as a variety's name** can be under 44 px wide: words in a sentence are exempt, and they do reach 44 px tall.
 - **No new tests:** these are layout. The scanner is in the session's notes, not the repo.
+
+### Release 57h — True at the edges (as built)
+Built 9 Nov 2026, pushed 11 Nov with 57i and 57j as version 0.57.10. No schema change of its own (57j's is 28).
+
+- **Restore (Nadia 4):** a restore refuses dates that aren't real days, ids used twice, and anything too big to draw, each with a reason. Her three attack files are fixtures in `tests/fixtures`. **Changed at review:** a planting in a bed that isn't in the file is left out and the person told ("One plant was left out, as the bed it was in wasn't in the file."), rather than the whole garden refused, since an old bug could have left one in someone's own backup.
+- **A copy warns** if a restore would refuse it; saving every garden's copy before Delete everything names any such garden once, at the end.
+- **"Last copy" (12):** a copy dated after today counts as no date known, and never reads as recent.
+- **A partly cleared browser (24):** a garden with things in it but no settings isn't welcomed as new. Settings' "Show the welcome again" still shows it.
+- **Addresses (26, 27):** one that shows nothing says so once.
+- **Search (21, 22):** honest answers, and the total is every plant a search can find, so it holds still and the count never passes it (it read "210 of 150" as first built).
+- **The Shed (Priya):** no "Nothing sown yet" above sown trays. **The print-out (Margaret):** one line per crop, the year ahead only; with crops only finished or far off it says so, not "Nothing's planted yet".
+- **Today's leftovers:** a plainer note under the jobs, and the north arrow step only for those who've used the sun views.
+- Not done: the Journal and Install cards after first use were left as they were.
+
+### Release 57i — A plan that does what your finger means (as built)
+Built 9 to 11 Nov 2026, pushed 11 Nov. No schema change; a new setting, `snap`, on by default.
+
+- **Lag:** hovering no longer redraws the ground layer. Plantings more than a metre past the layer (the screen plus its margin) aren't drawn, shadows and labels too; the layer is drawn again once a pan passes its margin (`src/canvas/cull.ts`).
+- **Touch:** a drag starts after 10 px for a finger (3 for a mouse or pen), now for corners, handles, row ends and the north arrow as well as whole-thing moves; a tap reaches 12 px round a plant. The mouse's place is tracked only for the sun views. Hover picks with the same reach as a click.
+- **Snapping off** from the ··· menu, with a notice: corners, edges, the grid, guides and 15° turns are all off, as with Alt. A rectangle's corner still keeps it a rectangle. A sticker tapped onto the plan goes in the middle unrounded; if that's taken, the clear spot found is still on the grid.
+- **Arrows on a phone's sheet:** four 44 px buttons move a planting, bed or path 1 cm, above the folded details (inside them they'd never be found). They ask first if a plant would leave its bed, as the arrow keys do. A bed's or path's aren't shown while the layout is locked, and none in the sun views.
+- Checked at 390 px with touch: a carrot moved exactly 20 mm right and 10 mm up by the arrows; a drag with snapping on landed on a 1 m step, and off, where the finger stopped.
+- Not changed: a tap on a planted bed picks the nearest plant; the bed is one tap away on the plant's bar.
+
+### Release 57j — Your own plants, first class (as built)
+Built 9 to 11 Nov 2026, pushed 11 Nov. Schema 28: a copy remembers the plant it came from (`basedOn`).
+
+- **A copy keeps its parent's care jobs,** and is picked and trained as its parent is (an apple copy gets the apple's picking steps and goes up a fence).
+- **Start from a plant like it** (the app's own plants): fills the form, keeps the name typed, and follows its care jobs. Once anything else has been filled in it says so and copies nothing; a field typed in and cleared doesn't count.
+- **The form** takes pests and problems (a name needed; signs and what to do optional), neighbours (any plant, yours too, the app's first when names match) and winter notes. A plant with no months to sow, plant out or pick says it won't get jobs.
+- **Deleting your own plant** takes, in the open garden, all its plantings (past ones too, so none is left as an unknown plant) with their notes, its trays and its place on Want to grow, and takes it off your other plants' neighbours. The notice says what went; one Undo brings it back. Seed packets stay. Other saved gardens aren't open, so aren't changed.
+- **Jobs:** your own plant added with months now gets its picking jobs. One you made from scratch with no growth timing is never judged late; a copy is judged as its parent. A library plant with no growth timing (onion, garlic and 45 others) is still held back while it's not up: an early fix had broken that, and a test now fails on it.
+- **The sweep, followed up:** cape gooseberry and ground cherry get picking jobs in their own year (the sweep looked a year on). Hart's tongue and male fern, pittosporum and euonymus still get no jobs: their care needs sourced dates, for the data track.
+- Open: retiring a plant with a history, rather than deleting it, would need a new field. Your call.
+
+### Release 57k — Basic UX (started)
+- "No room" says nothing was added. None of those notices offered Undo, and an empty change records no Undo step.
+- Still to do: the walk-through (finding the month view, the list of beds and Notes, a less crowded plan on a phone).
 
 ## Repo layout
 ```
