@@ -132,7 +132,7 @@ export function ActionPill({ pillRef, target, garden, store, plantOf, locked, mo
                 return next;
               });
               if (made.id) select({ type: 'planting', id: made.id });
-              else app.notify(`No room for another ${plant.commonName.toLowerCase()} in this bed.`);
+              else app.notify(`No room for another ${plant.commonName.toLowerCase()} in this bed, so nothing was added.`);
             }}
           >
             <Icon name="copy" size={18} />
@@ -174,7 +174,7 @@ export function ActionPill({ pillRef, target, garden, store, plantOf, locked, mo
               if (made.id) {
                 select({ type: 'planting', id: made.id });
                 app.notify(`${name} pasted ${wherePhrase(f)}.`, { undo: true });
-              } else app.notify(`No room for ${name.toLowerCase()} in ${featureLabel(f)}.`);
+              } else app.notify(`No room for ${name.toLowerCase()} in ${featureLabel(f)}, so nothing was added.`);
             }
           : null;
       content = <FeatureActions key={f.id} f={f} ground={isGround(f) ? (isSetGround(f, target) ? 'set' : 'open') : null} garden={garden} commit={commit} locked={locked} sizing={sizing} setSizing={setSizing} plantHere={plantHere} paste={paste} select={select} unlock={unlock} extras={pillHasExtras(mode)} />;

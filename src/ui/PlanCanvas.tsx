@@ -1589,7 +1589,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
           });
           const name = p.plantOf(copied.plantId).commonName;
           if (made.id) p.setSelected({ type: 'planting', id: made.id });
-          else A.current.notify(`No room for ${name.toLowerCase()} there.`);
+          else A.current.notify(`No room for ${name.toLowerCase()} there, so nothing was added.`);
           return;
         }
         if (letter === 'd' && sel?.type === 'planting' && plantsEditable) {
@@ -1601,7 +1601,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
             return next;
           });
           if (made.id) p.setSelected({ type: 'planting', id: made.id });
-          else A.current.notify(`No room for another ${p.plantOf(p.garden.plantings.find((x) => x.id === sel.id)?.plantId ?? '').commonName.toLowerCase()} in this bed.`);
+          else A.current.notify(`No room for another ${p.plantOf(p.garden.plantings.find((x) => x.id === sel.id)?.plantId ?? '').commonName.toLowerCase()} in this bed, so nothing was added.`);
           return;
         }
         if (letter === 'd' && p.selected?.type === 'feature' && layoutEditable() && !selectionSet()) {
