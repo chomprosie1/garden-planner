@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Heart } from '../Heart';
-import { blankPlant, canSowIn, copyAsUserPlant, deleteUserPlant, emptyFilter, saveUserPlant, type PlantFilter } from '../../library/library';
+import { blankPlant, canSowIn, copyAsUserPlant, deleteUserPlant, emptyFilter, saveUserPlant, usesOf, type PlantFilter } from '../../library/library';
 import { beginnerOrder, isEasy, splitCore } from '../../library/order';
 import { plantHere } from '../../lifecycle/growth';
 import { plantCount, searchPlants } from '../search';
@@ -106,9 +106,10 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
     setPanel({ kind: 'card', id: p.id });
   };
   const remove = (p: Plant) => {
+    const uses = usesOf(store.get(), p.id);
     store.apply(deleteUserPlant(p.id));
     setPanel(null);
-    app.notify(`"${p.commonName}" deleted.`, { undo: true });
+    app.notify(`"${p.commonName}" deleted${uses ? `, with ${uses === 1 ? 'the one planting' : `its ${uses} plantings`} in this garden` : ''}.`, { undo: true });
   };
   /** Where a plant is growing on the plan: "Veg bed", "Bed two". */
   const whereGrowing = (id: string) => {
@@ -211,7 +212,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
 
   const detail =
     shown?.kind === 'form' ? (
-      <PlantForm key={shown.plant.id} initial={shown.plant} onSave={save} onCancel={() => setPanel(null)} />
+      <PlantForm key={shown.plant.id} initial={shown.plant} others={plants} onSave={save} onCancel={() => setPanel(null)} />
     ) : current ? (
       <PlantCard
         key={current.id}

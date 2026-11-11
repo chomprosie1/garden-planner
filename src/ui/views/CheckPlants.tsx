@@ -49,6 +49,7 @@ export function CheckPlants({ store, userPlants, startAt, back }: Props) {
       <div class="page check-page">
         <PlantForm
           initial={editing}
+          others={library ?? []}
           onSave={(p) => {
             store.apply(saveUserPlant(p));
             app.notify(`Saved "${p.commonName}" as your own plant. The app will use your version from now on when you pick it.`);

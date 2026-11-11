@@ -187,6 +187,13 @@ export function blankPlant(): Plant {
   };
 }
 
+/**
+ * True when one of your own plants will get no jobs: no months to sow, plant out or pick, and no library plant behind
+ * it to lend its care jobs. Flowering months alone only time weeding.
+ */
+export const getsNoJobs = (p: Plant) =>
+  !p.basedOn && !(p.sowing ?? []).some((s) => s.months.length) && !p.plantOutMonths?.length && !p.cropping?.harvestMonths.length;
+
 /** A copy of a library plant you can change, e.g. your own variety. */
 export function copyAsUserPlant(p: Plant, name?: string): Plant {
   const copy = structuredClone(p);
@@ -200,9 +207,24 @@ export const saveUserPlant =
     return { ...s, userPlants: exists ? s.userPlants.map((x) => (x.id === p.id ? p : x)) : [...s.userPlants, p] };
   };
 
+/** How many plantings and trays of it the garden has, now or in the past: what deleting it takes with it. */
+export const usesOf = (s: AppState, id: string) => s.garden.plantings.filter((p) => p.plantId === id).length + (s.garden.trays ?? []).filter((t) => t.plantId === id).length;
+
+/**
+ * Deletes one of your own plants, and with it, in the open garden, its plantings (past ones too), trays and place on the
+ * Want to grow list, so nothing is left as an unknown plant. One change, so one Undo brings it all back.
+ */
 export const deleteUserPlant =
   (id: string): Change =>
   (s: AppState) => {
     const userPlants = s.userPlants.filter((x) => x.id !== id);
-    return userPlants.length === s.userPlants.length ? s : { ...s, userPlants };
+    if (userPlants.length === s.userPlants.length) return s;
+    const g = s.garden;
+    const garden = {
+      ...g,
+      plantings: g.plantings.filter((p) => p.plantId !== id),
+      wishlist: g.wishlist.filter((w) => w !== id),
+      ...(g.trays ? { trays: g.trays.filter((t) => t.plantId !== id) } : {}),
+    };
+    return { ...s, userPlants, garden };
   };

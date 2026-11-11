@@ -388,14 +388,18 @@ export function PlantCard({ plant: p, byId, open, onCopy, onEdit, onDelete, onPl
             {p.pests.map((x) => (
               <div key={x.name}>
                 <dt>{x.name}</dt>
-                <dd>
-                  <span class="muted">Signs: </span>
-                  {x.signs}
-                </dd>
-                <dd>
-                  <span class="muted">What to do: </span>
-                  <GlossText text={x.control} />
-                </dd>
+                {x.signs && (
+                  <dd>
+                    <span class="muted">Signs: </span>
+                    {x.signs}
+                  </dd>
+                )}
+                {x.control && (
+                  <dd>
+                    <span class="muted">What to do: </span>
+                    <GlossText text={x.control} />
+                  </dd>
+                )}
               </div>
             ))}
           </dl>

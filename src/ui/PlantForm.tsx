@@ -4,6 +4,7 @@ import { validatePlant } from '../model/validate';
 import { ArtFields } from './ArtFields';
 import { CATEGORY_LABEL, LIGHT_LABEL, METHOD_LABEL, WINTER_LABEL } from './PlantCard';
 import { HelpLink } from './HelpLink';
+import { copyAsUserPlant, getsNoJobs } from '../library/library';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -41,22 +42,99 @@ const num = (v: string): number | undefined => {
   return v.trim() === '' || !Number.isFinite(n) ? undefined : Math.round(n);
 };
 
+/** Finds a plant by the name typed or picked from a list, ignoring case and spaces at the ends. */
+const byName = (list: Plant[], name: string) => {
+  const n = name.trim().toLowerCase();
+  return n ? list.find((x) => x.commonName.toLowerCase() === n) : undefined;
+};
+
+/** A list of other plants, by name: "Grows well with", "Keep apart from". Typed or picked from the list, then added. */
+function NeighbourList({ label, ids, others, listId, onChange }: { label: string; ids: string[]; others: Plant[]; listId: string; onChange: (ids: string[]) => void }) {
+  const [typed, setTyped] = useState('');
+  const [miss, setMiss] = useState(false);
+  const nameOf = (id: string) => others.find((x) => x.id === id)?.commonName ?? id;
+  const add = () => {
+    const found = byName(others, typed);
+    setMiss(!found);
+    if (!found) return;
+    if (!ids.includes(found.id)) onChange([...ids, found.id]);
+    setTyped('');
+  };
+  return (
+    <fieldset class="neighbour-list">
+      <legend>{label}</legend>
+      {ids.length > 0 && (
+        <ul class="chip-list">
+          {ids.map((id) => (
+            <li key={id}>
+              {nameOf(id)}{' '}
+              <button type="button" class="link-btn" aria-label={`Take ${nameOf(id)} off`} onClick={() => onChange(ids.filter((x) => x !== id))}>
+                Remove
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div class="neighbour-add">
+        <input
+          list={listId}
+          value={typed}
+          aria-label={`${label}: a plant’s name`}
+          placeholder="A plant’s name"
+          onInput={(e) => {
+            setTyped((e.currentTarget as HTMLInputElement).value);
+            setMiss(false);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              add();
+            }
+          }}
+        />
+        <button type="button" class="btn" onClick={add}>
+          Add
+        </button>
+      </div>
+      {miss && <p class="small">There’s no plant called that. Pick one from the list as you type.</p>}
+    </fieldset>
+  );
+}
+
 interface Props {
   initial: Plant;
   onSave: (p: Plant) => void;
   onCancel: () => void;
+  /** The app's own plants: one can be started from, and neighbours are picked from them. */
+  others?: Plant[];
 }
 
 /** Add or edit one of your own plants. Only name, kind, light and spacing are needed. */
-export function PlantForm({ initial, onSave, onCancel }: Props) {
+export function PlantForm({ initial, onSave, onCancel, others = [] }: Props) {
   const [p, setP] = useState<Plant>(initial);
   const [errors, setErrors] = useState<string[]>([]);
+  const [from, setFrom] = useState<{ typed: string; got?: Plant; miss?: boolean }>({ typed: '' });
   const isNew = initial.commonName === '';
+  const library = others.filter((x) => !x.userAdded);
   const set = (patch: Partial<Plant>) => setP((x) => ({ ...x, ...patch }));
   const setCond = (patch: Partial<Plant['conditions']>) => setP((x) => ({ ...x, conditions: { ...x.conditions, ...patch } }));
   const setSize = (patch: Partial<Plant['size']>) => setP((x) => ({ ...x, size: { ...x.size, ...patch } }));
   const sowing = p.sowing ?? [];
   const setSowing = (list: Sowing[]) => set({ sowing: list.length ? list : undefined });
+  const pests = p.pests ?? [];
+  const setPests = (list: NonNullable<Plant['pests']>) => set({ pests: list.length ? list : undefined });
+  const companions = p.companions ?? { good: [], avoid: [] };
+  const setCompanions = (patch: Partial<NonNullable<Plant['companions']>>) => {
+    const next = { ...companions, ...patch };
+    set({ companions: next.good.length || next.avoid.length ? next : undefined });
+  };
+
+  /** Starts the form from a plant like it: everything copied, the name you've typed kept, and its care jobs followed. */
+  const startFrom = (typed: string) => {
+    const got = byName(library, typed);
+    setFrom({ typed, got, miss: !!typed.trim() && !got });
+    if (got) setP((x) => ({ ...copyAsUserPlant(got, x.commonName.trim() || undefined), id: x.id }));
+  };
 
   const submit = (e: Event) => {
     e.preventDefault();
@@ -66,14 +144,21 @@ export function PlantForm({ initial, onSave, onCancel }: Props) {
       commonName: p.commonName.trim(),
       sowing: sowing.filter((s) => s.months.length > 0),
       lookOutFor: p.lookOutFor?.map((t) => t.trim()).filter(Boolean),
+      pests: pests.map((x) => ({ name: x.name.trim(), signs: x.signs.trim(), control: x.control.trim() })).filter((x) => x.name || x.signs || x.control),
     };
     if (!clean.sowing?.length) delete clean.sowing;
     if (!clean.lookOutFor?.length) delete clean.lookOutFor;
+    if (!clean.pests?.length) delete clean.pests;
     if (!clean.plantOutMonths?.length) delete clean.plantOutMonths;
     if (!clean.flowerMonths?.length) delete clean.flowerMonths;
     if (clean.cropping && clean.cropping.harvestMonths.length === 0 && !clean.cropping.notes) delete clean.cropping;
+    if (clean.wintering) {
+      const notes = clean.wintering.notes?.trim();
+      clean.wintering = notes ? { ...clean.wintering, notes } : { type: clean.wintering.type };
+    }
     const problems = validatePlant(clean).map((m) => m.replace(/^[^:]+: /, ''));
     if (!clean.commonName) problems.unshift('Give it a name.');
+    if (clean.pests?.some((x) => !x.name)) problems.push('Give each pest or problem a name.');
     setErrors(problems);
     if (problems.length === 0) onSave(clean);
   };
@@ -84,6 +169,41 @@ export function PlantForm({ initial, onSave, onCancel }: Props) {
       <p class="muted small">
         Only the first four are needed. Add the rest whenever you like. <HelpLink topic="your-own-plant">More about your own plants</HelpLink>
       </p>
+
+      {isNew && library.length > 0 && (
+        <div class="field">
+          <label for="start-from">Start from a plant like it (you don’t have to)</label>
+          <input
+            id="start-from"
+            list="plant-names"
+            value={from.typed}
+            placeholder="e.g. Runner bean"
+            onInput={(e) => setFrom({ typed: (e.currentTarget as HTMLInputElement).value })}
+            onChange={(e) => startFrom((e.currentTarget as HTMLInputElement).value)}
+            onKeyDown={(e) => {
+              // Enter picks the plant rather than sending the half-filled form.
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                startFrom((e.currentTarget as HTMLInputElement).value);
+              }
+            }}
+          />
+          <p class="small" role="status">
+            {from.got
+              ? `Filled in from ${from.got.commonName}, and it gets the same care jobs. Change anything that’s different about yours.`
+              : from.miss
+                ? 'There’s no plant called that. Pick one from the list as you type.'
+                : ''}
+          </p>
+        </div>
+      )}
+      {library.length > 0 && (
+        <datalist id="plant-names">
+          {library.map((x) => (
+            <option key={x.id} value={x.commonName} />
+          ))}
+        </datalist>
+      )}
 
       <label class="field">
         Name
@@ -213,13 +333,52 @@ export function PlantForm({ initial, onSave, onCancel }: Props) {
           onChange={(harvestMonths) => set({ cropping: { ...(p.cropping ?? {}), harvestMonths } })}
         />
       </details>
+      {getsNoJobs(p) && (
+        <p class="muted small">
+          With no months to sow, plant out or harvest, it won’t get any jobs on Today. Add them under “When to sow, plant out and harvest”, or start from a plant like it.
+        </p>
+      )}
 
       <details class="form-more">
-        <summary>Things to look out for, and winter</summary>
+        <summary>Pests, neighbours and winter</summary>
         <label class="field">
           Look out for (one per line)
           <textarea rows={3} value={(p.lookOutFor ?? []).join('\n')} onInput={(e) => set({ lookOutFor: (e.currentTarget as HTMLTextAreaElement).value.split('\n') })} />
         </label>
+        <fieldset class="pest-list">
+          <legend>Pests and problems</legend>
+          {pests.map((x, i) => {
+            const edit = (patch: Partial<typeof x>) => setPests(pests.map((y, k) => (k === i ? { ...y, ...patch } : y)));
+            return (
+              <div key={i} class="sowing-row">
+                <label class="field">
+                  Name
+                  <input value={x.name} maxLength={60} placeholder="e.g. Slugs" onInput={(e) => edit({ name: (e.currentTarget as HTMLInputElement).value })} />
+                </label>
+                <label class="field">
+                  Signs
+                  <input value={x.signs} placeholder="e.g. Holes in leaves, slime trails" onInput={(e) => edit({ signs: (e.currentTarget as HTMLInputElement).value })} />
+                </label>
+                <label class="field">
+                  What to do
+                  <input value={x.control} placeholder="e.g. Pick them off at dusk" onInput={(e) => edit({ control: (e.currentTarget as HTMLInputElement).value })} />
+                </label>
+                <button type="button" class="btn-quiet btn" onClick={() => setPests(pests.filter((_, k) => k !== i))}>
+                  Remove this one
+                </button>
+              </div>
+            );
+          })}
+          <button type="button" class="btn" onClick={() => setPests([...pests, { name: '', signs: '', control: '' }])}>
+            Add a pest or problem
+          </button>
+        </fieldset>
+        {library.length > 0 && (
+          <>
+            <NeighbourList label="Grows well with" ids={companions.good} others={library} listId="plant-names" onChange={(good) => setCompanions({ good })} />
+            <NeighbourList label="Keep apart from" ids={companions.avoid} others={library} listId="plant-names" onChange={(avoid) => setCompanions({ avoid })} />
+          </>
+        )}
         <label class="field">
           Winter
           <select
@@ -237,6 +396,17 @@ export function PlantForm({ initial, onSave, onCancel }: Props) {
             ))}
           </select>
         </label>
+        {p.wintering && (
+          <label class="field">
+            What to do in winter
+            <textarea
+              rows={2}
+              value={p.wintering.notes ?? ''}
+              placeholder="e.g. Mulch the crown in November"
+              onInput={(e) => set({ wintering: { ...p.wintering!, notes: (e.currentTarget as HTMLTextAreaElement).value } })}
+            />
+          </label>
+        )}
         <label class="field">
           Where your notes come from
           <input value={p.source ?? ''} placeholder="e.g. Seed packet, RHS website" onInput={(e) => set({ source: (e.currentTarget as HTMLInputElement).value || undefined })} />
