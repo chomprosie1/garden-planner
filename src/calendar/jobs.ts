@@ -375,7 +375,8 @@ export function jobsFor(g: Garden, listed: (id: string) => Plant, month: number,
     }
 
     // Sown outside and running behind to come up: nothing to pick or feed until it's up. Today asks about it instead.
-    const notUp = (p: Planting) => !!today && currentStage(p) === 'sown' && sowingOf(plant, p) === 'direct' && behindOf(plant, p, g, today, weather)?.next === 'germinated';
+    // A plant with no growth timing of its own (one you added) isn't judged late: there's nothing to say when it should be up.
+    const notUp = (p: Planting) => !!today && !!plant.growth?.days && currentStage(p) === 'sown' && sowingOf(plant, p) === 'direct' && behindOf(plant, p, g, today, weather)?.next === 'germinated';
     const inPlace = group.filter((p) => isGrowing(p) || afterSowing(p, year, month));
     const over = inPlace.filter(seasonOver);
     const growing = inPlace.filter((p) => !over.includes(p) && !notUp(p));

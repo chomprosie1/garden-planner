@@ -35,7 +35,7 @@ export const holdsOne = (f: Feature) => !!f.support;
 export const TRAINED_FRUIT = FRUIT_TREE_PLANTS.filter((id) => ['apple', 'pear', 'plum', 'cherry', 'morello-cherry', 'fig', 'peach', 'apricot', 'greengage'].includes(id));
 
 /** A climber, or fruit to train: it goes up a fence it's dropped by, rather than in the bed in front. */
-export const climbs = (p: Plant) => p.category !== 'weed' && (p.art?.form === 'climber' || TRAINED_FRUIT.includes(p.varietyOf ?? p.id));
+export const climbs = (p: Plant) => p.category !== 'weed' && (p.art?.form === 'climber' || TRAINED_FRUIT.includes(p.varietyOf ?? p.basedOn ?? p.id));
 
 /** A climber that comes back each year (clematis, a vine), or fruit to train: not an annual such as sweet peas or beans. */
 export const trainsUp = (p: Plant) => climbs(p) && (p.art?.form !== 'climber' || p.category === 'shrub' || p.category === 'fruit');

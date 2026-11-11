@@ -2,6 +2,9 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { howTo } from '../src/content/howto';
+import { climbs } from '../src/planting/supports';
+import type { Job } from '../src/calendar/jobs';
 import { careFor } from '../src/calendar/care';
 import { copyAsUserPlant } from '../src/library/library';
 import { newAppState } from '../src/model/defaults';
@@ -44,5 +47,14 @@ describe('my own version of a library plant', () => {
     const back = parseFileText(JSON.stringify(toFile(state)));
     expect(back.ok).toBe(true);
     if (back.ok) expect(back.state.userPlants[0]?.basedOn).toBe('apple');
+  });
+
+  it('a copy of an apple is picked like an apple and trained like one', () => {
+    const copy = copyAsUserPlant(apple);
+    const job = { key: 'k', kind: 'harvest', plantId: copy.id, plant: copy.commonName, where: '', plantingIds: [] } as unknown as Job;
+    const at = (plant: Plant) => ({ plant, month: 10, style: 'rows' as const });
+    expect(howTo(job, 'plants', false, at(copy)).steps).toEqual(howTo(job, 'plants', false, at(apple)).steps);
+    expect(climbs(copy)).toBe(climbs(apple));
+    expect(climbs(copy)).toBe(true);
   });
 });

@@ -247,8 +247,8 @@ Extra check, months 19 to 36 after harvest: a clear-and-compost job in 18 of 18 
 | 4 | none | none | sow-direct | clear | none | none |
 | 5 | none | none | none | clear | none | none |
 | 6 | none | none | none | clear | none | none |
-| 7 | none | none | none | clear | none | none |
-| 8 | none | none | none | clear | none | none |
+| 7 | none | none | none | clear | harvest | none |
+| 8 | none | none | none | clear | harvest | none |
 | 9 | none | none | none | clear | clear | none |
 | 10 | none | none | none | clear | clear | none |
 | 11 | none | none | none | clear | clear | none |

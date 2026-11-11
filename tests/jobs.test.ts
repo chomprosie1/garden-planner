@@ -5,7 +5,8 @@ import { groupJobs, jobLabel, jobsFor, runEnds, toggleJob, toggleWishlist, type 
 import { newAppState } from '../src/model/defaults';
 import { addFeature, makeFeature, rectPoints } from '../src/model/features';
 import type { Garden, Plant, Planting } from '../src/model/types';
-import { addPlanting, makePlanting, unknownPlant } from '../src/planting/place';
+import { addPlanting, inGroundChoice, makePlanting, unknownPlant } from '../src/planting/place';
+import { blankPlant } from '../src/library/library';
 
 const library = [...vegetables, ...flowers] as Plant[];
 const byId = new Map(library.map((p) => [p.id, p]));
@@ -170,5 +171,44 @@ describe('helpers', () => {
     expect(g.jobsDone).toEqual([]);
     expect(g.plantings[0]!.sownOn).toBeUndefined();
     expect(summary(jobsFor(g, plantOf, 4, 2027))).toEqual(['sow-direct carrot in Veg bed']);
+  });
+});
+
+describe('a plant you added yourself, with months but no growth timing', () => {
+  const mine: Plant = { ...blankPlant(), commonName: 'My crop', sowing: [{ method: 'direct', months: [3, 4] }], cropping: { harvestMonths: [7, 8] } };
+  const own = (id: string) => (id === mine.id ? mine : unknownPlant(id));
+  const inMonth = (g: Garden, m: number, y = 2027) => jobsFor(g, own, m, y, { today: `${y}-${String(m).padStart(2, '0')}-15`, weather: null }).filter((j) => j.plantId === mine.id);
+  const has = (g: Garden, m: number, what: 'harvest' | 'clear') => inMonth(g, m).some((j) => (what === 'clear' ? j.clears : j.kind === 'harvest'));
+  const bedGarden = () => {
+    const bed = { ...makeFeature('bed', { area: rectPoints({ x: 0, y: 0, w: 3000, h: 1200 }) }), name: 'Veg bed' };
+    return { g: addFeature(newAppState().garden, bed), bed: bed.id };
+  };
+
+  it('sown by ticking its March job: picked in July and August, cleared from September', () => {
+    const { g: g0, bed } = bedGarden();
+    let g = addPlanting(g0, makePlanting(mine, bed, 'single', [1000, 1000]));
+    const sow = inMonth(g, 3).find((j) => j.kind === 'sow-direct')!;
+    g = toggleJob(g, sow, '2027-03-15', own);
+    expect(has(g, 7, 'harvest')).toBe(true);
+    expect(has(g, 8, 'harvest')).toBe(true);
+    for (const m of [3, 4, 5, 6, 7, 8]) expect(has(g, m, 'clear')).toBe(false);
+    expect(has(g, 9, 'clear')).toBe(true);
+  });
+
+  it('added as already in the ground on 1 May 2027: picked in July and August, not cleared before September', () => {
+    const { g: g0, bed } = bedGarden();
+    const g = addPlanting(g0, makePlanting(mine, bed, 'single', [1000, 1000], undefined, inGroundChoice(mine, '2027-05-01', '2027-05-01')));
+    expect(has(g, 7, 'harvest')).toBe(true);
+    expect(has(g, 8, 'harvest')).toBe(true);
+    for (const m of [5, 6, 7, 8]) expect(has(g, m, 'clear')).toBe(false);
+  });
+
+  it('one with no months at all is not cleared in the month it went in', () => {
+    const bare: Plant = { ...blankPlant(), commonName: 'Bare' };
+    const bareOf = (id: string) => (id === bare.id ? bare : unknownPlant(id));
+    const { g: g0, bed } = bedGarden();
+    const g = addPlanting(g0, makePlanting(bare, bed, 'single', [1000, 1000], undefined, inGroundChoice(bare, '2027-05-01', '2027-05-01')));
+    const js = jobsFor(g, bareOf, 5, 2027, { today: '2027-05-15', weather: null }).filter((j) => j.plantId === bare.id);
+    expect(js.some((j) => j.clears)).toBe(false);
   });
 });

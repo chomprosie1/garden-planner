@@ -355,7 +355,7 @@ function chosen(job: Job, from: StartsAs, bulb: boolean, at?: HowToFor): HowTo {
       if (kind === 'pod') return PICK_PODS;
       if (kind === 'head') return CUT_HEADS;
       // Apples and pears: nuts, stone fruit and berries on trees don't pick or keep like this.
-      if ((plant.varietyOf ?? plant.id) === 'apple' || (plant.varietyOf ?? plant.id) === 'pear') return PICK_TREE_FRUIT;
+      if (['apple', 'pear'].includes(plant.varietyOf ?? plant.basedOn ?? plant.id)) return PICK_TREE_FRUIT;
       if (kind === 'fruit' || plant.category === 'fruit') return PICK_FRUIT;
       return BY_KIND.harvest;
     }
