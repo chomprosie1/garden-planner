@@ -81,23 +81,24 @@ describe('deleting one of your own plants', () => {
     return { garden: g, userPlants: [mine] };
   };
 
-  it('takes its plantings on the plan, their notes, its trays and its wish, and leaves everything else', () => {
+  it('takes all its plantings, past ones too, their notes, its trays and its wish, and leaves everything else', () => {
     const s = setup();
-    expect(usesOf(s, mine.id)).toEqual({ plantings: 2, trays: 1 });
+    expect(usesOf(s, mine.id)).toEqual({ plantings: 2, past: 1, trays: 1 });
     const after = deleteUserPlant(mine.id)(s);
     expect(after.userPlants).toEqual([]);
-    expect(after.garden.plantings.filter((p) => !p.removedOn).map((p) => p.plantId)).toEqual(['apple']);
+    expect(after.garden.plantings.map((p) => p.plantId)).toEqual(['apple']);
     expect(after.garden.notes.map((n) => n.id)).toEqual(['n2']);
     expect(after.garden.trays).toEqual([]);
     expect(after.garden.wishlist).toEqual(['apple']);
     expect(after.garden.features).toBe(s.garden.features);
   });
 
-  it('keeps its past plantings, with their harvests, as the bed’s history', () => {
-    const s = setup();
-    const past = deleteUserPlant(mine.id)(s).garden.plantings.filter((p) => p.removedOn);
-    expect(past).toHaveLength(1);
-    expect(past[0]!.plantId).toBe(mine.id);
+  it('leaves nothing pointing at it: no planting, and no neighbour of your other plants', () => {
+    const other: Plant = { ...blankPlant(), commonName: 'Other', companions: { good: [mine.id, 'apple'], avoid: [mine.id] } };
+    const s = { ...setup(), userPlants: [mine, other] };
+    const after = deleteUserPlant(mine.id)(s);
+    expect(after.garden.plantings.some((p) => p.plantId === mine.id)).toBe(false);
+    expect(after.userPlants).toEqual([{ ...other, companions: { good: ['apple'], avoid: [] } }]);
   });
 
   it('comes back whole with one Undo', () => {

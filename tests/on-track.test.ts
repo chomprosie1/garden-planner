@@ -196,6 +196,12 @@ describe('running behind, for plants with no growth timing (57j review)', () => 
     expect(runningBehind(g, of, '2027-07-15')).toEqual([]);
   });
 
+  it('your own copy of an onion is judged late as the onion is', () => {
+    const copy: Plant = { ...plantOf('onion'), id: 'u-copy', commonName: 'My onion', userAdded: true, basedOn: 'onion' };
+    const pl = { ...makePlanting(copy, bed.id, 'single', [500, 500]), sownOn: '2027-03-10', sowing: 'direct' as const, stage: 'sown' as const, stageDates: { sown: '2027-03-10' } };
+    expect(behindOf(copy, pl, addPlanting(base(), pl), '2027-07-15')?.next).toBe('germinated');
+  });
+
   it('a pest of your own with no signs is named on its own', () => {
     const p: Plant = { ...plantOf('carrot'), pests: [{ name: 'Slugs', signs: '', control: '' }] };
     const causes = causesFor(p, 'vegetative');

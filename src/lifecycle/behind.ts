@@ -107,8 +107,9 @@ export function runningBehind(g: Garden, plantOf: (id: string) => Plant, today: 
 
 /** One planting, if it's running behind. */
 export function behindOf(plant: Plant, pl: Planting, g: Garden, today: string, weather: Weather | null = null): Behind | null {
-  // A plant you added with no growth timing of its own isn't judged late: nothing says when it should be up.
-  if (plant.userAdded && !plant.growth?.days) return null;
+  // A plant you added from scratch, with no growth timing, isn't judged late: nothing says when it should be up. A copy
+  // of a library plant is judged as that plant is.
+  if (plant.userAdded && !plant.basedOn && !plant.growth?.days) return null;
   const exp = expectedNext(plant, pl, g, weather);
   if (!exp || !WATCHED.includes(exp.stage)) return null;
   const late = daysBetween(addDays(exp.date, slackDays(exp.stage, daysBetween(exp.from, exp.date))), today);

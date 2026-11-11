@@ -118,8 +118,8 @@ export function PlantForm({ initial, onSave, onCancel, others = [] }: Props) {
   const [base, setBase] = useState<Plant>(initial);
   const isNew = initial.commonName === '';
   const library = others.filter((x) => !x.userAdded);
-  /** Neighbours can be any plant, your own too, but not this one. */
-  const neighbours = others.filter((x) => x.id !== p.id);
+  /** Neighbours can be any plant, your own too, but not this one. The app's come first, so a name you share with one finds it. */
+  const neighbours = [...library, ...others.filter((x) => x.userAdded)].filter((x) => x.id !== p.id);
   const set = (patch: Partial<Plant>) => setP((x) => ({ ...x, ...patch }));
   const setCond = (patch: Partial<Plant['conditions']>) => setP((x) => ({ ...x, conditions: { ...x.conditions, ...patch } }));
   const setSize = (patch: Partial<Plant['size']>) => setP((x) => ({ ...x, size: { ...x.size, ...patch } }));
@@ -136,11 +136,13 @@ export function PlantForm({ initial, onSave, onCancel, others = [] }: Props) {
   /** Starts the form from a plant like it: everything copied, the name you've typed kept, and its care jobs followed. */
   const startFrom = (typed: string) => {
     const got = byName(library, typed);
-    const asWas = (x: Plant) => JSON.stringify({ ...x, commonName: '' });
+    // Fields typed in and cleared again don't count: empty text and empty lists are left out.
+    const asWas = (x: Plant) => JSON.stringify({ ...x, commonName: '' }, (_k, v: unknown) => (v === '' || (Array.isArray(v) && !v.length) ? undefined : v));
     // Anything filled in besides the name is kept, not copied over without a word.
     const kept = !!got && asWas(p) !== asWas(base);
     setFrom({ typed, got, miss: !!typed.trim() && !got, kept });
-    if (!got || kept) return;
+    // Already started from it (Enter, then the change that follows): nothing more to do.
+    if (!got || kept || (from.got?.id === got.id && !from.kept)) return;
     const copy = { ...copyAsUserPlant(got, p.commonName.trim() || undefined), id: p.id };
     setP(copy);
     setBase(copy);

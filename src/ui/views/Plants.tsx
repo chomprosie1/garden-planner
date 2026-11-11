@@ -111,7 +111,7 @@ export function Plants({ store, garden, userPlants, go, openId = null, clearOpen
     const uses = usesOf(store.get(), p.id);
     store.apply(deleteUserPlant(p.id));
     setPanel(null);
-    const went = [uses.plantings && its(uses.plantings, 'planting'), uses.trays && its(uses.trays, 'tray')].filter(Boolean).join(' and ');
+    const went = [uses.plantings && its(uses.plantings, 'planting'), uses.past && its(uses.past, 'past planting'), uses.trays && its(uses.trays, 'tray')].filter(Boolean).join(', ').replace(/, ([^,]*)$/, ' and $1');
     app.notify(`"${p.commonName}" deleted${went ? `, with its ${went} in this garden` : ''}.`, { undo: true });
   };
   /** Where a plant is growing on the plan: "Veg bed", "Bed two". */

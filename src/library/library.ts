@@ -207,25 +207,28 @@ export const saveUserPlant =
     return { ...s, userPlants: exists ? s.userPlants.map((x) => (x.id === p.id ? p : x)) : [...s.userPlants, p] };
   };
 
-/** What deleting it takes from the open garden: its plantings on the plan now, and its trays in the Shed. */
+/** What deleting it takes from the open garden: its plantings on the plan now, past ones in the beds' history, and trays. */
 export const usesOf = (s: AppState, id: string) => ({
   plantings: s.garden.plantings.filter((p) => p.plantId === id && !p.removedOn).length,
+  past: s.garden.plantings.filter((p) => p.plantId === id && p.removedOn).length,
   trays: (s.garden.trays ?? []).filter((t) => t.plantId === id).length,
 });
 
 /**
- * Deletes one of your own plants, and with it, in the open garden, its plantings on the plan now (with their notes, as
- * deleting a planting does), its trays and its place on the Want to grow list. One change, so one Undo brings it all
- * back. Past plantings stay, with their harvests, as the bed's history for rotation; so do seed packets, which are
+ * Deletes one of your own plants, and with it, in the open garden, all its plantings, past ones too (with their notes,
+ * as deleting a planting does), its trays and its place on the Want to grow list, so none is left as an unknown plant.
+ * It comes off your other plants' neighbours. One change, so one Undo brings it all back. Seed packets stay: they're
  * things you have. Other saved gardens aren't open, so aren't changed.
  */
 export const deleteUserPlant =
   (id: string): Change =>
   (s: AppState) => {
-    const userPlants = s.userPlants.filter((x) => x.id !== id);
-    if (userPlants.length === s.userPlants.length) return s;
+    if (!s.userPlants.some((x) => x.id === id)) return s;
+    const offNeighbours = (x: Plant): Plant =>
+      x.companions && [...x.companions.good, ...x.companions.avoid].includes(id) ? { ...x, companions: { good: x.companions.good.filter((c) => c !== id), avoid: x.companions.avoid.filter((c) => c !== id) } } : x;
+    const userPlants = s.userPlants.filter((x) => x.id !== id).map(offNeighbours);
     const g = s.garden;
-    const gone = new Set(g.plantings.filter((p) => p.plantId === id && !p.removedOn).map((p) => p.id));
+    const gone = new Set(g.plantings.filter((p) => p.plantId === id).map((p) => p.id));
     const garden = {
       ...g,
       plantings: g.plantings.filter((p) => !gone.has(p.id)),
