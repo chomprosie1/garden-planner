@@ -167,7 +167,7 @@ export function PlantForm({ initial, onSave, onCancel, others = [] }: Props) {
     <form class="plant-form" onSubmit={submit}>
       <h1 class="plant-name">{isNew ? 'Add your own plant' : `Edit ${initial.commonName}`}</h1>
       <p class="muted small">
-        Only the first four are needed. Add the rest whenever you like. <HelpLink topic="your-own-plant">More about your own plants</HelpLink>
+        Only a name, kind, light and spacing are needed. Add the rest whenever you like. <HelpLink topic="your-own-plant">More about your own plants</HelpLink>
       </p>
 
       {isNew && library.length > 0 && (
