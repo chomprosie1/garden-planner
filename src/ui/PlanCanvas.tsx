@@ -121,6 +121,8 @@ export interface CanvasApi {
   dropSticker(id: string): void;
   /** Zooms so these points fill the view, with a margin. */
   zoomTo(points: Point[]): void;
+  /** Moves what's selected this far (mm), as the arrow keys do: false if it can't be moved now. */
+  nudge(dx: number, dy: number): boolean;
 }
 
 export interface PlanCanvasProps {
@@ -142,6 +144,8 @@ export interface PlanCanvasProps {
   edit?: 'layout' | 'planting' | 'view' | 'all';
   /** With edit "all": the layout can't be moved or reshaped by accident. Plants still can. */
   locked?: boolean;
+  /** Snapping turned off: everything goes exactly where it's put, as if Alt were held. */
+  snapOff?: boolean;
   /** The floating action pill, kept beside whatever's selected as the plan moves. */
   pillRef?: { current: HTMLElement | null };
   /** A plant has just been dropped and filled the usual way: offer the other ways at this screen point. */
@@ -467,6 +471,24 @@ export function PlanCanvas(props: PlanCanvasProps) {
     return !!f && isSetGround(f, t);
   };
 
+  /** Whether what's selected can be moved a step at a time: a bed or path while the layout can change, or a planting. */
+  const canNudge = () => {
+    const p = P.current;
+    const edit = p.edit ?? 'layout';
+    return (p.selected?.type === 'feature' && layoutEditable() && !selectionSet()) || (p.selected?.type === 'planting' && !p.readOnly && (edit === 'planting' || edit === 'all'));
+  };
+
+  /** Moves what's selected by dx, dy (mm): the arrow keys, and the arrows on a phone's sheet. */
+  const nudge = (dx: number, dy: number): boolean => {
+    const p = P.current;
+    const t = p.selected;
+    if (!t || !canNudge() || (t.type !== 'planting' && t.type !== 'feature')) return false;
+    // A step at a time or not, out of its bed is worth asking.
+    if (t.type === 'planting' && askLeaving(p.garden, movePlanting(p.garden, t.id, dx, dy), t.id)) return true;
+    commit((g) => (t.type === 'planting' ? movePlanting(g, t.id, dx, dy) : moveFeature(g, t.id, dx, dy)));
+    return true;
+  };
+
   /** The selected thing's box on screen. */
   const selectionBox = (): Bounds | null => {
     const p = P.current;
@@ -596,13 +618,16 @@ export function PlanCanvas(props: PlanCanvasProps) {
     return out;
   };
 
+  /** No snapping, guides or 15° steps: Alt held, or snapping turned off for those without a keyboard. */
+  const free = (e: { altKey: boolean }) => e.altKey || !!P.current.snapOff;
+
   const snapAt = (world: Point, e: { altKey: boolean; shiftKey: boolean }, from?: Point, extra: Point[] = [], except?: { target: Target; index: number }) =>
     snapPoint(world, {
       vertices: [...extra, ...allVertices(garden(), except)],
       ...(from ? { from } : {}),
       gridMm: snapStepFor(view.current!.scale),
       toleranceMm: tolMm(10),
-      free: e.altKey,
+      free: free(e),
       forceAngle: e.shiftKey,
     });
 
@@ -1145,14 +1170,14 @@ export function PlanCanvas(props: PlanCanvasProps) {
         case 'move': {
           if (!d.moved && !isDrag(s[0] - d.startScreen[0], s[1] - d.startScreen[1], downType.current)) return;
           d.moved = true;
-          const step = e.altKey ? 1 : snapStepFor(v.scale);
+          const step = free(e) ? 1 : snapStepFor(v.scale);
           let dx = Math.round((world[0] - d.start[0]) / step) * step;
           let dy = Math.round((world[1] - d.start[1]) / step) * step;
           // Line edges and middles up with other things, and show the line they share.
           guides.current = [];
           const f0 = d.base.features.find((x) => x.id === d.id);
           const b0 = f0 ? bounds(f0.footprint) : null;
-          if (b0 && !e.altKey) {
+          if (b0 && !free(e)) {
             const others = d.base.features.filter((x) => x.id !== d.id).map((x) => bounds(x.footprint)).filter((b): b is Bounds => !!b);
             if (d.base.boundary.length >= 3) others.push(bounds(d.base.boundary)!);
             const tol = tolMm(7);
@@ -1184,14 +1209,14 @@ export function PlanCanvas(props: PlanCanvasProps) {
         case 'rotate': {
           let deg = ((Math.atan2(world[1] - d.pivot[1], world[0] - d.pivot[0]) - d.from) * 180) / Math.PI;
           // Turns in steps of 15° unless Alt is held.
-          if (!e.altKey) deg = Math.round(deg / 15) * 15;
+          if (!free(e)) deg = Math.round(deg / 15) * 15;
           preview.current = rotateFeature(d.base, d.id, deg);
           break;
         }
         case 'movePlanting': {
           if (!d.moved && !isDrag(s[0] - d.startScreen[0], s[1] - d.startScreen[1], downType.current)) return;
           d.moved = true;
-          const step = e.altKey ? 1 : snapStepFor(v.scale);
+          const step = free(e) ? 1 : snapStepFor(v.scale);
           const dx = Math.round((world[0] - d.start[0]) / step) * step;
           const dy = Math.round((world[1] - d.start[1]) / step) * step;
           preview.current = movePlanting(d.base, d.id, dx, dy);
@@ -1238,7 +1263,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
         }
         case 'radius': {
           const f = d.base.features.find((x) => x.id === d.id)!;
-          const step = e.altKey ? 1 : snapStepFor(v.scale);
+          const step = free(e) ? 1 : snapStepFor(v.scale);
           const r = Math.max(step, Math.round(distance(f.circle!.centre, world) / step) * step);
           preview.current = updateFeature(d.base, d.id, { circle: { ...f.circle!, radiusMm: r } });
           break;
@@ -1325,7 +1350,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
     if (d && d.kind === 'pan' && !d.moved && !cancelled && p.measuring && view.current) {
       drag.current = null;
       // Onto a corner nearby, or exactly where it was tapped (to the centimetre), never to the grid.
-      const at = snapPoint(toWorld(view.current, screenOf(e)), { vertices: allVertices(garden()), gridMm: 10, toleranceMm: tolMm(10), free: e.altKey }).point;
+      const at = snapPoint(toWorld(view.current, screenOf(e)), { vertices: allVertices(garden()), gridMm: 10, toleranceMm: tolMm(10), free: free(e) }).point;
       measure.current = measure.current.length >= 2 ? [at] : [...measure.current, at];
       p.onMeasure?.(measure.current);
       return redraw();
@@ -1624,15 +1649,10 @@ export function PlanCanvas(props: PlanCanvasProps) {
         }
         return;
       }
-      if (key.startsWith('Arrow') && ((p.selected?.type === 'feature' && layoutEditable() && !selectionSet()) || (p.selected?.type === 'planting' && (edit === 'planting' || edit === 'all')))) {
+      if (key.startsWith('Arrow') && canNudge()) {
         e.preventDefault();
         const step = e.shiftKey ? 100 : 10;
-        const dx = key === 'ArrowLeft' ? -step : key === 'ArrowRight' ? step : 0;
-        const dy = key === 'ArrowDown' ? -step : key === 'ArrowUp' ? step : 0;
-        const t = p.selected;
-        // A step at a time or not, out of its bed is worth asking.
-        if (t.type === 'planting' && askLeaving(p.garden, movePlanting(p.garden, t.id, dx, dy), t.id)) return;
-        commit((g) => (t.type === 'planting' ? movePlanting(g, t.id, dx, dy) : moveFeature(g, t.id, dx, dy)));
+        nudge(key === 'ArrowLeft' ? -step : key === 'ArrowRight' ? step : 0, key === 'ArrowDown' ? -step : key === 'ArrowUp' ? step : 0);
         return;
       }
       const tools: Record<string, Tool> = { v: 'select', b: 'boundary', r: 'bed', p: 'path', l: 'fence', t: 'tree', u: 'surface', g: 'plant', k: 'sketch' };
@@ -1655,6 +1675,7 @@ export function PlanCanvas(props: PlanCanvasProps) {
   // Commands for the phone's drawing bar. They act on the point under the crosshair.
   if (props.apiRef)
     props.apiRef.current = {
+      nudge,
       addCorner() {
         const geometry = geometryForTool(P.current.tool);
         if (!geometry || !view.current) return;

@@ -83,3 +83,12 @@ describe('welcomeAgain', () => {
     expect(sanitisePrefs({ welcomeAgain: 'yes' }).welcomeAgain).toBe(false);
   });
 });
+
+describe('snapping on the plan (57i)', () => {
+  it('is on unless it was turned off, so older settings keep snapping', () => {
+    expect(defaultPrefs().snap).toBe(true);
+    expect(sanitisePrefs({}).snap).toBe(true);
+    expect(sanitisePrefs({ snap: false }).snap).toBe(false);
+    expect(sanitisePrefs({ snap: 'no' }).snap).toBe(true);
+  });
+});

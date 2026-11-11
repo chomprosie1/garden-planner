@@ -44,6 +44,8 @@ export interface Prefs {
   seenMonth: number | null;
   /** Beds, paths and other layout can't be moved or reshaped by accident. Plants still can. */
   layoutLocked: boolean;
+  /** Things on the plan snap to corners, edges and the grid. Off: they go exactly where they're put, as with Alt held. */
+  snap: boolean;
   /** When a backup file was last downloaded (ISO date), of any garden. */
   lastBackup: string | null;
   /** The day of each garden's last copy, by its id: a copy is of one garden. */
@@ -127,6 +129,7 @@ export function defaultPrefs(): Prefs {
     lastView: 'plan',
     seenMonth: null,
     layoutLocked: false,
+    snap: true,
     lastBackup: null,
     copies: {},
     northChecked: false,
@@ -198,6 +201,7 @@ export function sanitisePrefs(raw: unknown): Prefs {
         ? r.seenMonth
         : null,
     layoutLocked: r.layoutLocked === true,
+    snap: r.snap !== false,
     lastBackup: typeof r.lastBackup === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.lastBackup) ? r.lastBackup : null,
     copies: typeof r.copies === 'object' && r.copies !== null && !Array.isArray(r.copies) ? Object.fromEntries(Object.entries(r.copies).filter((e): e is [string, string] => typeof e[1] === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(e[1]))) : {},
     northChecked: r.northChecked === true,

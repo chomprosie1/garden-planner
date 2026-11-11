@@ -1836,6 +1836,19 @@ button:disabled {
   min-height: 44px;
   padding: 0 0.5rem;
 }
+.nudge-pad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+.nudge-pad .nudge-btn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  font-size: 1.2rem;
+  line-height: 1;
+}
 .neighbour-add {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

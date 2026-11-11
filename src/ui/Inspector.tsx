@@ -118,11 +118,34 @@ interface Props {
   moveToBed?: (plantingId: string) => void;
   /** For a list: the other rows shown with this one as one line, which what's happened applies to as well. */
   together?: string[];
+  /** Moves what's selected this far (mm), as the arrow keys do. Given on a touch screen, for the arrows on the sheet. */
+  nudge?: (dx: number, dy: number) => void;
 }
 
 type Shared = Omit<Props, 'calibration' | 'clearCalibration' | 'selected' | 'setTool'>;
 
 const LAYOUT_LABEL = { single: 'Plant', row: 'Row', block: 'Block' } as const;
+
+/** Arrows that move the selected thing 1 cm a step: for placing it exactly with a finger, where there are no arrow keys. */
+function NudgePad({ nudge, what }: { nudge: (dx: number, dy: number) => void; what: string }) {
+  const STEP = 10;
+  const ARROWS = [
+    ['Left', '←', -STEP, 0],
+    ['Up', '↑', 0, STEP],
+    ['Down', '↓', 0, -STEP],
+    ['Right', '→', STEP, 0],
+  ] as const;
+  return (
+    <div class="nudge-pad" role="group" aria-label={`Move ${what} 1 cm at a time`}>
+      <span class="muted small">Move 1 cm</span>
+      {ARROWS.map(([name, arrow, dx, dy]) => (
+        <button key={name} type="button" class="btn nudge-btn" aria-label={`${name} 1 cm`} onClick={() => nudge(dx, dy)}>
+          {arrow}
+        </button>
+      ))}
+    </div>
+  );
+}
 const BAND_LABEL = { 'full-sun': 'full sun', 'part-shade': 'part shade', shade: 'shade' } as const;
 
 /** A number field that saves on Enter or when you leave it, so each edit is one undo step. */
@@ -330,7 +353,7 @@ function GrowingOnGround({ garden, f, plantOf, setSelected, list = false }: { ga
   );
 }
 
-function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf, embedded = false, fixed = false, list = false }: Shared & { f: Feature; variant: 'layout' | 'sun'; embedded?: boolean; /** Set ground: named and made of something, but not moved, reshaped or deleted until it's unlocked. */ fixed?: boolean }) {
+function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf, embedded = false, fixed = false, list = false, locked, nudge }: Shared & { f: Feature; variant: 'layout' | 'sun'; embedded?: boolean; /** Set ground: named and made of something, but not moved, reshaped or deleted until it's unlocked. */ fixed?: boolean }) {
   const app = useApp();
   const commit = (fn: (g: Garden) => Garden) => store.apply(updateGarden(fn));
   const geometry = geometryOf(f);
@@ -520,6 +543,7 @@ function FeaturePanel({ store, garden, f, variant, setSelected, sunJune, plantOf
               {!touchScreen() && 'Arrow keys nudge by 1 cm (10 cm with Shift).'}
             </p>
           )}
+          {!list && !locked && nudge && <NudgePad nudge={nudge} what={featureLabel(f).toLowerCase()} />}
           <div class="button-row">
             {!list && (
               <>
@@ -1241,6 +1265,8 @@ function PlantingPanel(props: Props & { pl: Planting }) {
                     </>
                   )}
                 </dl>
+                {/* On a phone, moving it exactly: kept out of the folded details, where it'd never be found. */}
+                {canEdit && !props.list && props.nudge && <NudgePad nudge={props.nudge} what={plant.commonName.toLowerCase()} />}
                 {canEdit && (
                   <details class="advanced">
                     <summary>Change the details</summary>

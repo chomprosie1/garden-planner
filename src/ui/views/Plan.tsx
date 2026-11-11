@@ -471,6 +471,10 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
     setDrawer('plants');
     setMessage(`Your ${spaceInfo(space).label.toLowerCase()} is laid out. Drop plants from below into a bed or pot.`);
   };
+  const toggleSnap = () => {
+    prefsStore.set({ snap: !prefs.snap });
+    app.notify(prefs.snap ? 'Snapping off: things go exactly where you put them. Turn it back on from the ··· menu.' : 'Snapping on: things line up with corners, edges and the grid.');
+  };
   const toggleLock = () => {
     prefsStore.set({ layoutLocked: !locked });
     setMessage(locked ? 'Layout unlocked: beds and paths can be moved and reshaped.' : 'Layout locked: beds and paths stay put. Plants can still be moved.');
@@ -482,6 +486,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
       garden={garden}
       sunLens={sunOn}
       locked={locked}
+      {...(touchScreen() && !sunOn ? { nudge: (dx: number, dy: number) => void canvasApi.current?.nudge(dx, dy) } : {})}
       selected={selected}
       setSelected={select}
       setTool={(t) => {
@@ -664,6 +669,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
                 ? { label: 'Advanced tools: draw, reshape, sun and shade', icon: 'pencil' as const, onSelect: () => switchMode('advanced') }
                 : { label: 'Simple tools: drop and drag', icon: 'plan' as const, onSelect: () => switchMode('simple') },
               { label: 'Redo', icon: 'redo', keys: 'Ctrl+Y', disabled: !store.canRedo(), onSelect: () => store.redo() },
+              { label: prefs.snap ? 'Turn snapping off: things go exactly where you put them' : 'Turn snapping back on', icon: 'magnet' as const, onSelect: toggleSnap },
               ...(!phone ? [{ label: 'Fit the garden to the screen', icon: 'fit' as const, keys: '0', onSelect: () => setFitSignal((n) => n + 1) }] : []),
               ...(phone ? [{ label: 'Details of the whole garden', icon: 'info' as const, onSelect: () => (setSelected(null), setSheetOpen(true)) }] : []),
               ...(prefs.photos === 'full' && !phone
@@ -724,6 +730,7 @@ export function Plan({ store, garden, userPlants, prefs, prefsStore, intent = nu
               readOnly={false}
               edit="all"
               locked={locked}
+              snapOff={!prefs.snap}
               pillRef={pillRef}
               onPlaced={(id, at, world) => setPlaced({ id, at, world })}
               crosshair={phone}
